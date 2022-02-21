@@ -48,7 +48,7 @@ public class DevModeOperations {
 			}
 			cmd = "gradle libertyDev -b=" + projectPath;
 		} else {
-			Dialog.displayErrorMessage("Project" + project.getName() + "is not a Gradle or Maven project.");
+			Dialog.displayErrorMessage("Project " + project.getName() + " is not a Gradle or Maven project.");
 			return;
 		}
 
