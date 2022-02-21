@@ -10,7 +10,18 @@ Require-Bundle: org.eclipse.ui,
  org.eclipse.ui.console;bundle-version="3.9.200",
  org.eclipse.jdt.core;bundle-version="3.22.0",
  org.eclipse.jem.util;bundle-version="2.1.201",
- org.gradle.toolingapi;bundle-version="6.3.0"
+ org.gradle.toolingapi;bundle-version="6.3.0",
+ org.eclipse.tm.terminal.connector.local;bundle-version="4.7.200",
+ org.eclipse.tm.terminal.connector.process;bundle-version="4.8.0",
+ org.eclipse.tm.terminal.connector.ssh;bundle-version="4.7.100",
+ org.eclipse.tm.terminal.connector.telnet;bundle-version="4.7.100",
+ org.eclipse.tm.terminal.control;bundle-version="5.3.0",
+ org.eclipse.tm.terminal.view.core;bundle-version="4.8.100",
+ org.eclipse.tm.terminal.view.ui;bundle-version="4.10.100",
+ org.eclipse.tm4e.core;bundle-version="0.4.3",
+ org.eclipse.tm4e.languageconfiguration;bundle-version="0.4.0",
+ org.eclipse.tm4e.registry;bundle-version="0.5.0",
+ org.eclipse.tm4e.ui;bundle-version="0.5.0"
 Bundle-RequiredExecutionEnvironment: JavaSE-11
 Automatic-Module-Name: liberty
 Bundle-ActivationPolicy: lazy

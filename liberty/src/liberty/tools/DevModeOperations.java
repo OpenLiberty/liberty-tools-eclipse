@@ -1,9 +1,17 @@
 package liberty.tools;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.IStatus;
 
 import liberty.tools.utils.Dialog;
 import liberty.tools.utils.Project;
+import org.eclipse.tm.internal.terminal.*;
+import org.eclipse.tm.terminal.view.core.TerminalServiceFactory;
+import org.eclipse.tm.terminal.view.core.interfaces.ITerminalService;
+import org.eclipse.tm.terminal.view.core.interfaces.constants.ITerminalsConnectorConstants;
 
 /**
  * Provides the implementation of all supported dev mode operations.
@@ -162,7 +170,32 @@ public class DevModeOperations {
 	 */
 	public void runCommand(String cmd) throws Exception {
 		// TODO: Implement me.
-		throw new UnsupportedOperationException(
-				"Not yet implemented. Waiting for a brave soul to do it. Not sure how to do this!");
+		
+		System.out.println("AJM: trying to open a terminal");
+		// Define the terminal properties
+		Map<String, Object> properties = new HashMap<String, Object>();
+		properties.put(ITerminalsConnectorConstants.PROP_TITLE, "My Local Terminal");
+		properties.put(ITerminalsConnectorConstants.PROP_ENCODING, "UTF-8");
+		properties.put(ITerminalsConnectorConstants.PROP_PROCESS_WORKING_DIR, ".");
+		properties.put(ITerminalsConnectorConstants.PROP_DELEGATE_ID, "org.eclipse.tm.terminal.connector.local.launcher.local");
+		//properties.put(ITerminalsConnectorConstants.PROP_PROCESS_ENVIRONMENT, "bash");
+		//properties.put(ITerminalsConnectorConstants.PROP_PROCESS_PATH, "dir");
+		//properties.put(ITerminalsConnectorConstants.PROP_PROCESS_ARGS, "-la");
+
+
+		// Create the done callback object
+		ITerminalService.Done done = new ITerminalService.Done() {
+		    public void done(IStatus done) {
+		        // Place any post processing here
+		    }
+		};
+
+		// Open the terminal
+		ITerminalService terminal = TerminalServiceFactory.getService();
+		if (terminal != null) terminal.openConsole(properties, done);
+		System.out.println("AJM: terminal created?");
+        
+		//throw new UnsupportedOperationException(
+		//		"start Not yet implemented. Waiting for a brave soul to do it. Not sure how to do this!");
 	}
 }
