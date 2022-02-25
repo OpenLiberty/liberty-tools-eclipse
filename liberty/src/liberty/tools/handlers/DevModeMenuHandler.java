@@ -7,14 +7,14 @@ import org.eclipse.ui.handlers.HandlerUtil;
 
 public class DevModeMenuHandler extends AbstractHandler {
 
-	@Override
-	public Object execute(ExecutionEvent event) throws ExecutionException {
-		try {
-			HandlerUtil.getActiveWorkbenchWindow(event).getActivePage().showView("liberty.views.liberty.devmode");
-		} catch (Exception e) {
-			throw new ExecutionException("Unable to open the Liberty dashboard view", e);
-		}
+    @Override
+    public Object execute(ExecutionEvent event) throws ExecutionException {
+        try {
+            HandlerUtil.getActiveWorkbenchWindow(event).getActivePage().showView("liberty.views.liberty.devmode");
+        } catch (Exception e) {
+            throw new ExecutionException("Unable to open the Liberty dashboard view", e);
+        }
 
-		return null;
-	}
+        return null;
+    }
 }

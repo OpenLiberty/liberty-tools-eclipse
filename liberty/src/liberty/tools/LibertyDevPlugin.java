@@ -8,37 +8,37 @@ import org.osgi.framework.BundleContext;
  */
 public class LibertyDevPlugin extends AbstractUIPlugin {
 
-	// The plug-in ID
-	public static final String PLUGIN_ID = "liberty"; //$NON-NLS-1$
+    // The plug-in ID
+    public static final String PLUGIN_ID = "liberty"; //$NON-NLS-1$
 
-	// The shared instance
-	private static LibertyDevPlugin plugin;
-	
-	/**
-	 * The constructor
-	 */
-	public LibertyDevPlugin() {
-	}
+    // The shared instance
+    private static LibertyDevPlugin plugin;
 
-	@Override
-	public void start(BundleContext context) throws Exception {
-		super.start(context);
-		plugin = this;
-	}
+    /**
+     * The constructor
+     */
+    public LibertyDevPlugin() {
+    }
 
-	@Override
-	public void stop(BundleContext context) throws Exception {
-		plugin = null;
-		super.stop(context);
-	}
+    @Override
+    public void start(BundleContext context) throws Exception {
+        super.start(context);
+        plugin = this;
+    }
 
-	/**
-	 * Returns the shared instance
-	 *
-	 * @return the shared instance
-	 */
-	public static LibertyDevPlugin getDefault() {
-		return plugin;
-	}
+    @Override
+    public void stop(BundleContext context) throws Exception {
+        plugin = null;
+        super.stop(context);
+    }
+
+    /**
+     * Returns the shared instance
+     *
+     * @return the shared instance
+     */
+    public static LibertyDevPlugin getDefault() {
+        return plugin;
+    }
 
 }
