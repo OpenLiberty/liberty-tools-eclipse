@@ -1,5 +1,6 @@
 package liberty.tools.ui;
 
+import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
@@ -20,168 +21,203 @@ import org.eclipse.ui.part.ViewPart;
 
 import liberty.tools.DevModeOperations;
 import liberty.tools.LibertyDevPlugin;
+import liberty.tools.utils.Dialog;
 import liberty.tools.utils.Project;
 
+/**
+ * View of Liberty application projects and development mode actions to be processed on the selected projects.
+ */
 public class DevModeView extends ViewPart {
 
-	public static final DevModeOperations devMode = new DevModeOperations();
+    public static final DevModeOperations devMode = new DevModeOperations();
 
-	ListViewer viewer;
+    ListViewer viewer;
 
-	Action startAction;
-	Action startWithParmAction;
-	Action startInContanerAction;
-	Action stopAction;
-	Action runTestAction;
-	Action viewTestReportsAction;
+    Action startAction;
+    Action startWithParmAction;
+    Action startInContanerAction;
+    Action stopAction;
+    Action runTestAction;
+    Action viewMavenITestReportsAction;
+    Action viewMavenUTestReportsAction;
+    Action viewGradleTestReportsAction;
 
-	@Override
-	public void createPartControl(Composite parent) {
-		viewer = new ListViewer(parent);
-		viewer.setContentProvider(new ArrayContentProvider());
-		viewer.setLabelProvider(new LabelProvider());
-		viewer.setInput(Project.getWokspaceJavaProjects());
-		createActions();
-		createContextMenu();
-		getSite().setSelectionProvider(viewer);
-	}
+    @Override
+    public void createPartControl(Composite parent) {
+        viewer = new ListViewer(parent);
+        viewer.setContentProvider(new ArrayContentProvider());
+        viewer.setLabelProvider(new LabelProvider());
+        viewer.setInput(Project.getOpenWokspaceProjects());
+        createActions();
+        createContextMenu();
+        getSite().setSelectionProvider(viewer);
+    }
 
-	@Override
-	public void setFocus() {
-		viewer.getControl().setFocus();
-	}
+    @Override
+    public void setFocus() {
+        viewer.getControl().setFocus();
+    }
 
-	/**
-	 * Creates a right-click menu.
-	 */
-	private void createContextMenu() {
-		MenuManager menuMgr = new MenuManager();
-		menuMgr.setRemoveAllWhenShown(true);
-		menuMgr.addMenuListener(new IMenuListener() {
-			@Override
-			public void menuAboutToShow(IMenuManager mgr) {
-				addActionsToContextMenu(mgr);
+    /**
+     * Creates a right-click menu.
+     */
+    private void createContextMenu() {
+        MenuManager menuMgr = new MenuManager();
+        menuMgr.setRemoveAllWhenShown(true);
+        menuMgr.addMenuListener(new IMenuListener() {
+            @Override
+            public void menuAboutToShow(IMenuManager mgr) {
+                addActionsToContextMenu(mgr);
 
-			}
-		});
+            }
+        });
 
-		Menu menu = menuMgr.createContextMenu(viewer.getControl());
-		viewer.getControl().setMenu(menu);
+        Menu menu = menuMgr.createContextMenu(viewer.getControl());
+        viewer.getControl().setMenu(menu);
 
-		getSite().registerContextMenu("liberty.views.liberty.devmode", menuMgr, viewer);
-	}
+        getSite().registerContextMenu("liberty.views.liberty.devmode", menuMgr, viewer);
+    }
 
-	/**
-	 * Populates the menue context actions.
-	 * 
-	 * @param mgr The menu manager.
-	 */
-	private void addActionsToContextMenu(IMenuManager mgr) {
-		mgr.add(startAction);
-		mgr.add(startWithParmAction);
-		mgr.add(startInContanerAction);
-		mgr.add(stopAction);
-		mgr.add(runTestAction);
-		mgr.add(viewTestReportsAction);
-		mgr.add(new Separator());
-	}
+    /**
+     * Populates the menu context actions.
+     * 
+     * @param mgr The menu manager.
+     */
+    private void addActionsToContextMenu(IMenuManager mgr) {
+        IProject project = Project.getSelected();
 
-	/**
-	 * Create content menu actions.
-	 */
-	public void createActions() {
-		ImageDescriptor libertyImgDesc = ImageDescriptor
-				.createFromURL(LibertyDevPlugin.getDefault().getBundle().getResource("icons/openLibertyLogo.png"));
+        if (project != null) {
+            mgr.add(startAction);
+            mgr.add(startWithParmAction);
+            mgr.add(startInContanerAction);
+            mgr.add(stopAction);
+            mgr.add(runTestAction);
 
-		// Start.
-		startAction = new Action("Start") {
-			public void run() {
-				devMode.start();
-			}
-		};
-		startAction.setImageDescriptor(libertyImgDesc);
+            if (Project.isMaven(project)) {
+                mgr.add(viewMavenITestReportsAction);
+                mgr.add(viewMavenUTestReportsAction);
+            } else if (Project.isGradle(project)) {
+                mgr.add(viewGradleTestReportsAction);
+            } else {
+                Dialog.displayErrorMessage("Project" + project.getName() + "is not a Gradle or Maven project.");
+                return;
+            }
+            mgr.add(new Separator());
+        }
+    }
 
-		// Start with parameters.
-		startWithParmAction = new Action("Start...") {
-			public void run() {
-				String parms = getStartParms();
-				devMode.startWithParms(parms);
-			}
-		};
-		startWithParmAction.setImageDescriptor(libertyImgDesc);
+    /**
+     * Create content menu actions.
+     */
+    public void createActions() {
+        ImageDescriptor libertyImgDesc = ImageDescriptor
+                .createFromURL(LibertyDevPlugin.getDefault().getBundle().getResource("icons/openLibertyLogo.png"));
 
-		// Start in container.
-		startInContanerAction = new Action("Start in container") {
-			public void run() {
-				devMode.startInContainer();
-			}
-		};
-		startInContanerAction.setImageDescriptor(libertyImgDesc);
+        // Start.
+        startAction = new Action("Start") {
+            public void run() {
+                devMode.start();
+            }
+        };
+        startAction.setImageDescriptor(libertyImgDesc);
 
-		// Stop.
-		stopAction = new Action("Stop") {
-			public void run() {
-				devMode.stop();
-			}
-		};
-		stopAction.setImageDescriptor(libertyImgDesc);
+        // Start with parameters.
+        startWithParmAction = new Action("Start...") {
+            public void run() {
+                String parms = getStartParms();
+                devMode.startWithParms(parms);
+            }
+        };
+        startWithParmAction.setImageDescriptor(libertyImgDesc);
 
-		// Run tests.
-		runTestAction = new Action("Run tests") {
-			public void run() {
-				devMode.runTests();
-			}
-		};
-		runTestAction.setImageDescriptor(libertyImgDesc);
+        // Start in container.
+        startInContanerAction = new Action("Start in container") {
+            public void run() {
+                devMode.startInContainer();
+            }
+        };
+        startInContanerAction.setImageDescriptor(libertyImgDesc);
 
-		// View test reports.
-		viewTestReportsAction = new Action("View test reports") {
-			public void run() {
-				devMode.openTestReports();
-			}
-		};
-		viewTestReportsAction.setImageDescriptor(libertyImgDesc);
-	}
+        // Stop.
+        stopAction = new Action("Stop") {
+            public void run() {
+                devMode.stop();
+            }
+        };
+        stopAction.setImageDescriptor(libertyImgDesc);
 
-	/**
-	 * Gets start command parameters provided by the user through an input dialog window.
-	 * 
-	 * @return The parameters entered by the user.
-	 */
-	public String getStartParms() {
-		String dTitle = "Liberty Development Mode";
-		String dMessage = "Specify custom parameters for the liberty dev command.";
-		String dInitValue = "";
-		IInputValidator iValidator = getParmListValidator();
-		Shell shell = Display.getCurrent().getActiveShell();
-		InputDialog iDialog = new InputDialog(shell, dTitle, dMessage, dInitValue, iValidator) {
-		};
-		String userInput = "";
-		if (iDialog.open() == Window.OK) {
-			userInput = iDialog.getValue();
-		}
+        // Run tests.
+        runTestAction = new Action("Run tests") {
+            public void run() {
+                devMode.runTests();
+            }
+        };
+        runTestAction.setImageDescriptor(libertyImgDesc);
 
-		return userInput;
-	}
+        // Maven: View integration test report.
+        viewMavenITestReportsAction = new Action("View integration test report") {
+            public void run() {
+                devMode.openMavenIntegrationTestReport();
+            }
+        };
+        viewMavenITestReportsAction.setImageDescriptor(libertyImgDesc);
 
-	/**
-	 * Creates a validator object for user provided parameters.
-	 * 
-	 * @return A validator object for user provided parameters.
-	 */
-	public IInputValidator getParmListValidator() {
-		return new IInputValidator() {
+        // Maven: View unit test report.
+        viewMavenUTestReportsAction = new Action("View unit test report") {
+            public void run() {
+                devMode.openMavenUnitTestReport();
+            }
+        };
+        viewMavenUTestReportsAction.setImageDescriptor(libertyImgDesc);
 
-			@Override
-			public String isValid(String text) {
-				String[] parmSegments = text.split(" ");
-				for (int i = 0; i < parmSegments.length; i++) {
-					if (parmSegments[i] != null && !parmSegments[i].isEmpty() && !parmSegments[i].startsWith("-")) {
-						return "Parameters must start with -";
-					}
-				}
-				return null;
-			}
-		};
-	}
+        // Gradle: View test report.
+        viewGradleTestReportsAction = new Action("View test report") {
+            public void run() {
+                devMode.openGradleTestReport();
+            }
+        };
+        viewGradleTestReportsAction.setImageDescriptor(libertyImgDesc);
+    }
+
+    /**
+     * Gets start command parameters provided by the user through an input dialog window.
+     * 
+     * @return The parameters entered by the user.
+     */
+    public String getStartParms() {
+        String dTitle = "Liberty Development Mode";
+        String dMessage = "Specify custom parameters for the liberty dev command.";
+        String dInitValue = "";
+        IInputValidator iValidator = getParmListValidator();
+        Shell shell = Display.getCurrent().getActiveShell();
+        InputDialog iDialog = new InputDialog(shell, dTitle, dMessage, dInitValue, iValidator) {
+        };
+        String userInput = "";
+        if (iDialog.open() == Window.OK) {
+            userInput = iDialog.getValue();
+        }
+
+        return userInput;
+    }
+
+    /**
+     * Creates a validation object for user provided parameters.
+     * 
+     * @return A validation object for user provided parameters.
+     */
+    public IInputValidator getParmListValidator() {
+        return new IInputValidator() {
+
+            @Override
+            public String isValid(String text) {
+                String[] parmSegments = text.split(" ");
+                for (int i = 0; i < parmSegments.length; i++) {
+                    if (parmSegments[i] != null && !parmSegments[i].isEmpty() && !parmSegments[i].startsWith("-")) {
+                        return "Parameters must start with -";
+                    }
+                }
+                return null;
+            }
+        };
+    }
 }
