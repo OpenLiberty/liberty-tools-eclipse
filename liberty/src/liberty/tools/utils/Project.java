@@ -104,7 +104,7 @@ public class Project {
         if (project != null) {
             IPath path = project.getLocation();
             if (path != null) {
-                return path.toPortableString();
+                return path.toOSString();
             }
         }
 
