@@ -68,4 +68,12 @@
              	category="liberty.views.liberty.category"
                 class="liberty.tools.ui.DevModeView"/>
   </extension>
+  
+  <!-- Nature -->
+  <extension id="libertyNature" name="LibertyNature" point="org.eclipse.core.resources.natures">
+      <runtime>
+         <run class="liberty.tools.LibertyNature">
+         </run>
+      </runtime>
+  </extension>
 </plugin>

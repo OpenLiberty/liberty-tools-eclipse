@@ -47,7 +47,13 @@ public class DevModeView extends ViewPart {
         viewer = new ListViewer(parent);
         viewer.setContentProvider(new ArrayContentProvider());
         viewer.setLabelProvider(new LabelProvider());
-        viewer.setInput(Project.getOpenWokspaceProjects());
+
+        try {
+            viewer.setInput(Project.getLibertyProjects());
+        } catch (Exception e) {
+            Dialog.displayErrorMessageWithDetails("An error was detected while retrieving Liberty projects.", e);
+            return;
+        }
         createActions();
         createContextMenu();
         getSite().setSelectionProvider(viewer);
@@ -115,6 +121,7 @@ public class DevModeView extends ViewPart {
 
         // Start.
         startAction = new Action("Start") {
+            @Override
             public void run() {
                 devMode.start();
             }
@@ -123,6 +130,7 @@ public class DevModeView extends ViewPart {
 
         // Start with parameters.
         startWithParmAction = new Action("Start...") {
+            @Override
             public void run() {
                 String parms = getStartParms();
                 devMode.startWithParms(parms);
@@ -132,6 +140,7 @@ public class DevModeView extends ViewPart {
 
         // Start in container.
         startInContanerAction = new Action("Start in container") {
+            @Override
             public void run() {
                 devMode.startInContainer();
             }
@@ -140,6 +149,7 @@ public class DevModeView extends ViewPart {
 
         // Stop.
         stopAction = new Action("Stop") {
+            @Override
             public void run() {
                 devMode.stop();
             }
@@ -148,6 +158,7 @@ public class DevModeView extends ViewPart {
 
         // Run tests.
         runTestAction = new Action("Run tests") {
+            @Override
             public void run() {
                 devMode.runTests();
             }
@@ -156,6 +167,7 @@ public class DevModeView extends ViewPart {
 
         // Maven: View integration test report.
         viewMavenITestReportsAction = new Action("View integration test report") {
+            @Override
             public void run() {
                 devMode.openMavenIntegrationTestReport();
             }
@@ -164,6 +176,7 @@ public class DevModeView extends ViewPart {
 
         // Maven: View unit test report.
         viewMavenUTestReportsAction = new Action("View unit test report") {
+            @Override
             public void run() {
                 devMode.openMavenUnitTestReport();
             }
@@ -172,6 +185,7 @@ public class DevModeView extends ViewPart {
 
         // Gradle: View test report.
         viewGradleTestReportsAction = new Action("View test report") {
+            @Override
             public void run() {
                 devMode.openGradleTestReport();
             }
