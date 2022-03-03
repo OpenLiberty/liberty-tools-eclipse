@@ -46,9 +46,6 @@ public class Project {
             if (project == null && (firstElement instanceof IProject)) {
                 project = ((IProject) firstElement);
             }
-            if (firstElement instanceof IResource) {
-                project = ((IResource) firstElement).getProject();
-            }
         }
 
         return project;
@@ -82,13 +79,13 @@ public class Project {
      * 
      * @throws Exception
      */
-    public static List<String> getLibertyProjects() throws Exception {
+    public static List<String> getLibertyProjects(boolean refresh) throws Exception {
         ArrayList<String> libertyProjects = new ArrayList<String>();
         List<IProject> projectList = getOpenWokspaceProjects();
         Iterator<IProject> projects = projectList.iterator();
         while (projects.hasNext()) {
             IProject project = projects.next();
-            if (isLiberty(project)) {
+            if (isLiberty(project, refresh)) {
                 libertyProjects.add(project.getName());
             }
         }
@@ -148,7 +145,9 @@ public class Project {
      */
     public static boolean isMaven(IProject project) {
         // TODO: Handle cases where pom.xml is not in the root dir or if it has a different name.
+
         boolean isMaven = false;
+
         try {
             isMaven = project.getDescription().hasNature("org.eclipse.m2e.core.maven2Nature");
             if (!isMaven) {
@@ -172,6 +171,7 @@ public class Project {
         // TODO: Handle cases where build.gradle is not in the root dir or if it has a different name.
 
         boolean isGradle = false;
+
         try {
             isGradle = project.getDescription().hasNature("org.eclipse.buildship.core.gradleprojectnature");
             if (!isGradle) {
@@ -185,83 +185,127 @@ public class Project {
     }
 
     /**
-     * Returns true if the input project is a Liberty configured project. False, otherwise. 
-     * If the project is determined to be Liberty project, the outcome is persisted by associating 
-     * the project with a Liberty type/nature.
+     * Returns true if the input project is a Liberty configured project. False, otherwise. If the project is determined to
+     * be Liberty project, the outcome is persisted by associating the project with a Liberty type/nature.
      * 
      * @param project The project to check.
+     * @param refresh Defines whether or not this call is being done on behalf of a refresh action.
      * 
      * @return True if the input project is a Liberty configured project. False, otherwise.
      * 
      * @throws Exception
      */
-    public static boolean isLiberty(IProject project) throws Exception {
-        boolean isLiberty = false;
-        // TODO: When refresh is implemented, ignore the marker. Remove marker if project is no longer a Liberty project.
-        // TODO: If there is no marker, check the build files using the validation parser to find the Liberty entries
-        // more accurately. What is here now is just some basic check.
+    public static boolean isLiberty(IProject project, boolean refresh) throws Exception {
+        // TODO: Use validation parser to find the Liberty entries in config files more accurately.
+        // Perhaps check for other things that we may consider appropriate to check.
 
         // Check if the input project is already marked to be a liberty project.
-        isLiberty = project.getDescription().hasNature(LibertyNature.NATURE_ID);
+        boolean isNatureLiberty = project.getDescription().hasNature(LibertyNature.NATURE_ID);
+        
+        if (isNatureLiberty && !refresh) {
+            return isNatureLiberty;
+        }
 
-        if (!isLiberty) {
-            if (isMaven(project)) {
-                IFile file = project.getFile("pom.xml");
-                BufferedReader br = new BufferedReader(new InputStreamReader(file.getContents()));
+        boolean isLiberty = false;
 
-                boolean foundLibertyGroupId = false;
-                boolean foundLibertyArtifactId = false;
-                String line = br.readLine();
-                while (line != null) {
-                    if (line.contains("io.openliberty.tools")) {
-                        foundLibertyGroupId = true;
-                    }
-                    if (line.contains("liberty-maven-plugin")) {
-                        foundLibertyArtifactId = true;
-                    }
-                    if (foundLibertyGroupId && foundLibertyArtifactId) {
-                        isLiberty = true;
-                        break;
-                    }
-                    line = br.readLine();
+        // If the project is not marked to be of type Liberty or the project list is refreshing, 
+        // check is configured to run on Liberty.
+        if (isMaven(project)) {
+            IFile file = project.getFile("pom.xml");
+            BufferedReader br = new BufferedReader(new InputStreamReader(file.getContents()));
+
+            boolean foundLibertyGroupId = false;
+            boolean foundLibertyArtifactId = false;
+            String line = br.readLine();
+            while (line != null) {
+                if (line.contains("io.openliberty.tools")) {
+                    foundLibertyGroupId = true;
                 }
-            } else if (isGradle(project)) {
-                IFile file = project.getFile("build.gradle");
-                BufferedReader br = new BufferedReader(new InputStreamReader(file.getContents()));
-
-                boolean foundLibertyDependency = false;
-                boolean foundLibertyPlugin = false;
-                String line = br.readLine();
-                while (line != null) {
-                    if (line.matches(".*classpath.*io.openliberty.tools:liberty-gradle-plugin.*")
-                            || line.matches(".*classpath.*io.openliberty.tools:liberty-ant-tasks.*")) {
-                        foundLibertyDependency = true;
-                    }
-                    if (line.matches(".*apply plugin:.*liberty.*") || line.matches(".*id.*io.openliberty.tools.gradle.Liberty.*")) {
-                        foundLibertyPlugin = true;
-                    }
-                    if (foundLibertyDependency && foundLibertyPlugin) {
-                        isLiberty = true;
-                        break;
-                    }
-                    line = br.readLine();
+                if (line.contains("liberty-maven-plugin")) {
+                    foundLibertyArtifactId = true;
                 }
+                if (foundLibertyGroupId && foundLibertyArtifactId) {
+                    isLiberty = true;
+                    break;
+                }
+                line = br.readLine();
             }
+        } else if (isGradle(project)) {
+            IFile file = project.getFile("build.gradle");
+            BufferedReader br = new BufferedReader(new InputStreamReader(file.getContents()));
 
-            // If it is determined that the input project is a Liberty project, persist the outcome
-            // by adding a project type/nature to the project's .project file.
-            if (isLiberty) {
-                IProjectDescription projectDesc = project.getDescription();
-                String[] currentNatures = projectDesc.getNatureIds();
-                String[] newNatures = new String[currentNatures.length + 1];
-                System.arraycopy(currentNatures, 0, newNatures, 0, currentNatures.length);
-                newNatures[currentNatures.length] = LibertyNature.NATURE_ID;
-                projectDesc.setNatureIds(newNatures);
-                project.setDescription(projectDesc, new NullProgressMonitor());
+            boolean foundLibertyDependency = false;
+            boolean foundLibertyPlugin = false;
+            String line = br.readLine();
+            while (line != null) {
+                if (line.matches(".*classpath.*io.openliberty.tools:liberty-gradle-plugin.*")
+                        || line.matches(".*classpath.*io.openliberty.tools:liberty-ant-tasks.*")) {
+                    foundLibertyDependency = true;
+                }
+                if (line.matches(".*apply plugin:.*liberty.*") || line.matches(".*id.*io.openliberty.tools.gradle.Liberty.*")) {
+                    foundLibertyPlugin = true;
+                }
+                if (foundLibertyDependency && foundLibertyPlugin) {
+                    isLiberty = true;
+                    break;
+                }
+                line = br.readLine();
             }
         }
 
+        // If it is determined that the input project is a Liberty type project, persist the outcome (if not
+        // done so already) by adding a Liberty type/nature marker to the project's metadata.
+        if (!isNatureLiberty && isLiberty) {
+            addLibertyNature(project);
+        }
+
+        // If it is determined that the input project is not a Liberty project, but it is marked as being one,
+        // remove the Liberty type/nature marker from the project's metadata.
+        if (isNatureLiberty && !isLiberty) {
+            removeLibertyNature(project);
+        }
+
         return isLiberty;
+    }
+
+    /**
+     * Adds the Liberty type/nature entry to the project's description/metadata (.project).
+     * 
+     * @param project The project to process.
+     * 
+     * @throws Exception
+     */
+    public static void addLibertyNature(IProject project) throws Exception {
+        IProjectDescription projectDesc = project.getDescription();
+        String[] currentNatures = projectDesc.getNatureIds();
+        String[] newNatures = new String[currentNatures.length + 1];
+        System.arraycopy(currentNatures, 0, newNatures, 0, currentNatures.length);
+        newNatures[currentNatures.length] = LibertyNature.NATURE_ID;
+        projectDesc.setNatureIds(newNatures);
+        project.setDescription(projectDesc, new NullProgressMonitor());
+    }
+
+    /**
+     * Removes the Liberty type/nature entry from the project's description/metadata (.project).
+     * 
+     * @param project The project to process.
+     * 
+     * @throws Exception
+     */
+    public static void removeLibertyNature(IProject project) throws Exception {
+        IProjectDescription projectDesc = project.getDescription();
+        String[] currentNatures = projectDesc.getNatureIds();
+        ArrayList<String> newNatures = new ArrayList<String>(currentNatures.length - 1);
+
+        for (int i = 0; i < currentNatures.length; i++) {
+            if (currentNatures[i].equals(LibertyNature.NATURE_ID)) {
+                continue;
+            }
+            newNatures.add(currentNatures[i]);
+        }
+
+        projectDesc.setNatureIds(newNatures.toArray(new String[newNatures.size()]));
+        project.setDescription(projectDesc, new NullProgressMonitor());
     }
 
     /**
