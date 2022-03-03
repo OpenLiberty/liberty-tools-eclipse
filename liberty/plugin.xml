@@ -16,7 +16,7 @@
 
    <extension point="org.eclipse.ui.handlers">
       <handler
-            class="liberty.tools.handlers.DevModeMenuHandler"
+            class="liberty.tools.handlers.DashboardHandler"
             commandId="liberty.commands.open.dashboard">
       </handler>
    </extension>
@@ -62,11 +62,11 @@
            id="liberty.views.liberty.category"
            name="Liberty">
      </category>
-     <view id="liberty.views.liberty.devmode"
+     <view id="liberty.views.liberty.devmode.dashboard"
            name="Liberty Dashboard"
            icon="icons/openLibertyLogo.png"
              	category="liberty.views.liberty.category"
-                class="liberty.tools.ui.DevModeView"/>
+                class="liberty.tools.ui.DashboardView"/>
   </extension>
   
   <!-- Nature -->

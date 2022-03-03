@@ -1,9 +1,12 @@
 package liberty.tools.ui;
 
+import java.net.URL;
+
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
+import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.dialogs.IInputValidator;
@@ -20,14 +23,13 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.part.ViewPart;
 
 import liberty.tools.DevModeOperations;
-import liberty.tools.LibertyDevPlugin;
 import liberty.tools.utils.Dialog;
 import liberty.tools.utils.Project;
 
 /**
  * View of Liberty application projects and development mode actions to be processed on the selected projects.
  */
-public class DevModeView extends ViewPart {
+public class DashboardView extends ViewPart {
 
     public static final DevModeOperations devMode = new DevModeOperations();
 
@@ -41,6 +43,7 @@ public class DevModeView extends ViewPart {
     Action viewMavenITestReportsAction;
     Action viewMavenUTestReportsAction;
     Action viewGradleTestReportsAction;
+    Action refreshAction;
 
     @Override
     public void createPartControl(Composite parent) {
@@ -49,13 +52,15 @@ public class DevModeView extends ViewPart {
         viewer.setLabelProvider(new LabelProvider());
 
         try {
-            viewer.setInput(Project.getLibertyProjects());
+            viewer.setInput(Project.getLibertyProjects(false));
         } catch (Exception e) {
             Dialog.displayErrorMessageWithDetails("An error was detected while retrieving Liberty projects.", e);
             return;
         }
+
         createActions();
         createContextMenu();
+        addToolbarActions();
         getSite().setSelectionProvider(viewer);
     }
 
@@ -81,11 +86,19 @@ public class DevModeView extends ViewPart {
         Menu menu = menuMgr.createContextMenu(viewer.getControl());
         viewer.getControl().setMenu(menu);
 
-        getSite().registerContextMenu("liberty.views.liberty.devmode", menuMgr, viewer);
+        getSite().registerContextMenu("liberty.views.liberty.devmode.dashboard", menuMgr, viewer);
     }
 
     /**
-     * Populates the menu context actions.
+     * Populates the toolbar.
+     */
+    private void addToolbarActions() {
+        IToolBarManager tbMgr = getViewSite().getActionBars().getToolBarManager();
+        tbMgr.add(refreshAction);
+    }
+
+    /**
+     * Populates the context menu.
      * 
      * @param mgr The menu manager.
      */
@@ -113,22 +126,32 @@ public class DevModeView extends ViewPart {
     }
 
     /**
-     * Create content menu actions.
+     * Instantiates menu and toolbar actions.
      */
     public void createActions() {
-        ImageDescriptor libertyImgDesc = ImageDescriptor
-                .createFromURL(LibertyDevPlugin.getDefault().getBundle().getResource("icons/openLibertyLogo.png"));
+        ImageDescriptor ActionImg = null;
+        ImageDescriptor refreshImg = null;
 
-        // Start.
+        // Get the image descriptors for the menu actions and toolbar.
+        // If there is a failure, display the error and proceed without the icons.
+        try {
+            ActionImg = ImageDescriptor.createFromURL(
+                    new URL("platform:/plugin/org.eclipse.jst.jsf.standard.tagsupport/icons/palette/Composite/small/ACTIONSOURCE.gif"));
+            refreshImg = ImageDescriptor.createFromURL(new URL("platform:/plugin/org.eclipse.ui.browser/icons/clcl16/nav_refresh.png"));
+        } catch (Exception e) {
+            Dialog.displayErrorMessageWithDetails("An error was detected while retrieving Imade descriptions.", e);
+        }
+
+        // Menu: Start.
         startAction = new Action("Start") {
             @Override
             public void run() {
                 devMode.start();
             }
         };
-        startAction.setImageDescriptor(libertyImgDesc);
+        startAction.setImageDescriptor(ActionImg);
 
-        // Start with parameters.
+        // Menu: Start with parameters.
         startWithParmAction = new Action("Start...") {
             @Override
             public void run() {
@@ -136,61 +159,75 @@ public class DevModeView extends ViewPart {
                 devMode.startWithParms(parms);
             }
         };
-        startWithParmAction.setImageDescriptor(libertyImgDesc);
+        startWithParmAction.setImageDescriptor(ActionImg);
 
-        // Start in container.
+        // Menu: Start in container.
         startInContanerAction = new Action("Start in container") {
             @Override
             public void run() {
                 devMode.startInContainer();
             }
         };
-        startInContanerAction.setImageDescriptor(libertyImgDesc);
+        startInContanerAction.setImageDescriptor(ActionImg);
 
-        // Stop.
+        // Menu: Stop.
         stopAction = new Action("Stop") {
             @Override
             public void run() {
                 devMode.stop();
             }
         };
-        stopAction.setImageDescriptor(libertyImgDesc);
+        stopAction.setImageDescriptor(ActionImg);
 
-        // Run tests.
+        // Menu: Run tests.
         runTestAction = new Action("Run tests") {
             @Override
             public void run() {
                 devMode.runTests();
             }
         };
-        runTestAction.setImageDescriptor(libertyImgDesc);
+        runTestAction.setImageDescriptor(ActionImg);
 
-        // Maven: View integration test report.
+        // Menu: View integration test report. Maven project specific.
         viewMavenITestReportsAction = new Action("View integration test report") {
             @Override
             public void run() {
                 devMode.openMavenIntegrationTestReport();
             }
         };
-        viewMavenITestReportsAction.setImageDescriptor(libertyImgDesc);
+        viewMavenITestReportsAction.setImageDescriptor(ActionImg);
 
-        // Maven: View unit test report.
+        // Menu: View unit test report. Maven project specific.
         viewMavenUTestReportsAction = new Action("View unit test report") {
             @Override
             public void run() {
                 devMode.openMavenUnitTestReport();
             }
         };
-        viewMavenUTestReportsAction.setImageDescriptor(libertyImgDesc);
+        viewMavenUTestReportsAction.setImageDescriptor(ActionImg);
 
-        // Gradle: View test report.
+        // Menu: View test report. Gradle project specific.
         viewGradleTestReportsAction = new Action("View test report") {
             @Override
             public void run() {
                 devMode.openGradleTestReport();
             }
         };
-        viewGradleTestReportsAction.setImageDescriptor(libertyImgDesc);
+        viewGradleTestReportsAction.setImageDescriptor(ActionImg);
+
+        // Toolbar: Refresh the project list.
+        refreshAction = new Action("refresh") {
+            @Override
+            public void run() {
+                try {
+                    viewer.setInput(Project.getLibertyProjects(true));
+                } catch (Exception e) {
+                    Dialog.displayErrorMessageWithDetails("An error was detected while retrieving Liberty projects.", e);
+                    return;
+                }
+            }
+        };
+        refreshAction.setImageDescriptor(refreshImg);
     }
 
     /**

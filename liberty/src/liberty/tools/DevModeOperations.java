@@ -24,9 +24,10 @@ import liberty.tools.utils.Project;
  * Provides the implementation of all supported dev mode operations.
  */
 public class DevModeOperations {
+    // TODO: Dashboard display: Handle the case where the project is configured to be built/run by both
+    // Gradle and Maven at the same time.
 
-    // TODO: Figure out if there are any special needs for Windows/Linux.
-    // TODO: Establish a Maven/Gradle command precedence (i.e. gradlew ->
+    // TODO: Establish a Maven/Gradle command precedence (i.e. gradlew -> gradle configured ->
     // gradle_home).
 
     /**
