@@ -156,7 +156,10 @@ public class DashboardView extends ViewPart {
             @Override
             public void run() {
                 String parms = getStartParms();
-                devMode.startWithParms(parms);
+
+                if (parms != null) {
+                    devMode.startWithParms(parms);
+                }
             }
         };
         startWithParmAction.setImageDescriptor(ActionImg);
@@ -231,9 +234,9 @@ public class DashboardView extends ViewPart {
     }
 
     /**
-     * Gets start command parameters provided by the user through an input dialog window.
+     * Returns the list of parameters if the user presses OK, null otherwise.
      * 
-     * @return The parameters entered by the user.
+     * @return The list of parameters if the user presses OK, null otherwise.
      */
     public String getStartParms() {
         String dTitle = "Liberty Development Mode";
@@ -243,7 +246,9 @@ public class DashboardView extends ViewPart {
         Shell shell = Display.getCurrent().getActiveShell();
         InputDialog iDialog = new InputDialog(shell, dTitle, dMessage, dInitValue, iValidator) {
         };
-        String userInput = "";
+
+        String userInput = null;
+
         if (iDialog.open() == Window.OK) {
             userInput = iDialog.getValue();
         }
