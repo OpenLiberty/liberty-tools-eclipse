@@ -50,7 +50,7 @@
                   id="liberty.toolbars.open.dashboard"
                   commandId="liberty.commands.open.dashboard"
                   icon="icons/openLibertyLogo.png"
-                  tooltip="Liberty Dashboard View">
+                  tooltip="Open Liberty Dashboard View">
             </command>
          </toolbar>
       </menuContribution>
