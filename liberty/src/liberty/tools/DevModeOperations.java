@@ -30,6 +30,10 @@ public class DevModeOperations {
     // TODO: Establish a Maven/Gradle command precedence (i.e. gradlew -> gradle configured ->
     // gradle_home).
 
+	private boolean isWindows() {
+        return System.getProperty("os.name").contains("Windows");
+	}
+	
     /**
      * Starts the server in development mode.
      * 
@@ -50,8 +54,11 @@ public class DevModeOperations {
                     System.out.println("Maven build file on project" + projName + " is not valid..");
                 }
 
-                cmd = "mvn io.openliberty.tools:liberty-maven-plugin:dev -f " + projectPath;
+                cmd = isWindows() ? "mvn.cmd" : "mvn";
+
                 cmd = Paths.get(getMavenInstallHome(), "bin", cmd).toString();
+                cmd = cmd + " io.openliberty.tools:liberty-maven-plugin:dev -f " + projectPath;
+                                
             } else if (Project.isGradle(project)) {
                 if (!Project.isGradleBuildFileValid(project)) {
                     System.out.println("Build file on project" + projName + " is not valid.");
