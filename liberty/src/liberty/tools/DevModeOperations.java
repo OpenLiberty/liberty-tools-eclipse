@@ -4,18 +4,36 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.buildship.core.internal.configuration.ProjectConfiguration;
+import org.eclipse.buildship.core.internal.launch.GradleRunConfigurationAttributes;
+import org.eclipse.buildship.core.internal.CorePlugin;
+import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
-import org.eclipse.tm.terminal.view.core.TerminalServiceFactory;
-import org.eclipse.tm.terminal.view.core.interfaces.ITerminalService;
-import org.eclipse.tm.terminal.view.core.interfaces.constants.ITerminalsConnectorConstants;
+import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.debug.core.DebugPlugin;
+import org.eclipse.debug.core.ILaunch;
+import org.eclipse.debug.core.ILaunchConfiguration;
+import org.eclipse.debug.core.ILaunchConfigurationType;
+import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
+import org.eclipse.debug.core.ILaunchManager;
+import org.eclipse.jdt.launching.IJavaLaunchConfigurationConstants;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.browser.IWebBrowser;
 import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
+import org.eclipse.ui.console.ConsolePlugin;
+import org.eclipse.ui.console.IConsole;
+import org.eclipse.ui.console.IConsoleManager;
 
 import liberty.tools.utils.Dialog;
 import liberty.tools.utils.Project;
@@ -29,45 +47,48 @@ public class DevModeOperations {
 
     // TODO: Establish a Maven/Gradle command precedence (i.e. gradlew -> gradle configured ->
     // gradle_home).
-
+	
+    private Map<String, ILaunch> activeLaunches;
+	
+	public DevModeOperations() {
+		activeLaunches = new HashMap<String, ILaunch>();
+	}
+	
     /**
      * Starts the server in development mode.
      * 
      * @return An error message or null if the command was processed successfully.
      */
     public void start() {
-        IProject project = Project.getSelected();
-        String projName = project.getName();
+    	IProject project = Project.getSelected();
+		String projectName = project.getName();
         String projectPath = Project.getPath(project);
+        
         if (projectPath == null) {
-            Dialog.displayErrorMessage("Unable to find the home path to the selected project: " + projName);
+            Dialog.displayErrorMessage("Unable to find the home path to the selected project: " + projectName);
             return;
         }
+        
         try {
-            String cmd = "";
             if (Project.isMaven(project)) {
                 if (!Project.isMavenBuildFileValid(project)) {
-                    System.out.println("Maven build file on project" + projName + " is not valid..");
-                }
-
-                cmd = "mvn io.openliberty.tools:liberty-maven-plugin:dev -f " + projectPath;
-                cmd = Paths.get(getMavenInstallHome(), "bin", cmd).toString();
+                    System.out.println("Maven build file on project" + projectName + " is not valid..");
+                }               
+                runMavenStart("liberty:dev");
+                
             } else if (Project.isGradle(project)) {
                 if (!Project.isGradleBuildFileValid(project)) {
-                    System.out.println("Build file on project" + projName + " is not valid.");
+                    System.out.println("Build file on project" + projectName + " is not valid.");
                 }
-
-                cmd += "gradle libertyDev -p=" + projectPath;
-                cmd = Paths.get(getGradleInstallHome(), "bin", cmd).toString();
+                runGradleStart("libertyDev", null);
+                
             } else {
-                Dialog.displayErrorMessage("Project" + projName + "is not a Gradle or Maven project.");
+                Dialog.displayErrorMessage("Project" + projectName + "is not a Gradle or Maven project.");
 
                 return;
             }
-
-            runCommand(cmd);
         } catch (Exception e) {
-            Dialog.displayErrorMessageWithDetails("An error was detected while performing the start action on project " + projName, e);
+            Dialog.displayErrorMessageWithDetails("An error was detected while performing the start action on project " + projectName, e);
             return;
         }
 
@@ -79,30 +100,33 @@ public class DevModeOperations {
      * @return An error message or null if the command was processed successfully.
      */
     public void startWithParms(String userParms) {
-        IProject project = Project.getSelected();
-        String projName = project.getName();
+    	IProject project = Project.getSelected();
+		String projectName = project.getName();
         String projectPath = Project.getPath(project);
+        
         if (projectPath == null) {
-            Dialog.displayErrorMessage("Unable to find the home path to the selected project: " + projName);
+            Dialog.displayErrorMessage("Unable to find the home path to the selected project: " + projectName);
             return;
         }
 
         try {
-            String cmd = "";
             if (Project.isMaven(project)) {
-                cmd += "mvn io.openliberty.tools:liberty-maven-plugin:dev " + userParms + " -f " + projectPath;
-                cmd = Paths.get(getMavenInstallHome(), "bin", cmd).toString();
+            	if (!Project.isMavenBuildFileValid(project)) {
+                    System.out.println("Maven build file on project" + projectName + " is not valid..");
+                }               
+                runMavenStart("liberty:dev " + userParms);
+                
             } else if (Project.isGradle(project)) {
-                cmd += "gradle libertyDev " + userParms + " -p=" + projectPath;
-                cmd = Paths.get(getGradleInstallHome(), "bin", cmd).toString();
+            	if (!Project.isGradleBuildFileValid(project)) {
+                    System.out.println("Build file on project" + projectName + " is not valid.");
+                }
+                runGradleStart("libertyDev", userParms);
             } else {
-                Dialog.displayErrorMessage("Project" + projName + "is not a Gradle or Maven project.");
+                Dialog.displayErrorMessage("Project" + projectName + "is not a Gradle or Maven project.");
                 return;
             }
-
-            runCommand(cmd);
         } catch (Exception e) {
-            Dialog.displayErrorMessageWithDetails("An error was detected while performing the start... action on project " + projName, e);
+            Dialog.displayErrorMessageWithDetails("An error was detected while performing the start... action on project " + projectName, e);
             return;
         }
     }
@@ -113,62 +137,373 @@ public class DevModeOperations {
      * @return An error message or null if the command was processed successfully.
      */
     public void startInContainer() {
-        IProject project = Project.getSelected();
-        String projName = project.getName();
+    	IProject project = Project.getSelected();
+		String projectName = project.getName();
         String projectPath = Project.getPath(project);
+        
         if (projectPath == null) {
-            Dialog.displayErrorMessage("Unable to find the home path to the selected project: " + projName);
+            Dialog.displayErrorMessage("Unable to find the home path to the selected project: " + projectName);
             return;
         }
-
+        
         try {
-            String cmd = "";
             if (Project.isMaven(project)) {
-                cmd += "mvn io.openliberty.tools:liberty-maven-plugin:devc -f " + projectPath;
-                cmd = Paths.get(getMavenInstallHome(), "bin", cmd).toString();
+            	if (!Project.isMavenBuildFileValid(project)) {
+                    System.out.println("Maven build file on project" + projectName + " is not valid..");
+                }               
+                runMavenStart("liberty:devc");
+                
             } else if (Project.isGradle(project)) {
-                cmd += "gradle libertyDevc -p=" + projectPath;
-                cmd = Paths.get(getGradleInstallHome(), "bin", cmd).toString();
+            	if (!Project.isGradleBuildFileValid(project)) {
+                    System.out.println("Build file on project" + projectName + " is not valid.");
+                }
+                runGradleStart("libertyDevc", null);
+                
             } else {
-                Dialog.displayErrorMessage("Project" + projName + "is not a Gradle or Maven project.");
+                Dialog.displayErrorMessage("Project" + projectName + "is not a Gradle or Maven project.");
             }
-
-            runCommand(cmd);
         } catch (Exception e) {
             Dialog.displayErrorMessageWithDetails(
-                    "An error was detected while performing the start in container action on project " + projName, e);
+                    "An error was detected while performing the start in container action on project " + projectName, e);
             return;
         }
     }
-
+    
     /**
-     * Starts the server in development mode.
+     * Stops the server
      * 
-     * @return An error message or null if the command was processed successfully.
      */
     public void stop() {
-        String cmd = "q";
-        try {
-            runCommand(cmd);
-        } catch (Exception e) {
-            Dialog.displayErrorMessageWithDetails("An error was detected while performing the stop action.", e);
+    	IProject project = Project.getSelected();
+		String projectName = project.getName();
+        String projectPath = Project.getPath(project);
+        
+        if (projectPath == null) {
+            Dialog.displayErrorMessage("Unable to find the home path to the selected project: " + projectName);
             return;
         }
+        
+        try {
+            if (Project.isMaven(project)) {
+            	if (!Project.isMavenBuildFileValid(project)) {
+                    System.out.println("Maven build file on project" + projectName + " is not valid..");
+                }               
+                stopMaven();
+                
+            } else if (Project.isGradle(project)) {
+            	if (!Project.isGradleBuildFileValid(project)) {
+                    System.out.println("Build file on project" + projectName + " is not valid.");
+                }
+                stopGradle();
+                
+            } else {
+                Dialog.displayErrorMessage("Project" + projectName + "is not a Gradle or Maven project.");
+            }
+        } catch (Exception e) {
+            Dialog.displayErrorMessageWithDetails(
+                    "An error was detected while performing the stop action on project " + projectName, e);
+            return;
+        }
+        
+    }
+    
+    /**
+     * Runs the tests provided by the application.
+     * 
+     */
+    public void runTests() {
+    	IProject project = Project.getSelected();
+		String projectName = project.getName();
+        String projectPath = Project.getPath(project);
+        
+        if (projectPath == null) {
+            Dialog.displayErrorMessage("Unable to find the home path to the selected project: " + projectName);
+            return;
+        }
+        
+        try {
+            if (Project.isMaven(project)) {
+            	if (!Project.isMavenBuildFileValid(project)) {
+                    System.out.println("Maven build file on project" + projectName + " is not valid..");
+                }               
+                runMavenTests();
+                
+            } else if (Project.isGradle(project)) {
+            	if (!Project.isGradleBuildFileValid(project)) {
+                    System.out.println("Build file on project" + projectName + " is not valid.");
+                }
+                runGradleTests();
+                
+            } else {
+                Dialog.displayErrorMessage("Project" + projectName + "is not a Gradle or Maven project.");
+            }
+        } catch (Exception e) {
+            Dialog.displayErrorMessageWithDetails(
+                    "An error was detected while performing the run tests action on project " + projectName, e);
+            return;
+        }
+    }
+    
+    /**
+     * Launch a new process using the m2e launch configuration type.
+     * 
+     * @param goal - The command to run.
+     * 
+     * @throws Exception If an error occurs while running the specified command.
+     */
+    public void runMavenStart(String goal) throws Exception {
+    	IProject project = Project.getSelected();
+		String projectName = project.getName();
+    	IPath workingDir = project.getLocation();
+    	
+        ILaunchManager launchManager = DebugPlugin.getDefault().getLaunchManager();
+        ILaunchConfigurationType launchConfigurationType = launchManager.getLaunchConfigurationType("org.eclipse.m2e.Maven2LaunchConfigurationType");
+        ILaunchConfigurationWorkingCopy workingCopy = launchConfigurationType.newInstance((IContainer) null, projectName);
+
+        workingCopy.setAttribute(IJavaLaunchConfigurationConstants.ATTR_WORKING_DIRECTORY, workingDir.toOSString());
+        workingCopy.setAttribute("M2_GOALS", goal);
+
+        ILaunchConfiguration launchConfig = workingCopy.doSave();
+
+        ILaunch launch = launchConfig.launch("run", new NullProgressMonitor(), false, true);
+        
+        // Save launch
+        activeLaunches.put(projectName, launch);
+    }
+    
+    /**
+     * Run the specified Gradle start task using the Gradle Buildship type configuration.
+     * 
+     * @param task - The Gradle task to run.
+     * @param parms - The users parms to add to the task
+     * 
+     * @throws Exception If an error occurs while running the specified command.
+     */
+    public void runGradleStart(String task, String parms) throws Exception {
+    	IProject project = Project.getSelected();
+		String projectName = project.getName();
+    	
+    	// The buildship launch configuration type does not launch the process in the background. 
+    	// We need to do this manually with a Job.
+	    Job job = new Job("Run Gradle task") {
+	        @SuppressWarnings("restriction")
+			protected IStatus run(IProgressMonitor monitor) {
+    	
+	        	try {
+	        		// Initialize task and arguments
+	        		List<String> tasks = new ArrayList<String>();
+			    	tasks.add(task);
+			    	
+			    	List<String> arguments;
+			    	if (parms != null) {
+			    	    arguments = new ArrayList<String>();
+			    	    arguments.add(parms);
+			    	} else {
+			    		arguments = Collections.emptyList();
+			    	}
+			    	
+			        ILaunchManager launchManager = DebugPlugin.getDefault().getLaunchManager();
+			        ILaunchConfigurationType launchConfigurationType = launchManager.getLaunchConfigurationType("org.eclipse.buildship.core.launch.runconfiguration");
+			        ILaunchConfigurationWorkingCopy workingCopy = launchConfigurationType.newInstance((IContainer) null, projectName);
+			        
+			        // Load project config and override
+			        ProjectConfiguration configuration = CorePlugin.configurationManager().loadProjectConfiguration(project);
+			        GradleRunConfigurationAttributes attributes = new GradleRunConfigurationAttributes(tasks,
+	        				"${workspace_loc:/" + project.getName() + "}",
+	        				configuration.getBuildConfiguration().getGradleDistribution().toString(),
+	        				emptyOrValue(configuration.getBuildConfiguration().getGradleUserHome()),
+	        				emptyOrValue(configuration.getBuildConfiguration().getJavaHome()),
+	        				configuration.getBuildConfiguration().getJvmArguments(),
+	        				arguments,
+	        				false,
+	        				configuration.getBuildConfiguration().isShowConsoleView(),
+	        				true,
+	        				configuration.getBuildConfiguration().isOfflineMode(),
+	        				configuration.getBuildConfiguration().isBuildScansEnabled());
+	        		attributes.apply(workingCopy);
+			
+			        ILaunchConfiguration launchConfig = workingCopy.doSave();
+			
+			        launchConfig.launch("run", new NullProgressMonitor(), false, true);
+			        
+	        	} catch (Exception e) {
+	        		return Status.error(e.getMessage());
+	        	}
+	        	
+	        	return Status.OK_STATUS;
+	        }
+        };
+        job.setPriority(Job.SHORT);
+        job.schedule(); 
+    }
+    
+    private void stopGradle() throws Exception {
+    	IProject project = Project.getSelected();
+		String projectName = project.getName();
+    	IPath workingDir = project.getLocation();
+    	
+    	// The buildship launch configuration type does not launch the process in the background. 
+    	// We need to do this manually with a Job.
+	    Job job = new Job("Run Gradle task") {
+	        @SuppressWarnings("restriction")
+			protected IStatus run(IProgressMonitor monitor) {
+    	
+	        	try {
+	        		
+			    	NullProgressMonitor nullMonitor = new NullProgressMonitor();
+			    	
+			        ILaunchManager launchManager = DebugPlugin.getDefault().getLaunchManager();
+			        ILaunchConfigurationType launchConfigurationType = launchManager.getLaunchConfigurationType("org.eclipse.buildship.core.launch.runconfiguration");
+			        ILaunchConfigurationWorkingCopy workingCopy = launchConfigurationType.newInstance((IContainer) null, projectName);
+			
+			        // Load project config and override
+			        ProjectConfiguration configuration = CorePlugin.configurationManager().loadProjectConfiguration(project);
+			        GradleRunConfigurationAttributes attributes = new GradleRunConfigurationAttributes(Collections.emptyList(),
+	        				"${workspace_loc:/" + project.getName() + "}",
+	        				configuration.getBuildConfiguration().getGradleDistribution().toString(),
+	        				emptyOrValue(configuration.getBuildConfiguration().getGradleUserHome()),
+	        				emptyOrValue(configuration.getBuildConfiguration().getJavaHome()),
+	        				configuration.getBuildConfiguration().getJvmArguments(),
+	        				configuration.getBuildConfiguration().getArguments(),
+	        				false,
+	        				false,
+	        				true,
+	        				configuration.getBuildConfiguration().isOfflineMode(),
+	        				configuration.getBuildConfiguration().isBuildScansEnabled());
+	        		attributes.apply(workingCopy);
+	        		
+			    	List<String> tasks = new ArrayList<String>();
+			    	tasks.add("libertyStop");
+			    	
+			    	
+			        workingCopy.setAttribute("working_dir", workingDir.toOSString());
+			        workingCopy.setAttribute("tasks", tasks);
+			
+			        ILaunchConfiguration launchConfig = workingCopy.doSave();
+			
+			        launchConfig.launch("run", nullMonitor, false, true);
+			        
+	        	} catch (Exception e) {
+	        		return Status.error(e.getMessage());
+	        	}
+	        	
+	        	return Status.OK_STATUS;
+	        }
+        };
+        
+        job.setPriority(Job.SHORT);
+        job.schedule(); 
+        
+        
+    }
+    
+    private void stopMaven() throws CoreException {
+    	IProject project = Project.getSelected();
+		String projectName = project.getName();
+		
+    	if (activeLaunches.containsKey(projectName)) {
+    		try {
+    			ILaunch launch = activeLaunches.get(projectName);
+    			if (!launch.isTerminated()) {
+    				Dialog.displayWarningMessage("Number of processes: " + launch.getProcesses().length);
+    				
+    				launch.getProcesses()[0].getStreamsProxy().write("q" + System.lineSeparator());
+    			} else {
+    				Dialog.displayWarningMessage("The application is not currently running");
+    			}
+            } catch (Exception e) {
+                Dialog.displayErrorMessageWithDetails("An error was detected while performing the stop action.", e);
+            }
+    	} else {
+    		Dialog.displayWarningMessage("The application is not currently running");
+    	}
     }
 
     /**
      * Runs the tests provided by the application.
+     * @throws CoreException 
      * 
-     * @return An error message or null if the command was processed successfully.
      */
-    public void runTests() {
-        String cmd = " ";
-        try {
-            runCommand(cmd);
-        } catch (Exception e) {
-            Dialog.displayErrorMessageWithDetails("An error was detected while performing the run tests action.", e);
-            return;
-        }
+    public void runMavenTests() throws CoreException {
+    	IProject project = Project.getSelected();
+		String projectName = project.getName();
+		
+		if (activeLaunches.containsKey(projectName)) {
+    		try {
+    			ILaunch launch = activeLaunches.get(projectName);
+    			if (!launch.isTerminated()) {
+    				launch.getProcesses()[0].getStreamsProxy().write(System.lineSeparator());
+    			} else {
+    				Dialog.displayWarningMessage("The application is not currently running");
+    			}
+            } catch (Exception e) {
+                Dialog.displayErrorMessageWithDetails("An error was detected while performing the stop action.", e);
+            }
+    	} else {
+    		Dialog.displayWarningMessage("The application is not currently running");
+    	}
+    }
+    
+    /**
+     * Runs the tests provided by the application.
+     * 
+     */
+    public void runGradleTests() {
+    	IProject project = Project.getSelected();
+		String projectName = project.getName();
+    	IPath workingDir = project.getLocation();
+    	
+    	// The buildship launch configuration type does not launch the process in the background. 
+    	// We need to do this manually with a Job.
+	    Job job = new Job("Run Gradle task") {
+	        @SuppressWarnings("restriction")
+			protected IStatus run(IProgressMonitor monitor) {
+    	
+	        	try {
+	        		
+			    	NullProgressMonitor nullMonitor = new NullProgressMonitor();
+			    	
+			        ILaunchManager launchManager = DebugPlugin.getDefault().getLaunchManager();
+			        ILaunchConfigurationType launchConfigurationType = launchManager.getLaunchConfigurationType("org.eclipse.buildship.core.launch.runconfiguration");
+			        ILaunchConfigurationWorkingCopy workingCopy = launchConfigurationType.newInstance((IContainer) null, projectName);
+			        
+			        // Load project config and override
+			        ProjectConfiguration configuration = CorePlugin.configurationManager().loadProjectConfiguration(project);
+			        GradleRunConfigurationAttributes attributes = new GradleRunConfigurationAttributes(Collections.emptyList(),
+	        				"${workspace_loc:/" + project.getName() + "}",
+	        				configuration.getBuildConfiguration().getGradleDistribution().toString(),
+	        				emptyOrValue(configuration.getBuildConfiguration().getGradleUserHome()),
+	        				emptyOrValue(configuration.getBuildConfiguration().getJavaHome()),
+	        				configuration.getBuildConfiguration().getJvmArguments(),
+	        				configuration.getBuildConfiguration().getArguments(),
+	        				false,
+	        				configuration.getBuildConfiguration().isShowConsoleView(),
+	        				true,
+	        				configuration.getBuildConfiguration().isOfflineMode(),
+	        				configuration.getBuildConfiguration().isBuildScansEnabled());
+	        		attributes.apply(workingCopy);
+			
+			    	List<String> tasks = new ArrayList<String>();
+			    	tasks.add("cleanTest");
+			    	tasks.add("test");
+			    	
+			        workingCopy.setAttribute("working_dir", workingDir.toOSString());
+			        workingCopy.setAttribute("tasks", tasks);
+			
+			        ILaunchConfiguration launchConfig = workingCopy.doSave();
+			
+			        launchConfig.launch("run", nullMonitor, false, true);
+			        
+	        	} catch (Exception e) {
+	        		return Status.error(e.getMessage());
+	        	}
+	        	
+	        	return Status.OK_STATUS;
+	        }
+        };
+        
+        job.setPriority(Job.SHORT);
+        job.schedule(); 
     }
 
     /**
@@ -281,91 +616,6 @@ public class DevModeOperations {
     }
 
     /**
-     * Runs the specified command on a terminal.
-     * 
-     * @param cmd The command to run.
-     * 
-     * @throws Exception If an error occurs while running the specified command.
-     */
-    public void runCommand(String cmd) throws Exception {
-        ITerminalService.Done done = new ITerminalService.Done() {
-            @Override
-            public void done(IStatus done) {
-            }
-        };
-
-        List<String> envs = new ArrayList<String>(1);
-        envs.add("JAVA_HOME=" + getJavaInstallHome());
-        Map<String, Object> properties = new HashMap<String, Object>();
-        properties.put(ITerminalsConnectorConstants.PROP_TITLE, "Liberty DevMode");
-        properties.put(ITerminalsConnectorConstants.PROP_ENCODING, "UTF-8");
-        properties.put(ITerminalsConnectorConstants.PROP_DELEGATE_ID, "org.eclipse.tm.terminal.connector.local.launcher.local");
-        properties.put(ITerminalsConnectorConstants.PROP_PROCESS_PATH, cmd);
-        properties.put(ITerminalsConnectorConstants.PROP_PROCESS_ENVIRONMENT, envs.toArray(new String[envs.size()]));
-        properties.put(ITerminalsConnectorConstants.PROP_PROCESS_MERGE_ENVIRONMENT, true);
-
-        ITerminalService ts = TerminalServiceFactory.getService();
-        ts.openConsole(properties, done);
-    }
-
-    /**
-     * Returns the home path to the Java installation.
-     * 
-     * @return The home path to the Java installation.
-     */
-    private String getJavaInstallHome() {
-        String javaHome = null;
-        // TODO: 1. Find the eclipse->java configured install path
-
-        // 2. Check for associated system properties.
-        if (javaHome == null) {
-            javaHome = System.getProperty("java.home");
-        }
-
-        // 3. Check for associated environment property.
-        if (javaHome == null) {
-            javaHome = System.getenv("JAVA_HOME");
-        }
-
-        return javaHome;
-    }
-
-    /**
-     * Returns the home path to the Maven installation.
-     * 
-     * @return The home path to the Maven installation.
-     */
-    private String getMavenInstallHome() {
-        String mvnInstall = null;
-        // TODO: 1. Find the eclipse->maven configured install path
-
-        // 2. Check for associated environment property.
-        if (mvnInstall == null) {
-            mvnInstall = System.getenv("MAVEN_HOME");
-
-            if (mvnInstall == null) {
-                mvnInstall = System.getenv("M2_MAVEN");
-            }
-        }
-
-        return mvnInstall;
-    }
-
-    /**
-     * Returns the home path to the Gradle installation.
-     * 
-     * @return The home path to the Gradle installation.
-     */
-    private String getGradleInstallHome() {
-        // TODO: 1. Find the eclipse->gradle configured install path.
-
-        // 2. Check for associated environment property.
-        String gradleInstall = System.getenv("GRADLE_HOME");
-
-        return gradleInstall;
-    }
-
-    /**
      * Returns the home path to the HTML test report.
      * 
      * @return The HTML default located in the configured in the build file or the default location.
@@ -381,4 +631,8 @@ public class DevModeOperations {
 
         return path;
     }
+    
+    private String emptyOrValue(Object src) {
+		return src!=null?src.toString():"";
+	}
 }
