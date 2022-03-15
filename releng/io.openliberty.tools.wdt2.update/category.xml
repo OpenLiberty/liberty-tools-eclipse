@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<site>
+   <feature url="features/io.openliberty.wdt2.feature_1.0.0.liberty.jar" id="io.openliberty.wdt2.feature" version="1.0.0.liberty">
+      <category name="libertywdt2"/>
+   </feature>
+   <category-def name="libertywdt2" label="Liberty WDT V2"/>
+</site>
