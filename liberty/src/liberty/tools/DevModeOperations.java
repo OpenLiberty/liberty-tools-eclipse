@@ -29,6 +29,10 @@ public class DevModeOperations {
     // TODO: Establish a Maven/Gradle command precedence (i.e. gradlew -> gradle configured ->
     // gradle_home).
 
+    private boolean isWindows() {
+        return System.getProperty("os.name").contains("Windows");
+    }
+
     /**
      * Starts the server in development mode.
      * 
@@ -48,7 +52,7 @@ public class DevModeOperations {
             // Prepare the Liberty plugin development mode command.
             String cmd = "";
             if (Project.isMaven(project)) {
-                cmd = getMavenCommand("mvn io.openliberty.tools:liberty-maven-plugin:dev -f " + projectPath);
+                cmd = getMavenCommand("io.openliberty.tools:liberty-maven-plugin:dev -f " + projectPath);
             } else if (Project.isGradle(project)) {
                 cmd = getGradleCommand("gradle libertyDev -p=" + projectPath);
             } else {
@@ -85,7 +89,7 @@ public class DevModeOperations {
             // Prepare the Liberty plugin development mode command.
             String cmd = "";
             if (Project.isMaven(project)) {
-                cmd = getMavenCommand("mvn io.openliberty.tools:liberty-maven-plugin:dev " + userParms + " -f " + projectPath);
+                cmd = getMavenCommand("io.openliberty.tools:liberty-maven-plugin:dev " + userParms + " -f " + projectPath);
             } else if (Project.isGradle(project)) {
                 cmd = getGradleCommand("gradle libertyDev " + userParms + " -p=" + projectPath);
             } else {
@@ -377,18 +381,31 @@ public class DevModeOperations {
     /**
      * Returns the full Maven command to run on the terminal.
      * 
-     * @param baseCommand The base development mode command.
+     * @param baseCommand The mvn command args
      * 
      * @return The full Maven command to run on the terminal.
      */
-    private String getMavenCommand(String baseCommand) {
-        StringBuilder cmd = new StringBuilder(baseCommand);
+    private String getMavenCommand(String cmdArgs) {
+        StringBuilder sb = new StringBuilder();
+        
+        String baseCmd = isWindows() ? "mvn.cmd" : "mvn";
+        String mvnCmd = null;
+
         String mvnInstallPath = getMavenInstallHome();
         if (mvnInstallPath != null) {
-            return Paths.get(mvnInstallPath, "bin", cmd.toString()).toString();
+            mvnCmd = Paths.get(mvnInstallPath, "bin", baseCmd).toString();
+        } else {
+            mvnCmd = baseCmd;
         }
 
-        return cmd.insert(0, "mvn ").toString();
+        sb.append(mvnCmd).append(" ").append(cmdArgs);
+        
+        if (isWindows()) {
+            // Include trailing space for separation
+            sb.insert(0, "/c ");
+        } 
+        
+        return sb.toString();
     }
 
     /**
