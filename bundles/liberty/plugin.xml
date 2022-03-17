@@ -76,4 +76,14 @@
          </run>
       </runtime>
   </extension>
+  
+  <!-- Delegate-->
+  <extension point="org.eclipse.tm.terminal.view.ui.launcherDelegates">
+      <delegate
+          class="liberty.tools.ui.terminal.LocalDevModeLauncherDelegate"
+          id="liberty.tools.ui.terminal.local.devmode.launcher.delegate"
+          label="liberty.tools.ui.terminal.local.devmode.launcher.delegate.label">
+      </delegate>
+  </extension>
+   
 </plugin>

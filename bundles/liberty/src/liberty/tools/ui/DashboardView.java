@@ -121,7 +121,6 @@ public class DashboardView extends ViewPart {
                 Dialog.displayErrorMessage("Project" + project.getName() + "is not a Gradle or Maven project.");
                 return;
             }
-            mgr.add(new Separator());
         }
     }
 
@@ -155,11 +154,7 @@ public class DashboardView extends ViewPart {
         startWithParmAction = new Action("Start...") {
             @Override
             public void run() {
-                String parms = getStartParms();
-
-                if (parms != null) {
-                    devMode.startWithParms(parms);
-                }
+                devMode.startWithParms();
             }
         };
         startWithParmAction.setImageDescriptor(ActionImg);
@@ -231,49 +226,5 @@ public class DashboardView extends ViewPart {
             }
         };
         refreshAction.setImageDescriptor(refreshImg);
-    }
-
-    /**
-     * Returns the list of parameters if the user presses OK, null otherwise.
-     * 
-     * @return The list of parameters if the user presses OK, null otherwise.
-     */
-    public String getStartParms() {
-        String dTitle = "Liberty Development Mode";
-        String dMessage = "Specify custom parameters for the liberty dev command.";
-        String dInitValue = "";
-        IInputValidator iValidator = getParmListValidator();
-        Shell shell = Display.getCurrent().getActiveShell();
-        InputDialog iDialog = new InputDialog(shell, dTitle, dMessage, dInitValue, iValidator) {
-        };
-
-        String userInput = null;
-
-        if (iDialog.open() == Window.OK) {
-            userInput = iDialog.getValue();
-        }
-
-        return userInput;
-    }
-
-    /**
-     * Creates a validation object for user provided parameters.
-     * 
-     * @return A validation object for user provided parameters.
-     */
-    public IInputValidator getParmListValidator() {
-        return new IInputValidator() {
-
-            @Override
-            public String isValid(String text) {
-                String[] parmSegments = text.split(" ");
-                for (int i = 0; i < parmSegments.length; i++) {
-                    if (parmSegments[i] != null && !parmSegments[i].isEmpty() && !parmSegments[i].startsWith("-")) {
-                        return "Parameters must start with -";
-                    }
-                }
-                return null;
-            }
-        };
     }
 }
