@@ -19,6 +19,29 @@
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
+	
+	<repositories>
+			<repository>
+		  <id>lsp4mp-snapshots</id>
+		  <url>https://repo.eclipse.org/content/repositories/lsp4mp-snapshots</url>
+		  <releases>
+		    <enabled>false</enabled>
+		  </releases>
+		  <snapshots>
+		    <enabled>true</enabled>
+		  </snapshots>
+		</repository>		
+		<repository>
+		  <id>lsp4mp-releases</id>
+		  <url>https://repo.eclipse.org/content/repositories/lsp4mp-releases</url>
+		  <releases>
+		    <enabled>true</enabled>
+	      </releases>
+		  <snapshots>
+		    <enabled>false</enabled>
+		  </snapshots>
+		</repository>		
+	</repositories>
 
 	<build>
 		<pluginManagement>
@@ -58,7 +81,7 @@
 							</pluginExecutions>
 						</lifecycleMappingMetadata>
 					</configuration>
-				</plugin>
+				</plugin>                           		
 			</plugins>
 		</pluginManagement>
 		<plugins>

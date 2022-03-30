@@ -5,5 +5,4 @@ target/
 .metadata
 bin/
 */.polyglot*
-.project
 .settings

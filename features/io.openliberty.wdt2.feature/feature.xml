@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feature
       id="io.openliberty.wdt2.feature"
-      label="Feature"
+      label="Liberty Development Tools"
       version="1.0.0.liberty"
       provider-name="Open Liberty">
 
@@ -19,6 +19,13 @@
 
    <plugin
          id="liberty"
+         download-size="0"
+         install-size="0"
+         version="0.0.0"
+         unpack="false"/>
+
+   <plugin
+         id="liberty-mpls"
          download-size="0"
          install-size="0"
          version="0.0.0"

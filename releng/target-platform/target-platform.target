@@ -30,7 +30,7 @@
 			<repository location="https://download.eclipse.org/releases/2021-09"/>
 			<unit id="org.junit.jupiter.api" version="0.0.0"/>
 			<unit id="org.junit.jupiter.engine" version="0.0.0"/>
-			<unit id="org.eclipse.jdt.junit5.runtime" version="0.0.0"/>
+			<!-- <unit id="org.eclipse.jdt.junit5.runtime" version="0.0.0"/> -->
 			<unit id="org.junit" version="0.0.0"/>
 			<unit id="org.hamcrest.core" version="0.0.0"/>
 		</location>
@@ -53,16 +53,25 @@
 			<unit id="org.eclipse.tm.terminal.feature.source.feature.group" version="10.4.1.202109142059"/>
 			<unit id="org.eclipse.tm.terminal.view.feature.source.feature.group" version="10.4.1.202109142059"/>
 		</location>
-		<location includeSource="true" missingManifest="generate" type="Maven">
-			<groupId>org.mockito</groupId>
-			<artifactId>mockito-junit-jupiter</artifactId>
-			<version>4.3.1</version>
-			<type>jar</type>
-		</location>
 		<!-- The fricking jem thing was here!! -->
 		<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
 			<repository location="https://download.eclipse.org/releases/2021-09"/>
 			<unit id="org.eclipse.m2e.wtp.feature.feature.group" version="1.4.4.20201128-1705"/>
+			<!-- <unit id="org.eclipse.jdt.feature.group" version="3.18.900.v20210906-0500"/> -->
+			<!-- <unit id="org.eclipse.lsp4e" version="0.13.6.202108060851"/> -->
+		</location>
+		<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
+			<repository location="https://download.eclipse.org/releases/2022-03/"/>
+			<unit id="org.eclipse.lsp4e" version="0.13.9.202202021529"/>
+			<unit id="org.eclipse.jdt.feature.group" version="3.18.1100.v20220308-0310"/>	
+		</location>		
+		<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
+			<repository location="http://download.eclipse.org/lsp4mp/releases/0.4.0/repository/"/>
+			<unit id="org.eclipse.lsp4mp.jdt.core" version="0.0.0"/>
+		</location>
+		<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
+			<repository location="https://download.eclipse.org/jdtls/snapshots/repository/1.5.0.202109201721/"/>
+			<unit id="org.eclipse.jdt.ls.core" version="1.5.0.202109201721"/>
 		</location>
 	</locations>
 </target>
