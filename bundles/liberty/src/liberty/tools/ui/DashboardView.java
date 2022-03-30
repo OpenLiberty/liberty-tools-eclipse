@@ -8,18 +8,12 @@ import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
-import org.eclipse.jface.action.Separator;
-import org.eclipse.jface.dialogs.IInputValidator;
-import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.ListViewer;
-import org.eclipse.jface.window.Window;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.part.ViewPart;
 
 import liberty.tools.DevModeOperations;
@@ -33,7 +27,15 @@ public class DashboardView extends ViewPart {
 
     public static final DevModeOperations devMode = new DevModeOperations();
 
-    ListViewer viewer;
+    public static final String APP_MENU_ACTION_START = "Start";
+    public static final String APP_MENU_ACTION_START_PARMS = "Start...";
+    public static final String APP_MENU_ACTION_START_IN_CONTAINER = "Start in container";
+    public static final String APP_MENU_ACTION_STOP = "Stop";
+    public static final String APP_MENU_ACTION_RUN_TESTS = "Run tests";
+    public static final String APP_MENU_ACTION_VIEW_MVN_IT_REPORT = "View integration test report";
+    public static final String APP_MENU_ACTION_VIEW_MVN_UT_REPORT = "View unit test report";
+    public static final String APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT = "View test report";
+    public static final String DASHBORD_TOOLBAR_ACTION_REFRESH = "refresh";
 
     Action startAction;
     Action startWithParmAction;
@@ -44,7 +46,9 @@ public class DashboardView extends ViewPart {
     Action viewMavenUTestReportsAction;
     Action viewGradleTestReportsAction;
     Action refreshAction;
-
+    
+    ListViewer viewer;
+    
     @Override
     public void createPartControl(Composite parent) {
         viewer = new ListViewer(parent);
@@ -142,7 +146,7 @@ public class DashboardView extends ViewPart {
         }
 
         // Menu: Start.
-        startAction = new Action("Start") {
+        startAction = new Action(APP_MENU_ACTION_START) {
             @Override
             public void run() {
                 devMode.start();
@@ -151,7 +155,7 @@ public class DashboardView extends ViewPart {
         startAction.setImageDescriptor(ActionImg);
 
         // Menu: Start with parameters.
-        startWithParmAction = new Action("Start...") {
+        startWithParmAction = new Action(APP_MENU_ACTION_START_PARMS) {
             @Override
             public void run() {
                 devMode.startWithParms();
@@ -160,7 +164,7 @@ public class DashboardView extends ViewPart {
         startWithParmAction.setImageDescriptor(ActionImg);
 
         // Menu: Start in container.
-        startInContanerAction = new Action("Start in container") {
+        startInContanerAction = new Action(APP_MENU_ACTION_START_IN_CONTAINER) {
             @Override
             public void run() {
                 devMode.startInContainer();
@@ -169,7 +173,7 @@ public class DashboardView extends ViewPart {
         startInContanerAction.setImageDescriptor(ActionImg);
 
         // Menu: Stop.
-        stopAction = new Action("Stop") {
+        stopAction = new Action(APP_MENU_ACTION_STOP) {
             @Override
             public void run() {
                 devMode.stop();
@@ -178,7 +182,7 @@ public class DashboardView extends ViewPart {
         stopAction.setImageDescriptor(ActionImg);
 
         // Menu: Run tests.
-        runTestAction = new Action("Run tests") {
+        runTestAction = new Action(APP_MENU_ACTION_RUN_TESTS) {
             @Override
             public void run() {
                 devMode.runTests();
@@ -187,7 +191,7 @@ public class DashboardView extends ViewPart {
         runTestAction.setImageDescriptor(ActionImg);
 
         // Menu: View integration test report. Maven project specific.
-        viewMavenITestReportsAction = new Action("View integration test report") {
+        viewMavenITestReportsAction = new Action(APP_MENU_ACTION_VIEW_MVN_IT_REPORT) {
             @Override
             public void run() {
                 devMode.openMavenIntegrationTestReport();
@@ -196,7 +200,7 @@ public class DashboardView extends ViewPart {
         viewMavenITestReportsAction.setImageDescriptor(ActionImg);
 
         // Menu: View unit test report. Maven project specific.
-        viewMavenUTestReportsAction = new Action("View unit test report") {
+        viewMavenUTestReportsAction = new Action(APP_MENU_ACTION_VIEW_MVN_UT_REPORT) {
             @Override
             public void run() {
                 devMode.openMavenUnitTestReport();
@@ -205,7 +209,7 @@ public class DashboardView extends ViewPart {
         viewMavenUTestReportsAction.setImageDescriptor(ActionImg);
 
         // Menu: View test report. Gradle project specific.
-        viewGradleTestReportsAction = new Action("View test report") {
+        viewGradleTestReportsAction = new Action(APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT) {
             @Override
             public void run() {
                 devMode.openGradleTestReport();
@@ -214,7 +218,7 @@ public class DashboardView extends ViewPart {
         viewGradleTestReportsAction.setImageDescriptor(ActionImg);
 
         // Toolbar: Refresh the project list.
-        refreshAction = new Action("refresh") {
+        refreshAction = new Action(DASHBORD_TOOLBAR_ACTION_REFRESH) {
             @Override
             public void run() {
                 try {
