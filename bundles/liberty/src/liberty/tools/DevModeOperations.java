@@ -42,6 +42,23 @@ public class DevModeOperations {
     // TODO: Establish a Maven/Gradle command precedence (i.e. gradlew -> gradle configured ->
     // gradle_home).
 
+    public static final String DEVMODE_START_PARMS_DIALOG_TITLE = "Liberty Development Mode";
+    public static final String DEVMODE_START_PARMS_DIALOG_MSG = "Specify custom parameters for the liberty dev command.";
+
+    public static final String BROWSER_MVN_IT_RESULT_ID = "maven.failsafe.integration.test.results";
+    public static final String BROWSER_MVN_IT_RESULT_NAME = "Maven Failsafe integration test results";
+
+    public static final String BROWSER_MVN_UT_RESULT_ID = "maven.project.surefire.unit.test.results";
+    public static final String BROWSER_MVN_UT_RESULT_NAME = "Maven Surefire unit test results";
+
+    public static final String BROWSER_GRADLE_TEST_RESULT_ID = "gradle.project.test.results";
+    public static final String BROWSER_GRADLE_TEST_RESULT_NAME = "Gradle project test results";
+
+    /**
+     * Returns true if the underlying OS is windows. False, otherwise.
+     * 
+     * @return True if the underlying OS is windows. False, otherwise.
+     */
     private boolean isWindows() {
         return System.getProperty("os.name").contains("Windows");
     }
@@ -270,16 +287,14 @@ public class DevModeOperations {
             }
 
             // Get the path to the test report.
-            Path path = Paths.get(projectPath, "target", "site", "failsafe-report.html");
+            Path path = getMavenIntegrationTestReportPath(projectPath);
             if (!path.toFile().exists()) {
                 Dialog.displayWarningMessage("Integration test results are not available. Be sure to run the tests first.");
                 return;
             }
 
             // Display the report on the browser. Browser display is based on eclipse configuration preferences.
-            String browserId = "maven.failsafe.integration.test.results";
-            String name = "Maven Failsafe integration test results";
-            openTestReport(project.getName(), path, browserId, name, name);
+            openTestReport(project.getName(), path, BROWSER_MVN_IT_RESULT_ID, BROWSER_MVN_IT_RESULT_NAME, BROWSER_MVN_IT_RESULT_NAME);
         } catch (Exception e) {
             Dialog.displayErrorMessageWithDetails("An error was detected while opening integration test report for project " + projectName,
                     e);
@@ -302,16 +317,14 @@ public class DevModeOperations {
             }
 
             // Get the path to the test report.
-            Path path = Paths.get(projectPath, "target", "site", "surefire-report.html");
+            Path path = getMavenUnitTestReportPath(projectPath);
             if (!path.toFile().exists()) {
                 Dialog.displayWarningMessage("Unit test results are not available. Be sure to run the tests first.");
                 return;
             }
 
             // Display the report on the browser. Browser display is based on eclipse configuration preferences.
-            String browserId = "maven.project.surefire.unit.test.results";
-            String name = "Maven Surefire unit test results";
-            openTestReport(project.getName(), path, browserId, name, name);
+            openTestReport(project.getName(), path, BROWSER_MVN_UT_RESULT_ID, BROWSER_MVN_UT_RESULT_NAME, BROWSER_MVN_UT_RESULT_NAME);
         } catch (Exception e) {
             Dialog.displayErrorMessageWithDetails("An error was detected while opening unit test report for project " + projectName, e);
             return;
@@ -340,9 +353,8 @@ public class DevModeOperations {
             }
 
             // Display the report on the browser. Browser display is based on eclipse configuration preferences.
-            String browserId = "gradle.project.test.results";
-            String name = "Gradle project test results";
-            openTestReport(projectName, path, browserId, name, name);
+            openTestReport(projectName, path, BROWSER_GRADLE_TEST_RESULT_ID, BROWSER_GRADLE_TEST_RESULT_NAME,
+                    BROWSER_GRADLE_TEST_RESULT_NAME);
         } catch (Exception e) {
             Dialog.displayErrorMessageWithDetails("An error was detected while opening test report for project " + projectName, e);
             return;
@@ -353,10 +365,10 @@ public class DevModeOperations {
      * Opens the specified report in a browser.
      *
      * @param projectName The application project name.
-     * @param path The path to the HTML report file.
-     * @param browserId The Id to use for the browser display.
-     * @param name The name to use for the browser display.
-     * @param toolTip The tool tip to use for the browser display.
+     * @param path        The path to the HTML report file.
+     * @param browserId   The Id to use for the browser display.
+     * @param name        The name to use for the browser display.
+     * @param toolTip     The tool tip to use for the browser display.
      * 
      * @throws Exception If an error occurs while displaying the test report.
      */
@@ -377,7 +389,7 @@ public class DevModeOperations {
     /**
      * Runs the specified command on a terminal.
      * 
-     * @param cmd The command to run.
+     * @param cmd         The command to run.
      * @param projectName The name of the project currently being processed.
      * 
      * @throws Exception If an error occurs while running the specified command.
@@ -417,12 +429,11 @@ public class DevModeOperations {
      * @return The list of parameters if the user presses OK, null otherwise.
      */
     public String getStartParms() {
-        String dTitle = "Liberty Development Mode";
-        String dMessage = "Specify custom parameters for the liberty dev command.";
         String dInitValue = "";
         IInputValidator iValidator = getParmListValidator();
         Shell shell = Display.getCurrent().getActiveShell();
-        InputDialog iDialog = new InputDialog(shell, dTitle, dMessage, dInitValue, iValidator) {
+        InputDialog iDialog = new InputDialog(shell, DEVMODE_START_PARMS_DIALOG_TITLE, DEVMODE_START_PARMS_DIALOG_MSG, dInitValue,
+                iValidator) {
         };
 
         String userInput = null;
@@ -573,11 +584,33 @@ public class DevModeOperations {
     }
 
     /**
-     * Returns the home path to the HTML test report.
+     * Returns the path of the HTML file containing the integration test report.
      * 
-     * @return The HTML default located in the configured in the build file or the default location.
+     * @return The path of the HTML file containing the integration test report.
      */
-    private Path getGradleTestReportPath(IProject project, String projectPath) {
+    public static Path getMavenIntegrationTestReportPath(String projectPath) {
+        Path path = Paths.get(projectPath, "target", "site", "failsafe-report.html");
+
+        return path;
+    }
+
+    /**
+     * Returns the path of the HTML file containing the unit test report.
+     * 
+     * @return The path of the HTML file containing the unit test report.
+     */
+    public static Path getMavenUnitTestReportPath(String projectPath) {
+        Path path = Paths.get(projectPath, "target", "site", "surefire-report.html");
+
+        return path;
+    }
+
+    /**
+     * Returns the path of the HTML file containing the test report.
+     * 
+     * @return The custom path of the HTML file containing the or the default location.
+     */
+    public static Path getGradleTestReportPath(IProject project, String projectPath) {
         // TODO: Look for custom dir entry in build.gradle:
         // "test.reports.html.destination". Need to handle a value like this:
         // reports.html.destination = file("$buildDir/edsTestReports/teststuff")
