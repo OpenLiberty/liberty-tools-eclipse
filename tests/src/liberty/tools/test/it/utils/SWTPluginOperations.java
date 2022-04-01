@@ -1,22 +1,38 @@
 package liberty.tools.test.it.utils;
 
+import static org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory.allOf;
+import static org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory.widgetOfType;
+
 import java.util.Iterator;
 import java.util.List;
 
+import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Item;
+import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotEditor;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotView;
+import org.eclipse.swtbot.swt.finder.utils.SWTUtils;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotList;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotMenu;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotRootMenu;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotShell;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotStyledText;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotText;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotToolbarButton;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotToolbarDropDownButton;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotToolbarPushButton;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotToolbarRadioButton;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotToolbarSeparatorButton;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotToolbarToggleButton;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.WorkbenchException;
+import org.hamcrest.BaseMatcher;
+import org.hamcrest.Description;
+import org.hamcrest.Matcher;
 
 import liberty.tools.DevModeOperations;
 import liberty.tools.ui.DashboardView;
@@ -31,7 +47,7 @@ public class SWTPluginOperations {
      */
     public static final String MENU_NAME = "Liberty";
     public static final String MENU_OPEN_DASHBOARD_ACTION = "Open Dashboard";
-    public static final String TOOLBAR_OPEN_DASHBOARD_TIP = "Open Liberty Dashboard View (⌘1)";
+    public static final String TOOLBAR_OPEN_DASHBOARD_TIP = "Open Liberty Dashboard View";
     public static final String DASHBOARD_TOOLBAR_REFRESH_TIP = "refresh";
     public static final String DASHBOARD_VIEW_TITLE = "Liberty Dashboard";
 
@@ -303,7 +319,6 @@ public class SWTPluginOperations {
         SWTBotStyledText styledText = bot.styledText();
         styledText.setText(content);
         editor.save();
-
     }
 
     /**
@@ -351,10 +366,77 @@ public class SWTPluginOperations {
      * @return The Open Liberty dashboard view obtained by pressing on the Open Liberty icon located on the main tool bar.
      */
     public static SWTBotView openDashboardUsingToolbar(SWTWorkbenchBot bot) {
-        bot.toolbarButtonWithTooltip(TOOLBAR_OPEN_DASHBOARD_TIP).click();
+        SWTBotToolbarButton toolbarButton = getToolbarButtonWithToolTipPrefix(bot, TOOLBAR_OPEN_DASHBOARD_TIP);
+        toolbarButton.click();
         SWTBotView dashboard = bot.viewByTitle(DASHBOARD_VIEW_TITLE);
         dashboard.show();
-        bot.waitUntil(SWTTestCondition.isViewActive(dashboard, DASHBOARD_VIEW_TITLE), 5);
+        bot.waitUntil(SWTTestCondition.isViewActive(dashboard, DASHBOARD_VIEW_TITLE), 5000);
         return dashboard;
+    }
+
+    /**
+     * Returns a SWTBotToolbarButton instance representing the toolbar button with the input tooltip prefix.
+     * 
+     * @param bot The SWTWorkbenchBot instance.
+     * @param toolTipPrefix The tooltip prefix.
+     * 
+     * @return A SWTBotToolbarButton instance representing the toolbar button with the input tooltip prefix.
+     */
+    @SuppressWarnings("unchecked")
+    public static SWTBotToolbarButton getToolbarButtonWithToolTipPrefix(SWTWorkbenchBot bot, String toolTipPrefix) {
+        Matcher<Item> matcher = allOf(widgetOfType(ToolItem.class), new ToolTipPrefixMatcher<Item>(toolTipPrefix));
+        Item item = bot.widget(matcher, 0);
+        if (item instanceof ToolItem) {
+            ToolItem toolItem = (ToolItem) item;
+            if (SWTUtils.hasStyle(toolItem, SWT.PUSH)) {
+                return new SWTBotToolbarPushButton(toolItem, matcher);
+            }
+        }
+
+        throw new RuntimeException("toolbar button of type ToolItem, with style push, and tooltip prefix of " + toolTipPrefix + " was not found.");
+    }
+
+    /**
+     * Toolbar button tip prefix matcher.
+     */
+    public static class ToolTipPrefixMatcher<T> extends BaseMatcher<T> {
+
+        final String toolTipPrefix;
+
+        /**
+         * Constructor.
+         * 
+         * @param toolTipPrefix The tooltip prefix to match.
+         */
+        public ToolTipPrefixMatcher(String toolTipPrefix) {
+            this.toolTipPrefix = toolTipPrefix;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public void describeTo(Description description) {
+            description.appendText("with tooltip prefix '").appendText(toolTipPrefix).appendText("'");
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public boolean matches(Object object) {
+            boolean matchFound = false;
+            
+            try {
+                Object tooltipText = SWTUtils.invokeMethod(object, "getToolTipText");
+                if (tooltipText instanceof String) {
+                    matchFound = ((String) tooltipText).startsWith(toolTipPrefix);
+                }
+            } catch (Exception e) {
+                System.out.println("INFO: Unabled to find tooltip with prefix: " + toolTipPrefix + ". Error: " + e.getMessage());
+            }
+
+            return matchFound;
+        }
     }
 }
