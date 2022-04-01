@@ -1,8 +1,5 @@
 package liberty.tools.test.it;
 
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -32,9 +29,10 @@ import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotView;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
-import org.junit.AfterClass;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
 
 import liberty.tools.DevModeOperations;
 import liberty.tools.test.it.utils.SWTPluginOperations;
@@ -70,7 +68,7 @@ public class LibertyPluginSWTBotMavenTest {
     /**
      * Setup.
      */
-    @BeforeClass
+    @BeforeAll
     public static void setup() {
         bot = new SWTWorkbenchBot();
         SWTPluginOperations.closeWelcomePage(bot);
@@ -81,7 +79,7 @@ public class LibertyPluginSWTBotMavenTest {
     /**
      * Cleanup.
      */
-    @AfterClass
+    @AfterAll
     public static void cleanup() {
         bot.closeAllEditors();
         bot.closeAllShells();
@@ -110,14 +108,14 @@ public class LibertyPluginSWTBotMavenTest {
                 break;
             }
         }
-        assertTrue("The dashboard does not contain expected application: " + MVN_APP_NAME, foundApp);
+        Assertions.assertTrue(foundApp, () -> "The dashboard does not contain expected application: " + MVN_APP_NAME);
 
         // Check that the menu for the expected application contains the required actions.
         List<String> menuItems = SWTPluginOperations.getDashboardItemMenuActions(bot, dashboard, MVN_APP_NAME);
-        assertTrue("Maven application " + MVN_APP_NAME + " does not contain the expected number of menu items: " + mvnMenuItems.length,
-                menuItems.size() == mvnMenuItems.length);
-        assertTrue("Maven application " + MVN_APP_NAME + " does not contain the expected menu items: " + mvnMenuItems,
-                menuItems.containsAll(Arrays.asList(mvnMenuItems)));
+        Assertions.assertTrue(menuItems.size() == mvnMenuItems.length,
+                () -> "Maven application " + MVN_APP_NAME + " does not contain the expected number of menu items: " + mvnMenuItems.length);
+        Assertions.assertTrue(menuItems.containsAll(Arrays.asList(mvnMenuItems)),
+                () -> "Maven application " + MVN_APP_NAME + " does not contain the expected menu items: " + mvnMenuItems);
     }
 
     /**
@@ -165,7 +163,7 @@ public class LibertyPluginSWTBotMavenTest {
         Path projectPath = Paths.get("applications", "maven", "liberty-maven-test-app");
         Path pathToITReport = DevModeOperations.getMavenIntegrationTestReportPath(projectPath.toString());
         boolean testReportDeleted = deleteFile(pathToITReport);
-        assertTrue("File: " + pathToITReport + " was not be deleted.", testReportDeleted);
+        Assertions.assertTrue(testReportDeleted, () -> "File: " + pathToITReport + " was not be deleted.");
 
         // Start dev mode with parms.
         SWTPluginOperations.launchAppMenuStartWithParmsAction(bot, dashboard, MVN_APP_NAME, "-DhotTests=true");
@@ -176,7 +174,7 @@ public class LibertyPluginSWTBotMavenTest {
         validateApplicationOutcome(true);
 
         // Validate that the test reports were generated.
-        validateTestReportExists(MVN_APP_NAME, pathToITReport);
+        validateTestReportExists(pathToITReport);
 
         // Stop dev mode.
         SWTPluginOperations.launchAppMenuStopAction(bot, dashboard, MVN_APP_NAME);
@@ -195,11 +193,11 @@ public class LibertyPluginSWTBotMavenTest {
         Path projectPath = Paths.get("applications", "maven", "liberty-maven-test-app");
         Path pathToITReport = DevModeOperations.getMavenIntegrationTestReportPath(projectPath.toString());
         boolean itReportDeleted = deleteFile(pathToITReport);
-        assertTrue("Test report file: " + pathToITReport + " was not be deleted.", itReportDeleted);
+        Assertions.assertTrue(itReportDeleted, () -> "Test report file: " + pathToITReport + " was not be deleted.");
 
         Path pathToUTReport = DevModeOperations.getMavenUnitTestReportPath(projectPath.toString());
         boolean utReportDeleted = deleteFile(pathToITReport);
-        assertTrue("Test report file: " + pathToITReport + " was not be deleted.", utReportDeleted);
+        Assertions.assertTrue(utReportDeleted, () -> "Test report file: " + pathToITReport + " was not be deleted.");
 
         // Start dev mode.
         SWTPluginOperations.launchAppMenuStartAction(bot, dashboard, MVN_APP_NAME);
@@ -213,12 +211,12 @@ public class LibertyPluginSWTBotMavenTest {
         SWTPluginOperations.launchAppMenuRunTestsAction(bot, dashboard, MVN_APP_NAME);
 
         // Validate that the reports were generated and the the browser editor was launched.
-        validateTestReportExists(MVN_APP_NAME, pathToITReport);
+        validateTestReportExists(pathToITReport);
         if (isInternalBrowserSupportAvailable()) {
             SWTPluginOperations.launchAppMenuViewMavenITReportAction(bot, dashboard, MVN_APP_NAME);
         }
 
-        validateTestReportExists(MVN_APP_NAME, pathToUTReport);
+        validateTestReportExists(pathToUTReport);
         if (isInternalBrowserSupportAvailable()) {
             SWTPluginOperations.launchAppMenuViewMavenUTReportAction(bot, dashboard, MVN_APP_NAME);
         }
@@ -239,7 +237,7 @@ public class LibertyPluginSWTBotMavenTest {
         final String fileName = "pom.xml";
         // Get the list of entries on the dashboard and verify the expected number found.
         String[] dashboardContent = SWTPluginOperations.getDashboardContent(bot, dashboard);
-        assertTrue("The dashboard did not display the expected number of applications: 1", dashboardContent.length == 1);
+        Assertions.assertTrue(dashboardContent.length == 1, () -> "The dashboard did not display the expected number of applications: 1");
 
         String originalContent = SWTPluginOperations.getAppFileContent(bot, "Project Explorer", MVN_APP_NAME, fileName);
         Path noOLPluginPom = Paths.get("resources", "maven", "liberty-maven-test-app", "pom.xml");
@@ -255,7 +253,7 @@ public class LibertyPluginSWTBotMavenTest {
                     contentBuilder.append(sCurrentLine).append(System.lineSeparator());
                 }
             } catch (IOException e) {
-                fail("Error while reading file: " + noOLPluginPom.toString() + "Error: " + e.getMessage());
+                Assertions.fail("Error while reading file: " + noOLPluginPom.toString() + "Error: " + e.getMessage());
             }
 
             String pomEditorTitle = Paths.get(MVN_APP_NAME, fileName).toString();
@@ -266,7 +264,8 @@ public class LibertyPluginSWTBotMavenTest {
 
             // Get the list of entries on the dashboard and verify the expected number is found.
             dashboardContent = SWTPluginOperations.getDashboardContent(bot, dashboard);
-            assertTrue("The dashboard did not display the expected number of applications: 0", dashboardContent.length == 0);
+            Assertions.assertTrue(dashboardContent.length == 0,
+                    () -> "The dashboard did not display the expected number of applications: 0");
 
         } finally {
             // Update the application metadata to make it capable of using Liberty's dev mode.
@@ -277,7 +276,8 @@ public class LibertyPluginSWTBotMavenTest {
 
             // Get the list of entries on the dashboard and verify the expected number is found.
             dashboardContent = SWTPluginOperations.getDashboardContent(bot, dashboard);
-            assertTrue("The dashboard did not display the expected number of applications: 1", dashboardContent.length == 1);
+            Assertions.assertTrue(dashboardContent.length == 1,
+                    () -> "The dashboard did not display the expected number of applications: 1");
         }
     }
 
@@ -397,16 +397,15 @@ public class LibertyPluginSWTBotMavenTest {
         }
 
         // If we are here, the expected outcome was not found.
-        fail("Timed out while waiting for application under URL: " + appUrl + " to become available.");
+        Assertions.fail("Timed out while waiting for application under URL: " + appUrl + " to become available.");
     }
 
     /**
      * Validates that the test report represented by the input path exists.
-     * 
-     * @param appName The application name for which the report is issued.
+     *
      * @param pathToTestReport The path to the report.
      */
-    public void validateTestReportExists(String appName, Path pathToTestReport) {
+    public void validateTestReportExists(Path pathToTestReport) {
         int retryCountLimit = 10;
         int reryIntervalSecs = 1;
         int retryCount = 0;
@@ -429,7 +428,7 @@ public class LibertyPluginSWTBotMavenTest {
         }
 
         // If we are here, the expected outcome was not found.
-        fail("Timed out while waiting for test report: " + pathToTestReport + " to become available.");
+        Assertions.fail("Timed out while waiting for test report: " + pathToTestReport + " to become available.");
     }
 
     /**
