@@ -365,10 +365,10 @@ public class DevModeOperations {
      * Opens the specified report in a browser.
      *
      * @param projectName The application project name.
-     * @param path        The path to the HTML report file.
-     * @param browserId   The Id to use for the browser display.
-     * @param name        The name to use for the browser display.
-     * @param toolTip     The tool tip to use for the browser display.
+     * @param path The path to the HTML report file.
+     * @param browserId The Id to use for the browser display.
+     * @param name The name to use for the browser display.
+     * @param toolTip The tool tip to use for the browser display.
      * 
      * @throws Exception If an error occurs while displaying the test report.
      */
@@ -389,7 +389,7 @@ public class DevModeOperations {
     /**
      * Runs the specified command on a terminal.
      * 
-     * @param cmd         The command to run.
+     * @param cmd The command to run.
      * @param projectName The name of the project currently being processed.
      * 
      * @throws Exception If an error occurs while running the specified command.

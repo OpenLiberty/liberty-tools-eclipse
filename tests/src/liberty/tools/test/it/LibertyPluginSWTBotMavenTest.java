@@ -239,7 +239,7 @@ public class LibertyPluginSWTBotMavenTest {
         final String fileName = "pom.xml";
         // Get the list of entries on the dashboard and verify the expected number found.
         String[] dashboardContent = SWTPluginOperations.getDashboardContent(bot, dashboard);
-        assertTrue("The dashboard does not display the expected number of applications: 1", dashboardContent.length == 1);
+        assertTrue("The dashboard did not display the expected number of applications: 1", dashboardContent.length == 1);
 
         String originalContent = SWTPluginOperations.getAppFileContent(bot, "Project Explorer", MVN_APP_NAME, fileName);
         Path noOLPluginPom = Paths.get("resources", "maven", "liberty-maven-test-app", "pom.xml");
@@ -266,7 +266,7 @@ public class LibertyPluginSWTBotMavenTest {
 
             // Get the list of entries on the dashboard and verify the expected number is found.
             dashboardContent = SWTPluginOperations.getDashboardContent(bot, dashboard);
-            assertTrue("The dashboard does not display the expected number of applications: 0", dashboardContent.length == 0);
+            assertTrue("The dashboard did not display the expected number of applications: 0", dashboardContent.length == 0);
 
         } finally {
             // Update the application metadata to make it capable of using Liberty's dev mode.
@@ -277,7 +277,7 @@ public class LibertyPluginSWTBotMavenTest {
 
             // Get the list of entries on the dashboard and verify the expected number is found.
             dashboardContent = SWTPluginOperations.getDashboardContent(bot, dashboard);
-            assertTrue("The dashboard does not display the expected number of applications: 1", dashboardContent.length == 1);
+            assertTrue("The dashboard did not display the expected number of applications: 1", dashboardContent.length == 1);
         }
     }
 
@@ -426,7 +426,6 @@ public class LibertyPluginSWTBotMavenTest {
             }
 
             return;
-
         }
 
         // If we are here, the expected outcome was not found.
