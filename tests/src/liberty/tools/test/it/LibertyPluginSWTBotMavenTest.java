@@ -153,6 +153,8 @@ public class LibertyPluginSWTBotMavenTest {
 
         // Validate application stopped.
         validateApplicationOutcome(false);
+       
+        terminal.close();       
     }
 
     /**
@@ -182,6 +184,8 @@ public class LibertyPluginSWTBotMavenTest {
 
         // Validate application stopped.
         validateApplicationOutcome(false);
+        
+        terminal.close();        
     }
 
     /**
@@ -227,6 +231,8 @@ public class LibertyPluginSWTBotMavenTest {
 
         // Validate application stopped.
         validateApplicationOutcome(false);
+        
+        terminal.close();
     }
 
     /**
@@ -406,7 +412,7 @@ public class LibertyPluginSWTBotMavenTest {
      * @param pathToTestReport The path to the report.
      */
     public void validateTestReportExists(Path pathToTestReport) {
-        int retryCountLimit = 10;
+        int retryCountLimit = 50;
         int reryIntervalSecs = 1;
         int retryCount = 0;
 
