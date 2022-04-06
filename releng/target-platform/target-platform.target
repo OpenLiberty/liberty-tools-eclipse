@@ -27,7 +27,7 @@
 			<unit id="org.eclipse.emf.sdk.feature.group" version="2.27.0.v20210816-1137"/>
 		</location>
 		<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-			<repository location="https://download.eclipse.org/releases/2021-09"/>
+			<repository location="https://download.eclipse.org/releases/2021-12"/>
 			<unit id="org.junit.jupiter.api" version="0.0.0"/>
 			<unit id="org.junit.jupiter.engine" version="0.0.0"/>
 			<unit id="org.eclipse.jdt.junit5.runtime" version="0.0.0"/>
@@ -53,16 +53,20 @@
 			<unit id="org.eclipse.tm.terminal.feature.source.feature.group" version="10.4.1.202109142059"/>
 			<unit id="org.eclipse.tm.terminal.view.feature.source.feature.group" version="10.4.1.202109142059"/>
 		</location>
-		<location includeSource="true" missingManifest="generate" type="Maven">
-			<groupId>org.mockito</groupId>
-			<artifactId>mockito-junit-jupiter</artifactId>
-			<version>4.3.1</version>
-			<type>jar</type>
-		</location>
 		<!-- The fricking jem thing was here!! -->
 		<location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
 			<repository location="https://download.eclipse.org/releases/2021-09"/>
 			<unit id="org.eclipse.m2e.wtp.feature.feature.group" version="1.4.4.20201128-1705"/>
+		</location>
+		<location includeSource="true" missingManifest="generate" type="Maven">
+			<dependencies>
+				<dependency>
+					<groupId>org.mockito</groupId>
+					<artifactId>mockito-junit-jupiter</artifactId>
+					<version>4.3.1</version>
+					<type>jar</type>
+				</dependency>
+			</dependencies>
 		</location>
 	</locations>
 </target>
