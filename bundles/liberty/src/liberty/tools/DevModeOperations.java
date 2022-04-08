@@ -56,7 +56,7 @@ public class DevModeOperations {
 
     /**
      * Returns true if the underlying OS is windows. False, otherwise.
-     * 
+     *
      * @return True if the underlying OS is windows. False, otherwise.
      */
     private boolean isWindows() {
@@ -65,7 +65,7 @@ public class DevModeOperations {
 
     /**
      * Starts the server in development mode.
-     * 
+     *
      * @return An error message or null if the command was processed successfully.
      */
     public void start() {
@@ -88,7 +88,6 @@ public class DevModeOperations {
             String cmd = "";
             if (Project.isMaven(project)) {
                 cmd = getMavenCommand("io.openliberty.tools:liberty-maven-plugin:dev -f " + projectPath);
-
             } else if (Project.isGradle(project)) {
                 cmd = getGradleCommand("libertyDev -p=" + projectPath);
             } else {
@@ -103,12 +102,11 @@ public class DevModeOperations {
             Dialog.displayErrorMessageWithDetails("An error was detected while performing the start action on project " + projectName, e);
             return;
         }
-
     }
 
     /**
      * Starts the server in development mode.
-     * 
+     *
      * @return An error message or null if the command was processed successfully.
      */
     public void startWithParms() {
@@ -156,7 +154,7 @@ public class DevModeOperations {
 
     /**
      * Starts the server in development mode.
-     * 
+     *
      * @return An error message or null if the command was processed successfully.
      */
     public void startInContainer() {
@@ -196,7 +194,7 @@ public class DevModeOperations {
 
     /**
      * Starts the server in development mode.
-     * 
+     *
      * @return An error message or null if the command was processed successfully.
      */
     public void stop() {
@@ -235,7 +233,7 @@ public class DevModeOperations {
 
     /**
      * Runs the tests provided by the application.
-     * 
+     *
      * @return An error message or null if the command was processed successfully.
      */
     public void runTests() {
@@ -369,7 +367,7 @@ public class DevModeOperations {
      * @param browserId The Id to use for the browser display.
      * @param name The name to use for the browser display.
      * @param toolTip The tool tip to use for the browser display.
-     * 
+     *
      * @throws Exception If an error occurs while displaying the test report.
      */
     public void openTestReport(String projectName, Path path, String browserId, String name, String toolTip) throws Exception {
@@ -388,10 +386,10 @@ public class DevModeOperations {
 
     /**
      * Runs the specified command on a terminal.
-     * 
+     *
      * @param cmd The command to run.
      * @param projectName The name of the project currently being processed.
-     * 
+     *
      * @throws Exception If an error occurs while running the specified command.
      */
     public void runCommand(String cmd, String projectName) throws Exception {
@@ -425,7 +423,7 @@ public class DevModeOperations {
 
     /**
      * Returns the list of parameters if the user presses OK, null otherwise.
-     * 
+     *
      * @return The list of parameters if the user presses OK, null otherwise.
      */
     public String getStartParms() {
@@ -447,7 +445,7 @@ public class DevModeOperations {
 
     /**
      * Creates a validation object for user provided parameters.
-     * 
+     *
      * @return A validation object for user provided parameters.
      */
     public IInputValidator getParmListValidator() {
@@ -468,7 +466,7 @@ public class DevModeOperations {
 
     /**
      * Returns the home path to the Java installation.
-     * 
+     *
      * @return The home path to the Java installation, or null if not found.
      */
     private String getJavaInstallHome() {
@@ -490,7 +488,7 @@ public class DevModeOperations {
 
     /**
      * Returns the home path to the Maven installation.
-     * 
+     *
      * @return The home path to the Maven installation, or null if not found.
      */
     private String getMavenInstallHome() {
@@ -511,7 +509,7 @@ public class DevModeOperations {
 
     /**
      * Returns the home path to the Gradle installation.
-     * 
+     *
      * @return The home path to the Gradle installation, or null if not found.
      */
     private String getGradleInstallHome() {
@@ -525,9 +523,9 @@ public class DevModeOperations {
 
     /**
      * Returns the full Maven command to run on the terminal.
-     * 
+     *
      * @param cmdArgs The mvn command args
-     * 
+     *
      * @return The full Maven command to run on the terminal.
      */
     private String getMavenCommand(String cmdArgs) {
@@ -555,9 +553,9 @@ public class DevModeOperations {
 
     /**
      * Returns the full Gradle command to run on the terminal.
-     * 
+     *
      * @param cmdArgs The Gradle command args.
-     * 
+     *
      * @return The full Gradle command to run on the terminal.
      */
     private String getGradleCommand(String cmdArgs) {
@@ -585,7 +583,7 @@ public class DevModeOperations {
 
     /**
      * Returns the path of the HTML file containing the integration test report.
-     * 
+     *
      * @return The path of the HTML file containing the integration test report.
      */
     public static Path getMavenIntegrationTestReportPath(String projectPath) {
@@ -596,7 +594,7 @@ public class DevModeOperations {
 
     /**
      * Returns the path of the HTML file containing the unit test report.
-     * 
+     *
      * @return The path of the HTML file containing the unit test report.
      */
     public static Path getMavenUnitTestReportPath(String projectPath) {
@@ -607,7 +605,7 @@ public class DevModeOperations {
 
     /**
      * Returns the path of the HTML file containing the test report.
-     * 
+     *
      * @return The custom path of the HTML file containing the or the default location.
      */
     public static Path getGradleTestReportPath(IProject project, String projectPath) {
@@ -624,9 +622,9 @@ public class DevModeOperations {
 
     /**
      * Returns true if the input project has already been started. False, otherwise.
-     * 
+     *
      * @param projectName The project name to check.
-     * 
+     *
      * @return True if the input project has already been started. False, otherwise
      */
     private boolean isStarted(String projectName) {

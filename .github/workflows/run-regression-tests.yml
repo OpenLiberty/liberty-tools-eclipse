@@ -1,0 +1,23 @@
+name: run-regression-tests
+
+on:
+  pull_request:
+    branches:
+      - main
+jobs:
+  build:
+    name: Build Plugin
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the eclipse plugin repository.
+      - name: 'Setup: Checkout plugin'
+        uses: actions/checkout@v2
+
+      # Install the required software.
+      - name: 'Setup: Install required software' 
+        run: ./tests/resources/ci/scripts/setup.sh
+        
+      # Build the plugin.
+      - name: 'Build: Build-Package-RunTests'
+        run: ./tests/resources/ci/scripts/exec.sh
