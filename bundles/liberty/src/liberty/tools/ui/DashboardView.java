@@ -46,9 +46,9 @@ public class DashboardView extends ViewPart {
     Action viewMavenUTestReportsAction;
     Action viewGradleTestReportsAction;
     Action refreshAction;
-    
+
     ListViewer viewer;
-    
+
     @Override
     public void createPartControl(Composite parent) {
         viewer = new ListViewer(parent);
@@ -103,7 +103,7 @@ public class DashboardView extends ViewPart {
 
     /**
      * Populates the context menu.
-     * 
+     *
      * @param mgr The menu manager.
      */
     private void addActionsToContextMenu(IMenuManager mgr) {

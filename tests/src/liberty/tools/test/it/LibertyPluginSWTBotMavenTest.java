@@ -153,8 +153,9 @@ public class LibertyPluginSWTBotMavenTest {
 
         // Validate application stopped.
         validateApplicationOutcome(false);
-       
-        terminal.close();       
+
+        // Close the terminal.
+        terminal.close();
     }
 
     /**
@@ -162,7 +163,7 @@ public class LibertyPluginSWTBotMavenTest {
      */
     @Test
     public void testStartWithParms() {
-        Path projectPath = Paths.get("applications", "maven", "liberty-maven-test-app");
+        Path projectPath = Paths.get("resources", "applications", "maven", "liberty-maven-test-app");
         Path pathToITReport = DevModeOperations.getMavenIntegrationTestReportPath(projectPath.toString());
         boolean testReportDeleted = deleteFile(pathToITReport);
         Assertions.assertTrue(testReportDeleted, () -> "File: " + pathToITReport + " was not be deleted.");
@@ -184,8 +185,9 @@ public class LibertyPluginSWTBotMavenTest {
 
         // Validate application stopped.
         validateApplicationOutcome(false);
-        
-        terminal.close();        
+
+        // Close the terminal.
+        terminal.close();
     }
 
     /**
@@ -194,7 +196,7 @@ public class LibertyPluginSWTBotMavenTest {
     @Test
     public void testRunTests() {
         // Delete the test report files before we start this test.
-        Path projectPath = Paths.get("applications", "maven", "liberty-maven-test-app");
+        Path projectPath = Paths.get("resources", "applications", "maven", "liberty-maven-test-app");
         Path pathToITReport = DevModeOperations.getMavenIntegrationTestReportPath(projectPath.toString());
         boolean itReportDeleted = deleteFile(pathToITReport);
         Assertions.assertTrue(itReportDeleted, () -> "Test report file: " + pathToITReport + " was not be deleted.");
@@ -231,7 +233,8 @@ public class LibertyPluginSWTBotMavenTest {
 
         // Validate application stopped.
         validateApplicationOutcome(false);
-        
+
+        // Close the terminal.
         terminal.close();
     }
 
@@ -246,7 +249,7 @@ public class LibertyPluginSWTBotMavenTest {
         Assertions.assertTrue(dashboardContent.length == 1, () -> "The dashboard did not display the expected number of applications: 1");
 
         String originalContent = SWTPluginOperations.getAppFileContent(bot, "Project Explorer", MVN_APP_NAME, fileName);
-        Path noOLPluginPom = Paths.get("resources", "maven", "liberty-maven-test-app", "pom.xml");
+        Path noOLPluginPom = Paths.get("resources", "files", "apps", "maven", "liberty-maven-test-app", "pom.xml");
 
         try {
             // Modify the application metadata to make it not capable of using Liberty's dev mode.
@@ -297,7 +300,7 @@ public class LibertyPluginSWTBotMavenTest {
             public void run() {
                 File workspaceRoot = ResourcesPlugin.getWorkspace().getRoot().getLocation().toFile();
                 ArrayList<String> projectPaths = new ArrayList<String>();
-                Path projPath = Paths.get("applications", "maven", "liberty-maven-test-app");
+                Path projPath = Paths.get("resources", "applications", "maven", "liberty-maven-test-app");
                 projectPaths.add(projPath.toString());
 
                 try {
@@ -311,10 +314,10 @@ public class LibertyPluginSWTBotMavenTest {
 
     /**
      * Imports the specified list of projects.
-     * 
+     *
      * @param workspaceRoot The workspace root location.
      * @param folders The list of folders containing the projects to install.
-     * 
+     *
      * @throws InterruptedException
      * @throws CoreException
      */
@@ -334,7 +337,7 @@ public class LibertyPluginSWTBotMavenTest {
 
     /**
      * Validates that the deployed application is active.
-     * 
+     *
      * @param expectSuccess True if the validation is expected to be successful. False, otherwise.
      */
     private void validateApplicationOutcome(boolean expectSuccess) {
@@ -346,12 +349,11 @@ public class LibertyPluginSWTBotMavenTest {
 
         while (retryCount < retryCountLimit) {
             retryCount++;
-
+            int status = 0;
             try {
                 URL url = new URL(appUrl);
                 HttpURLConnection con = (HttpURLConnection) url.openConnection();
                 con.setRequestMethod("GET");
-                int status = 0;
 
                 // Possible error: java.net.ConnectException: Connection refused
                 con.connect();
@@ -389,7 +391,8 @@ public class LibertyPluginSWTBotMavenTest {
                 }
             } catch (Exception e) {
                 if (expectSuccess) {
-                    System.out.println("INFO: retrying application connection: " + e.getMessage());
+                    System.out.println(
+                            "INFO: Retrying application connection: Responce code: " + status + ". Error message: " + e.getMessage());
                     try {
                         Thread.sleep(reryIntervalSecs * 1000);
                     } catch (Exception ee) {
@@ -439,7 +442,7 @@ public class LibertyPluginSWTBotMavenTest {
 
     /**
      * Returns true if the Eclipse instance supports internal browsers. False, otherwise.
-     * 
+     *
      * @return True if the Eclipse instance supports internal browsers. False, otherwise.
      */
     public boolean isInternalBrowserSupportAvailable() {
@@ -463,9 +466,9 @@ public class LibertyPluginSWTBotMavenTest {
 
     /**
      * Returns true if the file identified by the input path exists. False, otherwise.
-     * 
+     *
      * @param path The file's path.
-     * 
+     *
      * @return True if the file identified by the input path exists. False, otherwise.
      */
     public boolean fileExists(Path filePath) {
@@ -477,9 +480,9 @@ public class LibertyPluginSWTBotMavenTest {
 
     /**
      * Deletes file identified by the input path.
-     * 
+     *
      * @param path The file's path.
-     * 
+     *
      * @return Returns true if the file identified by the input path was deleted. False, otherwise.
      */
     public boolean deleteFile(Path filePath) {
