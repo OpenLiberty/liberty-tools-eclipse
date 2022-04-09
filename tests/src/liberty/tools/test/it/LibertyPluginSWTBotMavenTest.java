@@ -123,6 +123,10 @@ public class LibertyPluginSWTBotMavenTest {
      */
     @Test
     public void testOpenDashboardWithToolbarIcon() {
+        // Close the dashboard view if it is open.
+        SWTPluginOperations.closeDashboardView(bot);
+
+        // Open the dashboard view.
         SWTPluginOperations.openDashboardUsingToolbar(bot);
     }
 
@@ -131,6 +135,10 @@ public class LibertyPluginSWTBotMavenTest {
      */
     @Test
     public void testOpenDashboardUsingMenu() {
+        // Close the dashboard view if it is open.
+        SWTPluginOperations.closeDashboardView(bot);
+
+        // Open the dashboard view.
         SWTPluginOperations.openDashboardUsingMenu(bot);
     }
 
