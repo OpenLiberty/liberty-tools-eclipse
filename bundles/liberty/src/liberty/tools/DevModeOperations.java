@@ -13,6 +13,8 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jface.dialogs.IInputValidator;
 import org.eclipse.jface.dialogs.InputDialog;
+import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.window.Window;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.widgets.Display;
@@ -22,14 +24,18 @@ import org.eclipse.tm.terminal.view.core.TerminalServiceFactory;
 import org.eclipse.tm.terminal.view.core.interfaces.ITerminalService;
 import org.eclipse.tm.terminal.view.core.interfaces.constants.ITerminalsConnectorConstants;
 import org.eclipse.tm.terminal.view.ui.manager.ConsoleManager;
+import org.eclipse.ui.ISelectionService;
+import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.browser.IWebBrowser;
 import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
 
+import liberty.tools.ui.DashboardView;
 import liberty.tools.ui.terminal.LocalDevModeLauncherDelegate;
 import liberty.tools.ui.terminal.TerminalTabListenerImpl;
 import liberty.tools.utils.Dialog;
 import liberty.tools.utils.Project;
+import liberty.tools.utils.Workspace;
 
 /**
  * Provides the implementation of all supported dev mode operations.
@@ -42,15 +48,15 @@ public class DevModeOperations {
     // TODO: Establish a Maven/Gradle command precedence (i.e. gradlew -> gradle configured ->
     // gradle_home).
 
+    /**
+     * Constants.
+     */
     public static final String DEVMODE_START_PARMS_DIALOG_TITLE = "Liberty Development Mode";
     public static final String DEVMODE_START_PARMS_DIALOG_MSG = "Specify custom parameters for the liberty dev command.";
-
     public static final String BROWSER_MVN_IT_RESULT_ID = "maven.failsafe.integration.test.results";
     public static final String BROWSER_MVN_IT_RESULT_NAME = "Maven Failsafe integration test results";
-
     public static final String BROWSER_MVN_UT_RESULT_ID = "maven.project.surefire.unit.test.results";
     public static final String BROWSER_MVN_UT_RESULT_NAME = "Maven Surefire unit test results";
-
     public static final String BROWSER_GRADLE_TEST_RESULT_ID = "gradle.project.test.results";
     public static final String BROWSER_GRADLE_TEST_RESULT_NAME = "Gradle project test results";
 
@@ -69,11 +75,22 @@ public class DevModeOperations {
      * @return An error message or null if the command was processed successfully.
      */
     public void start() {
-        IProject project = Project.getSelected();
+        // Get the object representing the selected application project. The returned project should never be null, but check it
+        // just in case it is.
+        IProject project = getSelectedDashboardProject();
+        if (project == null) {
+            Dialog.displayErrorMessage(
+                    "An error was detected while performing the start action. The object representing the selected project on the dashboard could not be found.");
+            return;
+        }
+
         String projectName = project.getName();
 
         // Check if the application has already been started.
         if (isStarted(projectName)) {
+            Dialog.displayWarningMessage("Liberty development mode for application project " + projectName
+                    + " is already running. Select \"" + DashboardView.APP_MENU_ACTION_STOP + "\" prior to selecting \""
+                    + DashboardView.APP_MENU_ACTION_START + "\" on the menu.");
             return;
         }
 
@@ -91,9 +108,7 @@ public class DevModeOperations {
             } else if (Project.isGradle(project)) {
                 cmd = getGradleCommand("libertyDev -p=" + projectPath);
             } else {
-                Dialog.displayErrorMessage("Project" + projectName + "is not a Gradle or Maven project.");
-
-                return;
+                throw new Exception("Project" + projectName + "is not a Gradle or Maven project.");
             }
 
             // Start a terminal and run the application in development mode.
@@ -110,11 +125,22 @@ public class DevModeOperations {
      * @return An error message or null if the command was processed successfully.
      */
     public void startWithParms() {
-        IProject project = Project.getSelected();
+        // Get the object representing the selected application project. The returned project should never be null, but check it
+        // just in case it is.
+        IProject project = getSelectedDashboardProject();
+        if (project == null) {
+            Dialog.displayErrorMessage(
+                    "An error was detected while performing the start... action. The object representing the selected project on the dashboard could not be found.");
+            return;
+        }
+
         String projectName = project.getName();
 
         // Check if the application has already been started.
         if (isStarted(projectName)) {
+            Dialog.displayWarningMessage("Liberty development mode for application project " + projectName
+                    + " is already running. Select \"" + DashboardView.APP_MENU_ACTION_STOP + "\" prior to selecting \""
+                    + DashboardView.APP_MENU_ACTION_START_PARMS + "\" on the menu.");
             return;
         }
 
@@ -139,8 +165,7 @@ public class DevModeOperations {
             } else if (Project.isGradle(project)) {
                 cmd = getGradleCommand("libertyDev " + userParms + " -p=" + projectPath);
             } else {
-                Dialog.displayErrorMessage("Project" + projectName + "is not a Gradle or Maven project.");
-                return;
+                throw new Exception("Project" + projectName + "is not a Gradle or Maven project.");
             }
 
             // Start a terminal and run the application in development mode.
@@ -158,11 +183,22 @@ public class DevModeOperations {
      * @return An error message or null if the command was processed successfully.
      */
     public void startInContainer() {
-        IProject project = Project.getSelected();
+        // Get the object representing the selected application project. The returned project should never be null, but check it
+        // just in case it is.
+        IProject project = getSelectedDashboardProject();
+        if (project == null) {
+            Dialog.displayErrorMessage(
+                    "An error was detected while performing the start in container action. The object representing the selected project on the dashboard could not be found.");
+            return;
+        }
+
         String projectName = project.getName();
 
         // Check if the application has already been started.
         if (isStarted(projectName)) {
+            Dialog.displayWarningMessage("Liberty development mode for application project " + projectName
+                    + " is already running. Select \"" + DashboardView.APP_MENU_ACTION_STOP + "\" prior to selecting \""
+                    + DashboardView.APP_MENU_ACTION_START_IN_CONTAINER + "\" on the menu.");
             return;
         }
 
@@ -180,7 +216,7 @@ public class DevModeOperations {
             } else if (Project.isGradle(project)) {
                 cmd = getGradleCommand("libertyDevc -p=" + projectPath);
             } else {
-                Dialog.displayErrorMessage("Project" + projectName + "is not a Gradle or Maven project.");
+                throw new Exception("Project" + projectName + "is not a Gradle or Maven project.");
             }
 
             // Start a terminal and run the application in development mode.
@@ -198,7 +234,15 @@ public class DevModeOperations {
      * @return An error message or null if the command was processed successfully.
      */
     public void stop() {
-        IProject project = Project.getSelected();
+        // Get the object representing the selected application project. The returned project should never be null, but check it
+        // just in case it is.
+        IProject project = getSelectedDashboardProject();
+        if (project == null) {
+            Dialog.displayErrorMessage(
+                    "An error was detected while performing the stop action. The object representing the selected project on the dashboard could not be found.");
+            return;
+        }
+
         String projectName = project.getName();
 
         try {
@@ -237,7 +281,15 @@ public class DevModeOperations {
      * @return An error message or null if the command was processed successfully.
      */
     public void runTests() {
-        IProject project = Project.getSelected();
+        // Get the object representing the selected application project. The returned project should never be null, but check it
+        // just in case it is.
+        IProject project = getSelectedDashboardProject();
+        if (project == null) {
+            Dialog.displayErrorMessage(
+                    "An error was detected while performing the run tests action. The object representing the selected project on the dashboard could not be found.");
+            return;
+        }
+
         String projectName = project.getName();
 
         try {
@@ -274,7 +326,15 @@ public class DevModeOperations {
      * Open Maven integration test report.
      */
     public void openMavenIntegrationTestReport() {
-        IProject project = Project.getSelected();
+        // Get the object representing the selected application project. The returned project should never be null, but check it
+        // just in case it is.
+        IProject project = getSelectedDashboardProject();
+        if (project == null) {
+            Dialog.displayErrorMessage(
+                    "An error was detected while opening the integration test report for the selected project. The object representing the selected project on the dashboard could not be found.");
+            return;
+        }
+
         String projectName = project.getName();
 
         try {
@@ -304,7 +364,15 @@ public class DevModeOperations {
      * Open Maven unit test report.
      */
     public void openMavenUnitTestReport() {
-        IProject project = Project.getSelected();
+        // Get the object representing the selected application project. The returned project should never be null, but check it
+        // just in case it is.
+        IProject project = getSelectedDashboardProject();
+        if (project == null) {
+            Dialog.displayErrorMessage(
+                    "An error was detected while opening the unit test report for the selected project. The object representing the selected project on the dashboard could not be found.");
+            return;
+        }
+
         String projectName = project.getName();
 
         try {
@@ -333,7 +401,15 @@ public class DevModeOperations {
      * Open Gradle test report.
      */
     public void openGradleTestReport() {
-        IProject project = Project.getSelected();
+        // Get the object representing the selected application project. The returned project should never be null, but check it
+        // just in case it is.
+        IProject project = getSelectedDashboardProject();
+        if (project == null) {
+            Dialog.displayErrorMessage(
+                    "An error was detected while opening the test report for the selected project. The object representing the selected project on the dashboard could not be found.");
+            return;
+        }
+
         String projectName = project.getName();
 
         try {
@@ -621,6 +697,31 @@ public class DevModeOperations {
     }
 
     /**
+     * Returns the project instance associated with the currently selected view object in the workspace.
+     *
+     * @return The project currently selected or null if one was not found.
+     */
+    public IProject getSelectedDashboardProject() {
+        IProject project = null;
+        IWorkbenchWindow w = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+
+        if (w != null) {
+            ISelectionService selectionService = w.getSelectionService();
+            ISelection selection = selectionService.getSelection();
+
+            if (selection instanceof IStructuredSelection) {
+                IStructuredSelection structuredSelection = (IStructuredSelection) selection;
+                Object firstElement = structuredSelection.getFirstElement();
+                if (firstElement instanceof String) {
+                    project = Workspace.getOpenProjectByName((String) firstElement);
+                }
+            }
+        }
+
+        return project;
+    }
+
+    /**
      * Returns true if the input project has already been started. False, otherwise.
      *
      * @param projectName The project name to check.
@@ -639,7 +740,6 @@ public class DevModeOperations {
                 CTabItem item = consoleMgr.findConsole(null, null, projectName, connector, null);
                 if (item != null) {
                     if (!item.getText().contains("<Closed>")) {
-                        Dialog.displayWarningMessage("Application project " + projectName + " is already running.");
                         return true;
                     } else {
                         // There is no easy way to get notified when the terminal is disconnected, so proactively close the

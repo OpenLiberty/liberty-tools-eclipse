@@ -19,14 +19,16 @@ import org.eclipse.ui.part.ViewPart;
 import liberty.tools.DevModeOperations;
 import liberty.tools.utils.Dialog;
 import liberty.tools.utils.Project;
+import liberty.tools.utils.Workspace;
 
 /**
  * View of Liberty application projects and development mode actions to be processed on the selected projects.
  */
 public class DashboardView extends ViewPart {
 
-    public static final DevModeOperations devMode = new DevModeOperations();
-
+    /**
+     * Constants.
+     */
     public static final String APP_MENU_ACTION_START = "Start";
     public static final String APP_MENU_ACTION_START_PARMS = "Start...";
     public static final String APP_MENU_ACTION_START_IN_CONTAINER = "Start in container";
@@ -37,18 +39,28 @@ public class DashboardView extends ViewPart {
     public static final String APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT = "View test report";
     public static final String DASHBORD_TOOLBAR_ACTION_REFRESH = "refresh";
 
-    Action startAction;
-    Action startWithParmAction;
-    Action startInContanerAction;
-    Action stopAction;
-    Action runTestAction;
-    Action viewMavenITestReportsAction;
-    Action viewMavenUTestReportsAction;
-    Action viewGradleTestReportsAction;
-    Action refreshAction;
+    /**
+     * view actions.
+     */
+    private Action startAction;
+    private Action startWithParmAction;
+    private Action startInContanerAction;
+    private Action stopAction;
+    private Action runTestAction;
+    private Action viewMavenITestReportsAction;
+    private Action viewMavenUTestReportsAction;
+    private Action viewGradleTestReportsAction;
+    private Action refreshAction;
 
-    ListViewer viewer;
+    /**
+     * Class instances.
+     */
+    private ListViewer viewer;
+    public static DevModeOperations devMode = new DevModeOperations();
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void createPartControl(Composite parent) {
         viewer = new ListViewer(parent);
@@ -56,7 +68,7 @@ public class DashboardView extends ViewPart {
         viewer.setLabelProvider(new LabelProvider());
 
         try {
-            viewer.setInput(Project.getLibertyProjects(false));
+            viewer.setInput(Workspace.getLibertyProjects(false));
         } catch (Exception e) {
             Dialog.displayErrorMessageWithDetails("An error was detected while retrieving Liberty projects.", e);
             return;
@@ -68,6 +80,9 @@ public class DashboardView extends ViewPart {
         getSite().setSelectionProvider(viewer);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void setFocus() {
         viewer.getControl().setFocus();
@@ -107,7 +122,7 @@ public class DashboardView extends ViewPart {
      * @param mgr The menu manager.
      */
     private void addActionsToContextMenu(IMenuManager mgr) {
-        IProject project = Project.getSelected();
+        IProject project = devMode.getSelectedDashboardProject();
 
         if (project != null) {
             mgr.add(startAction);
@@ -131,15 +146,15 @@ public class DashboardView extends ViewPart {
     /**
      * Instantiates menu and toolbar actions.
      */
-    public void createActions() {
+    private void createActions() {
         ImageDescriptor ActionImg = null;
         ImageDescriptor refreshImg = null;
 
         // Get the image descriptors for the menu actions and toolbar.
         // If there is a failure, display the error and proceed without the icons.
         try {
-            ActionImg = ImageDescriptor.createFromURL(
-                    new URL("platform:/plugin/org.eclipse.jst.jsf.standard.tagsupport/icons/palette/Composite/small/ACTIONSOURCE.gif"));
+            ActionImg = ImageDescriptor
+                    .createFromURL(new URL("platform:/plugin/org.eclipse.jdt.debug.ui/icons/full/elcl16/thread_view.gif"));
             refreshImg = ImageDescriptor.createFromURL(new URL("platform:/plugin/org.eclipse.ui.browser/icons/clcl16/nav_refresh.png"));
         } catch (Exception e) {
             Dialog.displayErrorMessageWithDetails("An error was detected while retrieving Imade descriptions.", e);
@@ -222,7 +237,7 @@ public class DashboardView extends ViewPart {
             @Override
             public void run() {
                 try {
-                    viewer.setInput(Project.getLibertyProjects(true));
+                    viewer.setInput(Workspace.getLibertyProjects(true));
                 } catch (Exception e) {
                     Dialog.displayErrorMessageWithDetails("An error was detected while retrieving Liberty projects.", e);
                     return;
