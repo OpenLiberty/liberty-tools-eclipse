@@ -318,6 +318,21 @@ public class SWTPluginOperations {
     }
 
     /**
+     * Returns the content to a text editor view.
+     *
+     * @param bot The SWTWorkbenchBot instance.
+     * @param titleContent The title or part of the title of the text editor view.
+     *
+     * @return The content to a text editor view.
+     */
+    public static String getEditorText(SWTWorkbenchBot bot, String titleContent) {
+        SWTBotEditor editor = searchForEditor(bot, titleContent);
+        editor.show();
+        SWTBotStyledText styledText = bot.styledText();
+        return styledText.getText();
+    }
+
+    /**
      * Returns the context menu object associated with the input application item.
      *
      * @param bot The SWTWorkbenchBot instance.

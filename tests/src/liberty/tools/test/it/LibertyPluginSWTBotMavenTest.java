@@ -258,23 +258,26 @@ public class LibertyPluginSWTBotMavenTest {
 
         String originalContent = SWTPluginOperations.getAppFileContent(bot, "Project Explorer", MVN_APP_NAME, fileName);
         Path noOLPluginPom = Paths.get("resources", "files", "apps", "maven", "liberty-maven-test-app", "pom.xml");
+        String pomEditorTitle = Paths.get(MVN_APP_NAME, fileName).toString();
 
         try {
             // Modify the application metadata to make it not capable of using Liberty's dev mode.
-            StringBuilder contentBuilder = new StringBuilder();
+            StringBuilder newPomContent = new StringBuilder();
             try {
 
                 BufferedReader br = new BufferedReader(new FileReader(noOLPluginPom.toString()));
                 String sCurrentLine;
                 while ((sCurrentLine = br.readLine()) != null) {
-                    contentBuilder.append(sCurrentLine).append(System.lineSeparator());
+                    newPomContent.append(sCurrentLine).append(System.lineSeparator());
                 }
             } catch (IOException e) {
                 Assertions.fail("Error while reading file: " + noOLPluginPom.toString() + "Error: " + e.getMessage());
             }
 
-            String pomEditorTitle = Paths.get(MVN_APP_NAME, fileName).toString();
-            SWTPluginOperations.setEditorText(bot, pomEditorTitle, contentBuilder.toString());
+            SWTPluginOperations.setEditorText(bot, pomEditorTitle, newPomContent.toString());
+
+            // Validate that the editor was correctly updated.
+            validateEditorContent(pomEditorTitle, "liberty-maven-plugin", false);
 
             // Refresh
             SWTPluginOperations.refreshDashboard(bot);
@@ -286,7 +289,10 @@ public class LibertyPluginSWTBotMavenTest {
 
         } finally {
             // Update the application metadata to make it capable of using Liberty's dev mode.
-            SWTPluginOperations.setEditorText(bot, fileName, originalContent);
+            SWTPluginOperations.setEditorText(bot, pomEditorTitle, originalContent);
+
+            // Validate that the editor was correctly updated.
+            validateEditorContent(pomEditorTitle, "liberty-maven-plugin", true);
 
             // Refresh
             SWTPluginOperations.refreshDashboard(bot);
@@ -446,6 +452,41 @@ public class LibertyPluginSWTBotMavenTest {
 
         // If we are here, the expected outcome was not found.
         Assertions.fail("Timed out while waiting for test report: " + pathToTestReport + " to become available.");
+    }
+
+    /**
+     * Validates the content of an editor based on the input validation text.
+     *
+     * @param editorTitle The editor title of the editor to check.
+     * @param validationText The text to use for validation.
+     * @param contains The validation type. If true, the code checks that the editor contains the validation text. If false,
+     *        the code checks that the editor does not contain the validation text.
+     */
+    public void validateEditorContent(String editorTitle, String validationText, boolean contains) {
+        int retryCountLimit = 20;
+        int reryIntervalSecs = 1;
+        int retryCount = 0;
+        String editorContent = "";
+        while (retryCount < retryCountLimit) {
+            retryCount++;
+            editorContent = SWTPluginOperations.getEditorText(bot, editorTitle);
+
+            if ((!contains && editorContent.contains(validationText)) || (contains && !editorContent.contains(validationText))) {
+                try {
+                    Thread.sleep(reryIntervalSecs * 1000);
+                } catch (Exception e) {
+                    e.printStackTrace(System.out);
+                    continue;
+                }
+                continue;
+            }
+
+            return;
+        }
+
+        // If we are here, the expected outcome was not found.
+        Assertions.fail("Timed out while waiting for the correct editor content to become available. Editor content:\n" + editorContent);
+
     }
 
     /**

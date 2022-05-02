@@ -2,64 +2,104 @@
 
 set -Eexo pipefail
 
+# Operating system.
+OS=$(uname -s)
+
 # Semeru JDK version control constants.
 # Example:
-# Version: 11.0.14.1 
-# OpenJDK 11.0.14.1+1
-# OpenJ9 0.30.1
+# Version (SEMERU_OPEN_JDK_BUILD): 11.0.14.1 
+# OpenJDK (SEMERU_OPEN_JDK_BUILD + SEMERU_OPEN_JDK_BUILD): 11.0.14.1+1
+# OpenJ9  (SEMERU_OPENJ9_VERSION): 0.30.1
 SEMERU_OPEN_JDK_MAJOR=11
 SEMERU_OPEN_JDK_VERSION="${SEMERU_OPEN_JDK_MAJOR}.0.14.1"
 SEMERU_OPEN_JDK_BUILD=1
 SEMERU_OPENJ9_VERSION=0.30.1
-SEMERU_ARCHIVE_SHA256=25f3a8475b1f0b0ef54ff0247c7839fa4d6e7363adc2956d383a981aaa491b70
+
+SEMERU_ARCHIVE_MAC_SHA256=215e1ff6fa821309548253653e74025d6a830180abe6001db7717fde4eb991d9
+SEMERU_ARCHIVE_LINUX_SHA256=25f3a8475b1f0b0ef54ff0247c7839fa4d6e7363adc2956d383a981aaa491b70
+SEMERU_ARCHIVE_WINDOWS_SHA256=568e968f12824d65cafaf1ec99f5fc040f37097bc1a03590c8ac31877c2a6a41
 
 # Maven version control constants.
 MAVEN_VERSION=3.8.5
-MAVEN_ARCHIVE_SHA512=89ab8ece99292476447ef6a6800d9842bbb60787b9b8a45c103aa61d2f205a971d8c3ddfb8b03e514455b4173602bd015e82958c0b3ddc1728a57126f773c743
+MAVEN_ARCHIVE_SHA512=f9f838b4adaf23db0204a6cafa52bf1125bd2d649fd676843fd05e82866b596ec19c4f3de60d5e3ff17f10a63d96c141311ff9bc2bfa816eade7a5cbff2bd925
 
 # Gradle version control constants.
 GRADLE_VERSION=7.4.2
 GRADLE_ARCHIVE_SHA256=29e49b10984e585d8118b7d0bc452f944e386458df27371b49b4ac1dec4b7fda
 
 # Software install directory.
-SOFTWARE_INSTALL_DIR="/opt/liberty-dev-tools"
+SOFTWARE_INSTALL_DIR="${PWD}/test-tools/liberty-dev-tools"
+
 
 # main.
 main() {
-    installSoftware
-}
-
-# installSoftware installs all required software.
-installSoftware() {
-
+    # If we are not on a supported OS, exit.
+    if [[ $OS != "Linux" && $OS != "Darwin" && $OS != "MINGW64_NT"* ]]; then
+        echo "ERROR: OS $OS is not supported."
+        exit -1
+    fi
+    
     # Create install directory.
     mkdir -p "$SOFTWARE_INSTALL_DIR"
     
-    # Install software.
-	sudo apt-get update
-	sudo apt-get install curl unzip
+    # Install all required software.
+    installBaseSoftware
+    installCustomSoftware
+}
 
-	installXDisplaySoftware
+# installSoftware installs base software.
+installBaseSoftware() {
+    if [[ $OS == "Linux" ]]; then
+        sudo apt-get update
+        sudo apt-get install curl unzip 
+        installXDisplaySoftwareOnLinux
+        installDockerOnLinux
+    elif [[ $OS == "Darwin" ]]; then
+        brew update
+        brew install curl unzip
+        brew install docker
+    else
+        # Note: Docker is already installed on the windows VMs provisioned by GHA. 
+        # Location: C:\Program Files\Docker\dockerd.exe
+        choco install curl
+        choco install unzip
+    fi
+}
+
+# installSoftware installs customizable software.
+installCustomSoftware() {	
 	installJDK
 	installMaven
 	installGradle
-	installDocker
-}
-
-# installXDisplaySoftware Install the required X display related software and pre-reqs.
-installXDisplaySoftware() {
-	sudo apt-get install dbus-x11 at-spi2-core xvfb metacity
-}
+}  
 
 # installJDK installs the set version of the Semeru JDK.
 installJDK() {
 	local javaHome="${SOFTWARE_INSTALL_DIR}/jdk-${SEMERU_OPEN_JDK_VERSION}+${SEMERU_OPEN_JDK_BUILD}"
-	local url="https://github.com/ibmruntimes/semeru${SEMERU_OPEN_JDK_MAJOR}-binaries/releases/download/jdk-${SEMERU_OPEN_JDK_VERSION}%2B${SEMERU_OPEN_JDK_BUILD}_openj9-${SEMERU_OPENJ9_VERSION}/ibm-semeru-open-jdk_x64_linux_${SEMERU_OPEN_JDK_VERSION}_${SEMERU_OPEN_JDK_BUILD}_openj9-${SEMERU_OPENJ9_VERSION}.tar.gz"
 
     # Download, validate, and expand the JDK archive.
-	curl -fsSL -o /tmp/liberty-dev-tool-semeru-jdk.tar.gz "$url"
-	echo "${SEMERU_ARCHIVE_SHA256}  /tmp/liberty-dev-tool-semeru-jdk.tar.gz" | sha256sum -c - 
-	tar -xzf /tmp/liberty-dev-tool-semeru-jdk.tar.gz -C "$SOFTWARE_INSTALL_DIR"
+	if [[ $OS == "Linux" ]]; then
+        local url="https://github.com/ibmruntimes/semeru${SEMERU_OPEN_JDK_MAJOR}-binaries/releases/download/jdk-${SEMERU_OPEN_JDK_VERSION}%2B${SEMERU_OPEN_JDK_BUILD}_openj9-${SEMERU_OPENJ9_VERSION}/ibm-semeru-open-jdk_x64_linux_${SEMERU_OPEN_JDK_VERSION}_${SEMERU_OPEN_JDK_BUILD}_openj9-${SEMERU_OPENJ9_VERSION}.tar.gz"
+        curl -fsSL -o /tmp/liberty-dev-tool-semeru-jdk.tar.gz "$url"
+        echo "${SEMERU_ARCHIVE_LINUX_SHA256}  /tmp/liberty-dev-tool-semeru-jdk.tar.gz" | sha256sum -c - 
+        tar -xzf /tmp/liberty-dev-tool-semeru-jdk.tar.gz -C "$SOFTWARE_INSTALL_DIR"
+    elif [[ $OS == "Darwin" ]]; then
+       javaHome="$javaHome"/Contents/Home
+       local url="https://github.com/ibmruntimes/semeru${SEMERU_OPEN_JDK_MAJOR}-binaries/releases/download/jdk-${SEMERU_OPEN_JDK_VERSION}%2B${SEMERU_OPEN_JDK_BUILD}_openj9-${SEMERU_OPENJ9_VERSION}/ibm-semeru-open-jdk_x64_mac_${SEMERU_OPEN_JDK_VERSION}_${SEMERU_OPEN_JDK_BUILD}_openj9-${SEMERU_OPENJ9_VERSION}.tar.gz"
+       curl -fsSL -o /tmp/liberty-dev-tool-semeru-jdk.tar.gz "$url"
+       echo "${SEMERU_ARCHIVE_MAC_SHA256}  /tmp/liberty-dev-tool-semeru-jdk.tar.gz" | shasum -a 256 -c - 
+       tar -xzf /tmp/liberty-dev-tool-semeru-jdk.tar.gz -C "$SOFTWARE_INSTALL_DIR"
+    else
+        local url="https://github.com/ibmruntimes/semeru${SEMERU_OPEN_JDK_MAJOR}-binaries/releases/download/jdk-${SEMERU_OPEN_JDK_VERSION}%2B${SEMERU_OPEN_JDK_BUILD}_openj9-${SEMERU_OPENJ9_VERSION}/ibm-semeru-open-jdk_x64_windows_${SEMERU_OPEN_JDK_VERSION}_${SEMERU_OPEN_JDK_BUILD}_openj9-${SEMERU_OPENJ9_VERSION}.zip"
+        curl -fsSL -o /tmp/liberty-dev-tool-semeru-jdk.zip "$url"
+        local shaAll=$(certutil -hashfile /tmp/liberty-dev-tool-semeru-jdk.zip SHA256)
+        local downloadedZipSha=$(echo $(echo $shaAll | tr '\r' ' ') | cut -d " " -f 5)
+        if [ "$SEMERU_ARCHIVE_WINDOWS_SHA256" != "$downloadedZipSha" ]; then
+            echo "ERROR: expected SHA: $SEMERU_ARCHIVE_WINDOWS_SHA256 is not equal to downloaded file calculated SHA of: $downloadedZipSha"
+            exit -1
+        fi
+        unzip /tmp/liberty-dev-tool-semeru-jdk.zip -d "$SOFTWARE_INSTALL_DIR"
+    fi
 
 	# Set the JAVA_HOME environment variable and make it available to other steps within the executing job.
 	echo "JAVA_HOME=${javaHome}" >> $GITHUB_ENV
@@ -71,13 +111,28 @@ installJDK() {
 # installMaven installs the set version of Maven.
 installMaven() {
     local mavenHome="${SOFTWARE_INSTALL_DIR}/apache-maven-${MAVEN_VERSION}"
-	local url="https://dlcdn.apache.org/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.tar.gz"
-	curl -fsSL -o /tmp/liberty-dev-tool-apache-maven.tar.gz "$url"
+	local url="https://dlcdn.apache.org/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.zip"
 
-	# Download, validate, and expand the Maven archive.
-	echo "${MAVEN_ARCHIVE_SHA512}  /tmp/liberty-dev-tool-apache-maven.tar.gz" | sha512sum -c - 
-    tar -xzf /tmp/liberty-dev-tool-apache-maven.tar.gz -C "$SOFTWARE_INSTALL_DIR"
+    # Download the Maven archive.
+	curl -fsSL -o /tmp/liberty-dev-tool-apache-maven.zip "$url"
 
+	# Check the downloaded archive's SHA against the expected value.
+	if [[ $OS == "Linux" ]]; then
+        echo "${MAVEN_ARCHIVE_SHA512}  /tmp/liberty-dev-tool-apache-maven.zip" | sha512sum -c - 	
+    elif [[ $OS == "Darwin" ]]; then
+        echo "${MAVEN_ARCHIVE_SHA512}  /tmp/liberty-dev-tool-apache-maven.zip" | shasum -a 512 -c - 
+    else
+        local shaAll=$(certutil -hashfile /tmp/liberty-dev-tool-apache-maven.zip SHA512)
+        local downloadedZipSha=$(echo $(echo $shaAll | tr '\r' ' ') | cut -d " " -f 5)
+        if [ "$MAVEN_ARCHIVE_SHA512" != "$downloadedZipSha" ]; then
+            echo "ERROR: expected SHA: $MAVEN_ARCHIVE_SHA512 is not equal to downloaded file calculated SHA of: $downloadedZipSha"
+            exit -1
+        fi
+    fi
+
+    # Expand the archive.
+    unzip -d "$SOFTWARE_INSTALL_DIR" /tmp/liberty-dev-tool-apache-maven.zip 
+      
     # Set the MAVEN_HOME and M2_HOME environment variables and make them available to other steps within the executing job.
     echo "MAVEN_HOME=${mavenHome}" >> $GITHUB_ENV
     echo "M2_HOME=${mavenHome}" >> $GITHUB_ENV
@@ -91,11 +146,26 @@ installGradle() {
     local gradleHome="${SOFTWARE_INSTALL_DIR}/gradle-${GRADLE_VERSION}"
 	local url="https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip"
 
-	# Download, validate, and expand the Maven archive.
-	curl -fsSL -o /tmp/liberty-dev-tool-gradle.zip "$url"
-	echo "${GRADLE_ARCHIVE_SHA256}  /tmp/liberty-dev-tool-gradle.zip" | sha256sum -c - 
-    unzip -d "$SOFTWARE_INSTALL_DIR" /tmp/liberty-dev-tool-gradle.zip
+    # Download the Gradle archive.
+    curl -fsSL -o /tmp/liberty-dev-tool-gradle.zip "$url"
+      
+    # Check the downloaded archive's SHA against the expected value.
+	if [[ $OS == "Linux" ]]; then
+        echo "${GRADLE_ARCHIVE_SHA256}  /tmp/liberty-dev-tool-gradle.zip" | sha256sum -c -
+    elif [[ $OS == "Darwin" ]]; then
+        echo "${GRADLE_ARCHIVE_SHA256}  /tmp/liberty-dev-tool-gradle.zip" | shasum -a 256 -c -
+    else
+        local shaAll=$(certutil -hashfile /tmp/liberty-dev-tool-gradle.zip SHA256)
+        local downloadedZipSha=$(echo $(echo $shaAll | tr '\r' ' ') | cut -d " " -f 5)
+        if [ "$GRADLE_ARCHIVE_SHA256" != "$downloadedZipSha" ]; then
+            echo "ERROR: expected SHA: $GRADLE_ARCHIVE_SHA256 is not equal to downloaded file calculated SHA of: $downloadedZipSha"
+            exit -1
+        fi
+    fi
 
+    # Expand the archive.
+    unzip -d "$SOFTWARE_INSTALL_DIR" /tmp/liberty-dev-tool-gradle.zip
+    
     # Set the GRADLE_HOME environment variable and make it available to other steps within the executing job.
     echo "GRADLE_HOME=${gradleHome}" >> $GITHUB_ENV
 
@@ -103,16 +173,21 @@ installGradle() {
     echo "${gradleHome}/bin" >> $GITHUB_PATH
 }
 
-# installDocker installs docker.
-installDocker() {
-    # Remove a previous installation of docker.
-	sudo apt-get remove docker docker-engine docker.io containerd runc
+# installXDisplaySoftwareOnLinux Installs a X display, a windows manager, and other pre-req software.
+installXDisplaySoftwareOnLinux() {
+    sudo apt-get install dbus-x11 xvfb metacity at-spi2-core 
+} 
 
-	# Setup the docker repository before installation.
-	sudo apt-get install ca-certificates gnupg lsb-release
-	curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-	echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
-         $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+# installDocker installs docker.
+installDockerOnLinux() {
+    # Remove a previous installation of docker.
+    sudo apt-get remove docker docker-engine docker.io containerd runc
+
+    # Setup the docker repository before installation.
+    sudo apt-get install ca-certificates gnupg lsb-release
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu \
+       $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
     # Install the docker engine.
     sudo apt-get update
