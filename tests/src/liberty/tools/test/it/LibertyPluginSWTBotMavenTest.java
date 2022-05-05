@@ -277,7 +277,7 @@ public class LibertyPluginSWTBotMavenTest {
             SWTPluginOperations.setEditorText(bot, pomEditorTitle, newPomContent.toString());
 
             // Validate that the editor was correctly updated.
-            validateEditorContent(pomEditorTitle, "liberty-maven-plugin", false);
+            validateEditorContent(pomEditorTitle, "liberty-maven-plugin", "</project>", false);
 
             // Refresh
             SWTPluginOperations.refreshDashboard(bot);
@@ -292,7 +292,7 @@ public class LibertyPluginSWTBotMavenTest {
             SWTPluginOperations.setEditorText(bot, pomEditorTitle, originalContent);
 
             // Validate that the editor was correctly updated.
-            validateEditorContent(pomEditorTitle, "liberty-maven-plugin", true);
+            validateEditorContent(pomEditorTitle, "liberty-maven-plugin", null, true);
 
             // Refresh
             SWTPluginOperations.refreshDashboard(bot);
@@ -461,8 +461,10 @@ public class LibertyPluginSWTBotMavenTest {
      * @param validationText The text to use for validation.
      * @param contains The validation type. If true, the code checks that the editor contains the validation text. If false,
      *        the code checks that the editor does not contain the validation text.
+     * @param eofMarker A unique string that represents the EOF. It is used when 'contains' is set to false to validate that
+     *        the entire file was read. This parameter is a no-op when 'contains' is set to true.
      */
-    public void validateEditorContent(String editorTitle, String validationText, boolean contains) {
+    public void validateEditorContent(String editorTitle, String validationText, String eofMarker, boolean contains) {
         int retryCountLimit = 20;
         int reryIntervalSecs = 1;
         int retryCount = 0;
@@ -471,7 +473,8 @@ public class LibertyPluginSWTBotMavenTest {
             retryCount++;
             editorContent = SWTPluginOperations.getEditorText(bot, editorTitle);
 
-            if ((!contains && editorContent.contains(validationText)) || (contains && !editorContent.contains(validationText))) {
+            if ((!contains && (!editorContent.contains(eofMarker) || editorContent.contains(validationText)))
+                    || (contains && !editorContent.contains(validationText))) {
                 try {
                     Thread.sleep(reryIntervalSecs * 1000);
                 } catch (Exception e) {
