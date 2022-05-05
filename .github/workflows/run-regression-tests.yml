@@ -6,8 +6,28 @@ on:
       - main
 jobs:
   build:
+    strategy:
+      fail-fast: false
+      matrix:
+        runtime: [ linux, mac, windows ]
+        include:
+        - runtime: linux
+          os: ubuntu-latest
+          setupCmd: ./tests/resources/ci/scripts/setup.sh
+          execCmd: ./tests/resources/ci/scripts/exec.sh
+
+        - runtime: mac
+          os: macOS-latest
+          setupCmd: ./tests/resources/ci/scripts/setup.sh
+          execCmd: ./tests/resources/ci/scripts/exec.sh
+
+        - runtime: windows
+          os: windows-latest
+          setupCmd: bash ./tests/resources/ci/scripts/setup.sh
+          execCmd: bash ./tests/resources/ci/scripts/exec.sh
+
     name: Build Plugin
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
 
     steps:
       # Checkout the eclipse plugin repository.
@@ -16,8 +36,8 @@ jobs:
 
       # Install the required software.
       - name: 'Setup: Install required software' 
-        run: ./tests/resources/ci/scripts/setup.sh
+        run: ${{ matrix.setupCmd }}
         
       # Build the plugin.
       - name: 'Build: Build-Package-RunTests'
-        run: ./tests/resources/ci/scripts/exec.sh
+        run: ${{ matrix.execCmd }}

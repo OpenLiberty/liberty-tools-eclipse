@@ -5,18 +5,24 @@ set -Ex
 # Current time.
 currentTime=(date +"%Y/%m/%d-%H:%M:%S:%3N")
 
+# Operating system.
+OS=$(uname -s)
+
 main() {
     echo -e "\n> $(${currentTime[@]}): Build: Building the plugin"
 
     # Tell the terminal session to use display port 77.
     export DISPLAY=:77.0
 
-    # Start the X display server on port 77.
-    Xvfb -ac :77 -screen 0 1280x1024x16 > /dev/null 2>&1 &
+    # Install software.
+    if [ $OS = "Linux" ]; then
+        # Start the X display server on port 77.
+        Xvfb -ac :77 -screen 0 1280x1024x16 > /dev/null 2>&1 &
 
-    #  Start the window manager.
-    metacity --sm-disable --replace 2> metacity.err &
-
+        #  Start the window manager.
+        metacity --sm-disable --replace 2> metacity.err &
+    fi
+    
     # Run the plugin's install goal.
     mvn clean install 
 
