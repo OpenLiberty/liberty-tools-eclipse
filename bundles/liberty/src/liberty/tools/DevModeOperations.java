@@ -16,6 +16,7 @@ import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.window.Window;
+import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
@@ -30,6 +31,7 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.browser.IWebBrowser;
 import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
 
+import liberty.tools.messages.Messages;
 import liberty.tools.ui.DashboardView;
 import liberty.tools.ui.terminal.LocalDevModeLauncherDelegate;
 import liberty.tools.ui.terminal.TerminalTabListenerImpl;
@@ -104,9 +106,19 @@ public class DevModeOperations {
             // Prepare the Liberty plugin development mode command.
             String cmd = "";
             if (Project.isMaven(project)) {
-                cmd = getMavenCommand("io.openliberty.tools:liberty-maven-plugin:dev -f " + projectPath);
+            	if (Project.isMavenBuildFileValid(project)) {
+                    cmd = getMavenCommand("liberty:dev -f " + projectPath);
+            	} else {
+            		Dialog.displayErrorMessage(NLS.bind(Messages.liberty_maven_plugin_incorrect, Project.LIBERTY_MAVEN_PLUGIN_CONTAINER_VERSION));
+            	    return;
+            	}
             } else if (Project.isGradle(project)) {
-                cmd = getGradleCommand("libertyDev -p=" + projectPath);
+            	if (Project.isGradleBuildFileValid(project)) {
+            		cmd = getGradleCommand("libertyDev -p=" + projectPath);
+            	} else {
+            		Dialog.displayErrorMessage(NLS.bind(Messages.liberty_gradle_plugin_incorrect, Project.LIBERTY_GRADLE_PLUGIN_CONTAINER_VERSION));
+            	    return;
+            	}
             } else {
                 throw new Exception("Project" + projectName + "is not a Gradle or Maven project.");
             }
@@ -161,9 +173,19 @@ public class DevModeOperations {
             // Prepare the Liberty plugin development mode command.
             String cmd = "";
             if (Project.isMaven(project)) {
-                cmd = getMavenCommand("io.openliberty.tools:liberty-maven-plugin:dev " + userParms + " -f " + projectPath);
+            	if (Project.isMavenBuildFileValid(project)) {
+                    cmd = getMavenCommand("liberty:dev " + userParms + " -f " + projectPath);
+            	} else {
+            		Dialog.displayErrorMessage(NLS.bind(Messages.liberty_maven_plugin_incorrect, Project.LIBERTY_MAVEN_PLUGIN_CONTAINER_VERSION));
+            	    return;
+            	}
             } else if (Project.isGradle(project)) {
-                cmd = getGradleCommand("libertyDev " + userParms + " -p=" + projectPath);
+            	if (Project.isGradleBuildFileValid(project)) {
+            		cmd = getGradleCommand("libertyDev " + userParms + " -p=" + projectPath);
+            	} else {
+            		Dialog.displayErrorMessage(NLS.bind(Messages.liberty_gradle_plugin_incorrect, Project.LIBERTY_GRADLE_PLUGIN_CONTAINER_VERSION));
+            	    return;
+            	}
             } else {
                 throw new Exception("Project" + projectName + "is not a Gradle or Maven project.");
             }
@@ -212,9 +234,19 @@ public class DevModeOperations {
             // Prepare the Liberty plugin container development mode command.
             String cmd = "";
             if (Project.isMaven(project)) {
-                cmd = getMavenCommand("io.openliberty.tools:liberty-maven-plugin:devc -f " + projectPath);
+            	if (Project.isMavenBuildFileValid(project)) {
+                    cmd = getMavenCommand("liberty:devc -f " + projectPath);
+            	} else {
+            		Dialog.displayErrorMessage(NLS.bind(Messages.liberty_maven_plugin_incorrect, Project.LIBERTY_MAVEN_PLUGIN_CONTAINER_VERSION));
+            	    return;
+            	}
             } else if (Project.isGradle(project)) {
-                cmd = getGradleCommand("libertyDevc -p=" + projectPath);
+            	if (Project.isGradleBuildFileValid(project)) {
+            		cmd = getGradleCommand("libertyDevc -p=" + projectPath);
+            	} else {
+            		Dialog.displayErrorMessage(NLS.bind(Messages.liberty_gradle_plugin_incorrect, Project.LIBERTY_GRADLE_PLUGIN_CONTAINER_VERSION));
+            	    return;
+            	}
             } else {
                 throw new Exception("Project" + projectName + "is not a Gradle or Maven project.");
             }

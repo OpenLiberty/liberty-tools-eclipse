@@ -1,19 +1,39 @@
 package liberty.tools.utils;
 
+import java.io.BufferedInputStream;
 import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import javax.xml.parsers.ParserConfigurationException;
+
+import org.apache.maven.artifact.versioning.ComparableVersion;
+import org.apache.maven.model.Model;
+import org.apache.maven.model.Plugin;
+import org.apache.maven.model.PluginManagement;
+import org.apache.maven.model.Profile;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.m2e.core.MavenPlugin;
+import org.eclipse.m2e.core.embedder.MavenModelManager;
+import org.xml.sax.SAXException;
 
 import liberty.tools.LibertyNature;
 
 public class Project {
 
+	public static final String LIBERTY_MAVEN_PLUGIN_CONTAINER_VERSION = "3.3-M1";
+    public static final String LIBERTY_GRADLE_PLUGIN_CONTAINER_VERSION = "3.1-M1";
+    
     /**
      * Retrieves the absolute path of the currently selected project.
      *
@@ -209,33 +229,142 @@ public class Project {
 
     /**
      * Returns true if the Maven project's pom.xml file is configured to use Liberty development mode. False, otherwise.
-     *
+     * 
      * @param project The Maven project.
-     *
+     * 
      * @return True if the Maven project's pom.xml file is configured to use Liberty development mode. False, otherwise.
      */
-    public static boolean isMavenBuildFileValid(IProject project) {
-        IFile file = project.getFile("pom.xml");
+    public static boolean isMavenBuildFileValid(IProject project) throws ParserConfigurationException, SAXException, IOException, CoreException {
+    	IFile file = project.getFile("pom.xml");
+        
+        MavenModelManager mavenModelManager = MavenPlugin.getMavenModelManager();
+        Model model = mavenModelManager.readMavenModel(file.getContents());
+        
+        // Check for Liberty Maven plugin in plugins
+        if (isLibertyMavenPluginDetected(model.getBuild().getPlugins())) {
+        	return true;
+        }
+        
+        // Check for Liberty Maven plugin in profiles
+        List<Profile> profiles = model.getProfiles();
+        for (Profile profile : profiles) {
+        	if (isLibertyMavenPluginDetected(profile.getBuild().getPlugins())) {
+        		return true;
+        	}
+        }
+        
+        // Check for Liberty Maven plugin in pluginManagement
+        PluginManagement pluginManagement = model.getBuild().getPluginManagement();
+        if (pluginManagement != null) {
+            if (isLibertyMavenPluginDetected(pluginManagement.getPlugins())) {
+        	    return true;
+            }
+        }
+        
+        return false;
+	}
 
-        // TODO: Implement. Check for Liberty Maven plugin and other needed definitions.
-        // Need some parsing tool.
+	private static boolean isLibertyMavenPluginDetected(List<Plugin> plugins) {
+        for (Plugin plugin : plugins) {
+        	
+        	String groupId = plugin.getGroupId();
+        	String artifactId = plugin.getArtifactId();
+        	String version = plugin.getVersion();
+        	
+        	if (groupId.equals("io.openliberty.tools") && artifactId.equals("liberty-maven-plugin")){
+                if (containerVersion(version, LIBERTY_MAVEN_PLUGIN_CONTAINER_VERSION)) {
+                    return true;
+                }
+            }
+        }
 
-        return true;
+        return false;
     }
 
     /**
-     * Returns true if the Gradle project's build file is configured to use Liberty development mode. False, otherwise.
+     * Given liberty-maven-plugin version, determine if it is compatible for dev mode with containers
      *
-     * @param project The Gradle project.
-     *
-     * @return True if the Gradle project's build file is configured to use Liberty development mode. False, otherwise.
+     * @param version plugin version
+     * @return true if valid for dev mode in contianers
      */
-    public static boolean isGradleBuildFileValid(IProject project) {
-        IFile file = project.getFile("build.gradle");
-
-        // TODO: Implement. Check for Liberty Gradle plugin and other needed
-        // definitions. Need some xml parsing tool.
-
-        return true;
+    private static boolean containerVersion(String version, String minimumVersion){
+    	
+        if (version == null) {
+            return false;
+        }
+        try {
+            ComparableVersion pluginVersion = new ComparableVersion(version);
+            ComparableVersion containerVersion = new ComparableVersion(minimumVersion);
+            if (pluginVersion.compareTo(containerVersion) >= 0) {
+                return true;
+            }
+            return false;
+        } catch (ClassCastException e) {
+            return false;
+        }
     }
+
+	public static boolean isGradleBuildFileValid(IProject project) throws CoreException, IOException {
+		IFile file = project.getFile("build.gradle");
+
+		// Read build.gradle file to String
+		BufferedInputStream bis = new BufferedInputStream(file.getContents());
+		ByteArrayOutputStream buf = new ByteArrayOutputStream();
+		for (int result = bis.read(); result != -1; result = bis.read()) {
+		    buf.write((byte) result);
+		}
+
+		String buildFileText = buf.toString("UTF-8");
+
+         if (buildFileText.isEmpty()) { 
+        	 return false; 
+         }
+
+         // Filter commented out lines in build.gradle
+         String partialFiltered = buildFileText.replaceAll("/\\*.*\\*/", "");
+         String buildFileTextFiltered = partialFiltered.replaceAll("//.*(?=\\n)", "");
+
+         // Check if "apply plugin: 'liberty'" is specified in the build.gradle
+         boolean libertyPlugin = false;
+
+         String applyPluginRegex = "(?<=apply plugin:)(\\s*)('|\")liberty";
+         Pattern applyPluginPattern = Pattern.compile(applyPluginRegex);
+         Matcher applyPluginMatcher = applyPluginPattern.matcher(buildFileTextFiltered);
+         while (applyPluginMatcher.find()) {
+             libertyPlugin = true;
+         }
+
+         // Check if liberty is in the plugins block
+         if (libertyPlugin) {
+             // check if group matches io.openliberty.tools and name matches liberty-gradle-plugin
+             String depRegex = "(?<=dependencies)(\\s*\\{)([^\\}]+)(?=\\})";
+             String pluginRegex = "(.*\\bio\\.openliberty\\.tools\\b.*)(.*\\bliberty-gradle-plugin\\b.*)";
+             String versionRegex = "(?<=:liberty-gradle-plugin:).*(?=\')";
+
+             Pattern depPattern = Pattern.compile(depRegex);
+             Matcher depMatcher = depPattern.matcher(buildFileTextFiltered);
+
+             while (depMatcher.find()) {
+            	 String deps = buildFileTextFiltered.substring(depMatcher.start(), depMatcher.end());
+                 Pattern pluginPattern = Pattern.compile(pluginRegex);
+                 Matcher pluginMatcher = pluginPattern.matcher(deps);
+                 
+                 while (pluginMatcher.find()) {
+                     String plugin = deps.substring(pluginMatcher.start(), pluginMatcher.end());
+                     
+                     Pattern versionPattern = Pattern.compile(versionRegex);
+                     Matcher versionMatcher = versionPattern.matcher(plugin);
+                     
+                     while (versionMatcher.find()) {
+                         String version = plugin.substring(versionMatcher.start(), versionMatcher.end());
+                         if (containerVersion(version, LIBERTY_GRADLE_PLUGIN_CONTAINER_VERSION)) {
+                        	 return true;
+                         }
+                     }
+                 }
+             }
+         }
+
+		return false;
+	}
 }
