@@ -1,6 +1,5 @@
 package liberty.tools.ui.terminal;
 
-import org.eclipse.tm.terminal.view.core.interfaces.ITerminalService;
 import org.eclipse.tm.terminal.view.core.interfaces.ITerminalTabListener;
 
 /**
@@ -9,23 +8,16 @@ import org.eclipse.tm.terminal.view.core.interfaces.ITerminalTabListener;
 public class TerminalTabListenerImpl implements ITerminalTabListener {
 
     /**
-     * The terminal service instance being used to open the terminal and run a command.
-     */
-    ITerminalService terminalService;
-
-    /**
      * The name of the project being processed.
      */
     String projectName;
 
     /**
      * Constructor.
-     * 
-     * @param terminalService The terminal service instance being used to open the terminal and run a command.
-     * @param projectName The name of the current project being processed.
+     *
+     * @param projectName The name of the project to be associated with this listener.
      */
-    public TerminalTabListenerImpl(ITerminalService terminalService, String projectName) {
-        this.terminalService = terminalService;
+    public TerminalTabListenerImpl(String projectName) {
         this.projectName = projectName;
     }
 
@@ -34,10 +26,15 @@ public class TerminalTabListenerImpl implements ITerminalTabListener {
      */
     @Override
     public void terminalTabDisposed(Object source, Object data) {
-        // Cleanup the connector from our cache.
-        LocalDevModeLauncherDelegate.getInstance().removeConnector(projectName);
-
-        // Remove this listener from the service calling this listener.
-        terminalService.removeTerminalTabListener(this);
+        // Perform cleanup if the project name associated with the disposed tab matches the project name associated with this
+        // listener. Note that, input "data" is the custom data (ITerminalsConnectorConstants.PROP_DATA = project name) provided
+        // for opening the console. This is a bit more reliable and easier to use than using the "source" input (CTabItem) on
+        // Windows specially due to potential tab title overrides.
+        if (data instanceof String) {
+            String disposedProjectName = (String) data;
+            if (disposedProjectName.equals(projectName)) {
+                ProjectTabController.getInstance().cleanupTerminal(projectName);
+            }
+        }
     }
 }

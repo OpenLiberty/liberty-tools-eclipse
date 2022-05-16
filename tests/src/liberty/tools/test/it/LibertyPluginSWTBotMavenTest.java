@@ -30,8 +30,10 @@ import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotView;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import liberty.tools.DevModeOperations;
@@ -84,6 +86,16 @@ public class LibertyPluginSWTBotMavenTest {
         bot.closeAllEditors();
         bot.closeAllShells();
         bot.resetWorkbench();
+    }
+
+    @BeforeEach
+    public void beforeEach() {
+        System.out.println("Test entry: " + java.time.LocalDateTime.now());
+    }
+
+    @AfterEach
+    public void afterEach() {
+        System.out.println("Test exit: " + java.time.LocalDateTime.now());
     }
 
     /**

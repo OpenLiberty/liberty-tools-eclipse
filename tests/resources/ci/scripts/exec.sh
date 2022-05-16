@@ -32,7 +32,7 @@ main() {
         echo "ERROR: Failure while driving mvn install on plugin. rc: ${rc}."
 
         echo "DEBUG: Liberty messages.log:\n"
-        cat tests/applications/maven/liberty-maven-test-app/target/liberty/wlp/usr/servers/defaultServer/logs/messages.log
+        cat tests/resources/applications/maven/liberty-maven-test-app/target/liberty/wlp/usr/servers/defaultServer/logs/messages.log
 
         echo "DEBUG: Environment variables:\n"
         env
