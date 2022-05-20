@@ -53,6 +53,7 @@
                 <artifactId>liberty-maven-plugin</artifactId>
                 <version>3.5.1</version>
                 <configuration>
+                    <serverStartTimeout>120</serverStartTimeout>
                     <mergeServerEnv>true</mergeServerEnv>
                     <stripVersion>true</stripVersion>
                 </configuration>
