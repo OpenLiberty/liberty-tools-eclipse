@@ -27,7 +27,12 @@ import liberty.tools.utils.Workspace;
 public class DashboardView extends ViewPart {
 
     /**
-     * Constants.
+     * Liberty logo path.
+     */
+    public static final String LIBERTY_LOGO_PATH = "icons/openLibertyLogo.png";
+
+    /**
+     * Menu Constants.
      */
     public static final String APP_MENU_ACTION_START = "Start";
     public static final String APP_MENU_ACTION_START_PARMS = "Start...";

@@ -1,12 +1,15 @@
 package liberty.tools.ui.terminal;
 
+import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.tm.internal.terminal.provisional.api.ITerminalConnector;
 import org.eclipse.tm.terminal.view.core.TerminalServiceFactory;
 import org.eclipse.tm.terminal.view.core.interfaces.ITerminalService;
@@ -17,6 +20,9 @@ import org.eclipse.tm.terminal.view.ui.tabs.TabFolderManager;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PlatformUI;
+
+import liberty.tools.LibertyDevPlugin;
+import liberty.tools.ui.DashboardView;
 
 /**
  * Represents a terminal tab item within the terminal view associated with a running application project.
@@ -101,11 +107,14 @@ public class ProjectTab {
             public void done(IStatus status) {
                 // The console tab for the associated project opened.
                 if (status.getCode() == IStatus.OK) {
-                    // Register a terminal tab disposed listener.
-                    terminalService.addTerminalTabListener(tabListener);
-
                     // Save the object representing the currently active console tab instance.
                     projectTab = getActiveProjectTab();
+
+                    // Update the tab image with the Liberty logo.
+                    updateImage();
+
+                    // Register a terminal tab disposed listener.
+                    terminalService.addTerminalTabListener(tabListener);
 
                     // Update the state.
                     setState(State.STARTED);
@@ -137,6 +146,33 @@ public class ProjectTab {
         properties.put(ITerminalsConnectorConstants.PROP_PROCESS_ENVIRONMENT, envs.toArray(new String[envs.size()]));
 
         return properties;
+    }
+
+    /**
+     * Updates the tab image with the Liberty logo.
+     */
+    private void updateImage() {
+        projectTab.getDisplay().asyncExec(() -> {
+            URL url = LibertyDevPlugin.getDefault().getBundle().getResource(DashboardView.LIBERTY_LOGO_PATH);
+
+            if (url != null) {
+                InputStream stream = null;
+                try {
+                    stream = url.openStream();
+                    projectTab.setImage(new Image(projectTab.getDisplay(), stream));
+                } catch (Exception e) {
+                    // Ignore.
+                } finally {
+                    try {
+                        if (stream != null) {
+                            stream.close();
+                        }
+                    } catch (Exception e) {
+                        // Ignore.
+                    }
+                }
+            }
+        });
     }
 
     /**
