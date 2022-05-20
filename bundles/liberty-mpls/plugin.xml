@@ -13,6 +13,14 @@
 		</content-type>
    </extension>
     -->
+    
+	  <!-- add the liberty server.xml LS support -->  
+      <extension
+		   point="org.eclipse.wildwebdeveloper.xml.lemminxExtension">
+		    <jar
+		          path="lib/liberty-langserver-lemminx-1.0-SNAPSHOT-jar-with-dependencies.jar">
+		    </jar>
+      </extension>
    
       <extension
          point="org.eclipse.core.contenttype.contentTypes">
@@ -61,7 +69,7 @@
             singleton="true">
       </server>
       <contentTypeMapping
-            contentType="org.microprofile.tools.microprofile.mp-properties"
+            contentType="io.openliberty.tools.org.microprofile.tools.microprofile.mp-properties"
             id="io.openliberty.tools.org.microprofile.mpserver">
       </contentTypeMapping>
       <contentTypeMapping
