@@ -5,15 +5,22 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.reflect.Field;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.nio.file.DirectoryNotEmptyException;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Stream;
 
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
@@ -35,6 +42,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 
 import liberty.tools.DevModeOperations;
 import liberty.tools.test.it.utils.SWTPluginOperations;
@@ -59,6 +67,11 @@ public class LibertyPluginSWTBotMavenTest {
      * Application name.
      */
     static final String MVN_APP_NAME = "liberty.maven.test.app";
+
+    /**
+     * Test app relative path.
+     */
+    static final Path projectPath = Paths.get("resources", "applications", "maven", "liberty-maven-test-app");
 
     /**
      * Expected menu items.
@@ -89,13 +102,13 @@ public class LibertyPluginSWTBotMavenTest {
     }
 
     @BeforeEach
-    public void beforeEach() {
-        System.out.println("Test entry: " + java.time.LocalDateTime.now());
+    public void beforeEach(TestInfo info) {
+        System.out.println("INFO: Test " + info.getDisplayName() + " entry: " + java.time.LocalDateTime.now());
     }
 
     @AfterEach
-    public void afterEach() {
-        System.out.println("Test exit: " + java.time.LocalDateTime.now());
+    public void afterEach(TestInfo info) {
+        System.out.println("INFO: Test " + info.getDisplayName() + " exit: " + java.time.LocalDateTime.now());
     }
 
     /**
@@ -158,6 +171,67 @@ public class LibertyPluginSWTBotMavenTest {
      * Tests the start menu action on a dashboard listed application.
      */
     @Test
+    public void testStartWithWrapper() {
+        String invalidMvnHomePath = "INVALID";
+        String originalEnvVariable = System.getenv("MAVEN_HOME");
+
+        // Update the MAVEN_HOME environment variable with an invalid value
+        try {
+            updateJVMEnvVariableCache("MAVEN_HOME", invalidMvnHomePath);
+            String updatedValue = System.getenv("MAVEN_HOME");
+            Assertions.assertTrue(updatedValue.equals(invalidMvnHomePath),
+                    () -> "The updated value of " + updatedValue + " does not match the expected value of " + invalidMvnHomePath);
+            System.out.println("INFO: MAVEN_HOME updated to invalid value: " + updatedValue);
+        } catch (Exception e) {
+            Assertions.fail("Unable to update the value of environment variable MAVEN_HOME. Error: " + e.getMessage());
+        }
+
+        // Call the start action. This is expected to fail because there is an invalid MAVEN_HOME value set.
+        SWTPluginOperations.launchAppMenuStartAction(bot, dashboard, MVN_APP_NAME);
+        SWTBotView terminal = bot.viewByTitle("Terminal");
+        terminal.show();
+        validateApplicationOutcome(false);
+        terminal.close();
+
+        // Add wrapper artifacts to the project.
+        copyWrapperArtifactsToProject();
+
+        // Call the start/stop actions. This is expected to work because, currently, the plugin's order of precedence when
+        // selecting the maven command gives preference to the mvn wrapper command over the maven command installation
+        // pointed to by the MAVEN_HOME environment variable.
+        try {
+            // Start dev mode.
+            SWTPluginOperations.launchAppMenuStartAction(bot, dashboard, MVN_APP_NAME);
+            terminal = bot.viewByTitle("Terminal");
+            terminal.show();
+            validateApplicationOutcome(true);
+
+            // Stop dev mode.
+            SWTPluginOperations.launchAppMenuStopAction(bot, dashboard, MVN_APP_NAME);
+            terminal.show();
+            validateApplicationOutcome(false);
+            terminal.close();
+        } finally {
+            // Update the MAVEN_HOME environment variable with the original value.
+            try {
+                updateJVMEnvVariableCache("MAVEN_HOME", originalEnvVariable);
+                String updatedValue = System.getenv("MAVEN_HOME");
+                Assertions.assertTrue(updatedValue.equals(originalEnvVariable),
+                        () -> "The updated value of " + updatedValue + " does not match the expected value of " + originalEnvVariable);
+                System.out.println("INFO: MAVEN_HOME reset to its original value: " + updatedValue);
+            } catch (Exception e) {
+                Assertions.fail("Unable to update the value of environment variable MAVEN_HOME. Error: " + e.getMessage());
+            }
+
+            // Remove all wrapper artifacts.
+            removeWrapperArtifactsFromProject();
+        }
+    }
+
+    /**
+     * Tests the start menu action on a dashboard listed application.
+     */
+    @Test
     public void testStart() {
         // Start dev mode.
         SWTPluginOperations.launchAppMenuStartAction(bot, dashboard, MVN_APP_NAME);
@@ -183,9 +257,8 @@ public class LibertyPluginSWTBotMavenTest {
      */
     @Test
     public void testStartWithParms() {
-        Path projectPath = Paths.get("resources", "applications", "maven", "liberty-maven-test-app");
         Path pathToITReport = DevModeOperations.getMavenIntegrationTestReportPath(projectPath.toString());
-        boolean testReportDeleted = deleteFile(pathToITReport);
+        boolean testReportDeleted = deleteFile(pathToITReport.toFile());
         Assertions.assertTrue(testReportDeleted, () -> "File: " + pathToITReport + " was not be deleted.");
 
         // Start dev mode with parms.
@@ -216,13 +289,12 @@ public class LibertyPluginSWTBotMavenTest {
     @Test
     public void testRunTests() {
         // Delete the test report files before we start this test.
-        Path projectPath = Paths.get("resources", "applications", "maven", "liberty-maven-test-app");
         Path pathToITReport = DevModeOperations.getMavenIntegrationTestReportPath(projectPath.toString());
-        boolean itReportDeleted = deleteFile(pathToITReport);
+        boolean itReportDeleted = deleteFile(pathToITReport.toFile());
         Assertions.assertTrue(itReportDeleted, () -> "Test report file: " + pathToITReport + " was not be deleted.");
 
         Path pathToUTReport = DevModeOperations.getMavenUnitTestReportPath(projectPath.toString());
-        boolean utReportDeleted = deleteFile(pathToITReport);
+        boolean utReportDeleted = deleteFile(pathToITReport.toFile());
         Assertions.assertTrue(utReportDeleted, () -> "Test report file: " + pathToITReport + " was not be deleted.");
 
         // Start dev mode.
@@ -326,8 +398,7 @@ public class LibertyPluginSWTBotMavenTest {
             public void run() {
                 File workspaceRoot = ResourcesPlugin.getWorkspace().getRoot().getLocation().toFile();
                 ArrayList<String> projectPaths = new ArrayList<String>();
-                Path projPath = Paths.get("resources", "applications", "maven", "liberty-maven-test-app");
-                projectPaths.add(projPath.toString());
+                projectPaths.add(projectPath.toString());
 
                 try {
                     importProjects(workspaceRoot, projectPaths);
@@ -358,7 +429,6 @@ public class LibertyPluginSWTBotMavenTest {
         ProjectImportConfiguration projectImportConfig = new ProjectImportConfiguration();
         IProjectConfigurationManager projectConfigurationManager = MavenPlugin.getProjectConfigurationManager();
         projectConfigurationManager.importProjects(projects, projectImportConfig, new NullProgressMonitor());
-
     }
 
     /**
@@ -543,20 +613,116 @@ public class LibertyPluginSWTBotMavenTest {
     }
 
     /**
-     * Deletes file identified by the input path.
+     * Deletes file identified by the input path. If the file is a directory, it must be empty.
      *
      * @param path The file's path.
      *
      * @return Returns true if the file identified by the input path was deleted. False, otherwise.
      */
-    public boolean deleteFile(Path filePath) {
+    public boolean deleteFile(File file) {
         boolean deleted = true;
-        File f = new File(filePath.toString());
 
-        if (f.exists()) {
-            deleted = f.delete();
+        if (file.exists()) {
+            if (!file.isDirectory()) {
+                deleted = file.delete();
+            } else {
+                deleted = deleteDirectory(file);
+            }
         }
 
         return deleted;
+    }
+
+    /**
+     * Recursively deletes the input file directory.
+     *
+     * @param filePath The directory path.
+     *
+     * @return
+     */
+    private boolean deleteDirectory(File file) {
+        File[] files = file.listFiles();
+        if (files != null) {
+            for (int i = 0; i < files.length; i++) {
+                deleteDirectory(files[i]);
+            }
+        }
+        return file.delete();
+    }
+
+    /**
+     * Adds or updates the JVM copy of the environment variables using the key and value inputs.
+     *
+     * @param key The environment variable to add or update.
+     * @param value The value associated with the input key.
+     *
+     * @throws Exception
+     */
+    @SuppressWarnings("unchecked")
+    public void updateJVMEnvVariableCache(String key, String value) throws Exception {
+        Map<String, String> jvmEnvVars = null;
+        if (onWindows()) {
+            Class<?> pec = Class.forName("java.lang.ProcessEnvironment");
+            Field field = pec.getDeclaredField("theCaseInsensitiveEnvironment");
+            field.setAccessible(true);
+            jvmEnvVars = (Map<String, String>) field.get(null);
+        } else {
+            Map<String, String> envVariables = System.getenv();
+            Field field = envVariables.getClass().getDeclaredField("m");
+            field.setAccessible(true);
+            jvmEnvVars = ((Map<String, String>) field.get(envVariables));
+        }
+
+        jvmEnvVars.put(key, value);
+    }
+
+    /**
+     * Returns true if the current process is running on a windows environment. False, otherwise.
+     *
+     * @return True if the current process is running on a windows environment. False, otherwise.
+     */
+    private boolean onWindows() {
+        return System.getProperty("os.name").contains("Windows");
+    }
+
+    /**
+     * Copies maven build wrapper artifacts to the project.
+     */
+    public void copyWrapperArtifactsToProject() {
+        Path sourceDirPath = Paths.get(Paths.get("").toAbsolutePath().toString(), "resources", "files", "apps", "maven",
+                "liberty-maven-test-app", "wrapper");
+        try {
+            Stream<Path> sourceFiles = Files.walk(sourceDirPath);
+            Iterator<Path> iterator = sourceFiles.iterator();
+            while (iterator.hasNext()) {
+                Path sourceFile = iterator.next();
+                Path destination = Paths.get(projectPath.toString(), sourceFile.toString().substring(sourceDirPath.toString().length()));
+                try {
+                    Files.copy(sourceFile, destination, StandardCopyOption.REPLACE_EXISTING);
+                } catch (FileAlreadyExistsException | DirectoryNotEmptyException ee) {
+                    // Ignore.
+                }
+            }
+            sourceFiles.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Removes all wrapper related artifacts.
+     */
+    public void removeWrapperArtifactsFromProject() {
+        Path mvnw = Paths.get(projectPath.toString(), "mvnw");
+        boolean mvnwDeleted = deleteFile(mvnw.toFile());
+        Assertions.assertTrue(mvnwDeleted, () -> "File: " + mvnw + " was not be deleted.");
+
+        Path mvncmd = Paths.get(projectPath.toString(), "mvnw.cmd");
+        boolean mvncmdDeleted = deleteFile(mvncmd.toFile());
+        Assertions.assertTrue(mvncmdDeleted, () -> "File: " + mvncmd + " was not be deleted.");
+
+        Path mvnDir = Paths.get(projectPath.toString(), ".mvn");
+        boolean mvnDirDeleted = deleteFile(mvnDir.toFile());
+        Assertions.assertTrue(mvnDirDeleted, () -> "File: " + mvnDir + " was not be deleted.");
     }
 }

@@ -109,15 +109,15 @@ public class DevModeOperations {
             // Prepare the Liberty plugin development mode command.
             String cmd = "";
             if (Project.isMaven(project)) {
-                cmd = getMavenCommand("io.openliberty.tools:liberty-maven-plugin:dev -f " + projectPath);
+                cmd = getMavenCommand(projectPath, "io.openliberty.tools:liberty-maven-plugin:dev -f " + projectPath);
             } else if (Project.isGradle(project)) {
-                cmd = getGradleCommand("libertyDev -p=" + projectPath);
+                cmd = getGradleCommand(projectPath, "libertyDev -p=" + projectPath);
             } else {
                 throw new Exception("Project" + projectName + "is not a Gradle or Maven project.");
             }
 
             // Start a terminal and run the application in development mode.
-            startDevMode(cmd, project.getName());
+            startDevMode(cmd, project.getName(), projectPath);
         } catch (Exception e) {
             Dialog.displayErrorMessageWithDetails("An error was detected while performing the start action on project " + projectName, e);
             return;
@@ -168,15 +168,15 @@ public class DevModeOperations {
             // Prepare the Liberty plugin development mode command.
             String cmd = "";
             if (Project.isMaven(project)) {
-                cmd = getMavenCommand("io.openliberty.tools:liberty-maven-plugin:dev " + userParms + " -f " + projectPath);
+                cmd = getMavenCommand(projectPath, "io.openliberty.tools:liberty-maven-plugin:dev " + userParms + " -f " + projectPath);
             } else if (Project.isGradle(project)) {
-                cmd = getGradleCommand("libertyDev " + userParms + " -p=" + projectPath);
+                cmd = getGradleCommand(projectPath, "libertyDev " + userParms + " -p=" + projectPath);
             } else {
                 throw new Exception("Project" + projectName + "is not a Gradle or Maven project.");
             }
 
             // Start a terminal and run the application in development mode.
-            startDevMode(cmd, project.getName());
+            startDevMode(cmd, project.getName(), projectPath);
         } catch (Exception e) {
             Dialog.displayErrorMessageWithDetails("An error was detected while performing the start... action on project " + projectName,
                     e);
@@ -221,15 +221,15 @@ public class DevModeOperations {
             // Prepare the Liberty plugin container development mode command.
             String cmd = "";
             if (Project.isMaven(project)) {
-                cmd = getMavenCommand("io.openliberty.tools:liberty-maven-plugin:devc -f " + projectPath);
+                cmd = getMavenCommand(projectPath, "io.openliberty.tools:liberty-maven-plugin:devc -f " + projectPath);
             } else if (Project.isGradle(project)) {
-                cmd = getGradleCommand("libertyDevc -p=" + projectPath);
+                cmd = getGradleCommand(projectPath, "libertyDevc -p=" + projectPath);
             } else {
                 throw new Exception("Project" + projectName + "is not a Gradle or Maven project.");
             }
 
             // Start a terminal and run the application in development mode.
-            startDevMode(cmd, project.getName());
+            startDevMode(cmd, project.getName(), projectPath);
         } catch (Exception e) {
             Dialog.displayErrorMessageWithDetails(
                     "An error was detected while performing the start in container action on project " + projectName, e);
@@ -428,7 +428,7 @@ public class DevModeOperations {
             }
 
             // Get the path to the test report.
-            Path path = getGradleTestReportPath(project, projectPath);
+            Path path = getGradleTestReportPath(projectPath);
             if (!path.toFile().exists()) {
                 Dialog.displayWarningMessage(
                         "Test results were not found for project " + projectName + ". Select \"" + DashboardView.APP_MENU_ACTION_RUN_TESTS
@@ -475,12 +475,18 @@ public class DevModeOperations {
      *
      * @param cmd The command to run.
      * @param projectName The name of the project currently being processed.
+     * @param projectPath The project's path.
      *
      * @throws Exception If an error occurs while running the specified command.
      */
-    public void startDevMode(String cmd, String projectName) throws Exception {
+    public void startDevMode(String cmd, String projectName, String projectPath) throws Exception {
         List<String> envs = new ArrayList<String>(1);
         envs.add("JAVA_HOME=" + getJavaInstallHome());
+
+        // Required on windows to work with mvnw.cmd
+        if (isWindows()) {
+            envs.add("MAVEN_BASEDIR=" + projectPath);
+        }
 
         projectTabController.runOnTerminal(projectName, cmd, envs);
     }
@@ -542,7 +548,7 @@ public class DevModeOperations {
             javaHome = System.getProperty("java.home");
         }
 
-        // 3. Check for associated environment property.
+        // 3. Check for associated environment variable.
         if (javaHome == null) {
             javaHome = System.getenv("JAVA_HOME");
         }
@@ -559,7 +565,7 @@ public class DevModeOperations {
         String mvnInstall = null;
         // TODO: 1. Find the eclipse->maven configured install path
 
-        // 2. Check for associated environment property.
+        // 2. Check for associated environment variable.
         if (mvnInstall == null) {
             mvnInstall = System.getenv("MAVEN_HOME");
 
@@ -579,7 +585,7 @@ public class DevModeOperations {
     private String getGradleInstallHome() {
         // TODO: 1. Find the eclipse->gradle configured install path.
 
-        // 2. Check for associated environment property.
+        // 2. Check for associated environment variable.
         String gradleInstall = System.getenv("GRADLE_HOME");
 
         return gradleInstall;
@@ -588,23 +594,41 @@ public class DevModeOperations {
     /**
      * Returns the full Maven command to run on the terminal.
      *
+     * @param projectPath The project's path.
      * @param cmdArgs The mvn command args
      *
      * @return The full Maven command to run on the terminal.
      */
-    private String getMavenCommand(String cmdArgs) {
-        StringBuilder sb = new StringBuilder();
-
-        String baseCmd = isWindows() ? "mvn.cmd" : "mvn";
+    private String getMavenCommand(String projectPath, String cmdArgs) {
+        String baseCmd = null;
         String mvnCmd = null;
 
-        String mvnInstallPath = getMavenInstallHome();
-        if (mvnInstallPath != null) {
-            mvnCmd = Paths.get(mvnInstallPath, "bin", baseCmd).toString();
+        // 1. Check if there is wrapper defined.
+        Path p2mw = (isWindows()) ? Paths.get(projectPath, "mvnw.cmd") : Paths.get(projectPath, "mvnw");
+        Path p2mwJar = Paths.get(projectPath, ".mvn", "wrapper", "maven-wrapper.jar");
+        Path p2mwProps = Paths.get(projectPath, ".mvn", "wrapper", "maven-wrapper.properties");
+
+        if (p2mw.toFile().exists() && p2mwJar.toFile().exists() && p2mwProps.toFile().exists()) {
+            mvnCmd = p2mw.toString();
         } else {
+            baseCmd = isWindows() ? "mvn.cmd" : "mvn";
+        }
+
+        // 2. Check if an environment variable was defined to point to the Maven installation.
+        if (mvnCmd == null) {
+            String mvnInstallPath = getMavenInstallHome();
+            if (mvnInstallPath != null) {
+                mvnCmd = Paths.get(mvnInstallPath, "bin", baseCmd).toString();
+            }
+        }
+
+        // 3. Use the base command.
+        if (mvnCmd == null) {
             mvnCmd = baseCmd;
         }
 
+        // Put it all together.
+        StringBuilder sb = new StringBuilder();
         sb.append(mvnCmd).append(" ").append(cmdArgs);
 
         if (isWindows()) {
@@ -618,23 +642,42 @@ public class DevModeOperations {
     /**
      * Returns the full Gradle command to run on the terminal.
      *
-     * @param cmdArgs The Gradle command args.
+     * @param projectPath The project's path.
+     * @param cmdArgs The Gradle command arguments.
      *
      * @return The full Gradle command to run on the terminal.
      */
-    private String getGradleCommand(String cmdArgs) {
-        StringBuilder sb = new StringBuilder();
+    private String getGradleCommand(String projectPath, String cmdArgs) {
 
-        String baseCmd = isWindows() ? "gradle.bat" : "gradle";
+        String baseCmd = null;
         String gradleCmd = null;
 
-        String gradleInstallPath = getGradleInstallHome();
-        if (gradleInstallPath != null) {
-            gradleCmd = Paths.get(gradleInstallPath, "bin", baseCmd).toString();
+        // 1. Check if there is wrapper defined.
+        Path p2gw = (isWindows()) ? Paths.get(projectPath, "gradlew.cmd") : Paths.get(projectPath, "gradlew");
+        Path p2gwJar = Paths.get(projectPath, "gradle", "wrapper", "gradle-wrapper.jar");
+        Path p2gwProps = Paths.get(projectPath, "gradle", "wrapper", "gradle-wrapper.properties");
+
+        if (p2gw.toFile().exists() && p2gwJar.toFile().exists() && p2gwProps.toFile().exists()) {
+            gradleCmd = p2gw.toString();
         } else {
+            baseCmd = isWindows() ? "gradle.bat" : "gradle";
+        }
+
+        // 2. Check if an environment variable was defined to point to the Gradle installation.
+        if (gradleCmd == null) {
+            String gradleInstallPath = getGradleInstallHome();
+            if (gradleInstallPath != null) {
+                gradleCmd = Paths.get(gradleInstallPath, "bin", baseCmd).toString();
+            }
+        }
+
+        // 3. Use the base command.
+        if (gradleCmd == null) {
             gradleCmd = baseCmd;
         }
 
+        // Put it all together.
+        StringBuilder sb = new StringBuilder();
         sb.append(gradleCmd).append(" ").append(cmdArgs);
 
         if (isWindows()) {
@@ -648,6 +691,8 @@ public class DevModeOperations {
     /**
      * Returns the path of the HTML file containing the integration test report.
      *
+     * @param projectPath The project's path.
+     *
      * @return The path of the HTML file containing the integration test report.
      */
     public static Path getMavenIntegrationTestReportPath(String projectPath) {
@@ -658,6 +703,8 @@ public class DevModeOperations {
 
     /**
      * Returns the path of the HTML file containing the unit test report.
+     *
+     * @param projectPath The project's path.
      *
      * @return The path of the HTML file containing the unit test report.
      */
@@ -670,9 +717,11 @@ public class DevModeOperations {
     /**
      * Returns the path of the HTML file containing the test report.
      *
+     * @param projectPath The project's path.
+     *
      * @return The custom path of the HTML file containing the or the default location.
      */
-    public static Path getGradleTestReportPath(IProject project, String projectPath) {
+    public static Path getGradleTestReportPath(String projectPath) {
         // TODO: Look for custom dir entry in build.gradle:
         // "test.reports.html.destination". Need to handle a value like this:
         // reports.html.destination = file("$buildDir/edsTestReports/teststuff")
