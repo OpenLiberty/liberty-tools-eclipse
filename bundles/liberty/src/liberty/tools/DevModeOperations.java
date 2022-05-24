@@ -1,29 +1,19 @@
 package liberty.tools;
 
-import java.io.OutputStream;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.IStatus;
 import org.eclipse.jface.dialogs.IInputValidator;
 import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.window.Window;
-import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.tm.internal.terminal.provisional.api.ITerminalConnector;
-import org.eclipse.tm.terminal.view.core.TerminalServiceFactory;
-import org.eclipse.tm.terminal.view.core.interfaces.ITerminalService;
-import org.eclipse.tm.terminal.view.core.interfaces.constants.ITerminalsConnectorConstants;
-import org.eclipse.tm.terminal.view.ui.manager.ConsoleManager;
 import org.eclipse.ui.ISelectionService;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
@@ -31,8 +21,9 @@ import org.eclipse.ui.browser.IWebBrowser;
 import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
 
 import liberty.tools.ui.DashboardView;
-import liberty.tools.ui.terminal.LocalDevModeLauncherDelegate;
-import liberty.tools.ui.terminal.TerminalTabListenerImpl;
+import liberty.tools.ui.terminal.ProjectTab;
+import liberty.tools.ui.terminal.ProjectTab.State;
+import liberty.tools.ui.terminal.ProjectTabController;
 import liberty.tools.utils.Dialog;
 import liberty.tools.utils.Project;
 import liberty.tools.utils.Workspace;
@@ -61,6 +52,18 @@ public class DevModeOperations {
     public static final String BROWSER_GRADLE_TEST_RESULT_NAME = "Gradle project test results";
 
     /**
+     * Project terminal tab controller instance.
+     */
+    private ProjectTabController projectTabController;
+
+    /**
+     * Constructor.
+     */
+    public DevModeOperations() {
+        projectTabController = ProjectTabController.getInstance();
+    }
+
+    /**
      * Returns true if the underlying OS is windows. False, otherwise.
      *
      * @return True if the underlying OS is windows. False, otherwise.
@@ -86,15 +89,17 @@ public class DevModeOperations {
 
         String projectName = project.getName();
 
-        // Check if the application has already been started.
-        if (isStarted(projectName)) {
-            Dialog.displayWarningMessage("Liberty development mode for application project " + projectName
-                    + " is already running. Select \"" + DashboardView.APP_MENU_ACTION_STOP + "\" prior to selecting \""
-                    + DashboardView.APP_MENU_ACTION_START + "\" on the menu.");
+        // Check if the start action has already been issued.
+        State terminalState = projectTabController.getTerminalState(projectName);
+        if (terminalState != null && terminalState == ProjectTab.State.STARTED) {
+            Dialog.displayWarningMessage(
+                    "A start action has already been issued on project " + projectName + ". Select \"" + DashboardView.APP_MENU_ACTION_STOP
+                            + "\" prior to selecting \"" + DashboardView.APP_MENU_ACTION_START + "\" on the menu.");
             return;
         }
 
         try {
+
             // Get the absolute path to the application project.
             String projectPath = Project.getPath(project);
             if (projectPath == null) {
@@ -112,7 +117,7 @@ public class DevModeOperations {
             }
 
             // Start a terminal and run the application in development mode.
-            runCommand(cmd, project.getName());
+            startDevMode(cmd, project.getName());
         } catch (Exception e) {
             Dialog.displayErrorMessageWithDetails("An error was detected while performing the start action on project " + projectName, e);
             return;
@@ -136,11 +141,13 @@ public class DevModeOperations {
 
         String projectName = project.getName();
 
-        // Check if the application has already been started.
-        if (isStarted(projectName)) {
-            Dialog.displayWarningMessage("Liberty development mode for application project " + projectName
-                    + " is already running. Select \"" + DashboardView.APP_MENU_ACTION_STOP + "\" prior to selecting \""
-                    + DashboardView.APP_MENU_ACTION_START_PARMS + "\" on the menu.");
+        // Check if the start action has already been issued.
+        State terminalState = projectTabController.getTerminalState(projectName);
+        if (terminalState != null && terminalState == ProjectTab.State.STARTED) {
+
+            Dialog.displayWarningMessage(
+                    "A start action has already been issued on project " + projectName + ". Select \"" + DashboardView.APP_MENU_ACTION_STOP
+                            + "\" prior to selecting \"" + DashboardView.APP_MENU_ACTION_START_PARMS + "\" on the menu.");
             return;
         }
 
@@ -169,7 +176,7 @@ public class DevModeOperations {
             }
 
             // Start a terminal and run the application in development mode.
-            runCommand(cmd, project.getName());
+            startDevMode(cmd, project.getName());
         } catch (Exception e) {
             Dialog.displayErrorMessageWithDetails("An error was detected while performing the start... action on project " + projectName,
                     e);
@@ -194,11 +201,13 @@ public class DevModeOperations {
 
         String projectName = project.getName();
 
-        // Check if the application has already been started.
-        if (isStarted(projectName)) {
-            Dialog.displayWarningMessage("Liberty development mode for application project " + projectName
-                    + " is already running. Select \"" + DashboardView.APP_MENU_ACTION_STOP + "\" prior to selecting \""
-                    + DashboardView.APP_MENU_ACTION_START_IN_CONTAINER + "\" on the menu.");
+        // Check if the start action has already been issued.
+        State terminalState = projectTabController.getTerminalState(projectName);
+        if (terminalState != null && terminalState == ProjectTab.State.STARTED) {
+
+            Dialog.displayWarningMessage(
+                    "A start action has already been issued on project " + projectName + ". Select \"" + DashboardView.APP_MENU_ACTION_STOP
+                            + "\" prior to selecting \"" + DashboardView.APP_MENU_ACTION_START_IN_CONTAINER + "\" on the menu.");
             return;
         }
 
@@ -220,7 +229,7 @@ public class DevModeOperations {
             }
 
             // Start a terminal and run the application in development mode.
-            runCommand(cmd, project.getName());
+            startDevMode(cmd, project.getName());
         } catch (Exception e) {
             Dialog.displayErrorMessageWithDetails(
                     "An error was detected while performing the start in container action on project " + projectName, e);
@@ -245,30 +254,34 @@ public class DevModeOperations {
 
         String projectName = project.getName();
 
+        // Check if the stop action has already been issued of if a start action was never issued before.
+        if (projectTabController.getProjectConnector(projectName) == null) {
+            Dialog.displayWarningMessage("A start action was not issued first or the stop action has already been issued on project "
+                    + projectName + ". Select a start action on the menu prior to selecting the \"" + DashboardView.APP_MENU_ACTION_STOP
+                    + "\" action.");
+            return;
+        }
+
         try {
-            // Validate that we can get to the respective terminal's output stream.
-            LocalDevModeLauncherDelegate delegate = LocalDevModeLauncherDelegate.getInstance();
-            if (delegate == null) {
-                throw new Exception("Unable to find the development mode launcher delegate. Be sure to run the start action first.");
-            }
-
-            ITerminalConnector terminalConnector = delegate.getConnector(projectName);
-            if (terminalConnector == null) {
-                throw new Exception(
-                        "Unable to find terminal connector. Be sure to run the start action first. Note that attempting to stop orphaned processes with this action in not valid. Orphaned processes require manual intervention.");
-            }
-
-            OutputStream terminalStream = terminalConnector.getTerminalToRemoteStream();
-            if (terminalStream == null) {
-                throw new Exception(
-                        "Unable to find terminal remote stream. The terminal might not be active. Be sure to run the start action first.  Note that attempting to stop orphaned processes with this action in not valid. Orphaned processes require manual intervention.");
-            }
-
             // Prepare the development mode command to stop the server.
             String cmd = "exit" + System.lineSeparator();
 
             // Issue the command on the terminal.
-            terminalStream.write(cmd.getBytes());
+            projectTabController.writeTerminalStream(projectName, cmd.getBytes());
+
+            // The command to exit development mode was issued. Set the internal project tab state to STOPPED as
+            // indication that the stop command was issued. The project's terminal tab UI will marked as closed (title and state
+            // updates) when development mode exits.
+            projectTabController.setTerminalState(projectName, ProjectTab.State.STOPPED);
+
+            // Cleanup internal objects. This maybe done a bit prematurely at this point because the operations triggered by
+            // the action of writing to the terminal are asynchronous. However, there is no good way to listen for terminal tab
+            // state changes (avoid loops or terminal internal class references). Furthermore, if errors are experienced during
+            // devomde exit, those errors may not be easily solved by re-trying the stop command.
+            // If there are any errors during cleanup or if cleanup does not happen at all here, clean up will be attempted
+            // when the associated terminal view tab is closed/disposed.
+            projectTabController.cleanupTerminal(projectName);
+
         } catch (Exception e) {
             Dialog.displayErrorMessageWithDetails("An error was detected while performing the stop action on project " + projectName, e);
             return;
@@ -292,29 +305,20 @@ public class DevModeOperations {
 
         String projectName = project.getName();
 
+        // Check if the stop action has already been issued of if a start action was never issued before.
+        if (projectTabController.getProjectConnector(projectName) == null) {
+            Dialog.displayWarningMessage("A start action was not issued first or the stop action has already been issued on project "
+                    + projectName + ". Select a start action on the menu prior to selecting the \""
+                    + DashboardView.APP_MENU_ACTION_RUN_TESTS + "\" action.");
+            return;
+        }
+
         try {
-            // Validate that we can get to the respective terminal's output stream.
-            LocalDevModeLauncherDelegate delegate = LocalDevModeLauncherDelegate.getInstance();
-            if (delegate == null) {
-                throw new Exception("Unable to find the development mode launcher delegate. Be sure to run the start action first.");
-            }
-
-            ITerminalConnector terminalConnector = delegate.getConnector(projectName);
-            if (terminalConnector == null) {
-                throw new Exception("Unable to find terminal connector. Be sure to run the start action first.");
-            }
-
-            OutputStream terminalStream = terminalConnector.getTerminalToRemoteStream();
-            if (terminalStream == null) {
-                throw new Exception(
-                        "Unable to find terminal remote stream. The terminal might not be active. Be sure to run the start action first.");
-            }
-
             // Prepare the development mode command to run a test.
             String cmd = System.lineSeparator();
 
-            // Issue the command on the terminal
-            terminalStream.write(cmd.getBytes());
+            // Issue the command on the terminal.
+            projectTabController.writeTerminalStream(projectName, cmd.getBytes());
         } catch (Exception e) {
             Dialog.displayErrorMessageWithDetails("An error was detected while performing the run tests action on project " + projectName,
                     e);
@@ -347,7 +351,9 @@ public class DevModeOperations {
             // Get the path to the test report.
             Path path = getMavenIntegrationTestReportPath(projectPath);
             if (!path.toFile().exists()) {
-                Dialog.displayWarningMessage("Integration test results are not available. Be sure to run the tests first.");
+                Dialog.displayWarningMessage("Integration test results were not found for project " + projectName + ". Select \""
+                        + DashboardView.APP_MENU_ACTION_RUN_TESTS + "\" prior to selecting \""
+                        + DashboardView.APP_MENU_ACTION_VIEW_MVN_IT_REPORT + "\" on the menu.");
                 return;
             }
 
@@ -385,7 +391,9 @@ public class DevModeOperations {
             // Get the path to the test report.
             Path path = getMavenUnitTestReportPath(projectPath);
             if (!path.toFile().exists()) {
-                Dialog.displayWarningMessage("Unit test results are not available. Be sure to run the tests first.");
+                Dialog.displayWarningMessage("Unit test results were not found for project " + projectName + ". Select \""
+                        + DashboardView.APP_MENU_ACTION_RUN_TESTS + "\" prior to selecting \""
+                        + DashboardView.APP_MENU_ACTION_VIEW_MVN_UT_REPORT + "\" on the menu.");
                 return;
             }
 
@@ -422,7 +430,9 @@ public class DevModeOperations {
             // Get the path to the test report.
             Path path = getGradleTestReportPath(project, projectPath);
             if (!path.toFile().exists()) {
-                Dialog.displayWarningMessage("Test results are not available. Be sure to run the tests first.");
+                Dialog.displayWarningMessage(
+                        "Test results were not found for project " + projectName + ". Select \"" + DashboardView.APP_MENU_ACTION_RUN_TESTS
+                                + "\" prior to selecting \"" + DashboardView.APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT + "\" on the menu.");
                 return;
             }
 
@@ -468,33 +478,11 @@ public class DevModeOperations {
      *
      * @throws Exception If an error occurs while running the specified command.
      */
-    public void runCommand(String cmd, String projectName) throws Exception {
+    public void startDevMode(String cmd, String projectName) throws Exception {
         List<String> envs = new ArrayList<String>(1);
         envs.add("JAVA_HOME=" + getJavaInstallHome());
-        Map<String, Object> properties = new HashMap<String, Object>();
-        properties.put(ITerminalsConnectorConstants.PROP_TITLE, projectName);
-        properties.put(ITerminalsConnectorConstants.PROP_ENCODING, "UTF-8");
-        properties.put(ITerminalsConnectorConstants.PROP_DELEGATE_ID, LocalDevModeLauncherDelegate.id);
-        properties.put(ITerminalsConnectorConstants.PROP_PROCESS_ARGS, cmd);
-        properties.put(ITerminalsConnectorConstants.PROP_DATA, projectName);
-        properties.put(ITerminalsConnectorConstants.PROP_PROCESS_ENVIRONMENT, envs.toArray(new String[envs.size()]));
-        properties.put(ITerminalsConnectorConstants.PROP_PROCESS_MERGE_ENVIRONMENT, Boolean.TRUE);
-        properties.put(ITerminalsConnectorConstants.PROP_FORCE_NEW, Boolean.TRUE);
-        properties.put(ITerminalsConnectorConstants.PROP_DATA_NO_RECONNECT, Boolean.TRUE);
 
-        ITerminalService ts = TerminalServiceFactory.getService();
-
-        ITerminalService.Done done = new ITerminalService.Done() {
-            @Override
-            public void done(IStatus status) {
-                if (status.getCode() == IStatus.OK) {
-                    TerminalTabListenerImpl tabListener = new TerminalTabListenerImpl(ts, projectName);
-                    ts.addTerminalTabListener(tabListener);
-                }
-            }
-        };
-
-        ts.openConsole(properties, done);
+        projectTabController.runOnTerminal(projectName, cmd, envs);
     }
 
     /**
@@ -719,38 +707,5 @@ public class DevModeOperations {
         }
 
         return project;
-    }
-
-    /**
-     * Returns true if the input project has already been started. False, otherwise.
-     *
-     * @param projectName The project name to check.
-     *
-     * @return True if the input project has already been started. False, otherwise
-     */
-    private boolean isStarted(String projectName) {
-        // Find if there is a connector already associated with the project. If there is one, make sure
-        // that associated terminal was terminated.
-        LocalDevModeLauncherDelegate delegate = LocalDevModeLauncherDelegate.getInstance();
-        if (delegate != null) {
-            ITerminalConnector connector = delegate.getConnector(projectName);
-
-            if (connector != null) {
-                ConsoleManager consoleMgr = ConsoleManager.getInstance();
-                CTabItem item = consoleMgr.findConsole(null, null, projectName, connector, null);
-                if (item != null) {
-                    if (!item.getText().contains("<Closed>")) {
-                        return true;
-                    } else {
-                        // There is no easy way to get notified when the terminal is disconnected, so proactively close the
-                        // terminal as it would on normal restart (PROP_FORCE_NEW=TRUE) in order to cleanup. This action
-                        // triggers the registered tab listeners to be called.
-                        item.dispose();
-                    }
-                }
-            }
-        }
-
-        return false;
     }
 }
