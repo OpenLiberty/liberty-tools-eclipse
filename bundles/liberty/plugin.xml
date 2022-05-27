@@ -20,10 +20,38 @@
             name="Liberty Dev Category">
       </category>
       <command
-            categoryId="liberty.commands.category"
             name="Open Dashboard"
             id="liberty.commands.open.dashboard">
       </command>
+      <command
+            id="liberty.startCmd"
+            name="Liberty Start Cmd">
+      </command>
+      <command
+            id="liberty.startParamsCmd"
+            name="Liberty Start with Parameters Cmd">
+      </command>
+      
+      <command
+            id="liberty.startInContainerCmd"
+            name="Liberty Start in Container Cmd">
+      </command>      
+      <command
+            id="liberty.stopCmd"
+            name="Liberty Stop Cmd">
+      </command>  
+      <command
+            id="liberty.runTestsCmd"
+            name="Liberty Run Tests Cmd">
+      </command>  
+      <command
+            id="liberty.viewIntegrationTestReportCmd"
+            name="Liberty View Integration Test Report Cmd">
+      </command>   
+      <command
+            id="liberty.viewUnitTestReportCmd"
+            name="Liberty View Unit Test Report Cmd">
+      </command>                             
    </extension>
 
    <extension point="org.eclipse.ui.handlers">
@@ -37,8 +65,49 @@
    <extension point="org.eclipse.ui.bindings">
       <key commandId="liberty.commands.open.dashboard"
            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
-           contextId="org.eclipse.ui.contexts.window"
-           sequence="M1+1"/>
+           sequence="M1+1"/>     
+      <key
+            commandId="liberty.startCmd"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M1+M2+L">
+      </key>
+      <key
+            commandId="liberty.startParamsCmd"
+            contextId="org.eclipse.ui.contexts.window"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M1+M2+M">
+      </key>
+      
+      <key
+            commandId="liberty.startInContainerCmd"
+            contextId="org.eclipse.ui.contexts.window"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M1+M2+C">
+      </key> 
+      <key
+            commandId="liberty.stopCmd"
+            contextId="org.eclipse.ui.contexts.window"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M1+M2+P">
+      </key>    
+      <key
+            commandId="liberty.runTestsCmd"
+            contextId="org.eclipse.ui.contexts.window"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M1+M2+1">
+      </key>    
+      <key
+            commandId="liberty.viewIntegrationTestReportCmd"
+            contextId="org.eclipse.ui.contexts.window"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M1+M2+I">
+      </key> 
+      <key
+            commandId="liberty.viewUnitTestReportCmd"
+            contextId="org.eclipse.ui.contexts.window"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M1+M2+2">
+      </key>
    </extension>
    
    <!-- Menu/Toolbar -->

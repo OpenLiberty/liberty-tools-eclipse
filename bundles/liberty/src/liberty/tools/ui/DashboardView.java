@@ -62,7 +62,7 @@ public class DashboardView extends ViewPart {
      */
     private Action startAction;
     private Action startWithParmAction;
-    private Action startInContanerAction;
+    private Action startInContainerAction;
     private Action stopAction;
     private Action runTestAction;
     private Action viewMavenITestReportsAction;
@@ -99,7 +99,10 @@ public class DashboardView extends ViewPart {
         createActions();
         createContextMenu();
         addToolbarActions();
+        // IContextService ctx = (IContextService) getSite().getService(IContextService.class);
+        // ctx.activateContext("liberty.popupctx");
         getSite().setSelectionProvider(viewer);
+
     }
 
     /**
@@ -149,7 +152,7 @@ public class DashboardView extends ViewPart {
         if (project != null) {
             mgr.add(startAction);
             mgr.add(startWithParmAction);
-            mgr.add(startInContanerAction);
+            mgr.add(startInContainerAction);
             mgr.add(stopAction);
             mgr.add(runTestAction);
 
@@ -162,6 +165,7 @@ public class DashboardView extends ViewPart {
                 Dialog.displayErrorMessage("Project" + project.getName() + "is not a Gradle or Maven project.");
                 return;
             }
+
         }
     }
 
@@ -188,26 +192,37 @@ public class DashboardView extends ViewPart {
             public void run() {
                 devMode.start();
             }
+
         };
         startAction.setImageDescriptor(ActionImg);
+        startAction.setActionDefinitionId("liberty.startCmd");
+        startAction.setToolTipText("Liberty Start Cmd");
+        getSite().getKeyBindingService().registerAction(startAction);
 
         // Menu: Start with parameters.
         startWithParmAction = new Action(APP_MENU_ACTION_START_PARMS) {
+
             @Override
             public void run() {
                 devMode.startWithParms();
             }
         };
         startWithParmAction.setImageDescriptor(ActionImg);
+        startWithParmAction.setActionDefinitionId("liberty.startParamsCmd");
+        startWithParmAction.setToolTipText("Liberty Start with Parameters Cmd");
+        getSite().getKeyBindingService().registerAction(startWithParmAction);
 
         // Menu: Start in container.
-        startInContanerAction = new Action(APP_MENU_ACTION_START_IN_CONTAINER) {
+        startInContainerAction = new Action(APP_MENU_ACTION_START_IN_CONTAINER) {
             @Override
             public void run() {
                 devMode.startInContainer();
             }
         };
-        startInContanerAction.setImageDescriptor(ActionImg);
+        startInContainerAction.setImageDescriptor(ActionImg);
+        startInContainerAction.setActionDefinitionId("liberty.startInContainerCmd");
+        startInContainerAction.setToolTipText("Liberty Start in Container Cmd");
+        getSite().getKeyBindingService().registerAction(startInContainerAction);
 
         // Menu: Stop.
         stopAction = new Action(APP_MENU_ACTION_STOP) {
@@ -217,6 +232,9 @@ public class DashboardView extends ViewPart {
             }
         };
         stopAction.setImageDescriptor(ActionImg);
+        stopAction.setActionDefinitionId("liberty.stopCmd");
+        stopAction.setToolTipText("Liberty Stop Cmd");
+        getSite().getKeyBindingService().registerAction(stopAction);
 
         // Menu: Run tests.
         runTestAction = new Action(APP_MENU_ACTION_RUN_TESTS) {
@@ -225,7 +243,11 @@ public class DashboardView extends ViewPart {
                 devMode.runTests();
             }
         };
+
         runTestAction.setImageDescriptor(ActionImg);
+        runTestAction.setActionDefinitionId("liberty.runTestsCmd");
+        runTestAction.setToolTipText("Liberty Run Tests Cmd");
+        getSite().getKeyBindingService().registerAction(runTestAction);
 
         // Menu: View integration test report. Maven project specific.
         viewMavenITestReportsAction = new Action(APP_MENU_ACTION_VIEW_MVN_IT_REPORT) {
@@ -234,7 +256,11 @@ public class DashboardView extends ViewPart {
                 devMode.openMavenIntegrationTestReport();
             }
         };
+
         viewMavenITestReportsAction.setImageDescriptor(ActionImg);
+        viewMavenITestReportsAction.setActionDefinitionId("liberty.viewIntegrationTestReportCmd");
+        viewMavenITestReportsAction.setToolTipText("Liberty View Integration Test Report Cmd");
+        getSite().getKeyBindingService().registerAction(viewMavenITestReportsAction);
 
         // Menu: View unit test report. Maven project specific.
         viewMavenUTestReportsAction = new Action(APP_MENU_ACTION_VIEW_MVN_UT_REPORT) {
@@ -243,7 +269,11 @@ public class DashboardView extends ViewPart {
                 devMode.openMavenUnitTestReport();
             }
         };
+
         viewMavenUTestReportsAction.setImageDescriptor(ActionImg);
+        viewMavenUTestReportsAction.setActionDefinitionId("liberty.viewUnitTestReportCmd");
+        viewMavenUTestReportsAction.setToolTipText("Liberty View Unit Test Report Cmd");
+        getSite().getKeyBindingService().registerAction(viewMavenUTestReportsAction);
 
         // Menu: View test report. Gradle project specific.
         viewGradleTestReportsAction = new Action(APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT) {
