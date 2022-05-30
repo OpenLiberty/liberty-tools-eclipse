@@ -226,6 +226,15 @@ public class ProjectTab {
     }
 
     /**
+     * Returns the tab's title text.
+     *
+     * @return The tab's title text.
+     */
+    public String getTitle() {
+        return projectTab.getText();
+    }
+
+    /**
      * Returns the current state.
      *
      * @return the current state.

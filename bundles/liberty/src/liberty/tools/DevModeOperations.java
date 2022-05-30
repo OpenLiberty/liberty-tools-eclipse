@@ -92,14 +92,21 @@ public class DevModeOperations {
         // Check if the start action has already been issued.
         State terminalState = projectTabController.getTerminalState(projectName);
         if (terminalState != null && terminalState == ProjectTab.State.STARTED) {
-            Dialog.displayWarningMessage(
-                    "A start action has already been issued on project " + projectName + ". Select \"" + DashboardView.APP_MENU_ACTION_STOP
-                            + "\" prior to selecting \"" + DashboardView.APP_MENU_ACTION_START + "\" on the menu.");
-            return;
+            // Check if the the terminal tab associated with this call was marked as closed. This scenario may occur if a previous
+            // attempt to start the server in development mode was issued successfully, but there was a failure in the process or
+            // there was an unexpected case that caused the terminal process to end. If that is the case, clean up the objects
+            // associated with the previous instance to allow users to restart development mode.
+            if (projectTabController.isProjectTabMarkedClosed(projectName)) {
+                projectTabController.cleanupTerminal(projectName);
+            } else {
+                Dialog.displayWarningMessage("A start action has already been issued on project " + projectName + ". Select \""
+                        + DashboardView.APP_MENU_ACTION_STOP + "\" prior to selecting \"" + DashboardView.APP_MENU_ACTION_START
+                        + "\" on the menu.");
+                return;
+            }
         }
 
         try {
-
             // Get the absolute path to the application project.
             String projectPath = Project.getPath(project);
             if (projectPath == null) {
@@ -144,11 +151,18 @@ public class DevModeOperations {
         // Check if the start action has already been issued.
         State terminalState = projectTabController.getTerminalState(projectName);
         if (terminalState != null && terminalState == ProjectTab.State.STARTED) {
-
-            Dialog.displayWarningMessage(
-                    "A start action has already been issued on project " + projectName + ". Select \"" + DashboardView.APP_MENU_ACTION_STOP
-                            + "\" prior to selecting \"" + DashboardView.APP_MENU_ACTION_START_PARMS + "\" on the menu.");
-            return;
+            // Check if the the terminal tab associated with this call was marked as closed. This scenario may occur if a previous
+            // attempt to start the server in development mode was issued successfully, but there was a failure in the process or
+            // there was an unexpected case that caused the terminal process to end. If that is the case, clean up the objects
+            // associated with the previous instance to allow users to restart development mode.
+            if (projectTabController.isProjectTabMarkedClosed(projectName)) {
+                projectTabController.cleanupTerminal(projectName);
+            } else {
+                Dialog.displayWarningMessage("A start action has already been issued on project " + projectName + ". Select \""
+                        + DashboardView.APP_MENU_ACTION_STOP + "\" prior to selecting \"" + DashboardView.APP_MENU_ACTION_START_PARMS
+                        + "\" on the menu.");
+                return;
+            }
         }
 
         try {
@@ -204,11 +218,18 @@ public class DevModeOperations {
         // Check if the start action has already been issued.
         State terminalState = projectTabController.getTerminalState(projectName);
         if (terminalState != null && terminalState == ProjectTab.State.STARTED) {
-
-            Dialog.displayWarningMessage(
-                    "A start action has already been issued on project " + projectName + ". Select \"" + DashboardView.APP_MENU_ACTION_STOP
-                            + "\" prior to selecting \"" + DashboardView.APP_MENU_ACTION_START_IN_CONTAINER + "\" on the menu.");
-            return;
+            // Check if the the terminal tab associated with this call was marked as closed. This scenario may occur if a previous
+            // attempt to start the server in development mode was issued successfully, but there was a failure in the process or
+            // there was an unexpected case that caused the terminal process to end. If that is the case, clean up the objects
+            // associated with the previous instance to allow users to restart development mode.
+            if (projectTabController.isProjectTabMarkedClosed(projectName)) {
+                projectTabController.cleanupTerminal(projectName);
+            } else {
+                Dialog.displayWarningMessage("A start action has already been issued on project " + projectName + ". Select \""
+                        + DashboardView.APP_MENU_ACTION_STOP + "\" prior to selecting \"" + DashboardView.APP_MENU_ACTION_START_IN_CONTAINER
+                        + "\" on the menu.");
+                return;
+            }
         }
 
         try {
@@ -262,6 +283,18 @@ public class DevModeOperations {
             return;
         }
 
+        // Check if the the terminal tab associated with this call was marked as closed. This scenario may occur if a previous
+        // attempt to start the server in development mode was issued successfully, but there was a failure in the process or
+        // there was an unexpected case that caused the terminal process to end. Note that objects associated with the previous
+        // start attempt will be cleaned up on the next restart attempt.
+        if (projectTabController.isProjectTabMarkedClosed(projectName)) {
+            Dialog.displayWarningMessage("The terminal tab running project " + projectName
+                    + " is not active due to an unexpected error or external action. Review the terminal output for more details. "
+                    + "Once the circumstance that caused the terminal tab to be inactive is determined and resolved, "
+                    + "select a start action on the menu prior to selecting the \"" + DashboardView.APP_MENU_ACTION_STOP + "\" action.");
+            return;
+        }
+
         try {
             // Prepare the development mode command to stop the server.
             String cmd = "exit" + System.lineSeparator();
@@ -310,6 +343,19 @@ public class DevModeOperations {
             Dialog.displayWarningMessage("A start action was not issued first or the stop action has already been issued on project "
                     + projectName + ". Select a start action on the menu prior to selecting the \""
                     + DashboardView.APP_MENU_ACTION_RUN_TESTS + "\" action.");
+            return;
+        }
+
+        // Check if the the terminal tab associated with this call was marked as closed. This scenario may occur if a previous
+        // attempt to start the server in development mode was issued successfully, but there was a failure in the process or
+        // there was an unexpected case that caused the terminal process to end. Note that objects associated with the previous
+        // start attempt will be cleaned up on the next restart attempt.
+        if (projectTabController.isProjectTabMarkedClosed(projectName)) {
+            Dialog.displayWarningMessage("The terminal tab running project " + projectName
+                    + " is not active due to an unexpected error or external action. Review the terminal output for more details. "
+                    + "Once the circumstance that caused the terminal tab to be inactive is determined and resolved, "
+                    + "select a start action on the menu prior to selecting the \"" + DashboardView.APP_MENU_ACTION_RUN_TESTS
+                    + "\" action.");
             return;
         }
 

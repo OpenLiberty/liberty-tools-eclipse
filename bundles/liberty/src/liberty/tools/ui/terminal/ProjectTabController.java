@@ -149,6 +149,25 @@ public class ProjectTabController {
     }
 
     /**
+     * Returns true if the tab title associated with the input project name was marked as closed. False, otherwise.
+     *
+     * @param projectName The application project name.
+     *
+     * @return true if the tab title associated with the input project name was marked as closed. False, otherwise.
+     */
+    public boolean isProjectTabMarkedClosed(String projectName) {
+        ProjectTab projectTab = projectTabMap.get(projectName);
+        if (projectTab != null) {
+            String tabTitle = projectTab.getTitle();
+            if (tabTitle.startsWith("<Closed>")) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * Cleans up the objects associated with the terminal object represented by the input project name.
      *
      * @param projectName The application project name.
