@@ -1,4 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (c) 2022 IBM Corporation and others.
+
+  This program and the accompanying materials are made available under the
+  terms of the Eclipse Public License v. 2.0 which is available at
+  http://www.eclipse.org/legal/epl-2.0.
+
+  SPDX-License-Identifier: EPL-2.0
+
+  Contributors:
+      IBM Corporation - initial implementation
+-->
 <site>
    <feature url="features/io.openliberty.wdt2.feature_1.0.0.liberty.jar" id="io.openliberty.wdt2.feature" version="1.0.0.liberty">
       <category name="libertywdt2"/>
