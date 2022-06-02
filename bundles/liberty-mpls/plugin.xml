@@ -1,25 +1,25 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.4"?>
+<!--
+  Copyright (c) 2022 IBM Corporation and others.
+  
+  This program and the accompanying materials are made available under the
+  terms of the Eclipse Public License v. 2.0 which is available at
+  http://www.eclipse.org/legal/epl-2.0.
+  
+  SPDX-License-Identifier: EPL-2.0
+  
+  Contributors:
+      IBM Corporation - initial implementation
+-->
 <plugin>
-    <!--
-   <extension
-   		point="org.eclipse.core.contenttype.contentTypes">
-   		<content-type
-            base-type="org.eclipse.jdt.core.javaSource"
-            default-charset="ISO-8859-1"
-            id="org.microprofile.lsp4e.javaContentType"
-            name="Microprofile Java File"
-            priority="high">
-		</content-type>
-   </extension>
-    -->
-    
-	  <!-- add the liberty server.xml LS support -->  
+ 
+      <!-- add the liberty server.xml LS support -->  
       <extension
-		   point="org.eclipse.wildwebdeveloper.xml.lemminxExtension">
-		    <jar
-		          path="lib/liberty-langserver-lemminx-1.0-SNAPSHOT-jar-with-dependencies.jar">
-		    </jar>
+           point="org.eclipse.wildwebdeveloper.xml.lemminxExtension">
+            <jar
+                  path="lib/liberty-langserver-lemminx-1.0-SNAPSHOT-jar-with-dependencies.jar">
+            </jar>
       </extension>
    
       <extension
@@ -46,12 +46,6 @@
    </extension>
    
    <extension point="org.eclipse.ui.editors">
-       <!--
-      <editorContentTypeBinding
-            contentTypeId="org.microprofile.lsp4e.javaContentType"
-            editorId="org.eclipse.ui.genericeditor.GenericEditor">
-      </editorContentTypeBinding>
-       -->
       <editorContentTypeBinding
             contentTypeId="io.openliberty.tools.org.microprofile.tools.microprofile.mp-properties"
             editorId="org.eclipse.ui.genericeditor.GenericEditor">
@@ -78,26 +72,4 @@
       </contentTypeMapping>  
    </extension>
       
-   <!--
-   <extension
-         point="org.eclipse.tm4e.registry.grammars">
-      <grammar
-            path="./language-support/properties-support/quarkus-properties.tmLanguage.json"
-            scopeName="properties">
-      </grammar>
-      <scopeNameContentTypeBinding
-            contentTypeId="org.microprofile.tools.microprofile.mp-properties"
-            scopeName="properties">
-      </scopeNameContentTypeBinding>
-   </extension>
-   
-   <extension
-         point="org.eclipse.tm4e.languageconfiguration.languageConfigurations">
-      <languageConfiguration
-            contentTypeId="org.microprofile.tools.microprofile.mp-properties"
-            path="language-support/properties-support/language-configuration.json">
-      </languageConfiguration>
-   </extension>
-   -->
-
 </plugin>

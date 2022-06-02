@@ -1,3 +1,15 @@
+/*******************************************************************************
+* Copyright (c) 2022 IBM Corporation and others.
+*
+* This program and the accompanying materials are made available under the
+* terms of the Eclipse Public License v. 2.0 which is available at
+* http://www.eclipse.org/legal/epl-2.0.
+*
+* SPDX-License-Identifier: EPL-2.0
+*
+* Contributors:
+*     IBM Corporation - initial implementation
+*******************************************************************************/
 package liberty.tools.test.it;
 
 import java.io.BufferedReader;
@@ -488,7 +500,7 @@ public class LibertyPluginSWTBotMavenTest {
             } catch (Exception e) {
                 if (expectSuccess) {
                     System.out.println(
-                            "INFO: Retrying application connection: Responce code: " + status + ". Error message: " + e.getMessage());
+                            "INFO: Retrying application connection: Response code: " + status + ". Error message: " + e.getMessage());
                     try {
                         Thread.sleep(reryIntervalSecs * 1000);
                     } catch (Exception ee) {
