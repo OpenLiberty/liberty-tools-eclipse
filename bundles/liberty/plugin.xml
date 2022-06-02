@@ -78,8 +78,8 @@
      <view id="liberty.views.liberty.devmode.dashboard"
            name="Liberty Dashboard"
            icon="icons/openLibertyLogo.png"
-             	category="liberty.views.liberty.category"
-                class="liberty.tools.ui.DashboardView"/>
+           category="liberty.views.liberty.category"
+           class="liberty.tools.ui.DashboardView"/>
   </extension>
   
   <!-- Nature -->

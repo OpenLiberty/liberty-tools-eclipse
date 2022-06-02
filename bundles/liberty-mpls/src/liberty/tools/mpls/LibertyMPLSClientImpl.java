@@ -11,10 +11,9 @@
 /**
  * This class is a copy/paste of jbosstools-quarkus language server plugin
  * https://github.com/jbosstools/jbosstools-quarkus/blob/main/plugins/org.jboss.tools.quarkus.lsp4e/src/org/jboss/tools/quarkus/lsp4e/QuarkusLanguageClient.java
- * with modifications made for the Liberty Devtools Microprofile LS plugin
+ * with modifications made for the Liberty Developer Tools Microprofile LS plugin
  *
  */
-
 package liberty.tools.mpls;
 
 import java.util.Collections;
