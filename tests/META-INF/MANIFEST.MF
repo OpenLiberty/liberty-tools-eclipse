@@ -1,4 +1,5 @@
 Manifest-Version: 1.0
+Bundle-Copyright: Copyright (c) 2022 IBM Corporation and others.
 Bundle-ManifestVersion: 2
 Bundle-Name: Tests Plug-in
 Bundle-SymbolicName: tests
