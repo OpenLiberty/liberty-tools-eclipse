@@ -1,0 +1,8 @@
+# Global logging switch.
+liberty/debug=false
+
+# Package traces.
+liberty/trace/tools=false
+liberty/trace/handlers=false
+liberty/trace/ui=false
+liberty/trace/utils=false

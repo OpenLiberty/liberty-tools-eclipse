@@ -20,6 +20,7 @@ import org.eclipse.tm.internal.terminal.provisional.api.ITerminalConnector;
 import org.eclipse.tm.terminal.view.ui.interfaces.IUIConstants;
 import org.eclipse.tm.terminal.view.ui.manager.ConsoleManager;
 
+import liberty.tools.logging.Trace;
 import liberty.tools.ui.terminal.ProjectTab.State;
 
 /**
@@ -87,7 +88,12 @@ public class ProjectTabController {
         ProjectTab projectTab = projectTabMap.get(projectName);
 
         if (projectTab == null) {
-            throw new Exception("Unable to write to the terminal. Connector not found. Project name: " + projectName);
+            String msg = "Unable to write to the terminal associated with project " + projectName
+                    + ". Internal poject tab object not found.";
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UI, msg + ". Data to write: " + new String(data));
+            }
+            throw new Exception(msg);
         }
 
         projectTab.writeToStream(data);
@@ -116,18 +122,35 @@ public class ProjectTabController {
         ProjectTab projectTab = projectTabMap.get(projectName);
         if (projectTab != null) {
             return projectTab.getState();
+        } else {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UI, "Internal project tab object associated with project " + projectName
+                        + " was not found. ProjectTabMap: " + projectTabMap);
+            }
         }
 
         return null;
     }
 
     public void setTerminalState(String projectName, State newState) throws Exception {
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_UI, new Object[] { projectName, newState });
+        }
+
         ProjectTab projectTab = projectTabMap.get(projectName);
         if (projectTab == null) {
-            throw new Exception("Unable to set the state. Connector not found. Project name: " + projectName + ". New state: " + newState);
+            String msg = "Internal project tab object associated with project: " + projectName + " was not found. Unable to set state.";
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UI, msg);
+            }
+            throw new Exception();
         }
 
         projectTab.setState(newState);
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_UI, projectTab.getState());
+        }
     }
 
     /**
@@ -143,6 +166,11 @@ public class ProjectTabController {
 
         if (projectTab != null) {
             connector = projectTab.getConnector();
+        } else {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UI, "Internal project tab object associated with project " + projectName
+                        + " was not found. Unable to retrieve connector. ProjectTabMap: " + projectTabMap);
+            }
         }
 
         return connector;
@@ -155,9 +183,24 @@ public class ProjectTabController {
      * @param terminalConnector The terminal connector instance.
      */
     public void setProjectConnector(String projectName, ITerminalConnector terminalConnector) {
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_UI, new Object[] { projectName, terminalConnector, projectTabMap.size() });
+        }
+
         ProjectTab projectTab = projectTabMap.get(projectName);
-        projectTab.setConnector(terminalConnector);
-        projectTabMap.put(projectName, projectTab);
+        if (projectTab != null) {
+            projectTab.setConnector(terminalConnector);
+            projectTabMap.put(projectName, projectTab);
+        } else {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UI, "Internal project tab object associated with project " + projectName
+                        + " was not found. Unable to retrieve connector. ProjectTabMap: " + projectTabMap);
+            }
+        }
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_UI, "ProjectTabMapSize: " + projectTabMap.size());
+        }
     }
 
     /**
@@ -185,13 +228,37 @@ public class ProjectTabController {
      * @param projectName The application project name.
      */
     public void cleanupTerminal(String projectName) {
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_UI, new Object[] { projectName, projectTabMap.size() });
+        }
         // Call the terminal object to do further cleanup.
         ProjectTab projectTab = projectTabMap.get(projectName);
         if (projectTab != null) {
             projectTab.cleanup();
+        } else {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UI, "Internal project tab object associated with project " + projectName
+                        + " was not found. ProjectTabMap: " + projectTabMap);
+            }
         }
 
         // Cleanup the connector from our cache.
         projectTabMap.remove(projectName);
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_UI, "Project: " + projectName + ". ProjectTabMapSize: " + projectTabMap.size());
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String toString() {
+        StringBuffer sb = new StringBuffer();
+        sb.append("Class: ").append(instance.getClass().getName()).append(": ");
+        sb.append("projectTabMap size: ").append(projectTabMap.size()).append(", ");
+        sb.append("projectTabMap: ").append(projectTabMap);
+        return sb.toString();
     }
 }

@@ -98,5 +98,16 @@
           label="liberty.tools.ui.terminal.local.devmode.launcher.delegate.label">
       </delegate>
   </extension>
-   
+  
+  <!-- Trace-->
+  <extension
+      point="org.eclipse.ui.trace.traceComponents">
+      <component
+            id="liberty.tools.trace"
+            label="Liberty Developer Tools">
+         <bundle
+               name="liberty">
+         </bundle>
+      </component>
+  </extension>
 </plugin>

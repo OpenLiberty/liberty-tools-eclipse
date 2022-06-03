@@ -29,6 +29,7 @@ import org.eclipse.swt.widgets.Menu;
 import org.eclipse.ui.part.ViewPart;
 
 import liberty.tools.DevModeOperations;
+import liberty.tools.logging.Trace;
 import liberty.tools.utils.Dialog;
 import liberty.tools.utils.Project;
 import liberty.tools.utils.Workspace;
@@ -87,7 +88,11 @@ public class DashboardView extends ViewPart {
         try {
             viewer.setInput(Workspace.getLibertyProjects(false));
         } catch (Exception e) {
-            Dialog.displayErrorMessageWithDetails("An error was detected while retrieving Liberty projects.", e);
+            String msg = "An error was detected while retrieving Liberty projects.";
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
+            }
+            Dialog.displayErrorMessageWithDetails(msg, e);
             return;
         }
 

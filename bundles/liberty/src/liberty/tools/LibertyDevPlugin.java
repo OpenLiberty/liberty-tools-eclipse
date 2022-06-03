@@ -12,8 +12,14 @@
 *******************************************************************************/
 package liberty.tools;
 
+import java.util.Hashtable;
+
+import org.eclipse.osgi.service.debug.DebugOptions;
+import org.eclipse.osgi.service.debug.DebugOptionsListener;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
+
+import liberty.tools.logging.Trace;
 
 /**
  * The activator class controls the plug-in life cycle
@@ -21,13 +27,13 @@ import org.osgi.framework.BundleContext;
 public class LibertyDevPlugin extends AbstractUIPlugin {
 
     // The plug-in ID
-    public static final String PLUGIN_ID = "liberty"; //$NON-NLS-1$
+    public static final String PLUGIN_ID = "liberty";
 
     // The shared instance
     private static LibertyDevPlugin plugin;
 
     /**
-     * The constructor
+     * Constructor.
      */
     public LibertyDevPlugin() {
     }
@@ -36,6 +42,11 @@ public class LibertyDevPlugin extends AbstractUIPlugin {
     public void start(BundleContext context) throws Exception {
         super.start(context);
         plugin = this;
+
+        // Register the trace listener.
+        Hashtable<String, String> props = new Hashtable<String, String>();
+        props.put(DebugOptions.LISTENER_SYMBOLICNAME, LibertyDevPlugin.PLUGIN_ID);
+        context.registerService(DebugOptionsListener.class.getName(), new Trace(), props);
     }
 
     @Override
@@ -52,5 +63,4 @@ public class LibertyDevPlugin extends AbstractUIPlugin {
     public static LibertyDevPlugin getDefault() {
         return plugin;
     }
-
 }
