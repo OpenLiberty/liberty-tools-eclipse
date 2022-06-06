@@ -8,3 +8,6 @@ bin/
 */pom.tycho
 .settings
 tests/resources/applications/maven/liberty-maven-test-app/.project
+
+*/.gradle
+*/build/

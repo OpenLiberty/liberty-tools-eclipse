@@ -24,7 +24,7 @@ public class EndpointIT {
 
     @BeforeAll
     public static void init() {
-        URL = "http://localhost:9080/liberty.maven.test.app/servlet";
+        URL = "http://localhost:9080/liberty.gradle.test.app/servlet";
     }
 
     @Test

@@ -87,7 +87,7 @@ public class Project {
         try {
             isGradle = project.getDescription().hasNature("org.eclipse.buildship.core.gradleprojectnature");
             if (!isGradle) {
-                isGradle = project.getFile("pom.xml").exists();
+                isGradle = project.getFile("build.gradle").exists();
             }
         } catch (Exception e) {
             if (Trace.isEnabled()) {
