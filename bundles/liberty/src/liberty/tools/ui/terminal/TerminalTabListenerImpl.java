@@ -14,6 +14,8 @@ package liberty.tools.ui.terminal;
 
 import org.eclipse.tm.terminal.view.core.interfaces.ITerminalTabListener;
 
+import liberty.tools.logging.Trace;
+
 /**
  * Listens for terminal tab termination.
  */
@@ -45,6 +47,10 @@ public class TerminalTabListenerImpl implements ITerminalTabListener {
         if (data instanceof String) {
             String disposedProjectName = (String) data;
             if (disposedProjectName.equals(projectName)) {
+                if (Trace.isEnabled()) {
+                    Trace.getTracer().trace(Trace.TRACE_UI, "The terminal associated with project " + projectName
+                            + " was closed. Processing cleanup. Listener: " + this + ". Source: " + source + ". Data: " + data);
+                }
                 ProjectTabController.getInstance().cleanupTerminal(projectName);
             }
         }

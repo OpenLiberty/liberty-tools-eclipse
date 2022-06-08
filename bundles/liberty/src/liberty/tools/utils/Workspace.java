@@ -20,6 +20,8 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 
+import liberty.tools.logging.Trace;
+
 /**
  * Resource workspace utilities.
  */
@@ -68,6 +70,10 @@ public class Workspace {
             }
         }
 
+        if (Trace.isEnabled()) {
+            Trace.getTracer().trace(Trace.TRACE_UTILS, "Opened workspace projects: " + jProjects);
+        }
+
         return jProjects;
     }
 
@@ -87,6 +93,10 @@ public class Workspace {
             if (Project.isLiberty(project, refresh)) {
                 libertyProjects.add(project.getName());
             }
+        }
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().trace(Trace.TRACE_UTILS, "Refresh input: " + refresh + ". Liberty projects: " + libertyProjects);
         }
 
         return libertyProjects;

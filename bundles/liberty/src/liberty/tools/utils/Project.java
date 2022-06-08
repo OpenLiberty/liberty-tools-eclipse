@@ -23,6 +23,7 @@ import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.NullProgressMonitor;
 
 import liberty.tools.LibertyNature;
+import liberty.tools.logging.Trace;
 
 public class Project {
 
@@ -62,7 +63,10 @@ public class Project {
                 isMaven = project.getFile("pom.xml").exists();
             }
         } catch (Exception e) {
-            // TODO: Log it somewhere (return false).
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UTILS, "An error occurred while checking if project " + project + "is a Maven project",
+                        e);
+            }
         }
 
         return isMaven;
@@ -86,7 +90,10 @@ public class Project {
                 isGradle = project.getFile("pom.xml").exists();
             }
         } catch (Exception e) {
-            // TODO: Log it somewhere (return false).
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UTILS, "An error occurred while checking if project " + project + "is a Gradle project",
+                        e);
+            }
         }
 
         return isGradle;
@@ -187,6 +194,10 @@ public class Project {
      * @throws Exception
      */
     public static void addLibertyNature(IProject project) throws Exception {
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_UTILS, project);
+        }
+
         IProjectDescription projectDesc = project.getDescription();
         String[] currentNatures = projectDesc.getNatureIds();
         String[] newNatures = new String[currentNatures.length + 1];
@@ -194,6 +205,10 @@ public class Project {
         newNatures[currentNatures.length] = LibertyNature.NATURE_ID;
         projectDesc.setNatureIds(newNatures);
         project.setDescription(projectDesc, new NullProgressMonitor());
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_UTILS, new Object[] { project, newNatures });
+        }
     }
 
     /**
@@ -204,6 +219,10 @@ public class Project {
      * @throws Exception
      */
     public static void removeLibertyNature(IProject project) throws Exception {
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_UTILS, project);
+        }
+
         IProjectDescription projectDesc = project.getDescription();
         String[] currentNatures = projectDesc.getNatureIds();
         ArrayList<String> newNatures = new ArrayList<String>(currentNatures.length - 1);
@@ -217,6 +236,10 @@ public class Project {
 
         projectDesc.setNatureIds(newNatures.toArray(new String[newNatures.size()]));
         project.setDescription(projectDesc, new NullProgressMonitor());
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_UTILS, new Object[] { project, newNatures });
+        }
     }
 
     /**

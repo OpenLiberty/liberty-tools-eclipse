@@ -32,6 +32,7 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.browser.IWebBrowser;
 import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
 
+import liberty.tools.logging.Trace;
 import liberty.tools.ui.DashboardView;
 import liberty.tools.ui.terminal.ProjectTab;
 import liberty.tools.ui.terminal.ProjectTab.State;
@@ -93,15 +94,23 @@ public class DevModeOperations {
         // Get the object representing the selected application project. The returned project should never be null, but check it
         // just in case it is.
         IProject project = getSelectedDashboardProject();
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, project);
+        }
+
         if (project == null) {
-            Dialog.displayErrorMessage(
-                    "An error was detected while performing the start action. The object representing the selected project on the dashboard could not be found.");
+            String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_START
+                    + " action. The object representing the selected project could not be found.";
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op.");
+            }
+            Dialog.displayErrorMessage(msg);
             return;
         }
 
-        String projectName = project.getName();
-
         // Check if the start action has already been issued.
+        String projectName = project.getName();
         State terminalState = projectTabController.getTerminalState(projectName);
         if (terminalState != null && terminalState == ProjectTab.State.STARTED) {
             // Check if the the terminal tab associated with this call was marked as closed. This scenario may occur if a previous
@@ -109,8 +118,17 @@ public class DevModeOperations {
             // there was an unexpected case that caused the terminal process to end. If that is the case, clean up the objects
             // associated with the previous instance to allow users to restart development mode.
             if (projectTabController.isProjectTabMarkedClosed(projectName)) {
+                if (Trace.isEnabled()) {
+                    Trace.getTracer().trace(Trace.TRACE_TOOLS, "A start action on project " + projectName
+                            + " was already issued, and the terminal tab for this project is marked as closed. Cleaning up. ProjectTabController: "
+                            + projectTabController);
+                }
                 projectTabController.cleanupTerminal(projectName);
             } else {
+                if (Trace.isEnabled()) {
+                    Trace.getTracer().trace(Trace.TRACE_TOOLS, "A start action has already been issued on project " + projectName
+                            + ". No-op. ProjectTabController: " + projectTabController);
+                }
                 Dialog.displayWarningMessage("A start action has already been issued on project " + projectName + ". Select \""
                         + DashboardView.APP_MENU_ACTION_STOP + "\" prior to selecting \"" + DashboardView.APP_MENU_ACTION_START
                         + "\" on the menu.");
@@ -122,7 +140,7 @@ public class DevModeOperations {
             // Get the absolute path to the application project.
             String projectPath = Project.getPath(project);
             if (projectPath == null) {
-                throw new Exception("Unable to find the path to the selected project");
+                throw new Exception("Unable to find the path to selected project " + projectName);
             }
 
             // Prepare the Liberty plugin development mode command.
@@ -138,8 +156,17 @@ public class DevModeOperations {
             // Start a terminal and run the application in development mode.
             startDevMode(cmd, project.getName(), projectPath);
         } catch (Exception e) {
-            Dialog.displayErrorMessageWithDetails("An error was detected while performing the start action on project " + projectName, e);
+            String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_START + " action on project "
+                    + projectName;
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
+            }
+            Dialog.displayErrorMessageWithDetails(msg, e);
             return;
+        }
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, project);
         }
     }
 
@@ -152,9 +179,16 @@ public class DevModeOperations {
         // Get the object representing the selected application project. The returned project should never be null, but check it
         // just in case it is.
         IProject project = getSelectedDashboardProject();
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, project);
+        }
+
         if (project == null) {
-            Dialog.displayErrorMessage(
-                    "An error was detected while performing the start... action. The object representing the selected project on the dashboard could not be found.");
+            String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_START_PARMS
+                    + " action. The object representing the selected project on the dashboard could not be found.";
+            Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op.");
+            Dialog.displayErrorMessage(msg);
             return;
         }
 
@@ -168,8 +202,17 @@ public class DevModeOperations {
             // there was an unexpected case that caused the terminal process to end. If that is the case, clean up the objects
             // associated with the previous instance to allow users to restart development mode.
             if (projectTabController.isProjectTabMarkedClosed(projectName)) {
+                if (Trace.isEnabled()) {
+                    Trace.getTracer().trace(Trace.TRACE_TOOLS, "A start action on project " + projectName
+                            + " was already issued, and the terminal tab for this project is marked as closed. Cleaning up. ProjectTabController: "
+                            + projectTabController);
+                }
                 projectTabController.cleanupTerminal(projectName);
             } else {
+                if (Trace.isEnabled()) {
+                    Trace.getTracer().trace(Trace.TRACE_TOOLS, "A start action has already been issued on project " + projectName
+                            + ". No-op. ProjectTabController: " + projectTabController);
+                }
                 Dialog.displayWarningMessage("A start action has already been issued on project " + projectName + ". Select \""
                         + DashboardView.APP_MENU_ACTION_STOP + "\" prior to selecting \"" + DashboardView.APP_MENU_ACTION_START_PARMS
                         + "\" on the menu.");
@@ -182,13 +225,16 @@ public class DevModeOperations {
             // take that as indication that no action should take place.
             String userParms = getStartParms();
             if (userParms == null) {
+                if (Trace.isEnabled()) {
+                    Trace.getTracer().trace(Trace.TRACE_TOOLS, "Invalid user parms. No-op.");
+                }
                 return;
             }
 
             // Get the absolute path to the application project.
             String projectPath = Project.getPath(project);
             if (projectPath == null) {
-                throw new Exception("Unable to find the path to the selected project");
+                throw new Exception("Unable to find the path to selected project " + projectName);
             }
 
             // Prepare the Liberty plugin development mode command.
@@ -204,9 +250,17 @@ public class DevModeOperations {
             // Start a terminal and run the application in development mode.
             startDevMode(cmd, project.getName(), projectPath);
         } catch (Exception e) {
-            Dialog.displayErrorMessageWithDetails("An error was detected while performing the start... action on project " + projectName,
-                    e);
+            String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_START_PARMS + " action on project "
+                    + projectName + ".";
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
+            }
+            Dialog.displayErrorMessageWithDetails(msg, e);
             return;
+        }
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, project);
         }
     }
 
@@ -219,9 +273,18 @@ public class DevModeOperations {
         // Get the object representing the selected application project. The returned project should never be null, but check it
         // just in case it is.
         IProject project = getSelectedDashboardProject();
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, project);
+        }
+
         if (project == null) {
-            Dialog.displayErrorMessage(
-                    "An error was detected while performing the start in container action. The object representing the selected project on the dashboard could not be found.");
+            String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_START_IN_CONTAINER
+                    + " action. The object representing the selected project on the dashboard could not be found.";
+            if (Trace.isEnabled()) {
+                Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, msg + " No-op.");
+            }
+            Dialog.displayErrorMessage(msg);
             return;
         }
 
@@ -235,8 +298,17 @@ public class DevModeOperations {
             // there was an unexpected case that caused the terminal process to end. If that is the case, clean up the objects
             // associated with the previous instance to allow users to restart development mode.
             if (projectTabController.isProjectTabMarkedClosed(projectName)) {
+                if (Trace.isEnabled()) {
+                    Trace.getTracer().trace(Trace.TRACE_TOOLS, "A start action on project " + projectName
+                            + " was already issued, and the terminal tab for this project is marked as closed. Cleaning up. ProjectTabController: "
+                            + projectTabController);
+                }
                 projectTabController.cleanupTerminal(projectName);
             } else {
+                if (Trace.isEnabled()) {
+                    Trace.getTracer().trace(Trace.TRACE_TOOLS, "A start action has already been issued on project " + projectName
+                            + ". No-op. ProjectTabController: " + projectTabController);
+                }
                 Dialog.displayWarningMessage("A start action has already been issued on project " + projectName + ". Select \""
                         + DashboardView.APP_MENU_ACTION_STOP + "\" prior to selecting \"" + DashboardView.APP_MENU_ACTION_START_IN_CONTAINER
                         + "\" on the menu.");
@@ -248,7 +320,7 @@ public class DevModeOperations {
             // Get the absolute path to the application project.
             String projectPath = Project.getPath(project);
             if (projectPath == null) {
-                throw new Exception("Unable to find the path to the selected project");
+                throw new Exception("Unable to find the path to selected project " + projectName);
             }
 
             // Prepare the Liberty plugin container development mode command.
@@ -264,9 +336,17 @@ public class DevModeOperations {
             // Start a terminal and run the application in development mode.
             startDevMode(cmd, project.getName(), projectPath);
         } catch (Exception e) {
-            Dialog.displayErrorMessageWithDetails(
-                    "An error was detected while performing the start in container action on project " + projectName, e);
+            String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_START_IN_CONTAINER
+                    + " action on project " + projectName + ".";
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
+            }
+            Dialog.displayErrorMessageWithDetails(msg, e);
             return;
+        }
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, project);
         }
     }
 
@@ -279,9 +359,18 @@ public class DevModeOperations {
         // Get the object representing the selected application project. The returned project should never be null, but check it
         // just in case it is.
         IProject project = getSelectedDashboardProject();
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, project);
+        }
+
         if (project == null) {
-            Dialog.displayErrorMessage(
-                    "An error was detected while performing the stop action. The object representing the selected project on the dashboard could not be found.");
+            String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_STOP
+                    + " action. The object representing the selected project on the dashboard could not be found.";
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op.");
+            }
+            Dialog.displayErrorMessage(msg);
             return;
         }
 
@@ -289,9 +378,12 @@ public class DevModeOperations {
 
         // Check if the stop action has already been issued of if a start action was never issued before.
         if (projectTabController.getProjectConnector(projectName) == null) {
-            Dialog.displayWarningMessage("A start action was not issued first or the stop action has already been issued on project "
-                    + projectName + ". Select a start action on the menu prior to selecting the \"" + DashboardView.APP_MENU_ACTION_STOP
-                    + "\" action.");
+            String msg = "A start action was not issued first or the stop action has already been issued on project " + projectName
+                    + ". Select a start action on the menu prior to selecting the \"" + DashboardView.APP_MENU_ACTION_STOP + "\" action.";
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op. ProjectTabController: " + projectTabController);
+            }
+            Dialog.displayWarningMessage(msg);
             return;
         }
 
@@ -300,10 +392,14 @@ public class DevModeOperations {
         // there was an unexpected case that caused the terminal process to end. Note that objects associated with the previous
         // start attempt will be cleaned up on the next restart attempt.
         if (projectTabController.isProjectTabMarkedClosed(projectName)) {
-            Dialog.displayWarningMessage("The terminal tab running project " + projectName
+            String msg = "The terminal tab running project " + projectName
                     + " is not active due to an unexpected error or external action. Review the terminal output for more details. "
                     + "Once the circumstance that caused the terminal tab to be inactive is determined and resolved, "
-                    + "select a start action on the menu prior to selecting the \"" + DashboardView.APP_MENU_ACTION_STOP + "\" action.");
+                    + "select a start action on the menu prior to selecting the \"" + DashboardView.APP_MENU_ACTION_STOP + "\" action.";
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op. ProjectTabController: " + projectTabController);
+            }
+            Dialog.displayWarningMessage(msg);
             return;
         }
 
@@ -328,8 +424,16 @@ public class DevModeOperations {
             projectTabController.cleanupTerminal(projectName);
 
         } catch (Exception e) {
-            Dialog.displayErrorMessageWithDetails("An error was detected while performing the stop action on project " + projectName, e);
+            String msg = "An error was detected while performing the stop action on project " + projectName + ".";
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
+            }
+            Dialog.displayErrorMessageWithDetails(msg, e);
             return;
+        }
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, project);
         }
     }
 
@@ -342,9 +446,18 @@ public class DevModeOperations {
         // Get the object representing the selected application project. The returned project should never be null, but check it
         // just in case it is.
         IProject project = getSelectedDashboardProject();
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, project);
+        }
+
         if (project == null) {
-            Dialog.displayErrorMessage(
-                    "An error was detected while performing the run tests action. The object representing the selected project on the dashboard could not be found.");
+            String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_RUN_TESTS
+                    + " action. The object representing the selected project on the dashboard could not be found.";
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op.");
+            }
+            Dialog.displayErrorMessage(msg);
             return;
         }
 
@@ -352,9 +465,13 @@ public class DevModeOperations {
 
         // Check if the stop action has already been issued of if a start action was never issued before.
         if (projectTabController.getProjectConnector(projectName) == null) {
-            Dialog.displayWarningMessage("A start action was not issued first or the stop action has already been issued on project "
-                    + projectName + ". Select a start action on the menu prior to selecting the \""
-                    + DashboardView.APP_MENU_ACTION_RUN_TESTS + "\" action.");
+            String msg = "A start action was not issued first or the stop action has already been issued on project " + projectName
+                    + ". Select a start action on the menu prior to selecting the \"" + DashboardView.APP_MENU_ACTION_RUN_TESTS
+                    + "\" action.";
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op. ProjectTabController: " + projectTabController);
+            }
+            Dialog.displayWarningMessage(msg);
             return;
         }
 
@@ -363,11 +480,15 @@ public class DevModeOperations {
         // there was an unexpected case that caused the terminal process to end. Note that objects associated with the previous
         // start attempt will be cleaned up on the next restart attempt.
         if (projectTabController.isProjectTabMarkedClosed(projectName)) {
-            Dialog.displayWarningMessage("The terminal tab running project " + projectName
+            String msg = "The terminal tab running project " + projectName
                     + " is not active due to an unexpected error or external action. Review the terminal output for more details. "
                     + "Once the circumstance that caused the terminal tab to be inactive is determined and resolved, "
                     + "select a start action on the menu prior to selecting the \"" + DashboardView.APP_MENU_ACTION_RUN_TESTS
-                    + "\" action.");
+                    + "\" action.";
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op. ProjectTabController: " + projectTabController);
+            }
+            Dialog.displayWarningMessage(msg);
             return;
         }
 
@@ -378,9 +499,16 @@ public class DevModeOperations {
             // Issue the command on the terminal.
             projectTabController.writeTerminalStream(projectName, cmd.getBytes());
         } catch (Exception e) {
-            Dialog.displayErrorMessageWithDetails("An error was detected while performing the run tests action on project " + projectName,
-                    e);
+            String msg = "An error was detected while performing the run tests action on project " + projectName + ".";
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
+            }
+            Dialog.displayErrorMessageWithDetails(msg, e);
             return;
+        }
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, project);
         }
     }
 
@@ -391,9 +519,18 @@ public class DevModeOperations {
         // Get the object representing the selected application project. The returned project should never be null, but check it
         // just in case it is.
         IProject project = getSelectedDashboardProject();
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, project);
+        }
+
         if (project == null) {
-            Dialog.displayErrorMessage(
-                    "An error was detected while opening the integration test report for the selected project. The object representing the selected project on the dashboard could not be found.");
+            String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_VIEW_MVN_IT_REPORT
+                    + " action. The object representing the selected project on the dashboard could not be found.";
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op.");
+            }
+            Dialog.displayErrorMessage(msg);
             return;
         }
 
@@ -403,24 +540,35 @@ public class DevModeOperations {
             // Get the absolute path to the application project.
             String projectPath = Project.getPath(project);
             if (projectPath == null) {
-                throw new Exception("Unable to find the path to the selected project");
+                throw new Exception("Unable to find the path to selected project " + projectName);
             }
 
             // Get the path to the test report.
             Path path = getMavenIntegrationTestReportPath(projectPath);
             if (!path.toFile().exists()) {
-                Dialog.displayWarningMessage("Integration test results were not found for project " + projectName + ". Select \""
+                String msg = "Integration test results were not found for project " + projectName + ". Select \""
                         + DashboardView.APP_MENU_ACTION_RUN_TESTS + "\" prior to selecting \""
-                        + DashboardView.APP_MENU_ACTION_VIEW_MVN_IT_REPORT + "\" on the menu.");
+                        + DashboardView.APP_MENU_ACTION_VIEW_MVN_IT_REPORT + "\" on the menu.";
+                if (Trace.isEnabled()) {
+                    Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op. Path: " + path);
+                }
+                Dialog.displayWarningMessage(msg);
                 return;
             }
 
             // Display the report on the browser. Browser display is based on eclipse configuration preferences.
             openTestReport(project.getName(), path, BROWSER_MVN_IT_RESULT_ID, BROWSER_MVN_IT_RESULT_NAME, BROWSER_MVN_IT_RESULT_NAME);
         } catch (Exception e) {
-            Dialog.displayErrorMessageWithDetails("An error was detected while opening integration test report for project " + projectName,
-                    e);
+            String msg = "An error was detected while opening integration test report for project " + projectName + ".";
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
+            }
+            Dialog.displayErrorMessageWithDetails(msg, e);
             return;
+        }
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, project);
         }
     }
 
@@ -431,10 +579,20 @@ public class DevModeOperations {
         // Get the object representing the selected application project. The returned project should never be null, but check it
         // just in case it is.
         IProject project = getSelectedDashboardProject();
+
+        if (Trace.isEnabled()) {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, project);
+            }
+        }
+
         if (project == null) {
-            Dialog.displayErrorMessage(
-                    "An error was detected while opening the unit test report for the selected project. The object representing the selected project on the dashboard could not be found.");
-            return;
+            String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_VIEW_MVN_UT_REPORT
+                    + " action. The object representing the selected project on the dashboard could not be found.";
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op.");
+            }
+            Dialog.displayErrorMessage(msg);
         }
 
         String projectName = project.getName();
@@ -443,23 +601,35 @@ public class DevModeOperations {
             // Get the absolute path to the application project.
             String projectPath = Project.getPath(project);
             if (projectPath == null) {
-                throw new Exception("Unable to find the path to the selected project");
+                throw new Exception("Unable to find the path to selected project " + projectName);
             }
 
             // Get the path to the test report.
             Path path = getMavenUnitTestReportPath(projectPath);
             if (!path.toFile().exists()) {
-                Dialog.displayWarningMessage("Unit test results were not found for project " + projectName + ". Select \""
+                String msg = "Unit test results were not found for project " + projectName + ". Select \""
                         + DashboardView.APP_MENU_ACTION_RUN_TESTS + "\" prior to selecting \""
-                        + DashboardView.APP_MENU_ACTION_VIEW_MVN_UT_REPORT + "\" on the menu.");
+                        + DashboardView.APP_MENU_ACTION_VIEW_MVN_UT_REPORT + "\" on the menu.";
+                if (Trace.isEnabled()) {
+                    Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op. Path: " + path);
+                }
+                Dialog.displayWarningMessage(msg);
                 return;
             }
 
             // Display the report on the browser. Browser display is based on eclipse configuration preferences.
             openTestReport(project.getName(), path, BROWSER_MVN_UT_RESULT_ID, BROWSER_MVN_UT_RESULT_NAME, BROWSER_MVN_UT_RESULT_NAME);
         } catch (Exception e) {
-            Dialog.displayErrorMessageWithDetails("An error was detected while opening unit test report for project " + projectName, e);
+            String msg = "An error was detected while opening unit test report for project " + projectName + ".";
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
+            }
+            Dialog.displayErrorMessageWithDetails(msg, e);
             return;
+        }
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, project);
         }
     }
 
@@ -470,9 +640,18 @@ public class DevModeOperations {
         // Get the object representing the selected application project. The returned project should never be null, but check it
         // just in case it is.
         IProject project = getSelectedDashboardProject();
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, project);
+        }
+
         if (project == null) {
-            Dialog.displayErrorMessage(
-                    "An error was detected while opening the test report for the selected project. The object representing the selected project on the dashboard could not be found.");
+            String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT
+                    + " action. The object representing the selected project on the dashboard could not be found.";
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op.");
+            }
+            Dialog.displayErrorMessage(msg);
             return;
         }
 
@@ -482,15 +661,19 @@ public class DevModeOperations {
             // Get the absolute path to the application project.
             String projectPath = Project.getPath(project);
             if (projectPath == null) {
-                throw new Exception("Unable to find the path to the selected project");
+                throw new Exception("Unable to find the path to selected project " + projectName);
             }
 
             // Get the path to the test report.
             Path path = getGradleTestReportPath(projectPath);
             if (!path.toFile().exists()) {
-                Dialog.displayWarningMessage(
-                        "Test results were not found for project " + projectName + ". Select \"" + DashboardView.APP_MENU_ACTION_RUN_TESTS
-                                + "\" prior to selecting \"" + DashboardView.APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT + "\" on the menu.");
+                String msg = "Test results were not found for project " + projectName + ". Select \""
+                        + DashboardView.APP_MENU_ACTION_RUN_TESTS + "\" prior to selecting \""
+                        + DashboardView.APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT + "\" on the menu.";
+                if (Trace.isEnabled()) {
+                    Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op. Path: " + path);
+                }
+                Dialog.displayWarningMessage(msg);
                 return;
             }
 
@@ -498,8 +681,16 @@ public class DevModeOperations {
             openTestReport(projectName, path, BROWSER_GRADLE_TEST_RESULT_ID, BROWSER_GRADLE_TEST_RESULT_NAME,
                     BROWSER_GRADLE_TEST_RESULT_NAME);
         } catch (Exception e) {
-            Dialog.displayErrorMessageWithDetails("An error was detected while opening test report for project " + projectName, e);
+            String msg = "An error was detected while opening test report for project " + projectName + ".";
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
+            }
+            Dialog.displayErrorMessageWithDetails(msg, e);
             return;
+        }
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, project);
         }
     }
 
@@ -566,6 +757,11 @@ public class DevModeOperations {
 
         if (iDialog.open() == Window.OK) {
             userInput = iDialog.getValue().trim();
+        } else {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_TOOLS,
+                        "The input parm dialog exited without the OK button being pressed. No values were retrieved.");
+            }
         }
 
         return userInput;

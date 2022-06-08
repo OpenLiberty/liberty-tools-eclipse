@@ -34,6 +34,7 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PlatformUI;
 
 import liberty.tools.LibertyDevPlugin;
+import liberty.tools.logging.Trace;
 import liberty.tools.ui.DashboardView;
 
 /**
@@ -113,6 +114,9 @@ public class ProjectTab {
      * @param envs The list of environment properties to be set on the terminal.
      */
     public void runCommand(String command, List<String> envs) {
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_UI, new Object[] { command, envs });
+        }
 
         ITerminalService.Done done = new ITerminalService.Done() {
             @Override
@@ -135,6 +139,10 @@ public class ProjectTab {
         };
 
         terminalService.openConsole(getProperties(envs, command), done);
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_UI);
+        }
     }
 
     /**
@@ -173,14 +181,18 @@ public class ProjectTab {
                     stream = url.openStream();
                     projectTab.setImage(new Image(projectTab.getDisplay(), stream));
                 } catch (Exception e) {
-                    // Ignore.
+                    if (Trace.isEnabled()) {
+                        Trace.getTracer().trace(Trace.TRACE_UI, "Error encountered while updating terminal tab image.", e);
+                    }
                 } finally {
                     try {
                         if (stream != null) {
                             stream.close();
                         }
                     } catch (Exception e) {
-                        // Ignore.
+                        if (Trace.isEnabled()) {
+                            Trace.getTracer().trace(Trace.TRACE_UI, "Error encountered while closing image stream.", e);
+                        }
                     }
                 }
             }
@@ -195,18 +207,33 @@ public class ProjectTab {
      * @throws Exception
      */
     public void writeToStream(byte[] content) throws Exception {
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_UI, new String(content));
+        }
+
         if (connector == null) {
-            throw new Exception("Unable to find terminal connector. Be sure to run the start action first.");
+            String msg = "Unable to find terminal connector. Be sure to run the start action first.";
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UI, msg + "Content: " + new String(content));
+            }
+            throw new Exception(msg);
         }
 
         OutputStream terminalStream = connector.getTerminalToRemoteStream();
         if (terminalStream == null) {
-            throw new Exception(
-                    "Unable to find terminal remote stream. The terminal might not be active. Be sure to run the start action first.");
+            String msg = "Unable to find terminal remote stream. The terminal might not be active. Be sure to run the start action first.";
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UI, msg + " Connector: " + connector);
+            }
+            throw new Exception(msg);
         }
 
         showTerminalView();
         terminalStream.write(content);
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_UI);
+        }
     }
 
     /**
@@ -217,11 +244,17 @@ public class ProjectTab {
     private CTabItem getActiveProjectTab() {
         IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
         if (activePage == null) {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UI, "No active page found. No-op.");
+            }
             return null;
         }
 
         IViewPart viewPart = activePage.findView(IUIConstants.ID);
         if (viewPart == null || !(viewPart instanceof ITerminalsView)) {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UI, "No terminal view found. No-op. Active view label: " + activePage.getLabel());
+            }
             return null;
         }
 
@@ -229,6 +262,9 @@ public class ProjectTab {
         TabFolderManager manager = view.getAdapter(TabFolderManager.class);
 
         if (manager == null) {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UI, "No tab folder manager found. No-op. Active view title: " + view.getTitle());
+            }
             return null;
         }
 
@@ -279,17 +315,27 @@ public class ProjectTab {
         // Bring the main terminal view to the front.
         IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
         if (activePage == null) {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UI, "No active page found. No-op.");
+            }
             return;
         }
         IViewPart viewPart = null;
         try {
             viewPart = activePage.showView(IUIConstants.ID, null, IWorkbenchPage.VIEW_ACTIVATE);
             if (viewPart == null) {
+                if (Trace.isEnabled()) {
+                    Trace.getTracer().trace(Trace.TRACE_UI, "No terminal view found. No-op. Active view label: " + activePage.getLabel());
+                }
                 return;
             }
             activePage.bringToTop(viewPart);
 
         } catch (Exception e) {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UI, "Error while attempting to show terminal view. Active view title: "
+                        + ((viewPart != null) ? viewPart.getTitle() : "null"));
+            }
             return;
         }
 
@@ -299,10 +345,28 @@ public class ProjectTab {
             TabFolderManager manager = view.getAdapter(TabFolderManager.class);
 
             if (manager == null) {
+                if (Trace.isEnabled()) {
+                    Trace.getTracer().trace(Trace.TRACE_UI,
+                            "No tab folder manager found. No-op. Terminal view tab title: " + view.getTitle());
+                }
                 return;
             }
 
             manager.bringToTop(projectTab);
         }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public String toString() {
+        StringBuffer sb = new StringBuffer();
+        sb.append("Class: ").append(this.getClass().getName()).append(": ");
+        sb.append("projectName: ").append(projectName).append(", ");
+        sb.append("State: ").append(state).append(", ");
+        sb.append("Connector: ").append(connector).append(", ");
+        sb.append("TabListener: ").append(tabListener);
+        return sb.toString();
     }
 }

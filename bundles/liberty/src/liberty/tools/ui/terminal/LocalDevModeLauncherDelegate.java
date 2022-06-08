@@ -19,6 +19,8 @@ import org.eclipse.tm.terminal.connector.local.launcher.LocalLauncherDelegate;
 import org.eclipse.tm.terminal.view.core.interfaces.constants.ITerminalsConnectorConstants;
 import org.eclipse.tm.terminal.view.ui.launcher.LauncherDelegateManager;
 
+import liberty.tools.logging.Trace;
+
 /**
  * Local launcher delegate extension.
  */
@@ -52,6 +54,12 @@ public class LocalDevModeLauncherDelegate extends LocalLauncherDelegate {
         if (connector == null) {
             connector = super.createTerminalConnector(properties);
             tptm.setProjectConnector(projectName, connector);
+
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UI,
+                        "New terminal connection created for project: " + projectName + ". Connector: " + connector);
+            }
+
         }
 
         return connector;
