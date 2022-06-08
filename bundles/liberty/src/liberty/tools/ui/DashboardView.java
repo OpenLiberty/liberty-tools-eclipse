@@ -20,12 +20,15 @@ import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
+import org.eclipse.jface.commands.ActionHandler;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.jface.viewers.ListViewer;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Menu;
+import org.eclipse.ui.contexts.IContextService;
+import org.eclipse.ui.handlers.IHandlerService;
 import org.eclipse.ui.part.ViewPart;
 
 import liberty.tools.DevModeOperations;
@@ -99,10 +102,7 @@ public class DashboardView extends ViewPart {
         createActions();
         createContextMenu();
         addToolbarActions();
-        // IContextService ctx = (IContextService) getSite().getService(IContextService.class);
-        // ctx.activateContext("liberty.popupctx");
         getSite().setSelectionProvider(viewer);
-
     }
 
     /**
@@ -165,7 +165,6 @@ public class DashboardView extends ViewPart {
                 Dialog.displayErrorMessage("Project" + project.getName() + "is not a Gradle or Maven project.");
                 return;
             }
-
         }
     }
 
@@ -186,31 +185,34 @@ public class DashboardView extends ViewPart {
             Dialog.displayErrorMessageWithDetails("An error was detected while retrieving Imade descriptions.", e);
         }
 
+        // Activate the Liberty developer tools context.
+        IContextService contextService = getSite().getService(IContextService.class);
+        contextService.activateContext("liberty.tools.context");
+
         // Menu: Start.
         startAction = new Action(APP_MENU_ACTION_START) {
             @Override
             public void run() {
                 devMode.start();
             }
-
         };
         startAction.setImageDescriptor(ActionImg);
-        startAction.setActionDefinitionId("liberty.startCmd");
-        startAction.setToolTipText("Liberty Start Cmd");
-        getSite().getKeyBindingService().registerAction(startAction);
+        startAction.setActionDefinitionId("liberty.tools.project.start.command");
+        IHandlerService handlerService = getSite().getService(IHandlerService.class);
+        ActionHandler startHandler = new ActionHandler(startAction);
+        handlerService.activateHandler(startAction.getActionDefinitionId(), startHandler);
 
         // Menu: Start with parameters.
         startWithParmAction = new Action(APP_MENU_ACTION_START_PARMS) {
-
             @Override
             public void run() {
                 devMode.startWithParms();
             }
         };
         startWithParmAction.setImageDescriptor(ActionImg);
-        startWithParmAction.setActionDefinitionId("liberty.startParamsCmd");
-        startWithParmAction.setToolTipText("Liberty Start with Parameters Cmd");
-        getSite().getKeyBindingService().registerAction(startWithParmAction);
+        startWithParmAction.setActionDefinitionId("liberty.tools.project.startWithParms.command");
+        ActionHandler startWithParmsHandler = new ActionHandler(startWithParmAction);
+        handlerService.activateHandler(startWithParmAction.getActionDefinitionId(), startWithParmsHandler);
 
         // Menu: Start in container.
         startInContainerAction = new Action(APP_MENU_ACTION_START_IN_CONTAINER) {
@@ -220,9 +222,9 @@ public class DashboardView extends ViewPart {
             }
         };
         startInContainerAction.setImageDescriptor(ActionImg);
-        startInContainerAction.setActionDefinitionId("liberty.startInContainerCmd");
-        startInContainerAction.setToolTipText("Liberty Start in Container Cmd");
-        getSite().getKeyBindingService().registerAction(startInContainerAction);
+        startInContainerAction.setActionDefinitionId("liberty.tools.project.startInContainer.command");
+        ActionHandler startWithContainerHandler = new ActionHandler(startInContainerAction);
+        handlerService.activateHandler(startInContainerAction.getActionDefinitionId(), startWithContainerHandler);
 
         // Menu: Stop.
         stopAction = new Action(APP_MENU_ACTION_STOP) {
@@ -232,9 +234,9 @@ public class DashboardView extends ViewPart {
             }
         };
         stopAction.setImageDescriptor(ActionImg);
-        stopAction.setActionDefinitionId("liberty.stopCmd");
-        stopAction.setToolTipText("Liberty Stop Cmd");
-        getSite().getKeyBindingService().registerAction(stopAction);
+        stopAction.setActionDefinitionId("liberty.tools.project.stop.command");
+        ActionHandler stopHandler = new ActionHandler(stopAction);
+        handlerService.activateHandler(stopAction.getActionDefinitionId(), stopHandler);
 
         // Menu: Run tests.
         runTestAction = new Action(APP_MENU_ACTION_RUN_TESTS) {
@@ -243,11 +245,10 @@ public class DashboardView extends ViewPart {
                 devMode.runTests();
             }
         };
-
         runTestAction.setImageDescriptor(ActionImg);
-        runTestAction.setActionDefinitionId("liberty.runTestsCmd");
-        runTestAction.setToolTipText("Liberty Run Tests Cmd");
-        getSite().getKeyBindingService().registerAction(runTestAction);
+        runTestAction.setActionDefinitionId("liberty.tools.project.runTests.command");
+        ActionHandler runTestsHandler = new ActionHandler(runTestAction);
+        handlerService.activateHandler(runTestAction.getActionDefinitionId(), runTestsHandler);
 
         // Menu: View integration test report. Maven project specific.
         viewMavenITestReportsAction = new Action(APP_MENU_ACTION_VIEW_MVN_IT_REPORT) {
@@ -256,11 +257,10 @@ public class DashboardView extends ViewPart {
                 devMode.openMavenIntegrationTestReport();
             }
         };
-
         viewMavenITestReportsAction.setImageDescriptor(ActionImg);
-        viewMavenITestReportsAction.setActionDefinitionId("liberty.viewIntegrationTestReportCmd");
-        viewMavenITestReportsAction.setToolTipText("Liberty View Integration Test Report Cmd");
-        getSite().getKeyBindingService().registerAction(viewMavenITestReportsAction);
+        viewMavenITestReportsAction.setActionDefinitionId("liberty.tools.project.viewMvnIntegrationTestReport.command");
+        ActionHandler mvnITTestReportHandler = new ActionHandler(viewMavenITestReportsAction);
+        handlerService.activateHandler(viewMavenITestReportsAction.getActionDefinitionId(), mvnITTestReportHandler);
 
         // Menu: View unit test report. Maven project specific.
         viewMavenUTestReportsAction = new Action(APP_MENU_ACTION_VIEW_MVN_UT_REPORT) {
@@ -269,11 +269,10 @@ public class DashboardView extends ViewPart {
                 devMode.openMavenUnitTestReport();
             }
         };
-
         viewMavenUTestReportsAction.setImageDescriptor(ActionImg);
-        viewMavenUTestReportsAction.setActionDefinitionId("liberty.viewUnitTestReportCmd");
-        viewMavenUTestReportsAction.setToolTipText("Liberty View Unit Test Report Cmd");
-        getSite().getKeyBindingService().registerAction(viewMavenUTestReportsAction);
+        viewMavenUTestReportsAction.setActionDefinitionId("liberty.tools.project.viewMvnUnitTestReport.command");
+        ActionHandler mvnUTTestReportsHandler = new ActionHandler(viewMavenUTestReportsAction);
+        handlerService.activateHandler(viewMavenUTestReportsAction.getActionDefinitionId(), mvnUTTestReportsHandler);
 
         // Menu: View test report. Gradle project specific.
         viewGradleTestReportsAction = new Action(APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT) {
@@ -283,6 +282,9 @@ public class DashboardView extends ViewPart {
             }
         };
         viewGradleTestReportsAction.setImageDescriptor(ActionImg);
+        viewGradleTestReportsAction.setActionDefinitionId("liberty.tools.project.viewGradleTestReport.command");
+        ActionHandler gradleTestReportsHandler = new ActionHandler(viewGradleTestReportsAction);
+        handlerService.activateHandler(viewGradleTestReportsAction.getActionDefinitionId(), gradleTestReportsHandler);
 
         // Toolbar: Refresh the project list.
         refreshAction = new Action(DASHBORD_TOOLBAR_ACTION_REFRESH) {
