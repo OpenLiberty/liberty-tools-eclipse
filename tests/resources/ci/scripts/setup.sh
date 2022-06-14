@@ -33,8 +33,8 @@ SEMERU_ARCHIVE_LINUX_SHA256=25f3a8475b1f0b0ef54ff0247c7839fa4d6e7363adc2956d383a
 SEMERU_ARCHIVE_WINDOWS_SHA256=568e968f12824d65cafaf1ec99f5fc040f37097bc1a03590c8ac31877c2a6a41
 
 # Maven version control constants.
-MAVEN_VERSION=3.8.5
-MAVEN_ARCHIVE_SHA512=f9f838b4adaf23db0204a6cafa52bf1125bd2d649fd676843fd05e82866b596ec19c4f3de60d5e3ff17f10a63d96c141311ff9bc2bfa816eade7a5cbff2bd925
+MAVEN_VERSION=3.8.6
+MAVEN_ARCHIVE_SHA512=f92dbd90060c5fd422349f844ea904a0918c9c9392f3277543ce2bfb0aab941950bb4174d9b6e2ea84cd48d2940111b83ffcc2e3acf5a5b2004277105fd22be9
 
 # Gradle version control constants.
 GRADLE_VERSION=7.4.2
@@ -124,7 +124,7 @@ installJDK() {
 # installMaven installs the set version of Maven.
 installMaven() {
     local mavenHome="${SOFTWARE_INSTALL_DIR}/apache-maven-${MAVEN_VERSION}"
-	local url="https://dlcdn.apache.org/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.zip"
+	local url="https://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.zip"
 
     # Download the Maven archive.
 	curl -fsSL -o /tmp/liberty-dev-tool-apache-maven.zip "$url"
