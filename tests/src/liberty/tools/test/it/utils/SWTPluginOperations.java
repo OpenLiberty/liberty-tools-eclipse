@@ -183,8 +183,8 @@ public class SWTPluginOperations {
      */
     public static void launchAppMenuRunTestsAction(SWTWorkbenchBot bot, SWTBotView dashboard, String item) {
         SWTBotRootMenu appCtxMenu = getAppContextMenu(bot, dashboard, item);
-        SWTBotMenu startAction = appCtxMenu.contextMenu(DashboardView.APP_MENU_ACTION_RUN_TESTS);
-        startAction.click();
+        SWTBotMenu runTestsAction = appCtxMenu.contextMenu(DashboardView.APP_MENU_ACTION_RUN_TESTS);
+        runTestsAction.click();
     }
 
     /**

@@ -12,14 +12,8 @@
 *******************************************************************************/
 package liberty.tools.test.it;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.lang.reflect.Field;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.nio.file.DirectoryNotEmptyException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
@@ -28,10 +22,8 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Stream;
 
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -46,19 +38,20 @@ import org.eclipse.m2e.core.project.ProjectImportConfiguration;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotView;
-import org.eclipse.ui.PlatformUI;
-import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 import liberty.tools.DevModeOperations;
 import liberty.tools.test.it.utils.SWTPluginOperations;
 import liberty.tools.ui.DashboardView;
+
+import static liberty.tools.test.it.utils.LibertyPluginTestUtils.*;
 
 /**
  * Tests Open Liberty Eclipse plugin functions.
@@ -156,30 +149,6 @@ public class LibertyPluginSWTBotMavenTest {
     }
 
     /**
-     * Tests opening the dashboard using the main toolbar icon.
-     */
-    @Test
-    public void testOpenDashboardWithToolbarIcon() {
-        // Close the dashboard view if it is open.
-        SWTPluginOperations.closeDashboardView(bot);
-
-        // Open the dashboard view.
-        SWTPluginOperations.openDashboardUsingToolbar(bot);
-    }
-
-    /**
-     * Tests opening the dashboard using the Liberty menu.
-     */
-    @Test
-    public void testOpenDashboardUsingMenu() {
-        // Close the dashboard view if it is open.
-        SWTPluginOperations.closeDashboardView(bot);
-
-        // Open the dashboard view.
-        SWTPluginOperations.openDashboardUsingMenu(bot);
-    }
-
-    /**
      * Tests the start menu action on a dashboard listed application.
      */
     @Test
@@ -187,22 +156,24 @@ public class LibertyPluginSWTBotMavenTest {
         String invalidMvnHomePath = "INVALID";
         String originalEnvVariable = System.getenv("MAVEN_HOME");
 
-        // Update the MAVEN_HOME environment variable with an invalid value
-        try {
-            updateJVMEnvVariableCache("MAVEN_HOME", invalidMvnHomePath);
-            String updatedValue = System.getenv("MAVEN_HOME");
-            Assertions.assertTrue(updatedValue.equals(invalidMvnHomePath),
-                    () -> "The updated value of " + updatedValue + " does not match the expected value of " + invalidMvnHomePath);
-            System.out.println("INFO: MAVEN_HOME updated to invalid value: " + updatedValue);
-        } catch (Exception e) {
-            Assertions.fail("Unable to update the value of environment variable MAVEN_HOME. Error: " + e.getMessage());
+        if (originalEnvVariable != null) {
+	        // Update the MAVEN_HOME environment variable with an invalid value
+	        try {
+	            updateJVMEnvVariableCache("MAVEN_HOME", invalidMvnHomePath);
+	            String updatedValue = System.getenv("MAVEN_HOME");
+	            Assertions.assertTrue(updatedValue.equals(invalidMvnHomePath),
+	                    () -> "The updated value of " + updatedValue + " does not match the expected value of " + invalidMvnHomePath);
+	            System.out.println("INFO: MAVEN_HOME updated to invalid value: " + updatedValue);
+	        } catch (Exception e) {
+	            Assertions.fail("Unable to update the value of environment variable MAVEN_HOME. Error: " + e.getMessage());
+	        }
         }
 
         // Call the start action. This is expected to fail because there is an invalid MAVEN_HOME value set.
         SWTPluginOperations.launchAppMenuStartAction(bot, dashboard, MVN_APP_NAME);
         SWTBotView terminal = bot.viewByTitle("Terminal");
         terminal.show();
-        validateApplicationOutcome(false);
+        validateApplicationOutcome(MVN_APP_NAME, false, projectPath.toAbsolutePath().toString() + "/target/liberty");
         terminal.close();
 
         // Add wrapper artifacts to the project.
@@ -216,24 +187,28 @@ public class LibertyPluginSWTBotMavenTest {
             SWTPluginOperations.launchAppMenuStartAction(bot, dashboard, MVN_APP_NAME);
             terminal = bot.viewByTitle("Terminal");
             terminal.show();
-            validateApplicationOutcome(true);
+            validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
 
             // Stop dev mode.
             SWTPluginOperations.launchAppMenuStopAction(bot, dashboard, MVN_APP_NAME);
             terminal.show();
-            validateApplicationOutcome(false);
+            validateApplicationOutcome(MVN_APP_NAME, false, projectPath.toAbsolutePath().toString() + "/target/liberty");
             terminal.close();
         } finally {
-            // Update the MAVEN_HOME environment variable with the original value.
-            try {
-                updateJVMEnvVariableCache("MAVEN_HOME", originalEnvVariable);
-                String updatedValue = System.getenv("MAVEN_HOME");
-                Assertions.assertTrue(updatedValue.equals(originalEnvVariable),
-                        () -> "The updated value of " + updatedValue + " does not match the expected value of " + originalEnvVariable);
-                System.out.println("INFO: MAVEN_HOME reset to its original value: " + updatedValue);
-            } catch (Exception e) {
-                Assertions.fail("Unable to update the value of environment variable MAVEN_HOME. Error: " + e.getMessage());
-            }
+        	
+        	if (originalEnvVariable != null) {
+	            // Update the MAVEN_HOME environment variable with the original value.
+	            try {
+		            updateJVMEnvVariableCache("MAVEN_HOME", originalEnvVariable);
+		            String updatedValue = System.getenv("MAVEN_HOME");
+		            Assertions.assertTrue(updatedValue.equals(originalEnvVariable),
+		                    () -> "The updated value of " + updatedValue + " does not match the expected value of " + originalEnvVariable);
+		            System.out.println("INFO: MAVEN_HOME reset to its original value: " + updatedValue);
+	            	
+	            } catch (Exception e) {
+	                Assertions.fail("Unable to update the value of environment variable MAVEN_HOME. Error: " + e.getMessage());
+	            }
+        	}
 
             // Remove all wrapper artifacts.
             removeWrapperArtifactsFromProject();
@@ -251,14 +226,14 @@ public class LibertyPluginSWTBotMavenTest {
         terminal.show();
 
         // Validate application is up and running.
-        validateApplicationOutcome(true);
+        validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
 
         // Stop dev mode.
         SWTPluginOperations.launchAppMenuStopAction(bot, dashboard, MVN_APP_NAME);
         terminal.show();
 
         // Validate application stopped.
-        validateApplicationOutcome(false);
+        validateApplicationOutcome(MVN_APP_NAME, false, projectPath.toAbsolutePath().toString() + "/target/liberty");
 
         // Close the terminal.
         terminal.close();
@@ -279,7 +254,7 @@ public class LibertyPluginSWTBotMavenTest {
         terminal.show();
 
         // Validate application is up and running.
-        validateApplicationOutcome(true);
+        validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
 
         // Validate that the test reports were generated.
         validateTestReportExists(pathToITReport);
@@ -289,7 +264,7 @@ public class LibertyPluginSWTBotMavenTest {
         terminal.show();
 
         // Validate application stopped.
-        validateApplicationOutcome(false);
+        validateApplicationOutcome(MVN_APP_NAME, false, projectPath.toAbsolutePath().toString() + "/target/liberty");
 
         // Close the terminal.
         terminal.close();
@@ -315,7 +290,7 @@ public class LibertyPluginSWTBotMavenTest {
         terminal.show();
 
         // Validate application is up and running.
-        validateApplicationOutcome(true);
+        validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
 
         // Run Tests.
         SWTPluginOperations.launchAppMenuRunTestsAction(bot, dashboard, MVN_APP_NAME);
@@ -336,7 +311,7 @@ public class LibertyPluginSWTBotMavenTest {
         terminal.show();
 
         // Validate application stopped.
-        validateApplicationOutcome(false);
+        validateApplicationOutcome(MVN_APP_NAME, false, projectPath.toAbsolutePath().toString() + "/target/liberty");
 
         // Close the terminal.
         terminal.close();
@@ -344,59 +319,80 @@ public class LibertyPluginSWTBotMavenTest {
 
     /**
      * Tests the refresh action on the dashboard's toolbar.
+     * @throws IOException 
+     * @throws InterruptedException 
      */
+    @Disabled("Issue 58")
     @Test
-    public void testRefresh() {
-        final String fileName = "pom.xml";
+    public void testRefresh() throws IOException, InterruptedException {
         // Get the list of entries on the dashboard and verify the expected number found.
         String[] dashboardContent = SWTPluginOperations.getDashboardContent(bot, dashboard);
-        Assertions.assertTrue(dashboardContent.length == 1, () -> "The dashboard did not display the expected number of applications: 1");
+        boolean mavenAppFound = false;
+        for (int i = 0; i < dashboardContent.length; i++) {
+        	if (MVN_APP_NAME.equals(dashboardContent[i])) {
+        		mavenAppFound = true;
+        	}
+        }
+        Assertions.assertTrue(mavenAppFound, () -> "The maven test app was not found.");
 
-        String originalContent = SWTPluginOperations.getAppFileContent(bot, "Project Explorer", MVN_APP_NAME, fileName);
-        Path noOLPluginPom = Paths.get("resources", "files", "apps", "maven", "liberty-maven-test-app", "pom.xml");
-        String pomEditorTitle = Paths.get(MVN_APP_NAME, fileName).toString();
-
+        Path original = Paths.get("resources", "applications", "maven", "liberty-maven-test-app", "pom.xml").toAbsolutePath();
+        Path original_backup = Paths.get("resources", "applications", "maven", "liberty-maven-test-app", "pom.xml_backup").toAbsolutePath();
+        Path updated = Paths.get("resources", "files", "apps", "maven", "liberty-maven-test-app", "pom.xml").toAbsolutePath();
+        
         try {
-            // Modify the application metadata to make it not capable of using Liberty's dev mode.
-            StringBuilder newPomContent = new StringBuilder();
-            try {
-
-                BufferedReader br = new BufferedReader(new FileReader(noOLPluginPom.toString()));
-                String sCurrentLine;
-                while ((sCurrentLine = br.readLine()) != null) {
-                    newPomContent.append(sCurrentLine).append(System.lineSeparator());
-                }
-            } catch (IOException e) {
-                Assertions.fail("Error while reading file: " + noOLPluginPom.toString() + "Error: " + e.getMessage());
-            }
-
-            SWTPluginOperations.setEditorText(bot, pomEditorTitle, newPomContent.toString());
-
-            // Validate that the editor was correctly updated.
-            validateEditorContent(pomEditorTitle, "liberty-maven-plugin", "</project>", false);
-
+        	// Move pom.xml files
+        	Files.copy(original, original_backup, StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(updated, original, StandardCopyOption.REPLACE_EXISTING);
+            
             // Refresh
             SWTPluginOperations.refreshDashboard(bot);
 
             // Get the list of entries on the dashboard and verify the expected number is found.
             dashboardContent = SWTPluginOperations.getDashboardContent(bot, dashboard);
-            Assertions.assertTrue(dashboardContent.length == 0,
-                    () -> "The dashboard did not display the expected number of applications: 0");
+            mavenAppFound = false;
+            for (int i = 0; i < dashboardContent.length; i++) {
+            	if (MVN_APP_NAME.equals(dashboardContent[i])) {
+            		mavenAppFound = true;
+            	}
+            }
+            Assertions.assertFalse(mavenAppFound, () -> "The maven test app was found.");
 
         } finally {
-            // Update the application metadata to make it capable of using Liberty's dev mode.
-            SWTPluginOperations.setEditorText(bot, pomEditorTitle, originalContent);
-
-            // Validate that the editor was correctly updated.
-            validateEditorContent(pomEditorTitle, "liberty-maven-plugin", null, true);
-
+        	// Reset pom.xml files
+        	if(onWindows()) {
+        		// Windows may hold a lock on the file, so retry a few times
+        		int count = 0;
+        		while(true) {
+        		    try {
+        		    	Files.copy(original_backup, original, StandardCopyOption.REPLACE_EXISTING);
+        		    	Files.delete(original_backup);
+        		    	break;
+        		    } catch (Exception e) {
+        		    	System.out.println("Waiting for Windows file to delete.........");
+        		    	Thread.sleep(3000);
+        		        if (++count == 50) throw e;
+        		    }
+        		}
+        	} else {
+        	    Files.copy(original_backup, original, StandardCopyOption.REPLACE_EXISTING);
+        	    Files.delete(original_backup);
+        	}
+            
+            // Validate that the pom.xml was correctly updated.
+            Assertions.assertTrue(isTextInFile(original.toString(), "liberty-maven-plugin"), "The pom.xml file does not contain the Liberty Maven plugin");
+            
             // Refresh
             SWTPluginOperations.refreshDashboard(bot);
 
             // Get the list of entries on the dashboard and verify the expected number is found.
             dashboardContent = SWTPluginOperations.getDashboardContent(bot, dashboard);
-            Assertions.assertTrue(dashboardContent.length == 1,
-                    () -> "The dashboard did not display the expected number of applications: 1");
+            mavenAppFound = false;
+            for (int i = 0; i < dashboardContent.length; i++) {
+            	if (MVN_APP_NAME.equals(dashboardContent[i])) {
+            		mavenAppFound = true;
+            	}
+            }
+            Assertions.assertTrue(mavenAppFound, () -> "The maven test app was not found.");
         }
     }
 
@@ -441,260 +437,6 @@ public class LibertyPluginSWTBotMavenTest {
         ProjectImportConfiguration projectImportConfig = new ProjectImportConfiguration();
         IProjectConfigurationManager projectConfigurationManager = MavenPlugin.getProjectConfigurationManager();
         projectConfigurationManager.importProjects(projects, projectImportConfig, new NullProgressMonitor());
-    }
-
-    /**
-     * Validates that the deployed application is active.
-     *
-     * @param expectSuccess True if the validation is expected to be successful. False, otherwise.
-     */
-    private void validateApplicationOutcome(boolean expectSuccess) {
-        String expectedMvnAppResp = "Hello! How are you today?";
-        String appUrl = "http://localhost:9080/liberty.maven.test.app/servlet";
-        int retryCountLimit = 20;
-        int reryIntervalSecs = 3;
-        int retryCount = 0;
-
-        while (retryCount < retryCountLimit) {
-            retryCount++;
-            int status = 0;
-            try {
-                URL url = new URL(appUrl);
-                HttpURLConnection con = (HttpURLConnection) url.openConnection();
-                con.setRequestMethod("GET");
-
-                // Possible error: java.net.ConnectException: Connection refused
-                con.connect();
-                status = con.getResponseCode();
-
-                if (expectSuccess) {
-                    if (status != HttpURLConnection.HTTP_OK) {
-                        Thread.sleep(reryIntervalSecs * 1000);
-                        con.disconnect();
-                        continue;
-                    }
-
-                    BufferedReader br = new BufferedReader(new InputStreamReader(con.getInputStream()));
-                    String responseLine = "";
-                    StringBuffer content = new StringBuffer();
-                    while ((responseLine = br.readLine()) != null) {
-                        content.append(responseLine).append(System.lineSeparator());
-                    }
-
-                    if (!(content.toString().contains(expectedMvnAppResp))) {
-                        Thread.sleep(reryIntervalSecs * 1000);
-                        con.disconnect();
-                        continue;
-                    }
-
-                    return;
-                } else {
-                    if (status == HttpURLConnection.HTTP_OK) {
-                        Thread.sleep(reryIntervalSecs * 1000);
-                        con.disconnect();
-                        continue;
-                    }
-
-                    return;
-                }
-            } catch (Exception e) {
-                if (expectSuccess) {
-                    System.out.println(
-                            "INFO: Retrying application connection: Response code: " + status + ". Error message: " + e.getMessage());
-                    try {
-                        Thread.sleep(reryIntervalSecs * 1000);
-                    } catch (Exception ee) {
-                        ee.printStackTrace(System.out);
-                    }
-                    continue;
-                }
-
-                return;
-            }
-        }
-
-        // If we are here, the expected outcome was not found.
-        Assertions.fail("Timed out while waiting for application under URL: " + appUrl + " to become available.");
-    }
-
-    /**
-     * Validates that the test report represented by the input path exists.
-     *
-     * @param pathToTestReport The path to the report.
-     */
-    public void validateTestReportExists(Path pathToTestReport) {
-        int retryCountLimit = 50;
-        int reryIntervalSecs = 1;
-        int retryCount = 0;
-
-        while (retryCount < retryCountLimit) {
-            retryCount++;
-
-            boolean fileExists = fileExists(pathToTestReport.toAbsolutePath());
-            if (!fileExists) {
-                try {
-                    Thread.sleep(reryIntervalSecs * 1000);
-                } catch (Exception e) {
-                    e.printStackTrace(System.out);
-                    continue;
-                }
-                continue;
-            }
-
-            return;
-        }
-
-        // If we are here, the expected outcome was not found.
-        Assertions.fail("Timed out while waiting for test report: " + pathToTestReport + " to become available.");
-    }
-
-    /**
-     * Validates the content of an editor based on the input validation text.
-     *
-     * @param editorTitle The editor title of the editor to check.
-     * @param validationText The text to use for validation.
-     * @param contains The validation type. If true, the code checks that the editor contains the validation text. If false,
-     *        the code checks that the editor does not contain the validation text.
-     * @param eofMarker A unique string that represents the EOF. It is used when 'contains' is set to false to validate that
-     *        the entire file was read. This parameter is a no-op when 'contains' is set to true.
-     */
-    public void validateEditorContent(String editorTitle, String validationText, String eofMarker, boolean contains) {
-        int retryCountLimit = 20;
-        int reryIntervalSecs = 1;
-        int retryCount = 0;
-        String editorContent = "";
-        while (retryCount < retryCountLimit) {
-            retryCount++;
-            editorContent = SWTPluginOperations.getEditorText(bot, editorTitle);
-
-            if ((!contains && (!editorContent.contains(eofMarker) || editorContent.contains(validationText)))
-                    || (contains && !editorContent.contains(validationText))) {
-                try {
-                    Thread.sleep(reryIntervalSecs * 1000);
-                } catch (Exception e) {
-                    e.printStackTrace(System.out);
-                    continue;
-                }
-                continue;
-            }
-
-            return;
-        }
-
-        // If we are here, the expected outcome was not found.
-        Assertions.fail("Timed out while waiting for the correct editor content to become available. Editor content:\n" + editorContent);
-
-    }
-
-    /**
-     * Returns true if the Eclipse instance supports internal browsers. False, otherwise.
-     *
-     * @return True if the Eclipse instance supports internal browsers. False, otherwise.
-     */
-    public boolean isInternalBrowserSupportAvailable() {
-        final String availableKey = "available";
-        final Map<String, Boolean> results = new HashMap<String, Boolean>();
-
-        Display.getDefault().syncExec(new Runnable() {
-            @Override
-            public void run() {
-                IWorkbenchBrowserSupport bSupport = PlatformUI.getWorkbench().getBrowserSupport();
-                if (bSupport.isInternalWebBrowserAvailable()) {
-                    results.put(availableKey, Boolean.TRUE);
-                } else {
-                    results.put(availableKey, Boolean.FALSE);
-                }
-            }
-        });
-
-        return results.get(availableKey);
-    }
-
-    /**
-     * Returns true if the file identified by the input path exists. False, otherwise.
-     *
-     * @param path The file's path.
-     *
-     * @return True if the file identified by the input path exists. False, otherwise.
-     */
-    public boolean fileExists(Path filePath) {
-        File f = new File(filePath.toString());
-        boolean exists = f.exists();
-
-        return exists;
-    }
-
-    /**
-     * Deletes file identified by the input path. If the file is a directory, it must be empty.
-     *
-     * @param path The file's path.
-     *
-     * @return Returns true if the file identified by the input path was deleted. False, otherwise.
-     */
-    public boolean deleteFile(File file) {
-        boolean deleted = true;
-
-        if (file.exists()) {
-            if (!file.isDirectory()) {
-                deleted = file.delete();
-            } else {
-                deleted = deleteDirectory(file);
-            }
-        }
-
-        return deleted;
-    }
-
-    /**
-     * Recursively deletes the input file directory.
-     *
-     * @param filePath The directory path.
-     *
-     * @return
-     */
-    private boolean deleteDirectory(File file) {
-        File[] files = file.listFiles();
-        if (files != null) {
-            for (int i = 0; i < files.length; i++) {
-                deleteDirectory(files[i]);
-            }
-        }
-        return file.delete();
-    }
-
-    /**
-     * Adds or updates the JVM copy of the environment variables using the key and value inputs.
-     *
-     * @param key The environment variable to add or update.
-     * @param value The value associated with the input key.
-     *
-     * @throws Exception
-     */
-    @SuppressWarnings("unchecked")
-    public void updateJVMEnvVariableCache(String key, String value) throws Exception {
-        Map<String, String> jvmEnvVars = null;
-        if (onWindows()) {
-            Class<?> pec = Class.forName("java.lang.ProcessEnvironment");
-            Field field = pec.getDeclaredField("theCaseInsensitiveEnvironment");
-            field.setAccessible(true);
-            jvmEnvVars = (Map<String, String>) field.get(null);
-        } else {
-            Map<String, String> envVariables = System.getenv();
-            Field field = envVariables.getClass().getDeclaredField("m");
-            field.setAccessible(true);
-            jvmEnvVars = ((Map<String, String>) field.get(envVariables));
-        }
-
-        jvmEnvVars.put(key, value);
-    }
-
-    /**
-     * Returns true if the current process is running on a windows environment. False, otherwise.
-     *
-     * @return True if the current process is running on a windows environment. False, otherwise.
-     */
-    private boolean onWindows() {
-        return System.getProperty("os.name").contains("Windows");
     }
 
     /**
