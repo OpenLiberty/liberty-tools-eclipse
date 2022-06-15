@@ -13,9 +13,9 @@
 -->
 <project>
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>io.openliberty.tools.wdt2</groupId>
+	<groupId>io.openliberty.tools.eclipse</groupId>
 	<artifactId>parent</artifactId>
-	<version>1.0.0-SNAPSHOT</version>
+	<version>0.1.0</version>
 	<packaging>pom</packaging>
     <licenses>
       <license>
@@ -147,9 +147,9 @@
 				<configuration>
 					<target>
 						<artifact>
-							<groupId>io.openliberty.tools.wdt2</groupId>
+							<groupId>io.openliberty.tools.eclipse</groupId>
 							<artifactId>target-platform</artifactId>
-							<version>1.0.0-SNAPSHOT</version>
+							<version>0.1.0</version>
 						</artifact>
 					</target>
 					<environments>

@@ -16,9 +16,9 @@
   <modelVersion>4.0.0</modelVersion>
 
   <parent>
-    <groupId>io.openliberty.tools.wdt2</groupId>
+    <groupId>io.openliberty.tools.eclipse</groupId>
     <artifactId>parent</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
+    <version>0.1.0</version>
   </parent>
 
   <artifactId>tests</artifactId>

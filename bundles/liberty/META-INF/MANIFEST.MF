@@ -3,7 +3,7 @@ Bundle-Copyright: Copyright (c) 2022 IBM Corporation and others.
 Bundle-ManifestVersion: 2
 Bundle-Name: Liberty
 Bundle-SymbolicName: liberty;singleton:=true
-Bundle-Version: 1.0.0.qualifier
+Bundle-Version: 0.1.0
 Bundle-Activator: liberty.tools.LibertyDevPlugin
 Export-Package: liberty.tools,
  liberty.tools.ui
