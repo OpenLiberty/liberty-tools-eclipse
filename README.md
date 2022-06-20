@@ -1,1 +1,1 @@
-Welcome to the Liberty Developer Tools for Eclipse V2 project
+Welcome to the Liberty Tools (for Eclipse) project
