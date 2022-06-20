@@ -91,55 +91,55 @@
       <key commandId="liberty.tools.open.dashboard.command"
            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
            contextId="org.eclipse.ui.contexts.window"
-           sequence="M1+D"/>
+           sequence="M3+L"/>
            
       <key
             commandId="liberty.tools.project.start.command"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
             contextId="liberty.tools.context"
-            sequence="M1+M2+S">
+            sequence="M2+M3+L S">
       </key>
       <key
             commandId="liberty.tools.project.startWithParms.command"
             contextId="liberty.tools.context"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
-            sequence="M1+M2+P">
+            sequence="M2+M3+L P">
       </key>
       <key
             commandId="liberty.tools.project.startInContainer.command"
             contextId="liberty.tools.context"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
-            sequence="M1+M2+C">
+            sequence="M2+M3+L C">
       </key> 
       <key
             commandId="liberty.tools.project.stop.command"
             contextId="liberty.tools.context"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
-            sequence="M1+M2+E">
+            sequence="M2+M3+L Q">
       </key>    
       <key
             commandId="liberty.tools.project.runTests.command"
             contextId="liberty.tools.context"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
-            sequence="M1+M2+T">
+            sequence="M2+M3+L T">
       </key>    
       <key
             commandId="liberty.tools.project.viewMvnIntegrationTestReport.command"
             contextId="liberty.tools.context"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
-            sequence="M1+M2+I">
+            sequence="M2+M3+L I">
       </key> 
       <key
             commandId="liberty.tools.project.viewMvnUnitTestReport.command"
             contextId="liberty.tools.context"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
-            sequence="M1+M2+U">
+            sequence="M2+M3+L U">
       </key>
       <key
             commandId="liberty.tools.project.viewGradleTestReport.command"
             contextId="liberty.tools.context"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
-            sequence="M1+M2+R">
+            sequence="M2+M3+L R">
       </key>
    </extension>
    
