@@ -35,7 +35,7 @@ import liberty.tools.utils.Project;
 import liberty.tools.utils.Workspace;
 
 /**
- * View of Liberty application projects and development mode actions to be processed on the selected projects.
+ * View of Liberty application projects and dev mode actions to be processed on the selected projects.
  */
 public class DashboardView extends ViewPart {
 
