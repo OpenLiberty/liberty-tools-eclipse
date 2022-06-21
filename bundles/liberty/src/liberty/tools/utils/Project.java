@@ -100,15 +100,15 @@ public class Project {
     }
 
     /**
-     * Returns true if the input project is configured to run in Liberty's development mode. False, otherwise. If it is
+     * Returns true if the input project is configured to run in Liberty's dev mode. False, otherwise. If it is
      * determined
-     * that the project can run in Liberty's development mode, the outcome is persisted by associating the project with a
+     * that the project can run in Liberty's dev mode, the outcome is persisted by associating the project with a
      * Liberty type/nature.
      *
      * @param project The project to check.
      * @param refresh Defines whether or not this call is being done on behalf of a refresh action.
      *
-     * @return True if the input project is configured to run in Liberty's development mode. False, otherwise.
+     * @return True if the input project is configured to run in Liberty's dev mode. False, otherwise.
      *
      * @throws Exception
      */
@@ -116,18 +116,18 @@ public class Project {
         // TODO: Use validation parser to find the Liberty entries in config files more accurately.
         // Perhaps check for other things that we may consider appropriate to check.
 
-        // Check if the input project is already marked as being able to run in Liberty's development mode.
+        // Check if the input project is already marked as being able to run in Liberty's dev mode.
         boolean isNatureLiberty = project.getDescription().hasNature(LibertyNature.NATURE_ID);
 
         if (isNatureLiberty && !refresh) {
             return isNatureLiberty;
         }
 
-        // If we are here, the project is not marked as being able to run in Liberty' development mode or
+        // If we are here, the project is not marked as being able to run in Liberty' dev mode or
         // knowledge of this project needs to be refreshed.
         boolean isLiberty = false;
 
-        // Check if the project configured to run in Liberty's development mode.
+        // Check if the project configured to run in Liberty's dev mode.
         if (isMaven(project)) {
             IFile file = project.getFile("pom.xml");
             BufferedReader br = new BufferedReader(new InputStreamReader(file.getContents()));
@@ -171,13 +171,13 @@ public class Project {
             }
         }
 
-        // If it is determined that the input project can run in Liberty's development mode, persist the outcome (if not
+        // If it is determined that the input project can run in Liberty's dev mode, persist the outcome (if not
         // done so already) by adding a Liberty type/nature marker to the project's metadata.
         if (!isNatureLiberty && isLiberty) {
             addLibertyNature(project);
         }
 
-        // If it is determined that the input project cannot run in Liberty's development mode, but it is marked as being able
+        // If it is determined that the input project cannot run in Liberty's dev mode, but it is marked as being able
         // to do so, remove the Liberty type/nature marker from the project's metadata.
         if (isNatureLiberty && !isLiberty) {
             removeLibertyNature(project);
@@ -243,11 +243,11 @@ public class Project {
     }
 
     /**
-     * Returns true if the Maven project's pom.xml file is configured to use Liberty development mode. False, otherwise.
+     * Returns true if the Maven project's pom.xml file is configured to use Liberty dev mode. False, otherwise.
      *
      * @param project The Maven project.
      *
-     * @return True if the Maven project's pom.xml file is configured to use Liberty development mode. False, otherwise.
+     * @return True if the Maven project's pom.xml file is configured to use Liberty dev mode. False, otherwise.
      */
     public static boolean isMavenBuildFileValid(IProject project) {
         IFile file = project.getFile("pom.xml");
@@ -259,11 +259,11 @@ public class Project {
     }
 
     /**
-     * Returns true if the Gradle project's build file is configured to use Liberty development mode. False, otherwise.
+     * Returns true if the Gradle project's build file is configured to use Liberty dev mode. False, otherwise.
      *
      * @param project The Gradle project.
      *
-     * @return True if the Gradle project's build file is configured to use Liberty development mode. False, otherwise.
+     * @return True if the Gradle project's build file is configured to use Liberty dev mode. False, otherwise.
      */
     public static boolean isGradleBuildFileValid(IProject project) {
         IFile file = project.getFile("build.gradle");

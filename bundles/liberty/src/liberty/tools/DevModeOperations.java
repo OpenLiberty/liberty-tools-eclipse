@@ -55,7 +55,7 @@ public class DevModeOperations {
     /**
      * Constants.
      */
-    public static final String DEVMODE_START_PARMS_DIALOG_TITLE = "Liberty Development Mode";
+    public static final String DEVMODE_START_PARMS_DIALOG_TITLE = "Liberty Dev Mode";
     public static final String DEVMODE_START_PARMS_DIALOG_MSG = "Specify custom parameters for the liberty dev command.";
     public static final String BROWSER_MVN_IT_RESULT_ID = "maven.failsafe.integration.test.results";
     public static final String BROWSER_MVN_IT_RESULT_NAME = "Maven Failsafe integration test results";
@@ -86,7 +86,7 @@ public class DevModeOperations {
     }
 
     /**
-     * Starts the server in development mode.
+     * Starts the server in dev mode.
      *
      * @return An error message or null if the command was processed successfully.
      */
@@ -114,9 +114,9 @@ public class DevModeOperations {
         State terminalState = projectTabController.getTerminalState(projectName);
         if (terminalState != null && terminalState == ProjectTab.State.STARTED) {
             // Check if the the terminal tab associated with this call was marked as closed. This scenario may occur if a previous
-            // attempt to start the server in development mode was issued successfully, but there was a failure in the process or
+            // attempt to start the server in dev mode was issued successfully, but there was a failure in the process or
             // there was an unexpected case that caused the terminal process to end. If that is the case, clean up the objects
-            // associated with the previous instance to allow users to restart development mode.
+            // associated with the previous instance to allow users to restart dev mode.
             if (projectTabController.isProjectTabMarkedClosed(projectName)) {
                 if (Trace.isEnabled()) {
                     Trace.getTracer().trace(Trace.TRACE_TOOLS, "A start action on project " + projectName
@@ -143,7 +143,7 @@ public class DevModeOperations {
                 throw new Exception("Unable to find the path to selected project " + projectName);
             }
 
-            // Prepare the Liberty plugin development mode command.
+            // Prepare the Liberty plugin dev mode command.
             String cmd = "";
             if (Project.isMaven(project)) {
                 cmd = getMavenCommand(projectPath, "io.openliberty.tools:liberty-maven-plugin:dev -f " + projectPath);
@@ -153,7 +153,7 @@ public class DevModeOperations {
                 throw new Exception("Project" + projectName + "is not a Gradle or Maven project.");
             }
 
-            // Start a terminal and run the application in development mode.
+            // Start a terminal and run the application in dev mode.
             startDevMode(cmd, project.getName(), projectPath);
         } catch (Exception e) {
             String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_START + " action on project "
@@ -171,7 +171,7 @@ public class DevModeOperations {
     }
 
     /**
-     * Starts the server in development mode.
+     * Starts the server in dev mode.
      *
      * @return An error message or null if the command was processed successfully.
      */
@@ -198,9 +198,9 @@ public class DevModeOperations {
         State terminalState = projectTabController.getTerminalState(projectName);
         if (terminalState != null && terminalState == ProjectTab.State.STARTED) {
             // Check if the the terminal tab associated with this call was marked as closed. This scenario may occur if a previous
-            // attempt to start the server in development mode was issued successfully, but there was a failure in the process or
+            // attempt to start the server in dev mode was issued successfully, but there was a failure in the process or
             // there was an unexpected case that caused the terminal process to end. If that is the case, clean up the objects
-            // associated with the previous instance to allow users to restart development mode.
+            // associated with the previous instance to allow users to restart dev mode.
             if (projectTabController.isProjectTabMarkedClosed(projectName)) {
                 if (Trace.isEnabled()) {
                     Trace.getTracer().trace(Trace.TRACE_TOOLS, "A start action on project " + projectName
@@ -237,7 +237,7 @@ public class DevModeOperations {
                 throw new Exception("Unable to find the path to selected project " + projectName);
             }
 
-            // Prepare the Liberty plugin development mode command.
+            // Prepare the Liberty plugin dev mode command.
             String cmd = "";
             if (Project.isMaven(project)) {
                 cmd = getMavenCommand(projectPath, "io.openliberty.tools:liberty-maven-plugin:dev " + userParms + " -f " + projectPath);
@@ -247,7 +247,7 @@ public class DevModeOperations {
                 throw new Exception("Project" + projectName + "is not a Gradle or Maven project.");
             }
 
-            // Start a terminal and run the application in development mode.
+            // Start a terminal and run the application in dev mode.
             startDevMode(cmd, project.getName(), projectPath);
         } catch (Exception e) {
             String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_START_PARMS + " action on project "
@@ -265,7 +265,7 @@ public class DevModeOperations {
     }
 
     /**
-     * Starts the server in development mode.
+     * Starts the server in dev mode.
      *
      * @return An error message or null if the command was processed successfully.
      */
@@ -294,9 +294,9 @@ public class DevModeOperations {
         State terminalState = projectTabController.getTerminalState(projectName);
         if (terminalState != null && terminalState == ProjectTab.State.STARTED) {
             // Check if the the terminal tab associated with this call was marked as closed. This scenario may occur if a previous
-            // attempt to start the server in development mode was issued successfully, but there was a failure in the process or
+            // attempt to start the server in dev mode was issued successfully, but there was a failure in the process or
             // there was an unexpected case that caused the terminal process to end. If that is the case, clean up the objects
-            // associated with the previous instance to allow users to restart development mode.
+            // associated with the previous instance to allow users to restart dev mode.
             if (projectTabController.isProjectTabMarkedClosed(projectName)) {
                 if (Trace.isEnabled()) {
                     Trace.getTracer().trace(Trace.TRACE_TOOLS, "A start action on project " + projectName
@@ -323,7 +323,7 @@ public class DevModeOperations {
                 throw new Exception("Unable to find the path to selected project " + projectName);
             }
 
-            // Prepare the Liberty plugin container development mode command.
+            // Prepare the Liberty plugin container dev mode command.
             String cmd = "";
             if (Project.isMaven(project)) {
                 cmd = getMavenCommand(projectPath, "io.openliberty.tools:liberty-maven-plugin:devc -f " + projectPath);
@@ -333,7 +333,7 @@ public class DevModeOperations {
                 throw new Exception("Project" + projectName + "is not a Gradle or Maven project.");
             }
 
-            // Start a terminal and run the application in development mode.
+            // Start a terminal and run the application in dev mode.
             startDevMode(cmd, project.getName(), projectPath);
         } catch (Exception e) {
             String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_START_IN_CONTAINER
@@ -351,7 +351,7 @@ public class DevModeOperations {
     }
 
     /**
-     * Starts the server in development mode.
+     * Starts the server in dev mode.
      *
      * @return An error message or null if the command was processed successfully.
      */
@@ -388,7 +388,7 @@ public class DevModeOperations {
         }
 
         // Check if the the terminal tab associated with this call was marked as closed. This scenario may occur if a previous
-        // attempt to start the server in development mode was issued successfully, but there was a failure in the process or
+        // attempt to start the server in dev mode was issued successfully, but there was a failure in the process or
         // there was an unexpected case that caused the terminal process to end. Note that objects associated with the previous
         // start attempt will be cleaned up on the next restart attempt.
         if (projectTabController.isProjectTabMarkedClosed(projectName)) {
@@ -404,15 +404,15 @@ public class DevModeOperations {
         }
 
         try {
-            // Prepare the development mode command to stop the server.
+            // Prepare the dev mode command to stop the server.
             String cmd = "exit" + System.lineSeparator();
 
             // Issue the command on the terminal.
             projectTabController.writeTerminalStream(projectName, cmd.getBytes());
 
-            // The command to exit development mode was issued. Set the internal project tab state to STOPPED as
+            // The command to exit dev mode was issued. Set the internal project tab state to STOPPED as
             // indication that the stop command was issued. The project's terminal tab UI will marked as closed (title and state
-            // updates) when development mode exits.
+            // updates) when dev mode exits.
             projectTabController.setTerminalState(projectName, ProjectTab.State.STOPPED);
 
             // Cleanup internal objects. This maybe done a bit prematurely at this point because the operations triggered by
@@ -476,7 +476,7 @@ public class DevModeOperations {
         }
 
         // Check if the the terminal tab associated with this call was marked as closed. This scenario may occur if a previous
-        // attempt to start the server in development mode was issued successfully, but there was a failure in the process or
+        // attempt to start the server in dev mode was issued successfully, but there was a failure in the process or
         // there was an unexpected case that caused the terminal process to end. Note that objects associated with the previous
         // start attempt will be cleaned up on the next restart attempt.
         if (projectTabController.isProjectTabMarkedClosed(projectName)) {
@@ -493,7 +493,7 @@ public class DevModeOperations {
         }
 
         try {
-            // Prepare the development mode command to run a test.
+            // Prepare the dev mode command to run a test.
             String cmd = System.lineSeparator();
 
             // Issue the command on the terminal.

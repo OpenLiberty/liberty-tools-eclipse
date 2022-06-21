@@ -27,7 +27,7 @@ import liberty.tools.LibertyDevPlugin;
 
 public class Dialog {
 
-    public static String dTitle = "Liberty Development Mode";
+    public static String dTitle = "Liberty Dev Mode";
 
     /**
      * Displays an error message dialog with details.
