@@ -14,53 +14,153 @@
 <?eclipse version="3.4"?>
 <plugin>
 
+   <!-- Contexts -->
+   <extension point="org.eclipse.ui.contexts">
+      <context
+            description="Liberty development mode"
+            id="liberty.tools.context"
+            name="Using Liberty tools"
+            parentId="org.eclipse.ui.contexts.window">
+      </context>
+   </extension>
+   
+   <!-- Commands -->
    <extension point="org.eclipse.ui.commands">
       <category
-            id="liberty.commands.category"
-            name="Liberty Dev Category">
+            id="liberty.tools.command.category"
+            name="Liberty Developer Tools">
       </category>
       <command
-            categoryId="liberty.commands.category"
+            id="liberty.tools.open.dashboard.command"
             name="Open Dashboard"
-            id="liberty.commands.open.dashboard">
+            categoryId="liberty.tools.command.category">
       </command>
+      <command
+            id="liberty.tools.project.start.command"
+            name="Liberty Start"
+            categoryId="liberty.tools.command.category">
+      </command>
+      <command
+            id="liberty.tools.project.startWithParms.command"
+            name="Liberty Start with Parameters"
+            categoryId="liberty.tools.command.category">
+      </command>
+      <command
+            id="liberty.tools.project.startInContainer.command"
+            name="Liberty Start in Container"
+            categoryId="liberty.tools.command.category">
+      </command>      
+      <command
+            id="liberty.tools.project.stop.command"
+            name="Liberty Stop"
+            categoryId="liberty.tools.command.category">
+      </command>  
+      <command
+            id="liberty.tools.project.runTests.command"
+            name="Liberty Run Tests"
+            categoryId="liberty.tools.command.category">
+      </command>  
+      <command
+            id="liberty.tools.project.viewMvnIntegrationTestReport.command"
+            name="Liberty View Integration Test Report"
+            categoryId="liberty.tools.command.category">
+      </command>   
+      <command
+            id="liberty.tools.project.viewMvnUnitTestReport.command"
+            name="Liberty View Unit Test Report"
+            categoryId="liberty.tools.command.category">
+      </command>    
+      <command
+            id="liberty.tools.project.viewGradleTestReport.command"
+            name="Liberty View Gradle Test Report"
+            categoryId="liberty.tools.command.category">
+      </command>       
+      
+        
    </extension>
 
    <extension point="org.eclipse.ui.handlers">
       <handler
             class="liberty.tools.handlers.DashboardHandler"
-            commandId="liberty.commands.open.dashboard">
+            commandId="liberty.tools.open.dashboard.command">
       </handler>
    </extension>
    
    <!-- Bindings -->
    <extension point="org.eclipse.ui.bindings">
-      <key commandId="liberty.commands.open.dashboard"
+      <key commandId="liberty.tools.open.dashboard.command"
            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
            contextId="org.eclipse.ui.contexts.window"
-           sequence="M1+1"/>
+           sequence="M3+L"/>
+           
+      <key
+            commandId="liberty.tools.project.start.command"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            contextId="liberty.tools.context"
+            sequence="M2+M3+L S">
+      </key>
+      <key
+            commandId="liberty.tools.project.startWithParms.command"
+            contextId="liberty.tools.context"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M2+M3+L P">
+      </key>
+      <key
+            commandId="liberty.tools.project.startInContainer.command"
+            contextId="liberty.tools.context"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M2+M3+L C">
+      </key> 
+      <key
+            commandId="liberty.tools.project.stop.command"
+            contextId="liberty.tools.context"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M2+M3+L Q">
+      </key>    
+      <key
+            commandId="liberty.tools.project.runTests.command"
+            contextId="liberty.tools.context"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M2+M3+L T">
+      </key>    
+      <key
+            commandId="liberty.tools.project.viewMvnIntegrationTestReport.command"
+            contextId="liberty.tools.context"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M2+M3+L I">
+      </key> 
+      <key
+            commandId="liberty.tools.project.viewMvnUnitTestReport.command"
+            contextId="liberty.tools.context"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M2+M3+L U">
+      </key>
+      <key
+            commandId="liberty.tools.project.viewGradleTestReport.command"
+            contextId="liberty.tools.context"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M2+M3+L R">
+      </key>
    </extension>
    
    <!-- Menu/Toolbar -->
    <extension
          point="org.eclipse.ui.menus">
       <menuContribution locationURI="menu:org.eclipse.ui.main.menu?after=additions">
-         <menu id="liberty.menus.liberty"
-               label="Liberty"
-               mnemonic="L">
+         <menu id="liberty.tools.liberty.menue"
+               label="Liberty">
             <command
-                  commandId="liberty.commands.open.dashboard"
-                  id="liberty.menus.open.dashboard"
-                  mnemonic="D">
+                  commandId="liberty.tools.open.dashboard.command"
+                  id="liberty.tools.menu.command">
             </command>
          </menu>
       </menuContribution>
       <menuContribution locationURI="toolbar:org.eclipse.ui.main.toolbar?after=additions">
          <toolbar
-               id="liberty.toolbars.dashboard">
+               id="liberty.tools.dashboard.toolbar">
             <command
-                  id="liberty.toolbars.open.dashboard"
-                  commandId="liberty.commands.open.dashboard"
+                  id="liberty.tools.dashboard.toolbar.command"
+                  commandId="liberty.tools.open.dashboard.command"
                   icon="icons/openLibertyLogo.png"
                   tooltip="Open Liberty Dashboard View"
                   style="push">
@@ -72,13 +172,13 @@
    <!-- Views -->
   <extension point="org.eclipse.ui.views">
      <category 
-           id="liberty.views.liberty.category"
+           id="liberty.tools.view.category"
            name="Liberty">
      </category>
      <view id="liberty.views.liberty.devmode.dashboard"
            name="Liberty Dashboard"
            icon="icons/openLibertyLogo.png"
-           category="liberty.views.liberty.category"
+           category="liberty.tools.view.category"
            class="liberty.tools.ui.DashboardView"/>
   </extension>
   
