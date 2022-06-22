@@ -12,6 +12,8 @@
 *******************************************************************************/
 package liberty.tools.utils;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -37,10 +39,8 @@ public class Dialog {
      */
     public static void displayErrorMessageWithDetails(String message, Throwable throwable) {
         List<Status> stackTraceStatusList = new ArrayList<>();
-        for (StackTraceElement stackEntry : throwable.getStackTrace()) {
-            Status stackTraceStatus = new Status(IStatus.ERROR, LibertyDevPlugin.PLUGIN_ID, stackEntry.toString());
-            stackTraceStatusList.add(stackTraceStatus);
-        }
+        Status stackTraceStatus = new Status(IStatus.ERROR, LibertyDevPlugin.PLUGIN_ID, throwableToString(throwable));
+        stackTraceStatusList.add(stackTraceStatus);
 
         MultiStatus status = new MultiStatus(LibertyDevPlugin.PLUGIN_ID, IStatus.ERROR, stackTraceStatusList.toArray(new Status[] {}),
                 throwable.getMessage(), throwable);
@@ -68,5 +68,22 @@ public class Dialog {
         Shell shell = Display.getCurrent().getActiveShell();
         MessageDialog dialog = new MessageDialog(shell, dTitle, null, message, MessageDialog.WARNING, new String[] { "OK" }, 0);
         dialog.open();
+    }
+    
+    /**
+     * Converts a throwable to a string.
+     *
+     * @param t The throwable.
+     * @return A throwable to a string
+     */
+    public static String throwableToString(Throwable t) {
+        if (t != null) {
+    	    StringWriter sw = new StringWriter();
+    	    PrintWriter pw = new PrintWriter(sw);
+    	    t.printStackTrace(pw);
+            return sw.toString();
+        }
+
+    	return "";	
     }
 }
