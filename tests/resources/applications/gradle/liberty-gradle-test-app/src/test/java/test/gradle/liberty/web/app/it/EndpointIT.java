@@ -20,12 +20,7 @@ import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.GetMethod;
 
 public class EndpointIT {
-    private static String URL;
-
-    @BeforeAll
-    public static void init() {
-        URL = "http://localhost:9080/liberty.gradle.test.app/servlet";
-    }
+    private String URL = "http://localhost:9080/liberty.gradle.test.app/servlet";
 
     @Test
     public void testServlet() throws Exception {

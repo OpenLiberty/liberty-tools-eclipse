@@ -15,22 +15,18 @@ package test.maven.liberty.web.app.it;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInstance;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.HttpStatus;
 import org.apache.commons.httpclient.methods.GetMethod;
 
 public class EndpointIT {
-    private static String URL;
-
-    @BeforeAll
-    public static void init() {
-        URL = "http://localhost:9080/liberty.maven.test.app/servlet";
-    }
+    private String URL = "http://localhost:9080/liberty.maven.test.app/servlet";
 
     @Test
     public void testServlet() throws Exception {
         HttpClient client = new HttpClient();
-
+        
         GetMethod method = new GetMethod(URL);
 
         try {
