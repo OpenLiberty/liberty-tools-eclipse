@@ -169,6 +169,7 @@ public class LibertyPluginSWTBotMavenTest {
 	        }
         }
 
+        System.out.println("AJM: calling start, should fail");
         // Call the start action. This is expected to fail because there is an invalid MAVEN_HOME value set.
         SWTPluginOperations.launchAppMenuStartAction(bot, dashboard, MVN_APP_NAME);
         SWTBotView terminal = bot.viewByTitle("Terminal");
