@@ -797,14 +797,14 @@ public class DevModeOperations {
         String javaHome = null;
         // TODO: 1. Find the eclipse->java configured install path
 
-        // 2. Check for associated system properties.
-        if (javaHome == null) {
-            javaHome = System.getProperty("java.home");
-        }
-
-        // 3. Check for associated environment variable.
+        // 2. Check for associated environment variable.
         if (javaHome == null) {
             javaHome = System.getenv("JAVA_HOME");
+        }
+
+        // 3. Check for associated system properties.
+        if (javaHome == null) {
+            javaHome = System.getProperty("java.home");
         }
 
         return javaHome;
