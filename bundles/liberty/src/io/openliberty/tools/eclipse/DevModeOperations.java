@@ -12,6 +12,9 @@
 *******************************************************************************/
 package io.openliberty.tools.eclipse;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -736,7 +739,8 @@ public class DevModeOperations {
         if (isWindows()) {
             envs.add("MAVEN_BASEDIR=" + projectPath);
         }
-
+        
+        System.out.println("AJM: command to run: " + cmd);
         projectTabController.runOnTerminal(projectName, cmd, envs);
     }
 
@@ -830,9 +834,61 @@ public class DevModeOperations {
         if (p2mw.toFile().exists() && p2mwJar.toFile().exists() && p2mwProps.toFile().exists()) {
             mvnCmd = p2mw.toString();
         } else {
-        	mvnCmd = isWindows() ? "mvn.cmd" : "mvn";
+        	if (isWindows()) {
+        		mvnCmd = "mvn.cmd";
+        	}
+        	else {
+                String path = System.getenv("PATH");
+                System.out.println("AJM: path = " + path);
+                String qualifiedmvnpath = null;
+                String[] substrings = path.split(":");
+                for (int s=0; s < substrings.length; s++) {
+                	System.out.println("AJM: substring - " + substrings[s]);
+                	if (substrings[s].contains("maven")) {
+                		qualifiedmvnpath = substrings[s];
+                		break;
+                	}
+                }
+                
+                System.out.println("AJM: found mvn - " + qualifiedmvnpath);
+                mvnCmd = qualifiedmvnpath + "/mvn";
+                System.out.println("AJM: fully qualified: " + mvnCmd);
+                
+                System.out.println("AJM: gonna try to get it from mvn version output");
+                String cmd = "mvn -v";
+                String[] cmdSplit = null;
+                Runtime run = Runtime.getRuntime();
+                Process pr = null;
+				try {
+					pr = run.exec(cmd);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				try {
+					pr.waitFor();
+				} catch (InterruptedException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+                BufferedReader buf = new BufferedReader(new InputStreamReader(pr.getInputStream()));
+                String line = "";
+                try {
+					while ((line=buf.readLine())!=null) {
+						System.out.println(line);
+						if (line.contains("Maven home:")) {
+							cmdSplit=line.split(": ");
+							mvnCmd = cmdSplit[1];
+							System.out.println("AJM: after mvn home split, mnvCmd = " + mvnCmd);
+						}
+					}
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+        	}
         }
-
+        
         // Put it all together.
         StringBuilder sb = new StringBuilder();
         sb.append(mvnCmd).append(" ").append(cmdArgs);
@@ -858,7 +914,7 @@ public class DevModeOperations {
         String baseCmd = null;
         String gradleCmd = null;
 
-        // 1. Check if there is wrapper defined.
+        // Check if there is wrapper defined.
         Path p2gw = (isWindows()) ? Paths.get(projectPath, "gradlew.cmd") : Paths.get(projectPath, "gradlew");
         Path p2gwJar = Paths.get(projectPath, "gradle", "wrapper", "gradle-wrapper.jar");
         Path p2gwProps = Paths.get(projectPath, "gradle", "wrapper", "gradle-wrapper.properties");
@@ -866,12 +922,26 @@ public class DevModeOperations {
         if (p2gw.toFile().exists() && p2gwJar.toFile().exists() && p2gwProps.toFile().exists()) {
             gradleCmd = p2gw.toString();
         } else {
-            baseCmd = isWindows() ? "gradle.bat" : "gradle";
-        }
-
-        // 2. Use the base command.
-        if (gradleCmd == null) {
-            gradleCmd = baseCmd;
+        	if (isWindows()) {
+        		gradleCmd = "gradle.bat";
+        	}
+        	else {
+                String path = System.getenv("PATH");
+                System.out.println("AJM: path = " + path);
+                String qualifiedgradlepath = null;
+                String[] substrings = path.split(":");
+                for (int s=0; s < substrings.length; s++) {
+                	System.out.println("AJM: substring - " + substrings[s]);
+                	if (substrings[s].contains("gradle")) {
+                		qualifiedgradlepath = substrings[s];
+                		break;
+                	}
+                }
+                
+                System.out.println("AJM: found gradle - " + qualifiedgradlepath);
+                gradleCmd = qualifiedgradlepath + "/gradle";
+                System.out.println("AJM: fully qualified: " + gradleCmd);
+        	}
         }
 
         // Put it all together.

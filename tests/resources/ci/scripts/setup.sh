@@ -71,6 +71,10 @@ installBaseSoftware() {
         brew update
         brew install curl unzip
         brew install docker
+        which mvn
+        echo $M2_HOME
+        echo $MAVEN_HOME
+        brew uninstall maven
     else
         # Note: Docker is already installed on the windows VMs provisioned by GHA. 
         # Location: C:\Program Files\Docker\dockerd.exe
@@ -128,6 +132,8 @@ installMaven() {
 
     # Download the Maven archive.
 	curl -fsSL -o /tmp/liberty-dev-tool-apache-maven.zip "$url"
+	echo contents of zip
+	jar tvf /tmp/liberty-dev-tool-apache-maven.zip
 
 	# Check the downloaded archive's SHA against the expected value.
 	if [[ $OS == "Linux" ]]; then
@@ -145,10 +151,10 @@ installMaven() {
 
     # Expand the archive.
     unzip -d "$SOFTWARE_INSTALL_DIR" /tmp/liberty-dev-tool-apache-maven.zip 
-      
-    # Set the MAVEN_HOME and M2_HOME environment variables and make them available to other steps within the executing job.
-    echo "MAVEN_HOME=${mavenHome}" >> $GITHUB_ENV
-    echo "M2_HOME=${mavenHome}" >> $GITHUB_ENV
+    
+    echo "contents of maven bin dir -"
+    ls -la "$SOFTWARE_INSTALL_DIR"/apache-maven-3.8.6/bin
+    echo "done"
 
     # Prepend the Maven installation's bin dir location to PATH and make it available to other steps within the executing job.
     echo "${mavenHome}/bin" >> $GITHUB_PATH
@@ -171,16 +177,13 @@ installGradle() {
         local shaAll=$(certutil -hashfile /tmp/liberty-dev-tool-gradle.zip SHA256)
         local downloadedZipSha=$(echo $(echo $shaAll | tr '\r' ' ') | cut -d " " -f 5)
         if [ "$GRADLE_ARCHIVE_SHA256" != "$downloadedZipSha" ]; then
-            echo "ERROR: expected SHA: $GRADLE_ARCHIVE_SHA256 is not equal to downloaded file calculated SHA of: $downloadedZipSha"
+            echo "ERROR: expected SHA: $GRADLE_ARCHIVE_SHA256 is notmvn equal to downloaded file calculated SHA of: $downloadedZipSha"
             exit -1
         fi
     fi
 
     # Expand the archive.
     unzip -d "$SOFTWARE_INSTALL_DIR" /tmp/liberty-dev-tool-gradle.zip
-    
-    # Set the GRADLE_HOME environment variable and make it available to other steps within the executing job.
-    echo "GRADLE_HOME=${gradleHome}" >> $GITHUB_ENV
 
     # Prepend the Gradle installation's bin dir location to PATH and make it available to other steps within the executing job.
     echo "${gradleHome}/bin" >> $GITHUB_PATH
