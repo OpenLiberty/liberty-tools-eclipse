@@ -12,34 +12,34 @@
       IBM Corporation - initial implementation
 -->
 <project
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
-	xmlns="http://maven.apache.org/POM/4.0.0"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
-	<modelVersion>4.0.0</modelVersion>
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+    xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <modelVersion>4.0.0</modelVersion>
 
     <parent>
-    <groupId>io.openliberty.tools.wdt2</groupId>
-    <artifactId>parent</artifactId>
-    <version>1.0.0-SNAPSHOT</version>
-    <relativePath>../../pom.xml</relativePath>
+        <groupId>io.openliberty.tools.eclipse</groupId>
+        <artifactId>parent</artifactId>
+        <version>0.1.0</version>
+        <relativePath>../../pom.xml</relativePath>
     </parent>
     
     <artifactId>liberty-mpls</artifactId>
     
-	<packaging>eclipse-plugin</packaging>
+    <packaging>eclipse-plugin</packaging>
 
     <dependencies>
        <dependency>
-			<groupId>org.eclipse.lsp4mp</groupId>
+            <groupId>org.eclipse.lsp4mp</groupId>
             <artifactId>org.eclipse.lsp4mp.ls</artifactId>
             <version>0.4.0</version>
      </dependency>
-	</dependencies>
+    </dependencies>
 
-	<build>
+    <build>
 
-		<plugins>
-			
+        <plugins>
+            
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
@@ -53,11 +53,11 @@
                             <configuration>
                                 <classifier>uber</classifier>
                                 <outputDirectory>${basedir}/server/</outputDirectory>  
-                            </configuration>		
+                            </configuration>        
                         </execution>    
                     </executions>    
               </plugin> 
-			
-		</plugins>
-	</build>
-</project>	
+            
+        </plugins>
+    </build>
+</project>    

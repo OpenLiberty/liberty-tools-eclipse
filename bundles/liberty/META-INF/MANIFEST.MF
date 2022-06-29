@@ -3,10 +3,10 @@ Bundle-Copyright: Copyright (c) 2022 IBM Corporation and others.
 Bundle-ManifestVersion: 2
 Bundle-Name: Liberty
 Bundle-SymbolicName: liberty;singleton:=true
-Bundle-Version: 1.0.0.qualifier
-Bundle-Activator: liberty.tools.LibertyDevPlugin
-Export-Package: liberty.tools,
- liberty.tools.ui
+Bundle-Version: 0.1.0
+Bundle-Activator: io.openliberty.tools.eclipse.LibertyDevPlugin
+Export-Package: io.openliberty.tools.eclipse,
+ io.openliberty.tools.eclipse.ui
 Require-Bundle: org.eclipse.ui
 Bundle-RequiredExecutionEnvironment: JavaSE-11
 Automatic-Module-Name: liberty

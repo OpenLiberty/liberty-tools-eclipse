@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Copyright (c) 2022 IBM Corporation and others.
+
+  This program and the accompanying materials are made available under the
+  terms of the Eclipse Public License v. 2.0 which is available at
+  http://www.eclipse.org/legal/epl-2.0.
+
+  SPDX-License-Identifier: EPL-2.0
+
+  Contributors:
+      IBM Corporation - initial implementation
+-->
+<site>
+   <feature url="features/io.openliberty.tools.feature_0.1.0.liberty.jar" id="io.openliberty.tools.feature" version="0.1.0">
+      <category name="io.openliberty.tools"/>
+   </feature>
+   <category-def name="io.openliberty.tools" label="Liberty Tools"/>
+   <repository-reference location="https://download.eclipse.org/jdtls/snapshots/repository/1.5.0.202109201721/" enabled="true" />
+   <repository-reference location="http://download.eclipse.org/lsp4mp/releases/0.4.0/repository" enabled="true" />
+   <repository-reference location="https://download.eclipse.org/webtools/repository/latest" enabled="true" />
+</site>

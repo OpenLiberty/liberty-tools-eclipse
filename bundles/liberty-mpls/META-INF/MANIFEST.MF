@@ -3,7 +3,7 @@ Bundle-Copyright: Copyright (c) 2022 IBM Corporation and others.
 Bundle-ManifestVersion: 2
 Bundle-Name: liberty-mpls
 Bundle-SymbolicName: liberty-mpls;singleton:=true
-Bundle-Version: 1.0.0.qualifier
+Bundle-Version: 0.1.0
 Automatic-Module-Name: liberty-mpls
 Bundle-RequiredExecutionEnvironment: JavaSE-11
 Require-Bundle: org.eclipse.lsp4mp.jdt.core,
