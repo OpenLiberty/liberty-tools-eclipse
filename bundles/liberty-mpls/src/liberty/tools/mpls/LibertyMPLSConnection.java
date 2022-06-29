@@ -11,7 +11,7 @@
 /**
  * This class is a copy/paste of jbosstools-quarkus language server plugin
  * https://github.com/jbosstools/jbosstools-quarkus/blob/main/plugins/org.jboss.tools.quarkus.lsp4e/src/org/jboss/tools/quarkus/lsp4e/QuarkusLanguageServer.java
- * with modifications made for the Liberty Developer Tools Microprofile LS plugin
+ * with modifications made for the Liberty Tools Microprofile LS plugin
  *
  */
 
