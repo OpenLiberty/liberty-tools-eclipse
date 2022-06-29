@@ -853,39 +853,6 @@ public class DevModeOperations {
                 System.out.println("AJM: found mvn - " + qualifiedmvnpath);
                 mvnCmd = qualifiedmvnpath + "/mvn";
                 System.out.println("AJM: fully qualified: " + mvnCmd);
-                
-                System.out.println("AJM: gonna try to get it from mvn version output");
-                String cmd = "mvn -v";
-                String[] cmdSplit = null;
-                Runtime run = Runtime.getRuntime();
-                Process pr = null;
-				try {
-					pr = run.exec(cmd);
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-				try {
-					pr.waitFor();
-				} catch (InterruptedException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
-                BufferedReader buf = new BufferedReader(new InputStreamReader(pr.getInputStream()));
-                String line = "";
-                try {
-					while ((line=buf.readLine())!=null) {
-						System.out.println(line);
-						if (line.contains("Maven home:")) {
-							cmdSplit=line.split(": ");
-							mvnCmd = cmdSplit[1];
-							System.out.println("AJM: after mvn home split, mnvCmd = " + mvnCmd);
-						}
-					}
-				} catch (IOException e) {
-					// TODO Auto-generated catch block
-					e.printStackTrace();
-				}
         	}
         }
         
