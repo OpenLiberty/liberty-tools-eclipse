@@ -68,7 +68,12 @@ public class DevModeOperations {
      * Project terminal tab controller instance.
      */
     private ProjectTabController projectTabController;
-
+    
+    /**
+     * Command with included user parameters to be invoked in the terminal
+     */
+    private static String param_command = null;
+    
     /**
      * Constructor.
      */
@@ -238,17 +243,16 @@ public class DevModeOperations {
             }
 
             // Prepare the Liberty plugin dev mode command.
-            String cmd = "";
             if (Project.isMaven(project)) {
-                cmd = getMavenCommand(projectPath, "io.openliberty.tools:liberty-maven-plugin:dev " + userParms + " -f " + projectPath);
+                param_command = getMavenCommand(projectPath, userParms + " io.openliberty.tools:liberty-maven-plugin:dev -f " + projectPath);
             } else if (Project.isGradle(project)) {
-                cmd = getGradleCommand(projectPath, "libertyDev " + userParms + " -p=" + projectPath);
+                param_command = getGradleCommand(projectPath, "libertyDev " + userParms + " -p=" + projectPath);
             } else {
                 throw new Exception("Project" + projectName + "is not a Gradle or Maven project.");
             }
-
+            
             // Start a terminal and run the application in dev mode.
-            startDevMode(cmd, project.getName(), projectPath);
+            startDevMode(param_command, project.getName(), projectPath);
         } catch (Exception e) {
             String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_START_PARMS + " action on project "
                     + projectName + ".";
@@ -747,10 +751,9 @@ public class DevModeOperations {
      */
     public String getStartParms() {
         String dInitValue = "";
-        IInputValidator iValidator = getParmListValidator();
+        //IInputValidator iValidator = getParmListValidator();
         Shell shell = Display.getCurrent().getActiveShell();
-        InputDialog iDialog = new InputDialog(shell, DEVMODE_START_PARMS_DIALOG_TITLE, DEVMODE_START_PARMS_DIALOG_MSG, dInitValue,
-                iValidator) {
+        InputDialog iDialog = new InputDialog(shell, DEVMODE_START_PARMS_DIALOG_TITLE, DEVMODE_START_PARMS_DIALOG_MSG, dInitValue, null) {
         };
 
         String userInput = null;
