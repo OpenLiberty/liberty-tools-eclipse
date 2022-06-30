@@ -15,7 +15,7 @@
  *
  */
 
-package liberty.tools.mpls;
+package io.openliberty.tools.eclipse.mpls;
 
 import java.io.File;
 import java.io.IOException;

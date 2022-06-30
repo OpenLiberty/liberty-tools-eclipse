@@ -14,7 +14,7 @@
  * with modifications made for the Liberty Tools Microprofile LS plugin
  *
  */
-package liberty.tools.mpls;
+package io.openliberty.tools.eclipse.mpls;
 
 import java.util.Collections;
 import java.util.List;
