@@ -13,13 +13,20 @@
 package io.openliberty.tools.eclipse.utils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 
+import io.openliberty.tools.eclipse.Project;
 import io.openliberty.tools.eclipse.logging.Trace;
 
 /**
@@ -53,52 +60,90 @@ public class Workspace {
     }
 
     /**
-     * Gets all open projects currently in the workspace.
+     * Retrieves a map of suitable projects from the workspace.
      *
-     * @return All open projects currently in the workspace.
+     * @return A map of suitable projects from the workspace.
      */
-    public static List<IProject> getOpenWokspaceProjects() {
-        List<IProject> jProjects = new ArrayList<IProject>();
-
+    public static Map<String, Project> getOpenWokspaceProjects() {
         IWorkspaceRoot workspaceRoot = ResourcesPlugin.getWorkspace().getRoot();
-        IProject[] projects = workspaceRoot.getProjects();
-        for (int i = 0; i < projects.length; i++) {
-            IProject project = projects[i];
+        IProject[] iProjects = workspaceRoot.getProjects();
 
-            if (project.isOpen()) {
-                jProjects.add(project);
+        HashMap<String, Project> projects = new HashMap<String, Project>();
+        for (int i = 0; i < iProjects.length; i++) {
+            projects.put(iProjects[i].getLocation().toOSString(), new Project(iProjects[i]));
+        }
+
+        try {
+            for (int i = 0; i < iProjects.length; i++) {
+                IProject iProject = iProjects[i];
+                IResource[] projResources = iProject.members();
+                boolean multimodSet = false;
+
+                for (int j = 0; j < projResources.length; j++) {
+                    IResource res = projResources[j];
+
+                    if (res.getType() == IResource.FOLDER) {
+                        IFolder folder = ((IFolder) res);
+                        IFile file = folder.getFile(".project");
+                        if (file.exists()) {
+                            if (!multimodSet) {
+                                projects.get(iProject.getLocation().toOSString()).setMultimodule(true);
+                                multimodSet = true;
+                            }
+
+                            String resLocation = res.getLocation().toOSString();
+                            Project matchLocProj = projects.get(resLocation);
+
+                            if (matchLocProj != null) {
+                                projects.remove(resLocation);
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UTILS, "Error while retrieving eclipse projects: ", e);
             }
         }
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().trace(Trace.TRACE_UTILS, "Opened workspace projects: " + jProjects);
+            Trace.getTracer().trace(Trace.TRACE_UTILS, "Projects: " + projects);
         }
 
-        return jProjects;
+        return projects;
     }
 
     /**
-     * Returns a list of projects configured to run on Liberty.
+     * Returns the list of projects that are configured to run on Liberty.
      *
-     * @return A list of projects configured to run on Liberty.
+     * @return The list of projects that are configured to run on Liberty.
      *
      * @throws Exception
      */
-    public static List<String> getLibertyProjects(boolean refresh) throws Exception {
-        ArrayList<String> libertyProjects = new ArrayList<String>();
-        List<IProject> projectList = getOpenWokspaceProjects();
-        Iterator<IProject> projects = projectList.iterator();
-        while (projects.hasNext()) {
-            IProject project = projects.next();
-            if (Project.isLiberty(project, refresh)) {
-                libertyProjects.add(project.getName());
+    public static List<String> getDashboardProjects(boolean refresh) throws Exception {
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_UTILS, refresh);
+        }
+
+        Map<String, Project> projectList = getOpenWokspaceProjects();
+        Iterator<Map.Entry<String, Project>> iterator = projectList.entrySet().iterator();
+        ArrayList<String> finalList = new ArrayList<String>();
+
+        while (iterator.hasNext()) {
+            Entry<String, Project> e = iterator.next();
+            if (e.getValue().isSupported(refresh)) {
+                finalList.add(e.getValue().getProject().getName());
+            } else {
+                iterator.remove();
             }
         }
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().trace(Trace.TRACE_UTILS, "Refresh input: " + refresh + ". Liberty projects: " + libertyProjects);
+            Trace.getTracer().traceExit(Trace.TRACE_UTILS, finalList);
         }
 
-        return libertyProjects;
+        return finalList;
     }
 }

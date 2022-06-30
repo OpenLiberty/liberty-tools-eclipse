@@ -35,10 +35,9 @@ import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.ui.DashboardView;
 import io.openliberty.tools.eclipse.ui.terminal.ProjectTab;
-import io.openliberty.tools.eclipse.ui.terminal.ProjectTabController;
 import io.openliberty.tools.eclipse.ui.terminal.ProjectTab.State;
+import io.openliberty.tools.eclipse.ui.terminal.ProjectTabController;
 import io.openliberty.tools.eclipse.utils.Dialog;
-import io.openliberty.tools.eclipse.utils.Project;
 import io.openliberty.tools.eclipse.utils.Workspace;
 
 /**

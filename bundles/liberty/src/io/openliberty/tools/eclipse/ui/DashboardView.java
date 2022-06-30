@@ -32,9 +32,9 @@ import org.eclipse.ui.handlers.IHandlerService;
 import org.eclipse.ui.part.ViewPart;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
+import io.openliberty.tools.eclipse.Project;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.utils.Dialog;
-import io.openliberty.tools.eclipse.utils.Project;
 import io.openliberty.tools.eclipse.utils.Workspace;
 
 /**
@@ -89,7 +89,7 @@ public class DashboardView extends ViewPart {
         viewer.setLabelProvider(new LabelProvider());
 
         try {
-            viewer.setInput(Workspace.getLibertyProjects(false));
+            viewer.setInput(Workspace.getDashboardProjects(false));
         } catch (Exception e) {
             String msg = "An error was detected while retrieving Liberty projects.";
             if (Trace.isEnabled()) {
@@ -291,7 +291,7 @@ public class DashboardView extends ViewPart {
             @Override
             public void run() {
                 try {
-                    viewer.setInput(Workspace.getLibertyProjects(true));
+                    viewer.setInput(Workspace.getDashboardProjects(true));
                 } catch (Exception e) {
                     Dialog.displayErrorMessageWithDetails("An error was detected while retrieving Liberty projects.", e);
                     return;
