@@ -73,8 +73,8 @@
    <extension
          point="org.eclipse.lsp4e.languageServer">
       <server
-            class="liberty.tools.mpls.LibertyMPLSConnection"
-            clientImpl="liberty.tools.mpls.LibertyMPLSClientImpl"
+            class="io.openliberty.tools.eclipse.mpls.LibertyMPLSConnection"
+            clientImpl="io.openliberty.tools.eclipse.mpls.LibertyMPLSClientImpl"
             id="io.openliberty.tools.org.microprofile.mpserver"
             serverInterface="org.eclipse.lsp4mp.ls.api.MicroProfileLanguageServerAPI"
             label="Liberty MicroProfile Language Server"

@@ -10,7 +10,7 @@
 * Contributors:
 *     IBM Corporation - initial implementation
 *******************************************************************************/
-package liberty.tools.mpls;
+package io.openliberty.tools.eclipse.mpls;
 
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
