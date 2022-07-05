@@ -756,7 +756,7 @@ public class DevModeOperations {
         if (isWindows()) {
             envs.add("MAVEN_BASEDIR=" + projectPath);
         }
-                
+
         projectTabController.runOnTerminal(projectName, cmd, envs);
     }
 
@@ -891,6 +891,7 @@ public class DevModeOperations {
     private String getGradleCommand(String projectPath, String cmdArgs) {
 
         String gradleWrapperCmd = null;
+
 
 		// Check if there is wrapper defined.
 		Path p2gw = (isWindows()) ? Paths.get(projectPath, "gradlew.cmd") : Paths.get(projectPath, "gradlew");
