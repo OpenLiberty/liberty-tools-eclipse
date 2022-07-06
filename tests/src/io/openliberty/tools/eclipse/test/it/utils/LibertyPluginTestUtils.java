@@ -80,8 +80,7 @@ public class LibertyPluginTestUtils {
                         con.disconnect();
                         continue;
                     }
-
-                    return;
+                    
 				} else {
 					if (status == HttpURLConnection.HTTP_OK) {
 						Thread.sleep(reryIntervalSecs * 1000);
@@ -92,14 +91,15 @@ public class LibertyPluginTestUtils {
 						int counter = 0;
 						if (counter <= 5) {
 							counter++;
+							System.out.println("AJM: sleeping");
 							Thread.sleep(reryIntervalSecs * 1000);
-							con.disconnect();
-							continue;
 						}
+						con.disconnect();
+						continue;
 					}
-
-					return;
-                }
+				}   
+                
+                return;
             } catch (Exception e) {
                 if (expectSuccess) {
                     System.out.println(
