@@ -82,14 +82,23 @@ public class LibertyPluginTestUtils {
                     }
 
                     return;
-                } else {
-                    if (status == HttpURLConnection.HTTP_OK) {
-                        Thread.sleep(reryIntervalSecs * 1000);
-                        con.disconnect();
-                        continue;
-                    }
+				} else {
+					if (status == HttpURLConnection.HTTP_OK) {
+						Thread.sleep(reryIntervalSecs * 1000);
+						con.disconnect();
+						continue;
+					} else {
+						// Giving the server a few secs to start if it is starting.
+						int counter = 0;
+						if (counter <= 5) {
+							counter++;
+							Thread.sleep(reryIntervalSecs * 1000);
+							con.disconnect();
+							continue;
+						}
+					}
 
-                    return;
+					return;
                 }
             } catch (Exception e) {
                 if (expectSuccess) {
