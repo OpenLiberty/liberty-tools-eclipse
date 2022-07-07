@@ -15,6 +15,7 @@ package io.openliberty.tools.eclipse.ui.terminal;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -143,6 +144,25 @@ public class ProjectTab {
         if (Trace.isEnabled()) {
             Trace.getTracer().traceExit(Trace.TRACE_UI);
         }
+    }
+    
+    private boolean isWindows() {
+        return System.getProperty("os.name").contains("Windows");
+    }
+
+    public void runStarter() {
+    	
+        ITerminalService.Done done = new ITerminalService.Done() {
+            @Override
+            public void done(IStatus status) {            }
+        };
+        
+        String cmd = "curl --help";
+        if (isWindows()) {
+        	cmd = "/c " + cmd;
+        }
+
+    	 terminalService.openConsole(getProperties(new ArrayList(), cmd), done);
     }
 
     /**

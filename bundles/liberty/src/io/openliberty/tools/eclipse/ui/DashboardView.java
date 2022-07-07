@@ -34,6 +34,7 @@ import org.eclipse.ui.part.ViewPart;
 import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.Project;
 import io.openliberty.tools.eclipse.logging.Trace;
+import io.openliberty.tools.eclipse.ui.terminal.ProjectTab;
 import io.openliberty.tools.eclipse.utils.Dialog;
 import io.openliberty.tools.eclipse.utils.Workspace;
 
@@ -59,6 +60,7 @@ public class DashboardView extends ViewPart {
     public static final String APP_MENU_ACTION_VIEW_MVN_UT_REPORT = "View unit test report";
     public static final String APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT = "View test report";
     public static final String DASHBORD_TOOLBAR_ACTION_REFRESH = "refresh";
+    public static final String DASHBORD_TOOLBAR_ACTION_STARTER_GENERATE = "generate from starter";
 
     /**
      * view actions.
@@ -72,6 +74,7 @@ public class DashboardView extends ViewPart {
     private Action viewMavenUTestReportsAction;
     private Action viewGradleTestReportsAction;
     private Action refreshAction;
+    private Action starterAction;
 
     /**
      * Class instances.
@@ -139,6 +142,7 @@ public class DashboardView extends ViewPart {
     private void addToolbarActions() {
         IToolBarManager tbMgr = getViewSite().getActionBars().getToolBarManager();
         tbMgr.add(refreshAction);
+        tbMgr.add(starterAction);
     }
 
     /**
@@ -174,6 +178,7 @@ public class DashboardView extends ViewPart {
     private void createActions() {
         ImageDescriptor ActionImg = null;
         ImageDescriptor refreshImg = null;
+        ImageDescriptor starterImg = null;
 
         // Get the image descriptors for the menu actions and toolbar.
         // If there is a failure, display the error and proceed without the icons.
@@ -181,6 +186,7 @@ public class DashboardView extends ViewPart {
             ActionImg = ImageDescriptor
                     .createFromURL(new URL("platform:/plugin/org.eclipse.jdt.debug.ui/icons/full/elcl16/thread_view.gif"));
             refreshImg = ImageDescriptor.createFromURL(new URL("platform:/plugin/org.eclipse.ui.browser/icons/clcl16/nav_refresh.png"));
+            starterImg = ImageDescriptor.createFromURL(new URL("platform:/plugin/org.eclipse.ui.browser/icons/clcl16/nav_go.png"));
         } catch (Exception e) {
             Dialog.displayErrorMessageWithDetails("An error was detected while retrieving Imade descriptions.", e);
         }
@@ -201,7 +207,7 @@ public class DashboardView extends ViewPart {
         IHandlerService handlerService = getSite().getService(IHandlerService.class);
         ActionHandler startHandler = new ActionHandler(startAction);
         handlerService.activateHandler(startAction.getActionDefinitionId(), startHandler);
-
+        
         // Menu: Start with parameters.
         startWithParmAction = new Action(APP_MENU_ACTION_START_PARMS) {
             @Override
@@ -299,5 +305,17 @@ public class DashboardView extends ViewPart {
             }
         };
         refreshAction.setImageDescriptor(refreshImg);
+        
+        starterAction = new Action(DASHBORD_TOOLBAR_ACTION_STARTER_GENERATE) {
+                public void run() {
+                    ProjectTab projectTab = new ProjectTab("internal-starter-project");
+                    projectTab.runStarter();
+                }          
+        };
+        
+        
+        starterAction.setImageDescriptor(starterImg);
+        
+        
     }
 }
