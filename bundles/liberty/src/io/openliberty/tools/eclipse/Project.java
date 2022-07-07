@@ -178,13 +178,12 @@ public class Project {
      * project with a Liberty type/nature.
      *
      * @param project The project to check.
-     * @param refresh Defines whether or not this call is being done on behalf of a refresh action.
      *
      * @return True if the input project is configured to run in Liberty's dev mode. False, otherwise.
      *
      * @throws Exception
      */
-    public boolean isSupported(boolean refresh) throws Exception {
+    public boolean isSupported() throws Exception {
         // Note: Currently, we do not cleanup the nature from the project's metadata. Even if it is
         // determined that the input project is not a supported Liberty project, but it is marked as being
         // one. The reason for it is that we currently allow users to add the liberty nature to
@@ -192,54 +191,45 @@ public class Project {
         // are improved to handle customized projects, Liberty natures should be cleaned up automatically.
 
         // Check if the input project is already marked as being a supported liberty project.
-        boolean isNatureLiberty = project.getDescription().hasNature(LibertyNature.NATURE_ID);
-
-        if (isNatureLiberty && !refresh) {
-            return isNatureLiberty;
+        if (project.getDescription().hasNature(LibertyNature.NATURE_ID)) {
+            return true;
         }
 
-        // If we are here, the project is not marked as being able to run on Liberty or
-        // knowledge of this project needs to be refreshed.
-        boolean suported = false;
+        // If we are here, the project is not marked as being able to run on Liberty
+        boolean supported = false;
 
         // Check if the project has a server.xml config file in a specific location.
         // Gradle built multi-module projects are excluded. Dev mode currently does not support
         // that type of project.
-        IResource[] resources = project.members();
-        for (int i = 0; i < resources.length; i++) {
-            IResource resource = resources[i];
+
+        if (isMultiModule() && !isGradle()) {
+          for (IResource resource : project.members()) {
             if (resource.getType() == IResource.FOLDER) {
                 IFolder folder = ((IFolder) resource);
-                Path path = null;
-                if (!isMultiModule()) {
-                    if (folder.getName().equals("src")) {
-                        path = new Path("main/liberty/config/server.xml");
-                    }
-                } else {
-                    if (!isGradle()) {
-                        path = new Path("src/main/liberty/config/server.xml");
-                    }
-                }
-
+                Path path = new Path("src/main/liberty/config/server.xml");
                 if (path != null) {
                     IFile serverxml = folder.getFile(path);
                     if (serverxml.exists()) {
-                        suported = true;
+                        supported = true;
                         break;
                     }
                 }
             }
-        }
+          }
+        } else {
+          IFile serverxml = project.getFile(new Path("src/main/liberty/config/server.xml"));
+          if (serverxml.exists()) {
+            supported = true;
+          }
+        }        
 
         // If it is determined that the input project can run on Liberty, persist the outcome (if not
         // done so already) by adding a Liberty type/nature marker to the project's metadata.
-        // Note that once the nature is added, Eclipse caches that information. Any manual changes to
-        // the metadata will not be reflected until eclipse is restarted.
-        if (!isNatureLiberty && suported) {
+        if (supported) {
             addLibertyNature(project);
         }
 
-        return suported;
+        return supported;
     }
 
     /**
@@ -297,4 +287,10 @@ public class Project {
             Trace.getTracer().traceExit(Trace.TRACE_UTILS, new Object[] { project, newNatures });
         }
     }
+    
+    @Override
+    public String toString() {
+        return "IProject = " + project.toString();
+    }
+    
 }

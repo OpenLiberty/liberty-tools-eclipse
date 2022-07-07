@@ -34,4 +34,10 @@ dependencies {
 
 }
 
+liberty {
+    server{
+        verifyAppStartTimeout = 60
+    }
+}
+
 clean.dependsOn 'libertyStop'

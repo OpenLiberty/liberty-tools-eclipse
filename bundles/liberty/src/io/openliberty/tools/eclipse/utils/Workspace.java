@@ -62,26 +62,22 @@ public class Workspace {
     /**
      * Retrieves a map of suitable projects from the workspace.
      *
-     * @return A map of suitable projects from the workspace.
+     * @return A map projects from the workspace that are each themselves NOT nested/contained in another workspace project
      */
-    public static Map<String, Project> getOpenWokspaceProjects() {
+    public static Map<String, Project> getTopLevelWorkspaceProjects() {
         IWorkspaceRoot workspaceRoot = ResourcesPlugin.getWorkspace().getRoot();
         IProject[] iProjects = workspaceRoot.getProjects();
-
         HashMap<String, Project> projects = new HashMap<String, Project>();
-        for (int i = 0; i < iProjects.length; i++) {
-            projects.put(iProjects[i].getLocation().toOSString(), new Project(iProjects[i]));
+        
+        for (IProject iProject : iProjects) {
+            projects.put(iProject.getLocation().toOSString(), new Project(iProject));
         }
 
         try {
-            for (int i = 0; i < iProjects.length; i++) {
-                IProject iProject = iProjects[i];
-                IResource[] projResources = iProject.members();
+        	for (IProject iProject : iProjects) {
                 boolean multimodSet = false;
 
-                for (int j = 0; j < projResources.length; j++) {
-                    IResource res = projResources[j];
-
+                for (IResource res : iProject.members()) {
                     if (res.getType() == IResource.FOLDER) {
                         IFolder folder = ((IFolder) res);
                         IFile file = folder.getFile(".project");
@@ -126,18 +122,15 @@ public class Workspace {
         if (Trace.isEnabled()) {
             Trace.getTracer().traceEntry(Trace.TRACE_UTILS, refresh);
         }
-
-        Map<String, Project> projectList = getOpenWokspaceProjects();
-        Iterator<Map.Entry<String, Project>> iterator = projectList.entrySet().iterator();
+        
         ArrayList<String> finalList = new ArrayList<String>();
 
-        while (iterator.hasNext()) {
-            Entry<String, Project> e = iterator.next();
-            if (e.getValue().isSupported(refresh)) {
-                finalList.add(e.getValue().getProject().getName());
-            } else {
-                iterator.remove();
-            }
+        Map<String, Project> projectList = getTopLevelWorkspaceProjects();
+
+        for (Project p : projectList.values()) {
+            if (p.isSupported()) {
+                finalList.add(p.getProject().getName());
+            } 
         }
 
         if (Trace.isEnabled()) {

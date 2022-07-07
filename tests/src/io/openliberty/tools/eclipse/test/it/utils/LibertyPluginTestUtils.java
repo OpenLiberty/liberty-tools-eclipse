@@ -94,7 +94,7 @@ public class LibertyPluginTestUtils {
             } catch (Exception e) {
                 if (expectSuccess) {
                     System.out.println(
-                            "INFO: Retrying application connection: Responce code: " + status + ". Error message: " + e.getMessage());
+                            "INFO: Retrying application connection: Response code: " + status + ". Error message: " + e.getMessage());
                     try {
                         Thread.sleep(reryIntervalSecs * 1000);
                     } catch (Exception ee) {
