@@ -212,7 +212,7 @@ public class SWTPluginOperations {
         SWTBotMenu itReport = appCtxMenu.contextMenu(DashboardView.APP_MENU_ACTION_VIEW_MVN_IT_REPORT);
         itReport.click();
 
-        bot.waitUntil(SWTTestCondition.isEditorActive(bot, DevModeOperations.BROWSER_MVN_IT_RESULT_NAME), 5000);
+        bot.waitUntil(SWTTestCondition.isEditorActive(bot, item + " " + DevModeOperations.BROWSER_MVN_IT_REPORT_NAME_SUFFIX), 5000);
     }
 
     /**
@@ -227,7 +227,7 @@ public class SWTPluginOperations {
         SWTBotMenu utReport = appCtxMenu.contextMenu(DashboardView.APP_MENU_ACTION_VIEW_MVN_UT_REPORT);
         utReport.click();
 
-        bot.waitUntil(SWTTestCondition.isEditorActive(bot, DevModeOperations.BROWSER_MVN_IT_RESULT_NAME), 5000);
+        bot.waitUntil(SWTTestCondition.isEditorActive(bot, item + " " + DevModeOperations.BROWSER_MVN_UT_REPORT_NAME_SUFFIX), 5000);
     }
 
     /**
@@ -242,7 +242,7 @@ public class SWTPluginOperations {
         SWTBotMenu testReport = appCtxMenu.contextMenu(DashboardView.APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT);
         testReport.click();
 
-        bot.waitUntil(SWTTestCondition.isEditorActive(bot, DevModeOperations.BROWSER_MVN_IT_RESULT_NAME), 5000);
+        bot.waitUntil(SWTTestCondition.isEditorActive(bot, item + " " + DevModeOperations.BROWSER_GRADLE_TEST_REPORT_NAME_SUFFIX), 5000);
     }
 
     /**

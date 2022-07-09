@@ -33,7 +33,7 @@ public class Project {
     /**
      * The Eclipse project reference.
      */
-    IProject project;
+    IProject iProject;
 
     /**
      * Multi-module project indicator. It is based on the existence of one or more projects inside a project.
@@ -46,7 +46,7 @@ public class Project {
      * @param project The Eclipse project reference.
      */
     public Project(IProject project) {
-        this.project = project;
+        this.iProject = project;
     }
 
     /**
@@ -71,7 +71,7 @@ public class Project {
      * @return The associated Eclipse project reference.
      */
     public IProject getProject() {
-        return project;
+        return iProject;
     }
 
     /**
@@ -82,19 +82,8 @@ public class Project {
      * @return The absolute path of this project or null if the path could not be obtained.
      */
     public String getPath() {
-        return getPath(project);
-    }
-
-    /**
-     * Retrieves the absolute path of the input project.
-     *
-     * @param selectedProject The project object
-     *
-     * @return The absolute path of the input project or null if the path could not be obtained.
-     */
-    public static String getPath(IProject project) {
-        if (project != null) {
-            IPath path = project.getLocation();
+        if (iProject != null) {
+            IPath path = iProject.getLocation();
             if (path != null) {
                 return path.toOSString();
             }
@@ -109,29 +98,18 @@ public class Project {
      * @return True if this project is a Maven built project. False, otherwise.
      */
     public boolean isMaven() {
-        return isMaven(project);
-    }
-
-    /**
-     * Returns true if the input project is a Maven built project. False otherwise.
-     *
-     * @param project The project to check.
-     *
-     * @return True if the input project is a Maven built project. False, otherwise.
-     */
-    public static boolean isMaven(IProject project) {
         boolean isMaven = false;
 
         try {
-            isMaven = project.getDescription().hasNature("org.eclipse.m2e.core.maven2Nature");
+            isMaven = iProject.getDescription().hasNature("org.eclipse.m2e.core.maven2Nature");
 
             if (!isMaven) {
-                isMaven = project.getFile("pom.xml").exists();
+                isMaven = iProject.getFile("pom.xml").exists();
             }
         } catch (Exception e) {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UTILS,
-                        "An error occurred while checking if project " + project + "is a Maven project", e);
+                        "An error occurred while checking if project " + iProject.getName() + "is a Maven project", e);
             }
         }
 
@@ -144,28 +122,17 @@ public class Project {
      * @return True if this project is a Gradle built project. False otherwise.
      */
     public boolean isGradle() {
-        return isGradle(project);
-    }
-
-    /**
-     * Returns true if the input project is a Gradle built project. False, otherwise.
-     *
-     * @param project The project to check.
-     *
-     * @return True if the input project is a Gradle built project. False otherwise.
-     */
-    public static boolean isGradle(IProject project) {
         boolean isGradle = false;
 
         try {
-            isGradle = project.getDescription().hasNature("org.eclipse.buildship.core.gradleprojectnature");
+            isGradle = iProject.getDescription().hasNature("org.eclipse.buildship.core.gradleprojectnature");
             if (!isGradle) {
-                isGradle = project.getFile("build.gradle").exists();
+                isGradle = iProject.getFile("build.gradle").exists();
             }
         } catch (Exception e) {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UTILS,
-                        "An error occurred while checking if project " + project + "is a Gradle project", e);
+                        "An error occurred while checking if project " + iProject.getName() + "is a Gradle project", e);
             }
         }
 
@@ -174,10 +141,10 @@ public class Project {
 
     /**
      * Returns true if the input project is configured to run in Liberty and it uses a supported build mechanism. False,
-     * otherwise. If it is determined that the project is a supported type, the outcome is persisted by associating the
-     * project with a Liberty type/nature.
+     * otherwise. If it is determined that the project is a supported type, the outcome is persisted by associating the project
+     * with a Liberty type/nature.
      *
-     * @param project The project to check.
+     * @param iProject The project to check.
      *
      * @return True if the input project is configured to run in Liberty's dev mode. False, otherwise.
      *
@@ -191,7 +158,7 @@ public class Project {
         // are improved to handle customized projects, Liberty natures should be cleaned up automatically.
 
         // Check if the input project is already marked as being a supported liberty project.
-        if (project.getDescription().hasNature(LibertyNature.NATURE_ID)) {
+        if (iProject.getDescription().hasNature(LibertyNature.NATURE_ID)) {
             return true;
         }
 
@@ -201,32 +168,31 @@ public class Project {
         // Check if the project has a server.xml config file in a specific location.
         // Gradle built multi-module projects are excluded. Dev mode currently does not support
         // that type of project.
-
         if (isMultiModule() && !isGradle()) {
-          for (IResource resource : project.members()) {
-            if (resource.getType() == IResource.FOLDER) {
-                IFolder folder = ((IFolder) resource);
-                Path path = new Path("src/main/liberty/config/server.xml");
-                if (path != null) {
-                    IFile serverxml = folder.getFile(path);
-                    if (serverxml.exists()) {
-                        supported = true;
-                        break;
+            for (IResource resource : iProject.members()) {
+                if (resource.getType() == IResource.FOLDER) {
+                    IFolder folder = ((IFolder) resource);
+                    Path path = new Path("src/main/liberty/config/server.xml");
+                    if (path != null) {
+                        IFile serverxml = folder.getFile(path);
+                        if (serverxml.exists()) {
+                            supported = true;
+                            break;
+                        }
                     }
                 }
             }
-          }
         } else {
-          IFile serverxml = project.getFile(new Path("src/main/liberty/config/server.xml"));
-          if (serverxml.exists()) {
-            supported = true;
-          }
-        }        
+            IFile serverxml = iProject.getFile(new Path("src/main/liberty/config/server.xml"));
+            if (serverxml.exists()) {
+                supported = true;
+            }
+        }
 
         // If it is determined that the input project can run on Liberty, persist the outcome (if not
         // done so already) by adding a Liberty type/nature marker to the project's metadata.
         if (supported) {
-            addLibertyNature(project);
+            addLibertyNature(iProject);
         }
 
         return supported;
@@ -287,10 +253,10 @@ public class Project {
             Trace.getTracer().traceExit(Trace.TRACE_UTILS, new Object[] { project, newNatures });
         }
     }
-    
+
     @Override
     public String toString() {
-        return "IProject = " + project.toString();
+        return "IProject: " + iProject.toString() + ". Muti-module: " + multiModule;
     }
-    
+
 }

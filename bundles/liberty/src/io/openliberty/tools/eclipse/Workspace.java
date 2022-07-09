@@ -10,14 +10,12 @@
 * Contributors:
 *     IBM Corporation - initial implementation
 *******************************************************************************/
-package io.openliberty.tools.eclipse.utils;
+package io.openliberty.tools.eclipse;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -26,7 +24,6 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 
-import io.openliberty.tools.eclipse.Project;
 import io.openliberty.tools.eclipse.logging.Trace;
 
 /**
@@ -35,13 +32,25 @@ import io.openliberty.tools.eclipse.logging.Trace;
 public class Workspace {
 
     /**
+     * Map that holds the current set of installed Projects to display on the dashboard.
+     */
+    public ConcurrentHashMap<String, Project> dashboardProjects;
+
+    /**
+     * Constructor.
+     */
+    public Workspace() {
+        dashboardProjects = new ConcurrentHashMap<String, Project>();
+    }
+
+    /**
      * Retrieves the IProject object associated with the input name.
      *
      * @param name The name of the project.
      *
      * @return The IProject object associated with the input name.
      */
-    public static IProject getOpenProjectByName(String name) {
+    public IProject getProjectByName(String name) {
 
         try {
             IWorkspaceRoot workspaceRoot = ResourcesPlugin.getWorkspace().getRoot();
@@ -64,17 +73,17 @@ public class Workspace {
      *
      * @return A map projects from the workspace that are each themselves NOT nested/contained in another workspace project
      */
-    public static Map<String, Project> getTopLevelWorkspaceProjects() {
+    private Map<String, Project> getTopLevelWorkspaceProjects() {
         IWorkspaceRoot workspaceRoot = ResourcesPlugin.getWorkspace().getRoot();
         IProject[] iProjects = workspaceRoot.getProjects();
-        HashMap<String, Project> projects = new HashMap<String, Project>();
-        
+        ConcurrentHashMap<String, Project> projects = new ConcurrentHashMap<String, Project>();
+
         for (IProject iProject : iProjects) {
             projects.put(iProject.getLocation().toOSString(), new Project(iProject));
         }
 
         try {
-        	for (IProject iProject : iProjects) {
+            for (IProject iProject : iProjects) {
                 boolean multimodSet = false;
 
                 for (IResource res : iProject.members()) {
@@ -112,26 +121,38 @@ public class Workspace {
     }
 
     /**
+     * Returns the project associated with the input name.
+     * 
+     * @param name The name of the project.
+     * 
+     * @return The project associated with the input name.
+     */
+    public Project getDashboardProject(String name) {
+        return dashboardProjects.get(name);
+    }
+
+    /**
      * Returns the list of projects that are configured to run on Liberty.
      *
      * @return The list of projects that are configured to run on Liberty.
      *
      * @throws Exception
      */
-    public static List<String> getDashboardProjects(boolean refresh) throws Exception {
+    public List<String> getDashboardProjects() throws Exception {
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_UTILS, refresh);
+            Trace.getTracer().traceEntry(Trace.TRACE_UTILS);
         }
-        
-        ArrayList<String> finalList = new ArrayList<String>();
 
         Map<String, Project> projectList = getTopLevelWorkspaceProjects();
-
+        ConcurrentHashMap<String, Project> finalDashboardContent = new ConcurrentHashMap<String, Project>();
         for (Project p : projectList.values()) {
             if (p.isSupported()) {
-                finalList.add(p.getProject().getName());
-            } 
+                finalDashboardContent.put(p.getProject().getName(), p);
+            }
         }
+
+        dashboardProjects = finalDashboardContent;
+        ArrayList<String> finalList = new ArrayList<String>(dashboardProjects.keySet());
 
         if (Trace.isEnabled()) {
             Trace.getTracer().traceExit(Trace.TRACE_UTILS, finalList);

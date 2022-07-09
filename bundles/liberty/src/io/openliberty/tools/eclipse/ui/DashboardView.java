@@ -35,7 +35,6 @@ import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.Project;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.utils.Dialog;
-import io.openliberty.tools.eclipse.utils.Workspace;
 
 /**
  * View of Liberty application projects and dev mode actions to be processed on the selected projects.
@@ -77,7 +76,7 @@ public class DashboardView extends ViewPart {
      * Class instances.
      */
     private ListViewer viewer;
-    public static DevModeOperations devMode = new DevModeOperations();
+    public static DevModeOperations devModeOps = new DevModeOperations();
 
     /**
      * {@inheritDoc}
@@ -89,7 +88,7 @@ public class DashboardView extends ViewPart {
         viewer.setLabelProvider(new LabelProvider());
 
         try {
-            viewer.setInput(Workspace.getDashboardProjects(false));
+            viewer.setInput(devModeOps.getDashboardProjects());
         } catch (Exception e) {
             String msg = "An error was detected while retrieving Liberty projects.";
             if (Trace.isEnabled()) {
@@ -147,7 +146,9 @@ public class DashboardView extends ViewPart {
      * @param mgr The menu manager.
      */
     private void addActionsToContextMenu(IMenuManager mgr) {
-        IProject project = devMode.getSelectedDashboardProject();
+        IProject iProject = devModeOps.getSelectedDashboardProject();
+        String projectName = iProject.getName();
+        Project project = devModeOps.getDashboardProject(projectName);
 
         if (project != null) {
             mgr.add(startAction);
@@ -156,13 +157,13 @@ public class DashboardView extends ViewPart {
             mgr.add(stopAction);
             mgr.add(runTestAction);
 
-            if (Project.isMaven(project)) {
+            if (project.isMaven()) {
                 mgr.add(viewMavenITestReportsAction);
                 mgr.add(viewMavenUTestReportsAction);
-            } else if (Project.isGradle(project)) {
+            } else if (project.isGradle()) {
                 mgr.add(viewGradleTestReportsAction);
             } else {
-                Dialog.displayErrorMessage("Project" + project.getName() + "is not a Gradle or Maven project.");
+                Dialog.displayErrorMessage("Project" + projectName + "is not a Gradle or Maven project.");
                 return;
             }
         }
@@ -193,7 +194,7 @@ public class DashboardView extends ViewPart {
         startAction = new Action(APP_MENU_ACTION_START) {
             @Override
             public void run() {
-                devMode.start();
+                devModeOps.start();
             }
         };
         startAction.setImageDescriptor(ActionImg);
@@ -206,7 +207,7 @@ public class DashboardView extends ViewPart {
         startWithParmAction = new Action(APP_MENU_ACTION_START_PARMS) {
             @Override
             public void run() {
-                devMode.startWithParms();
+                devModeOps.startWithParms();
             }
         };
         startWithParmAction.setImageDescriptor(ActionImg);
@@ -218,7 +219,7 @@ public class DashboardView extends ViewPart {
         startInContainerAction = new Action(APP_MENU_ACTION_START_IN_CONTAINER) {
             @Override
             public void run() {
-                devMode.startInContainer();
+                devModeOps.startInContainer();
             }
         };
         startInContainerAction.setImageDescriptor(ActionImg);
@@ -230,7 +231,7 @@ public class DashboardView extends ViewPart {
         stopAction = new Action(APP_MENU_ACTION_STOP) {
             @Override
             public void run() {
-                devMode.stop();
+                devModeOps.stop();
             }
         };
         stopAction.setImageDescriptor(ActionImg);
@@ -242,7 +243,7 @@ public class DashboardView extends ViewPart {
         runTestAction = new Action(APP_MENU_ACTION_RUN_TESTS) {
             @Override
             public void run() {
-                devMode.runTests();
+                devModeOps.runTests();
             }
         };
         runTestAction.setImageDescriptor(ActionImg);
@@ -254,7 +255,7 @@ public class DashboardView extends ViewPart {
         viewMavenITestReportsAction = new Action(APP_MENU_ACTION_VIEW_MVN_IT_REPORT) {
             @Override
             public void run() {
-                devMode.openMavenIntegrationTestReport();
+                devModeOps.openMavenIntegrationTestReport();
             }
         };
         viewMavenITestReportsAction.setImageDescriptor(ActionImg);
@@ -266,7 +267,7 @@ public class DashboardView extends ViewPart {
         viewMavenUTestReportsAction = new Action(APP_MENU_ACTION_VIEW_MVN_UT_REPORT) {
             @Override
             public void run() {
-                devMode.openMavenUnitTestReport();
+                devModeOps.openMavenUnitTestReport();
             }
         };
         viewMavenUTestReportsAction.setImageDescriptor(ActionImg);
@@ -278,7 +279,7 @@ public class DashboardView extends ViewPart {
         viewGradleTestReportsAction = new Action(APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT) {
             @Override
             public void run() {
-                devMode.openGradleTestReport();
+                devModeOps.openGradleTestReport();
             }
         };
         viewGradleTestReportsAction.setImageDescriptor(ActionImg);
@@ -291,7 +292,7 @@ public class DashboardView extends ViewPart {
             @Override
             public void run() {
                 try {
-                    viewer.setInput(Workspace.getDashboardProjects(true));
+                    viewer.setInput(devModeOps.getDashboardProjects());
                 } catch (Exception e) {
                     Dialog.displayErrorMessageWithDetails("An error was detected while retrieving Liberty projects.", e);
                     return;
