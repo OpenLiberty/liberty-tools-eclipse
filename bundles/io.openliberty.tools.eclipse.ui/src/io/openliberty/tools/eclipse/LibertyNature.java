@@ -21,7 +21,7 @@ import org.eclipse.core.runtime.CoreException;
  */
 public class LibertyNature implements IProjectNature {
     // NATURE_ID must follow the following convention: <bundle-symbolic-name> . <singleWordNatureId-in-plugin.xml>
-    public static final String NATURE_ID = "liberty.libertyNature";
+    public static final String NATURE_ID = "io.openliberty.tools.eclipse.ui.libertyNature";
     private IProject project;
 
     @Override

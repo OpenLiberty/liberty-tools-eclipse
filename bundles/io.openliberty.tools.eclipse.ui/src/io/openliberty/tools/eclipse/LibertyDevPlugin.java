@@ -27,8 +27,10 @@ import io.openliberty.tools.eclipse.logging.Trace;
 public class LibertyDevPlugin extends AbstractUIPlugin {
 
     // The plug-in ID
-    public static final String PLUGIN_ID = "liberty";
+    public static final String PLUGIN_ID = "io.openliberty.tools.eclipse.ui";
 
+    public static final String DEBUG_OPTIONS_ID = "liberty";
+    
     // The shared instance
     private static LibertyDevPlugin plugin;
 
@@ -45,7 +47,7 @@ public class LibertyDevPlugin extends AbstractUIPlugin {
 
         // Register the trace listener.
         Hashtable<String, String> props = new Hashtable<String, String>();
-        props.put(DebugOptions.LISTENER_SYMBOLICNAME, LibertyDevPlugin.PLUGIN_ID);
+        props.put(DebugOptions.LISTENER_SYMBOLICNAME, LibertyDevPlugin.DEBUG_OPTIONS_ID);
         context.registerService(DebugOptionsListener.class.getName(), new Trace(), props);
     }
 

@@ -24,7 +24,7 @@
         <relativePath>../../pom.xml</relativePath>
     </parent>
     
-    <artifactId>liberty-mpls</artifactId>
+    <artifactId>io.openliberty.tools.eclipse.lsp4e</artifactId>
     
     <packaging>eclipse-plugin</packaging>
 
