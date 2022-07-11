@@ -29,7 +29,7 @@ public class LibertyDevPlugin extends AbstractUIPlugin {
     // The plug-in ID
     public static final String PLUGIN_ID = "io.openliberty.tools.eclipse.ui";
 
-    public static final String DEBUG_OPTIONS_ID = "liberty";
+    public static final String DEBUG_OPTIONS_ID = "io.openliberty.tools.eclipse";
     
     // The shared instance
     private static LibertyDevPlugin plugin;
