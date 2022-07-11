@@ -91,7 +91,6 @@ public class LibertyPluginTestUtils {
 						int counter = 0;
 						if (counter <= 5) {
 							counter++;
-							System.out.println("AJM: sleeping");
 							Thread.sleep(reryIntervalSecs * 1000);
 						}
 						con.disconnect();

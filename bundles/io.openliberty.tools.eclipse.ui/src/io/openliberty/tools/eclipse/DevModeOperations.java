@@ -72,27 +72,14 @@ public class DevModeOperations {
      */
     private ProjectTabController projectTabController;
     
-    private String previousPathString;
-    private String mvnCmd;
-    private String gradleCmd;
+    private String pathEnv;
 
     /**
      * Constructor.
      */
     public DevModeOperations() {
         projectTabController = ProjectTabController.getInstance();
-        // prepare the mvn and gradle commands
-        
-        if (isWindows()) {
-			mvnCmd = "mvn.cmd";
-			gradleCmd = "gradle.bat";
-		}
-		else {
-			previousPathString = System.getenv("PATH");
-			mvnCmd = getCmdInstallLocation(previousPathString, "mvn");
-			gradleCmd = getCmdInstallLocation(previousPathString, "gradle");
-		}
-        
+        pathEnv = System.getenv("PATH");
     }
 
     /**
@@ -100,7 +87,7 @@ public class DevModeOperations {
      *
      * @return True if the underlying OS is windows. False, otherwise.
      */
-    private boolean isWindows() {
+    public boolean isWindows() {
         return System.getProperty("os.name").contains("Windows");
     }
 
@@ -837,48 +824,23 @@ public class DevModeOperations {
      *
      * @return The full Maven command to run on the terminal.
      */
-    private String getMavenCommand(String projectPath, String cmdArgs) {
-        String mvnWrapperCmd = null;
+    public String getMavenCommand(String projectPath, String cmdArgs) {
+        String cmd = null;
 
         // Check if there is wrapper defined.
-		Path p2mw = (isWindows()) ? Paths.get(projectPath, "mvnw.cmd") : Paths.get(projectPath, "mvnw");
-		Path p2mwJar = Paths.get(projectPath, ".mvn", "wrapper", "maven-wrapper.jar");
-		Path p2mwProps = Paths.get(projectPath, ".mvn", "wrapper", "maven-wrapper.properties");
+        Path p2mw = (isWindows()) ? Paths.get(projectPath, "mvnw.cmd") : Paths.get(projectPath, "mvnw");
+        Path p2mwJar = Paths.get(projectPath, ".mvn", "wrapper", "maven-wrapper.jar");
+        Path p2mwProps = Paths.get(projectPath, ".mvn", "wrapper", "maven-wrapper.properties");
 
-		if (p2mw.toFile().exists() && p2mwJar.toFile().exists() && p2mwProps.toFile().exists()) {
-			mvnWrapperCmd = p2mw.toString();
-		} else {
-			// no wrapper defined, use the system mvn installation
-			if (!isWindows()) {
-
-				// On mac and linux, get the system PATH setting and check if it has been
-				// changed
-				String currentPath = System.getenv("PATH");
-				if (!currentPath.equals(previousPathString)) {
-					// if changed, process it for a potentially new maven command location
-					previousPathString = currentPath;
-					mvnCmd = getCmdInstallLocation(previousPathString, "mvn");
-				}
-			}
-		}
-        
-        // Put it all together.
-        StringBuilder sb = new StringBuilder();
-        if (mvnWrapperCmd != null) {
-        	sb.append(mvnWrapperCmd).append(" ").append(cmdArgs);
-        }
-        else {
-        	sb.append(mvnCmd).append(" ").append(cmdArgs);
+        if (p2mw.toFile().exists() && p2mwJar.toFile().exists() && p2mwProps.toFile().exists()) {
+            cmd = p2mw.toString();
+        } else {
+            cmd = getCmdFromPath(isWindows() ? "mvn.cmd" : "mvn");
         }
         
-        if (isWindows()) {
-            // Include trailing space for separation
-            sb.insert(0, "/c ");
-        }
-
-        return sb.toString();
+        return getCommandFromArgs(cmd, cmdArgs);
     }
-
+    
     /**
      * Returns the full Gradle command to run on the terminal.
      *
@@ -887,65 +849,58 @@ public class DevModeOperations {
      *
      * @return The full Gradle command to run on the terminal.
      */
-    private String getGradleCommand(String projectPath, String cmdArgs) {
+    public String getGradleCommand(String projectPath, String cmdArgs) {
 
-        String gradleWrapperCmd = null;
+        String cmd = null;
 
+        // Check if there is wrapper defined.
+        Path p2gw = (isWindows()) ? Paths.get(projectPath, "gradlew.bat") : Paths.get(projectPath, "gradlew");
+        Path p2gwJar = Paths.get(projectPath, "gradle", "wrapper", "gradle-wrapper.jar");
+        Path p2gwProps = Paths.get(projectPath, "gradle", "wrapper", "gradle-wrapper.properties");
 
-		// Check if there is wrapper defined.
-		Path p2gw = (isWindows()) ? Paths.get(projectPath, "gradlew.cmd") : Paths.get(projectPath, "gradlew");
-		Path p2gwJar = Paths.get(projectPath, "gradle", "wrapper", "gradle-wrapper.jar");
-		Path p2gwProps = Paths.get(projectPath, "gradle", "wrapper", "gradle-wrapper.properties");
+        if (p2gw.toFile().exists() && p2gwJar.toFile().exists() && p2gwProps.toFile().exists()) {
+            cmd = p2gw.toString();
+        } else {
+            cmd = getCmdFromPath(isWindows() ? "gradle.bat" : "gradle");
+        }
 
-		if (p2gw.toFile().exists() && p2gwJar.toFile().exists() && p2gwProps.toFile().exists()) {
-			gradleWrapperCmd = p2gw.toString();
-		} else {
-			// no wrapper defined, use the system gradle installation
-			if (!isWindows()) {
+        return getCommandFromArgs(cmd, cmdArgs);
+    }
+    
 
-				// On mac and linux, get the system PATH setting and check if it has been
-				// changed
-				String currentPath = System.getenv("PATH");
-				if (!currentPath.equals(previousPathString)) {
-					// if changed, process it for a potentially new maven command location
-					previousPathString = currentPath;
-					gradleCmd = getCmdInstallLocation(previousPathString, "gradle");
-				}
-			}
-		}
-
+    private String getCommandFromArgs(String cmd, String cmdArgs) {
         // Put it all together.
         StringBuilder sb = new StringBuilder();
-        if (gradleWrapperCmd != null) {
-        	sb.append(gradleWrapperCmd).append(" ").append(cmdArgs);
+        if (cmd != null) {
+            sb.append(cmd).append(" ").append(cmdArgs);
+            if (isWindows()) {
+                // Include trailing space for separation
+                sb.insert(0, "/c ");
+            }
         }
-        else {
-        	sb.append(gradleCmd).append(" ").append(cmdArgs);
-        }
-
-        if (isWindows()) {
-            // Include trailing space for separation
-            sb.insert(0, "/c ");
-        }
-
+        
         return sb.toString();
     }
     
-    private String getCmdInstallLocation(String path, String cmd) {
-    	
-    	String foundCmd = null;
-    	
-		String[] pathMembers = path.split(":");
-		for (int s = 0; s < pathMembers.length; s++) {
-			File tempFile = new File(pathMembers[s] + "/" + cmd);
+    private String getCmdFromPath(String cmd) throws IllegalStateException {
+        
+        String foundCmd = null;
+        
+        String[] pathMembers = pathEnv.split(File.pathSeparator);
+        for (int s = 0; s < pathMembers.length; s++) {
+            File tempFile = new File(pathMembers[s] + File.separator + cmd);
 
-			if (tempFile.exists()) {
-				foundCmd = tempFile.getPath();
-				break;
-			}
-		}
-		
-		return foundCmd;
+            if (tempFile.exists()) {
+                foundCmd = tempFile.getPath();
+                break;
+            }
+        }
+        
+        if (foundCmd == null) {
+            throw new IllegalStateException("Couldn't find command: " + cmd + " on PATH env var");
+        }
+        
+        return foundCmd;
     }
 
     /**
