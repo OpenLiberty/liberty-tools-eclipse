@@ -27,7 +27,7 @@
       <content-type
             base-type="org.eclipse.core.runtime.text"
             file-names="microprofile-config.properties"
-            id="io.openliberty.tools.org.microprofile.tools.microprofile.mp-properties"
+            id="io.openliberty.tools.eclipse.org.microprofile.tools.microprofile.mp-properties"
             name="Microprofile Properties"
             priority="normal">
       </content-type>
@@ -38,7 +38,7 @@
       <content-type
             base-type="org.eclipse.core.runtime.xml"
             file-names="server.xml"
-            id="io.openliberty.tools.liberty.server.xml"
+            id="io.openliberty.tools.eclipse.liberty.server.xml"
             name="Liberty Server Config XML"
             priority="normal">
       </content-type>
@@ -58,14 +58,14 @@
    
    <extension point="org.eclipse.ui.editors">
       <editorContentTypeBinding
-            contentTypeId="io.openliberty.tools.org.microprofile.tools.microprofile.mp-properties"
+            contentTypeId="io.openliberty.tools.eclipse.org.microprofile.tools.microprofile.mp-properties"
             editorId="org.eclipse.ui.genericeditor.GenericEditor">
       </editorContentTypeBinding>
    </extension>
    
    <extension point="org.eclipse.ui.editors">
       <editorContentTypeBinding
-            contentTypeId="io.openliberty.tools.liberty.server.xml"
+            contentTypeId="io.openliberty.tools.eclipse.liberty.server.xml"
             editorId="org.eclipse.ui.genericeditor.GenericEditor">
       </editorContentTypeBinding>
    </extension>   
@@ -75,18 +75,18 @@
       <server
             class="io.openliberty.tools.eclipse.mpls.LibertyMPLSConnection"
             clientImpl="io.openliberty.tools.eclipse.mpls.LibertyMPLSClientImpl"
-            id="io.openliberty.tools.org.microprofile.mpserver"
+            id="io.openliberty.tools.eclipse.org.microprofile.mpserver"
             serverInterface="org.eclipse.lsp4mp.ls.api.MicroProfileLanguageServerAPI"
             label="Liberty MicroProfile Language Server"
             singleton="true">
       </server>
       <contentTypeMapping
-            contentType="io.openliberty.tools.org.microprofile.tools.microprofile.mp-properties"
-            id="io.openliberty.tools.org.microprofile.mpserver">
+            contentType="io.openliberty.tools.eclipse.org.microprofile.tools.microprofile.mp-properties"
+            id="io.openliberty.tools.eclipse.org.microprofile.mpserver">
       </contentTypeMapping>
       <contentTypeMapping
             contentType="org.eclipse.jdt.core.javaSource"
-            id="io.openliberty.tools.org.microprofile.mpserver">
+            id="io.openliberty.tools.eclipse.org.microprofile.mpserver">
       </contentTypeMapping>  
    </extension>
       

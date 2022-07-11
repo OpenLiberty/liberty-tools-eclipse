@@ -1,0 +1,8 @@
+# Global logging switch.
+io.openliberty.tools.eclipse/debug=false
+
+# Package traces.
+io.openliberty.tools.eclipse/trace/tools=false
+io.openliberty.tools.eclipse/trace/handlers=false
+io.openliberty.tools.eclipse/trace/ui=false
+io.openliberty.tools.eclipse/trace/utils=false

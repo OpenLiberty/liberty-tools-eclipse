@@ -203,7 +203,7 @@
             id="io.openliberty.tools.eclipse.trace"
             label="Liberty Tools">
          <bundle
-               name="liberty">
+               name="io.openliberty.tools.eclipse.ui">
          </bundle>
       </component>
   </extension>

@@ -12,7 +12,7 @@
       IBM Corporation - initial implementation
 -->
 <feature
-      id="io.openliberty.tools.feature"
+      id="io.openliberty.tools.eclipse.feature"
       label="Liberty Tools"
       version="0.1.0"
       provider-name="Open Liberty">
@@ -30,14 +30,14 @@
    </license>
 
    <plugin
-         id="liberty"
+         id="io.openliberty.tools.eclipse.ui"
          download-size="0"
          install-size="0"
          version="0.1.0"
          unpack="false"/>
 
    <plugin
-         id="liberty-mpls"
+         id="io.openliberty.tools.eclipse.lsp4e"
          download-size="0"
          install-size="0"
          version="0.1.0"

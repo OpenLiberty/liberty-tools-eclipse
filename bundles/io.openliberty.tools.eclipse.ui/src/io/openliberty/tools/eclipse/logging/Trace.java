@@ -70,8 +70,8 @@ public class Trace implements DebugOptionsListener {
     @Override
     public void optionsChanged(DebugOptions options) {
         if (debugTracer == null) {
-            debugTracer = options.newDebugTrace("liberty");
+            debugTracer = options.newDebugTrace(LibertyDevPlugin.DEBUG_OPTIONS_ID);
         }
-        debugEnabled = options.getBooleanOption(LibertyDevPlugin.PLUGIN_ID + DEBUG, false);
+        debugEnabled = options.getBooleanOption(LibertyDevPlugin.DEBUG_OPTIONS_ID + DEBUG, false);
     }
 }

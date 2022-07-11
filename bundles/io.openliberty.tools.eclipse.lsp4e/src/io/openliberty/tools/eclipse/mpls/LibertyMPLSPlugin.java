@@ -24,7 +24,7 @@ import org.osgi.framework.BundleContext;
 public class LibertyMPLSPlugin extends AbstractUIPlugin {
 
 	// The plug-in ID
-	public static final String PLUGIN_ID = "liberty"; //$NON-NLS-1$
+	public static final String PLUGIN_ID = "io.openliberty.tools.eclipse.lsp4e"; //$NON-NLS-1$
 
 	// The shared instance
 	private static LibertyMPLSPlugin plugin;
