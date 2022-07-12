@@ -12,6 +12,10 @@
 *******************************************************************************/
 package io.openliberty.tools.eclipse;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -67,12 +71,15 @@ public class DevModeOperations {
      * Project terminal tab controller instance.
      */
     private ProjectTabController projectTabController;
+    
+    private String pathEnv;
 
     /**
      * Constructor.
      */
     public DevModeOperations() {
         projectTabController = ProjectTabController.getInstance();
+        pathEnv = System.getenv("PATH");
     }
 
     /**
@@ -80,7 +87,7 @@ public class DevModeOperations {
      *
      * @return True if the underlying OS is windows. False, otherwise.
      */
-    private boolean isWindows() {
+    public boolean isWindows() {
         return System.getProperty("os.name").contains("Windows");
     }
 
@@ -810,41 +817,6 @@ public class DevModeOperations {
     }
 
     /**
-     * Returns the home path to the Maven installation.
-     *
-     * @return The home path to the Maven installation, or null if not found.
-     */
-    private String getMavenInstallHome() {
-        String mvnInstall = null;
-        // TODO: 1. Find the eclipse->maven configured install path
-
-        // 2. Check for associated environment variable.
-        if (mvnInstall == null) {
-            mvnInstall = System.getenv("MAVEN_HOME");
-
-            if (mvnInstall == null) {
-                mvnInstall = System.getenv("M2_MAVEN");
-            }
-        }
-
-        return mvnInstall;
-    }
-
-    /**
-     * Returns the home path to the Gradle installation.
-     *
-     * @return The home path to the Gradle installation, or null if not found.
-     */
-    private String getGradleInstallHome() {
-        // TODO: 1. Find the eclipse->gradle configured install path.
-
-        // 2. Check for associated environment variable.
-        String gradleInstall = System.getenv("GRADLE_HOME");
-
-        return gradleInstall;
-    }
-
-    /**
      * Returns the full Maven command to run on the terminal.
      *
      * @param projectPath The project's path.
@@ -852,46 +824,23 @@ public class DevModeOperations {
      *
      * @return The full Maven command to run on the terminal.
      */
-    private String getMavenCommand(String projectPath, String cmdArgs) {
-        String baseCmd = null;
-        String mvnCmd = null;
+    public String getMavenCommand(String projectPath, String cmdArgs) {
+        String cmd = null;
 
-        // 1. Check if there is wrapper defined.
+        // Check if there is wrapper defined.
         Path p2mw = (isWindows()) ? Paths.get(projectPath, "mvnw.cmd") : Paths.get(projectPath, "mvnw");
         Path p2mwJar = Paths.get(projectPath, ".mvn", "wrapper", "maven-wrapper.jar");
         Path p2mwProps = Paths.get(projectPath, ".mvn", "wrapper", "maven-wrapper.properties");
 
         if (p2mw.toFile().exists() && p2mwJar.toFile().exists() && p2mwProps.toFile().exists()) {
-            mvnCmd = p2mw.toString();
+            cmd = p2mw.toString();
         } else {
-            baseCmd = isWindows() ? "mvn.cmd" : "mvn";
+            cmd = getCmdFromPath(isWindows() ? "mvn.cmd" : "mvn");
         }
-
-        // 2. Check if an environment variable was defined to point to the Maven installation.
-        if (mvnCmd == null) {
-            String mvnInstallPath = getMavenInstallHome();
-            if (mvnInstallPath != null) {
-                mvnCmd = Paths.get(mvnInstallPath, "bin", baseCmd).toString();
-            }
-        }
-
-        // 3. Use the base command.
-        if (mvnCmd == null) {
-            mvnCmd = baseCmd;
-        }
-
-        // Put it all together.
-        StringBuilder sb = new StringBuilder();
-        sb.append(mvnCmd).append(" ").append(cmdArgs);
-
-        if (isWindows()) {
-            // Include trailing space for separation
-            sb.insert(0, "/c ");
-        }
-
-        return sb.toString();
+        
+        return getCommandFromArgs(cmd, cmdArgs);
     }
-
+    
     /**
      * Returns the full Gradle command to run on the terminal.
      *
@@ -900,45 +849,58 @@ public class DevModeOperations {
      *
      * @return The full Gradle command to run on the terminal.
      */
-    private String getGradleCommand(String projectPath, String cmdArgs) {
+    public String getGradleCommand(String projectPath, String cmdArgs) {
 
-        String baseCmd = null;
-        String gradleCmd = null;
+        String cmd = null;
 
-        // 1. Check if there is wrapper defined.
-        Path p2gw = (isWindows()) ? Paths.get(projectPath, "gradlew.cmd") : Paths.get(projectPath, "gradlew");
+        // Check if there is wrapper defined.
+        Path p2gw = (isWindows()) ? Paths.get(projectPath, "gradlew.bat") : Paths.get(projectPath, "gradlew");
         Path p2gwJar = Paths.get(projectPath, "gradle", "wrapper", "gradle-wrapper.jar");
         Path p2gwProps = Paths.get(projectPath, "gradle", "wrapper", "gradle-wrapper.properties");
 
         if (p2gw.toFile().exists() && p2gwJar.toFile().exists() && p2gwProps.toFile().exists()) {
-            gradleCmd = p2gw.toString();
+            cmd = p2gw.toString();
         } else {
-            baseCmd = isWindows() ? "gradle.bat" : "gradle";
+            cmd = getCmdFromPath(isWindows() ? "gradle.bat" : "gradle");
         }
 
-        // 2. Check if an environment variable was defined to point to the Gradle installation.
-        if (gradleCmd == null) {
-            String gradleInstallPath = getGradleInstallHome();
-            if (gradleInstallPath != null) {
-                gradleCmd = Paths.get(gradleInstallPath, "bin", baseCmd).toString();
-            }
-        }
+        return getCommandFromArgs(cmd, cmdArgs);
+    }
+    
 
-        // 3. Use the base command.
-        if (gradleCmd == null) {
-            gradleCmd = baseCmd;
-        }
-
+    private String getCommandFromArgs(String cmd, String cmdArgs) {
         // Put it all together.
         StringBuilder sb = new StringBuilder();
-        sb.append(gradleCmd).append(" ").append(cmdArgs);
-
-        if (isWindows()) {
-            // Include trailing space for separation
-            sb.insert(0, "/c ");
+        if (cmd != null) {
+            sb.append(cmd).append(" ").append(cmdArgs);
+            if (isWindows()) {
+                // Include trailing space for separation
+                sb.insert(0, "/c ");
+            }
         }
-
+        
         return sb.toString();
+    }
+    
+    private String getCmdFromPath(String cmd) throws IllegalStateException {
+        
+        String foundCmd = null;
+        
+        String[] pathMembers = pathEnv.split(File.pathSeparator);
+        for (int s = 0; s < pathMembers.length; s++) {
+            File tempFile = new File(pathMembers[s] + File.separator + cmd);
+
+            if (tempFile.exists()) {
+                foundCmd = tempFile.getPath();
+                break;
+            }
+        }
+        
+        if (foundCmd == null) {
+            throw new IllegalStateException("Couldn't find command: " + cmd + " on PATH env var");
+        }
+        
+        return foundCmd;
     }
 
     /**

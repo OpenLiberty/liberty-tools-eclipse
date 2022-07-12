@@ -153,6 +153,7 @@ public class SWTPluginOperations {
         SWTBotRootMenu appCtxMenu = getAppContextMenu(bot, dashboard, item);
         SWTBotMenu startAction = appCtxMenu.contextMenu(DashboardView.APP_MENU_ACTION_START);
         startAction.click();
+
     }
 
     /**
