@@ -15,6 +15,7 @@ package io.openliberty.tools.eclipse.test.it.utils;
 import static org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory.allOf;
 import static org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory.widgetOfType;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -26,11 +27,11 @@ import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotEditor;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotView;
 import org.eclipse.swtbot.swt.finder.utils.SWTUtils;
-import org.eclipse.swtbot.swt.finder.widgets.SWTBotList;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotMenu;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotRootMenu;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotShell;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotStyledText;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotTable;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotText;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotToolbarButton;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotToolbarPushButton;
@@ -98,15 +99,20 @@ public class SWTPluginOperations {
      *
      * @return A list of entries on the Open Liberty dashboard.
      */
-    public static String[] getDashboardContent(SWTWorkbenchBot bot, SWTBotView dashboard) {
+    public static List<String> getDashboardContent(SWTWorkbenchBot bot, SWTBotView dashboard) {
         if (dashboard == null) {
             SWTPluginOperations.openDashboardUsingMenu(bot);
         } else {
             dashboard.show();
         }
 
-        SWTBotList dashboardContent = bot.list();
-        return dashboardContent.getItems();
+        SWTBotTable dashboardTable = bot.table();
+        ArrayList<String> contentList = new ArrayList<String>();
+        for (int i = 0; i < dashboardTable.rowCount(); i++) {
+            contentList.add(dashboardTable.getTableItem(i).getText());
+        }
+
+        return contentList;
     }
 
     /**
@@ -126,9 +132,9 @@ public class SWTPluginOperations {
         }
 
         SWTPluginOperations.openDashboardUsingMenu(bot);
-        SWTBotList dashboardContent = bot.list();
-        dashboardContent.select(item);
-        SWTBotRootMenu appCtxMenu = dashboardContent.contextMenu();
+        SWTBotTable dashboardTable = bot.table();
+        dashboardTable.select(item);
+        SWTBotRootMenu appCtxMenu = dashboardTable.contextMenu();
         return appCtxMenu.menuItems();
     }
 
@@ -153,7 +159,6 @@ public class SWTPluginOperations {
         SWTBotRootMenu appCtxMenu = getAppContextMenu(bot, dashboard, item);
         SWTBotMenu startAction = appCtxMenu.contextMenu(DashboardView.APP_MENU_ACTION_START);
         startAction.click();
-
     }
 
     /**
@@ -213,7 +218,7 @@ public class SWTPluginOperations {
         SWTBotMenu itReport = appCtxMenu.contextMenu(DashboardView.APP_MENU_ACTION_VIEW_MVN_IT_REPORT);
         itReport.click();
 
-        bot.waitUntil(SWTTestCondition.isEditorActive(bot, DevModeOperations.BROWSER_MVN_IT_RESULT_NAME), 5000);
+        bot.waitUntil(SWTTestCondition.isEditorActive(bot, item + " " + DevModeOperations.BROWSER_MVN_IT_REPORT_NAME_SUFFIX), 5000);
     }
 
     /**
@@ -228,7 +233,7 @@ public class SWTPluginOperations {
         SWTBotMenu utReport = appCtxMenu.contextMenu(DashboardView.APP_MENU_ACTION_VIEW_MVN_UT_REPORT);
         utReport.click();
 
-        bot.waitUntil(SWTTestCondition.isEditorActive(bot, DevModeOperations.BROWSER_MVN_IT_RESULT_NAME), 5000);
+        bot.waitUntil(SWTTestCondition.isEditorActive(bot, item + " " + DevModeOperations.BROWSER_MVN_UT_REPORT_NAME_SUFFIX), 5000);
     }
 
     /**
@@ -243,7 +248,7 @@ public class SWTPluginOperations {
         SWTBotMenu testReport = appCtxMenu.contextMenu(DashboardView.APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT);
         testReport.click();
 
-        bot.waitUntil(SWTTestCondition.isEditorActive(bot, DevModeOperations.BROWSER_MVN_IT_RESULT_NAME), 5000);
+        bot.waitUntil(SWTTestCondition.isEditorActive(bot, item + " " + DevModeOperations.BROWSER_GRADLE_TEST_REPORT_NAME_SUFFIX), 5000);
     }
 
     /**
@@ -362,9 +367,9 @@ public class SWTPluginOperations {
             dashboard.setFocus();
         }
 
-        SWTBotList dashboardContent = bot.list();
-        dashboardContent.select(item);
-        return dashboardContent.contextMenu();
+        SWTBotTable dashboardTable = bot.table();
+        dashboardTable.select(item);
+        return dashboardTable.contextMenu();
     }
 
     /**

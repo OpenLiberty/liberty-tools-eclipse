@@ -10,14 +10,12 @@
 * Contributors:
 *     IBM Corporation - initial implementation
 *******************************************************************************/
-package io.openliberty.tools.eclipse.utils;
+package io.openliberty.tools.eclipse;
 
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -26,37 +24,29 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 
-import io.openliberty.tools.eclipse.Project;
 import io.openliberty.tools.eclipse.logging.Trace;
 
 /**
- * Resource workspace utilities.
+ * Represents the Liberty tools dashboard.
  */
-public class Workspace {
+public class Dashboard {
 
     /**
-     * Retrieves the IProject object associated with the input name.
-     *
-     * @param name The name of the project.
-     *
-     * @return The IProject object associated with the input name.
+     * Maven projects displayed on the dashboard.
      */
-    public static IProject getOpenProjectByName(String name) {
+    public ConcurrentHashMap<String, Project> mavenProjects;
 
-        try {
-            IWorkspaceRoot workspaceRoot = ResourcesPlugin.getWorkspace().getRoot();
+    /**
+     * Gradle projects displayed on the dashboard.
+     */
+    public ConcurrentHashMap<String, Project> gradleProjects;
 
-            IProject[] projects = workspaceRoot.getProjects();
-            for (int i = 0; i < projects.length; i++) {
-                IProject project = projects[i];
-                if (project.isOpen() && (project.getName().equals(name))) {
-                    return project;
-                }
-            }
-        } catch (Exception ce) {
-
-        }
-        return null;
+    /**
+     * Constructor.
+     */
+    public Dashboard() {
+        mavenProjects = new ConcurrentHashMap<String, Project>();
+        gradleProjects = new ConcurrentHashMap<String, Project>();
     }
 
     /**
@@ -64,17 +54,17 @@ public class Workspace {
      *
      * @return A map projects from the workspace that are each themselves NOT nested/contained in another workspace project
      */
-    public static Map<String, Project> getTopLevelWorkspaceProjects() {
+    private Map<String, Project> getTopLevelWorkspaceProjects() {
         IWorkspaceRoot workspaceRoot = ResourcesPlugin.getWorkspace().getRoot();
         IProject[] iProjects = workspaceRoot.getProjects();
-        HashMap<String, Project> projects = new HashMap<String, Project>();
-        
+        ConcurrentHashMap<String, Project> projects = new ConcurrentHashMap<String, Project>();
+
         for (IProject iProject : iProjects) {
             projects.put(iProject.getLocation().toOSString(), new Project(iProject));
         }
 
         try {
-        	for (IProject iProject : iProjects) {
+            for (IProject iProject : iProjects) {
                 boolean multimodSet = false;
 
                 for (IResource res : iProject.members()) {
@@ -112,31 +102,67 @@ public class Workspace {
     }
 
     /**
-     * Returns the list of projects that are configured to run on Liberty.
-     *
-     * @return The list of projects that are configured to run on Liberty.
+     * Returns the project associated with the input name or null if none is found.
+     * 
+     * @param name The name of the project.
+     * 
+     * @return The project associated with the input name or null if none is found.
+     */
+    public Project getProject(String name) {
+        Project p = mavenProjects.get(name);
+        if (p == null) {
+            p = gradleProjects.get(name);
+        }
+        return p;
+    }
+
+    /**
+     * Retrieves and caches the set of installed projects that are to appear on the dashboard.
      *
      * @throws Exception
      */
-    public static List<String> getDashboardProjects(boolean refresh) throws Exception {
+    public void retrieveSupportedProjects() throws Exception {
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_UTILS, refresh);
+            Trace.getTracer().traceEntry(Trace.TRACE_UTILS);
         }
-        
-        ArrayList<String> finalList = new ArrayList<String>();
 
         Map<String, Project> projectList = getTopLevelWorkspaceProjects();
-
+        ConcurrentHashMap<String, Project> finalMavenContent = new ConcurrentHashMap<String, Project>();
+        ConcurrentHashMap<String, Project> finalGradleContent = new ConcurrentHashMap<String, Project>();
         for (Project p : projectList.values()) {
             if (p.isSupported()) {
-                finalList.add(p.getProject().getName());
-            } 
+                if (p.isMaven()) {
+                    finalMavenContent.put(p.getIProject().getName(), p);
+                } else if (p.isGradle()) {
+                    finalGradleContent.put(p.getIProject().getName(), p);
+                }
+            }
         }
+
+        mavenProjects = finalMavenContent;
+        gradleProjects = finalGradleContent;
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_UTILS, finalList);
+            Trace.getTracer().traceExit(Trace.TRACE_UTILS, new Object[] { mavenProjects, gradleProjects });
         }
-
-        return finalList;
     }
+
+    /**
+     * Returns a list of names associated with the Maven projects on the dashboard.
+     * 
+     * @return A list of names associated with the Maven projects on the dashboard.
+     */
+    public List<String> getMavenProjectNames() {
+        return new ArrayList<String>(mavenProjects.keySet());
+    }
+
+    /**
+     * Returns a list of names associated with the Gradle projects on the dashboard.
+     * 
+     * @return A list of names associated with the Gradle projects on the dashboard.
+     */
+    public List<String> getGradleProjectNames() {
+        return new ArrayList<String>(gradleProjects.keySet());
+    }
+
 }

@@ -12,14 +12,12 @@
 *******************************************************************************/
 package io.openliberty.tools.eclipse;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.core.resources.IProject;
@@ -42,7 +40,6 @@ import io.openliberty.tools.eclipse.ui.terminal.ProjectTab;
 import io.openliberty.tools.eclipse.ui.terminal.ProjectTab.State;
 import io.openliberty.tools.eclipse.ui.terminal.ProjectTabController;
 import io.openliberty.tools.eclipse.utils.Dialog;
-import io.openliberty.tools.eclipse.utils.Workspace;
 
 /**
  * Provides the implementation of all supported dev mode operations.
@@ -52,26 +49,28 @@ public class DevModeOperations {
     // TODO: Dashboard display: Handle the case where the project is configured to be built/run by both
     // Gradle and Maven at the same time.
 
-    // TODO: Establish a Maven/Gradle command precedence (i.e. gradlew -> gradle configured ->
-    // gradle_home).
-
     /**
      * Constants.
      */
     public static final String DEVMODE_START_PARMS_DIALOG_TITLE = "Liberty Dev Mode";
     public static final String DEVMODE_START_PARMS_DIALOG_MSG = "Specify custom parameters for the liberty dev command.";
-    public static final String BROWSER_MVN_IT_RESULT_ID = "maven.failsafe.integration.test.results";
-    public static final String BROWSER_MVN_IT_RESULT_NAME = "Maven Failsafe integration test results";
-    public static final String BROWSER_MVN_UT_RESULT_ID = "maven.project.surefire.unit.test.results";
-    public static final String BROWSER_MVN_UT_RESULT_NAME = "Maven Surefire unit test results";
-    public static final String BROWSER_GRADLE_TEST_RESULT_ID = "gradle.project.test.results";
-    public static final String BROWSER_GRADLE_TEST_RESULT_NAME = "Gradle project test results";
+    public static final String BROWSER_MVN_IT_REPORT_NAME_SUFFIX = "failsafe report";
+    public static final String BROWSER_MVN_UT_REPORT_NAME_SUFFIX = "surefire report";
+    public static final String BROWSER_GRADLE_TEST_REPORT_NAME_SUFFIX = "test report";
 
     /**
      * Project terminal tab controller instance.
      */
     private ProjectTabController projectTabController;
-    
+
+    /**
+     * Dashboard object reference.
+     */
+    private Dashboard dashboard;
+
+    /**
+     * PATH environment variable.
+     */
     private String pathEnv;
 
     /**
@@ -79,6 +78,8 @@ public class DevModeOperations {
      */
     public DevModeOperations() {
         projectTabController = ProjectTabController.getInstance();
+        dashboard = new Dashboard();
+
         pathEnv = System.getenv("PATH");
     }
 
@@ -99,13 +100,13 @@ public class DevModeOperations {
     public void start() {
         // Get the object representing the selected application project. The returned project should never be null, but check it
         // just in case it is.
-        IProject project = getSelectedDashboardProject();
+        IProject iProject = getSelectedDashboardProject();
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, project);
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, iProject);
         }
 
-        if (project == null) {
+        if (iProject == null) {
             String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_START
                     + " action. The object representing the selected project could not be found.";
             if (Trace.isEnabled()) {
@@ -116,7 +117,7 @@ public class DevModeOperations {
         }
 
         // Check if the start action has already been issued.
-        String projectName = project.getName();
+        String projectName = iProject.getName();
         State terminalState = projectTabController.getTerminalState(projectName);
         if (terminalState != null && terminalState == ProjectTab.State.STARTED) {
             // Check if the the terminal tab associated with this call was marked as closed. This scenario may occur if a previous
@@ -142,25 +143,32 @@ public class DevModeOperations {
             }
         }
 
+        Project project = null;
+
         try {
+            project = dashboard.getProject(projectName);
+            if (project == null) {
+                throw new Exception("Unable to find internal instance of project with name: " + projectName);
+            }
+
             // Get the absolute path to the application project.
-            String projectPath = Project.getPath(project);
+            String projectPath = project.getPath();
             if (projectPath == null) {
                 throw new Exception("Unable to find the path to selected project " + projectName);
             }
 
             // Prepare the Liberty plugin dev mode command.
             String cmd = "";
-            if (Project.isMaven(project)) {
+            if (project.isMaven()) {
                 cmd = getMavenCommand(projectPath, "io.openliberty.tools:liberty-maven-plugin:dev -f " + projectPath);
-            } else if (Project.isGradle(project)) {
+            } else if (project.isGradle()) {
                 cmd = getGradleCommand(projectPath, "libertyDev -p=" + projectPath);
             } else {
                 throw new Exception("Project" + projectName + "is not a Gradle or Maven project.");
             }
 
             // Start a terminal and run the application in dev mode.
-            startDevMode(cmd, project.getName(), projectPath);
+            startDevMode(cmd, projectName, projectPath);
         } catch (Exception e) {
             String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_START + " action on project "
                     + projectName;
@@ -184,13 +192,13 @@ public class DevModeOperations {
     public void startWithParms() {
         // Get the object representing the selected application project. The returned project should never be null, but check it
         // just in case it is.
-        IProject project = getSelectedDashboardProject();
+        IProject iProject = getSelectedDashboardProject();
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, project);
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, iProject);
         }
 
-        if (project == null) {
+        if (iProject == null) {
             String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_START_PARMS
                     + " action. The object representing the selected project on the dashboard could not be found.";
             Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op.");
@@ -198,7 +206,7 @@ public class DevModeOperations {
             return;
         }
 
-        String projectName = project.getName();
+        String projectName = iProject.getName();
 
         // Check if the start action has already been issued.
         State terminalState = projectTabController.getTerminalState(projectName);
@@ -226,7 +234,14 @@ public class DevModeOperations {
             }
         }
 
+        Project project = null;
+
         try {
+            project = dashboard.getProject(projectName);
+            if (project == null) {
+                throw new Exception("Unable to find internal instance of project with name: " + projectName);
+            }
+
             // Get start parameters from the user. If the user cancelled or closed the parameter dialog,
             // take that as indication that no action should take place.
             String userParms = getStartParms();
@@ -238,23 +253,23 @@ public class DevModeOperations {
             }
 
             // Get the absolute path to the application project.
-            String projectPath = Project.getPath(project);
+            String projectPath = project.getPath();
             if (projectPath == null) {
                 throw new Exception("Unable to find the path to selected project " + projectName);
             }
 
             // Prepare the Liberty plugin dev mode command.
             String cmd = "";
-            if (Project.isMaven(project)) {
+            if (project.isMaven()) {
                 cmd = getMavenCommand(projectPath, "io.openliberty.tools:liberty-maven-plugin:dev " + userParms + " -f " + projectPath);
-            } else if (Project.isGradle(project)) {
+            } else if (project.isGradle()) {
                 cmd = getGradleCommand(projectPath, "libertyDev " + userParms + " -p=" + projectPath);
             } else {
                 throw new Exception("Project" + projectName + "is not a Gradle or Maven project.");
             }
 
             // Start a terminal and run the application in dev mode.
-            startDevMode(cmd, project.getName(), projectPath);
+            startDevMode(cmd, projectName, projectPath);
         } catch (Exception e) {
             String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_START_PARMS + " action on project "
                     + projectName + ".";
@@ -278,13 +293,13 @@ public class DevModeOperations {
     public void startInContainer() {
         // Get the object representing the selected application project. The returned project should never be null, but check it
         // just in case it is.
-        IProject project = getSelectedDashboardProject();
+        IProject iProject = getSelectedDashboardProject();
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, project);
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, iProject);
         }
 
-        if (project == null) {
+        if (iProject == null) {
             String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_START_IN_CONTAINER
                     + " action. The object representing the selected project on the dashboard could not be found.";
             if (Trace.isEnabled()) {
@@ -294,7 +309,7 @@ public class DevModeOperations {
             return;
         }
 
-        String projectName = project.getName();
+        String projectName = iProject.getName();
 
         // Check if the start action has already been issued.
         State terminalState = projectTabController.getTerminalState(projectName);
@@ -322,25 +337,32 @@ public class DevModeOperations {
             }
         }
 
+        Project project = null;
+
         try {
+            project = dashboard.getProject(projectName);
+            if (project == null) {
+                throw new Exception("Unable to find internal instance of project with name: " + projectName);
+            }
+
             // Get the absolute path to the application project.
-            String projectPath = Project.getPath(project);
+            String projectPath = project.getPath();
             if (projectPath == null) {
                 throw new Exception("Unable to find the path to selected project " + projectName);
             }
 
             // Prepare the Liberty plugin container dev mode command.
             String cmd = "";
-            if (Project.isMaven(project)) {
+            if (project.isMaven()) {
                 cmd = getMavenCommand(projectPath, "io.openliberty.tools:liberty-maven-plugin:devc -f " + projectPath);
-            } else if (Project.isGradle(project)) {
+            } else if (project.isGradle()) {
                 cmd = getGradleCommand(projectPath, "libertyDevc -p=" + projectPath);
             } else {
                 throw new Exception("Project" + projectName + "is not a Gradle or Maven project.");
             }
 
             // Start a terminal and run the application in dev mode.
-            startDevMode(cmd, project.getName(), projectPath);
+            startDevMode(cmd, projectName, projectPath);
         } catch (Exception e) {
             String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_START_IN_CONTAINER
                     + " action on project " + projectName + ".";
@@ -364,13 +386,13 @@ public class DevModeOperations {
     public void stop() {
         // Get the object representing the selected application project. The returned project should never be null, but check it
         // just in case it is.
-        IProject project = getSelectedDashboardProject();
+        IProject iProject = getSelectedDashboardProject();
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, project);
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, iProject);
         }
 
-        if (project == null) {
+        if (iProject == null) {
             String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_STOP
                     + " action. The object representing the selected project on the dashboard could not be found.";
             if (Trace.isEnabled()) {
@@ -380,7 +402,7 @@ public class DevModeOperations {
             return;
         }
 
-        String projectName = project.getName();
+        String projectName = iProject.getName();
 
         // Check if the stop action has already been issued of if a start action was never issued before.
         if (projectTabController.getProjectConnector(projectName) == null) {
@@ -439,7 +461,7 @@ public class DevModeOperations {
         }
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, project);
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, projectName);
         }
     }
 
@@ -451,13 +473,13 @@ public class DevModeOperations {
     public void runTests() {
         // Get the object representing the selected application project. The returned project should never be null, but check it
         // just in case it is.
-        IProject project = getSelectedDashboardProject();
+        IProject iProject = getSelectedDashboardProject();
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, project);
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, iProject);
         }
 
-        if (project == null) {
+        if (iProject == null) {
             String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_RUN_TESTS
                     + " action. The object representing the selected project on the dashboard could not be found.";
             if (Trace.isEnabled()) {
@@ -467,7 +489,7 @@ public class DevModeOperations {
             return;
         }
 
-        String projectName = project.getName();
+        String projectName = iProject.getName();
 
         // Check if the stop action has already been issued of if a start action was never issued before.
         if (projectTabController.getProjectConnector(projectName) == null) {
@@ -514,7 +536,7 @@ public class DevModeOperations {
         }
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, project);
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, projectName);
         }
     }
 
@@ -524,13 +546,13 @@ public class DevModeOperations {
     public void openMavenIntegrationTestReport() {
         // Get the object representing the selected application project. The returned project should never be null, but check it
         // just in case it is.
-        IProject project = getSelectedDashboardProject();
+        IProject iProject = getSelectedDashboardProject();
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, project);
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, iProject);
         }
 
-        if (project == null) {
+        if (iProject == null) {
             String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_VIEW_MVN_IT_REPORT
                     + " action. The object representing the selected project on the dashboard could not be found.";
             if (Trace.isEnabled()) {
@@ -540,11 +562,17 @@ public class DevModeOperations {
             return;
         }
 
-        String projectName = project.getName();
+        String projectName = iProject.getName();
+        Project project = null;
 
         try {
+            project = dashboard.getProject(projectName);
+            if (project == null) {
+                throw new Exception("Unable to find internal instance of project with name: " + projectName);
+            }
+
             // Get the absolute path to the application project.
-            String projectPath = Project.getPath(project);
+            String projectPath = project.getPath();
             if (projectPath == null) {
                 throw new Exception("Unable to find the path to selected project " + projectName);
             }
@@ -563,7 +591,8 @@ public class DevModeOperations {
             }
 
             // Display the report on the browser. Browser display is based on eclipse configuration preferences.
-            openTestReport(project.getName(), path, BROWSER_MVN_IT_RESULT_ID, BROWSER_MVN_IT_RESULT_NAME, BROWSER_MVN_IT_RESULT_NAME);
+            String browserTabTitle = projectName + " " + BROWSER_MVN_IT_REPORT_NAME_SUFFIX;
+            openTestReport(projectName, path, path.toString(), browserTabTitle, browserTabTitle);
         } catch (Exception e) {
             String msg = "An error was detected while opening integration test report for project " + projectName + ".";
             if (Trace.isEnabled()) {
@@ -584,15 +613,15 @@ public class DevModeOperations {
     public void openMavenUnitTestReport() {
         // Get the object representing the selected application project. The returned project should never be null, but check it
         // just in case it is.
-        IProject project = getSelectedDashboardProject();
+        IProject iProject = getSelectedDashboardProject();
 
         if (Trace.isEnabled()) {
             if (Trace.isEnabled()) {
-                Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, project);
+                Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, iProject);
             }
         }
 
-        if (project == null) {
+        if (iProject == null) {
             String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_VIEW_MVN_UT_REPORT
                     + " action. The object representing the selected project on the dashboard could not be found.";
             if (Trace.isEnabled()) {
@@ -601,11 +630,17 @@ public class DevModeOperations {
             Dialog.displayErrorMessage(msg);
         }
 
-        String projectName = project.getName();
+        String projectName = iProject.getName();
+        Project project = null;
 
         try {
+            project = dashboard.getProject(projectName);
+            if (project == null) {
+                throw new Exception("Unable to find internal instance of project with name: " + projectName);
+            }
+
             // Get the absolute path to the application project.
-            String projectPath = Project.getPath(project);
+            String projectPath = project.getPath();
             if (projectPath == null) {
                 throw new Exception("Unable to find the path to selected project " + projectName);
             }
@@ -624,7 +659,8 @@ public class DevModeOperations {
             }
 
             // Display the report on the browser. Browser display is based on eclipse configuration preferences.
-            openTestReport(project.getName(), path, BROWSER_MVN_UT_RESULT_ID, BROWSER_MVN_UT_RESULT_NAME, BROWSER_MVN_UT_RESULT_NAME);
+            String browserTabTitle = projectName + " " + BROWSER_MVN_UT_REPORT_NAME_SUFFIX;
+            openTestReport(projectName, path, path.toString(), browserTabTitle, browserTabTitle);
         } catch (Exception e) {
             String msg = "An error was detected while opening unit test report for project " + projectName + ".";
             if (Trace.isEnabled()) {
@@ -645,13 +681,13 @@ public class DevModeOperations {
     public void openGradleTestReport() {
         // Get the object representing the selected application project. The returned project should never be null, but check it
         // just in case it is.
-        IProject project = getSelectedDashboardProject();
+        IProject iProject = getSelectedDashboardProject();
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, project);
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, iProject);
         }
 
-        if (project == null) {
+        if (iProject == null) {
             String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT
                     + " action. The object representing the selected project on the dashboard could not be found.";
             if (Trace.isEnabled()) {
@@ -661,11 +697,17 @@ public class DevModeOperations {
             return;
         }
 
-        String projectName = project.getName();
+        String projectName = iProject.getName();
+        Project project = null;
 
         try {
+            project = dashboard.getProject(projectName);
+            if (project == null) {
+                throw new Exception("Unable to find internal instance of project with name: " + projectName);
+            }
+
             // Get the absolute path to the application project.
-            String projectPath = Project.getPath(project);
+            String projectPath = project.getPath();
             if (projectPath == null) {
                 throw new Exception("Unable to find the path to selected project " + projectName);
             }
@@ -684,8 +726,8 @@ public class DevModeOperations {
             }
 
             // Display the report on the browser. Browser display is based on eclipse configuration preferences.
-            openTestReport(projectName, path, BROWSER_GRADLE_TEST_RESULT_ID, BROWSER_GRADLE_TEST_RESULT_NAME,
-                    BROWSER_GRADLE_TEST_RESULT_NAME);
+            String browserTabTitle = projectName + " " + BROWSER_GRADLE_TEST_REPORT_NAME_SUFFIX;
+            openTestReport(projectName, path, path.toString(), browserTabTitle, browserTabTitle);
         } catch (Exception e) {
             String msg = "An error was detected while opening test report for project " + projectName + ".";
             if (Trace.isEnabled()) {
@@ -837,10 +879,10 @@ public class DevModeOperations {
         } else {
             cmd = getCmdFromPath(isWindows() ? "mvn.cmd" : "mvn");
         }
-        
+
         return getCommandFromArgs(cmd, cmdArgs);
     }
-    
+
     /**
      * Returns the full Gradle command to run on the terminal.
      *
@@ -866,7 +908,6 @@ public class DevModeOperations {
 
         return getCommandFromArgs(cmd, cmdArgs);
     }
-    
 
     private String getCommandFromArgs(String cmd, String cmdArgs) {
         // Put it all together.
@@ -878,14 +919,14 @@ public class DevModeOperations {
                 sb.insert(0, "/c ");
             }
         }
-        
+
         return sb.toString();
     }
-    
+
     private String getCmdFromPath(String cmd) throws IllegalStateException {
-        
+
         String foundCmd = null;
-        
+
         String[] pathMembers = pathEnv.split(File.pathSeparator);
         for (int s = 0; s < pathMembers.length; s++) {
             File tempFile = new File(pathMembers[s] + File.separator + cmd);
@@ -895,11 +936,11 @@ public class DevModeOperations {
                 break;
             }
         }
-        
+
         if (foundCmd == null) {
             throw new IllegalStateException("Couldn't find command: " + cmd + " on PATH env var");
         }
-        
+
         return foundCmd;
     }
 
@@ -954,7 +995,7 @@ public class DevModeOperations {
      * @return The project currently selected or null if one was not found.
      */
     public IProject getSelectedDashboardProject() {
-        IProject project = null;
+        IProject iProject = null;
         IWorkbenchWindow w = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
 
         if (w != null) {
@@ -965,11 +1006,46 @@ public class DevModeOperations {
                 IStructuredSelection structuredSelection = (IStructuredSelection) selection;
                 Object firstElement = structuredSelection.getFirstElement();
                 if (firstElement instanceof String) {
-                    project = Workspace.getOpenProjectByName((String) firstElement);
+                    Project project = dashboard.getProject((String) firstElement);
+                    if (project != null) {
+                        iProject = project.getIProject();
+                    }
+
                 }
             }
         }
 
-        return project;
+        return iProject;
+    }
+
+    /**
+     * Returns a sorted list of projects that are configured to run on Liberty.
+     *
+     * @return A sorted list of projects that are configured to run on Liberty.
+     *
+     * @throws Exception
+     */
+    public List<String> getDashboardProjects() throws Exception {
+        dashboard.retrieveSupportedProjects();
+        List<String> gradleProjs = dashboard.getGradleProjectNames();
+        Collections.sort(gradleProjs);
+        List<String> mvnProjs = dashboard.getMavenProjectNames();
+        Collections.sort(mvnProjs);
+
+        ArrayList<String> sortedProjects = new ArrayList<String>();
+        sortedProjects.addAll(mvnProjs);
+        sortedProjects.addAll(gradleProjs);
+        return sortedProjects;
+    }
+
+    /**
+     * Returns the project associated with the input name.
+     * 
+     * @param name The name of the project.
+     * 
+     * @return The project associated with the input name.
+     */
+    public Project getDashboardProject(String name) {
+        return dashboard.getProject(name);
     }
 }
