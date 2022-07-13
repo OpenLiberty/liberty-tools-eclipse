@@ -66,6 +66,15 @@
 	<build>
 		<pluginManagement>
 			<plugins>
+			<!-- Not strictly necessary since we could pick up Java level from Bundle-RequiredExecutionEnvironment, but clearer to make explicit here -->
+				<plugin>
+					<groupId>org.eclipse.tycho</groupId>
+					<artifactId>tycho-compiler-plugin</artifactId>
+					<version>${tycho.version}</version>
+					<configuration>
+						<target>11</target>
+					</configuration>
+				</plugin>
 				<plugin>
 					<groupId>org.eclipse.tycho</groupId>
 					<artifactId>tycho-p2-director-plugin</artifactId>
