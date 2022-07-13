@@ -199,6 +199,14 @@
                     </execution>
                 </executions>
             </plugin-->
+            <plugin>
+                <groupId>org.eclipse.tycho</groupId>
+                <artifactId>tycho-p2-repository-plugin</artifactId>
+                <version>${tycho.version}</version>
+                <configuration>
+                    <repositoryLocation>io.openliberty.tools.update/target/repository</repositoryLocation>
+                </configuration>
+            </plugin>
 			<plugin>
 				<groupId>com.github.spotbugs</groupId>
 				<artifactId>spotbugs-maven-plugin</artifactId>
