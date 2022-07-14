@@ -29,6 +29,11 @@
       This program and the accompanying materials are made available under the terms of the Eclipse Public License v. 2.0 which is available at http://www.eclipse.org/legal/epl-2.0.
    </license>
 
+   <!-- Not sure if this is purely redundant, since dependency is declared already in plug-in/bundle manifest, or if it also serves a purpose to declare here.-->
+   <requires>
+      <import plugin="org.eclipse.lsp4e.jdt"/>
+   </requires>
+
    <plugin
          id="io.openliberty.tools.eclipse.ui"
          download-size="0"
