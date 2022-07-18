@@ -1,4 +1,4 @@
-# Contributing to Open Liberty Tools for Eclipse
+# Contributing to Liberty Tools
 
 We welcome contributions, and request you follow these guidelines.
 

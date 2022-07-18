@@ -1,7 +1,6 @@
-# Open Liberty Tools for Eclipse
+# Welcome to the Liberty Tools (for Eclipse) project
 
 [![License](https://img.shields.io/badge/License-EPL%202.0-red.svg?label=license&logo=eclipse)](https://www.eclipse.org/legal/epl-2.0/)
-
 
 An [Open Liberty](https://openliberty.io/) plugin for Eclipse. The plugin will detect your Liberty Maven or
 Liberty Gradle project, and using the Liberty tools dashboard view, you can start,

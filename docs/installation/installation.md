@@ -1,6 +1,6 @@
 # Installation
 
-The Open Liberty tools for Eclipse plugin can be installed as new software by using the artifacts provided in the form of an update site or through an archive.
+The Liberty tools plugin can be installed as new software by using the artifacts provided in the form of an update site or through an archive.
 
 1. Go to menu: `Help`->`Install New Software`.
 

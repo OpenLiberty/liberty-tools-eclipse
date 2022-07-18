@@ -3,14 +3,16 @@
 ## Before you begin
 
 ### Software requirements
-- Eclipse IDE. Minimum Eclipse IDE version: 2222-03.
-- Java runtime. Minimum Java version: 11.
+- Eclipse IDE. Minimum Eclipse IDE version: 2022-03. Tested with Eclipse IDE for Enterprise Java and Web Developers packages.
+- Java runtime. Tested versions: 11, 17.
 - [Open Liberty tools for Eclipse plugin](../installation/installation.md).
 
 ### Application requirements
 
 - Define a Liberty server.xml configuration file at location src/main/liberty/config.
 - Configure the [Liberty Maven Plugin](https://github.com/OpenLiberty/ci.maven#configuration) or [Liberty Gradle Plugin](https://github.com/OpenLiberty/ci.gradle#adding-the-plugin-to-the-build-script)
+
+
 
 ## Opening the Liberty tools dashboard view
 
@@ -22,7 +24,7 @@ Alternatively, click on the `Open Dashboard` option in the `Liberty` menu.
 
 ![Dashboard context menu for Maven Project](images/openLibertyToolMenuDashboardView.png)
 
-If the dashboard is opened and there application projects that already properly configured to run on Liberty and use Liberty dev mode, those projects are automatically added to the dashboard when it opens.
+If the dashboard is opened and there are application projects that already properly configured to run on Liberty and use Liberty dev mode, those projects are automatically added to the dashboard when it opens.
 
 If you add new projects or make changes, and you need the dashboard to be refreshed, use the refresh icon in the dashboard toolbar.
 
