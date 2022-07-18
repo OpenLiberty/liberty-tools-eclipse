@@ -1,14 +1,15 @@
-# Contributing to Liberty Dev Tools Eclipse
+# Contributing to Liberty Tools
 
 We welcome contributions, and request you follow these guidelines.
 
  - [Raising issues](#raising-issues)
  - [Legal](#legal)
+ - [Coding standards](#coding-standards)
+ - [Plugin development](#plugin-development)
 
+### Raising issues
 
-## Raising issues
-
-Please raise any bug reports on the [issue tracker](https://github.com/OpenLiberty/liberty-dev-tools-eclipse/issues). Be sure to search the list to see if your issue has already been raised.
+Please raise any bug reports on the [issue tracker](https://github.com/OpenLiberty/liberty-tools-eclipse/issues). Be sure to search the list to see if your issue has already been raised.
 
 A good bug report is one that make it easy for us to understand what you were trying to do and what went wrong. Provide as much context as possible so we can try to recreate the issue.
 
@@ -33,4 +34,13 @@ local git repository using the following command:
 git commit -s
 ```
 
-If you are an IBM employee, please contact us directly as the contribution process is slightly different.
+### Coding standards
+
+This project follows Eclipse standard Java language [coding conventions](https://wiki.eclipse.org/Coding_Conventions).
+
+Please note:
+ - all PRs must have passing builds
+
+### Plugin development
+
+To learn how to setup, run, and test your development environment, follow the provided [plugin developmemnt instructions](https://github.com/OpenLiberty/liberty-tools-eclipse/wiki/Plugin-Development).
