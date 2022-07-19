@@ -25,12 +25,12 @@ For more detailed instructions on making use of the Open Liberty Tools dashboard
 ## Features
 
 - View supported `liberty-maven-plugin`(version `3.1` or higher) or `liberty-gradle-plugin`(version `3.0` or higher)
-  projects in the workspace
-- Start/Stop dev mode
-- Start dev mode with custom parameters
-- Start dev mode in a container
-- Run tests
-- View unit and integration test reports
+  projects in the workspace.
+- Start/Stop dev mode.
+- Start dev mode with custom parameters.
+- Start dev mode in a container.
+- Run tests.
+- View test reports.
 
 ## Action Commands
 
@@ -41,9 +41,9 @@ For more detailed instructions on making use of the Open Liberty Tools dashboard
 | Start in container                   | Starts dev mode with the server in a container. The `liberty-maven-plugin` must be version `3.3-M1` or higher. The `liberty-gradle-plugin` must be version `3.1-M1` or higher.
 | Stop                                 | Stops dev mode.                                                                                                                                                                                                                                                                                                              |
 | Run tests                            | Runs the unit tests and integration tests that are configured for your project. This command requires dev mode to be already started.                                                                                                                                                                                        |
-| View integration test report (Maven) | Opens the integration test report file if it exists at `/target/site/failsafe-report.html`. This action command is only available to Maven projects.                                                                                                                                                                                                                                                                                  |
-| View unit test report (Maven)        | Opens the unit test report file if it exists at `/target/site/surefire-report.html`. This action command is only available to Maven projects.                                                                                                                                                                                                                                                                                             |
-| View test report (Gradle)            | Opens the unit test report file if it exists at the default location `build/reports/tests/test/index.html`. Gradle projects only have a single action command for test result reporting.                                                                     
+| View integration test report (Maven) | Opens the integration test report file if it exists at `/target/site/failsafe-report.html`. This action command is only available to Maven built projects.                                                                                                                                                                                                                                                                                  |
+| View unit test report (Maven)        | Opens the unit test report file if it exists at `/target/site/surefire-report.html`. This action command is only available to Maven built projects.                                                                                                                                                                                                                                                                                             |
+| View test report (Gradle)            | Opens the test report file if it exists at the default location: `build/reports/tests/test/index.html`. This action command is only available to Gradle built projects. Gradle built projects only have a single action command for test result reporting.                                                                     
 
 ## Contributing
 
