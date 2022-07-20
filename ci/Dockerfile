@@ -22,8 +22,11 @@ RUN mkdir -p /usr/share/maven /usr/share/maven/ref \
 RUN mkdir eclipse-ltp \
     && cd eclipse-ltp \
     && git clone https://github.com/OpenLiberty/liberty-tools-eclipse.git
-
+ 
 WORKDIR /eclipse-ltp/liberty-tools-eclipse
 
 # build the repo and generate release artifacts.
 RUN mvn clean install -DskipTests
+
+# command to run to make container available
+CMD ["sleep", "9000"]

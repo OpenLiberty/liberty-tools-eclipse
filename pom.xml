@@ -38,6 +38,8 @@
 		<!--maven.deploy.skip>true</maven.deploy.skip-->
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <repository.home>${project.basedir}</repository.home>
+            
 	</properties>
 	
 	<repositories>
@@ -213,7 +215,7 @@
                 <artifactId>tycho-p2-repository-plugin</artifactId>
                 <version>${tycho.version}</version>
                 <configuration>
-                    <repositoryLocation>io.openliberty.tools.update/target/repository</repositoryLocation>
+                    <repositoryLocation>${repository.home}/target/repository</repositoryLocation>
                 </configuration>
             </plugin>
 			<plugin>
