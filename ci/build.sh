@@ -3,7 +3,7 @@
 set -Eexo pipefail
 
 DOCKER_WORK_DIR="eclipse-ltp"
-DOCKER_REL_REPO_DIR_LOC="/liberty-tools-eclipse/releng/io.openliberty.tools.update/io.openliberty.tools.update/target/repository"
+DOCKER_REL_REPO_DIR_LOC="/liberty-tools-eclipse/releng/io.openliberty.tools.update/target/repository"
 DOCKER_REL_ZIP_LOC="/liberty-tools-eclipse/releng/io.openliberty.tools.update/target/io.openliberty.tools.update.eclipse-repository-0.1.0.zip"
 DOCKER_DOMAIN="release"
 DOCKER_IMG_NAME="liberty-tools-eclipse:0.1.0"
