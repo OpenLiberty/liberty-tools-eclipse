@@ -5,7 +5,7 @@
 ### Software requirements
 - Eclipse IDE. Minimum Eclipse IDE version: 2022-03. Tested with Eclipse IDE for Enterprise Java and Web Developers packages.
 - Java runtime. Tested versions: 11, 17.
-- [Open Liberty tools for Eclipse plugin](../installation/installation.md).
+- [Liberty Tools feature](../installation/installation.md).
 
 ### Application requirements
 
