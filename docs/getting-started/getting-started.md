@@ -4,15 +4,23 @@
 
 ### Software requirements
 - Eclipse IDE. Minimum Eclipse IDE version: 2022-03. Tested with Eclipse IDE for Enterprise Java and Web Developers packages.
-- Java runtime. Tested versions: 11, 17.
+- Java runtime. Eclipse interaction with the plugin was tested using versions: 11 and 17.
+
+  WARNING: When using Java 17 to run your applications using using Liberty dev mode, you may encounter problems. The Liberty Maven and Gradle plugins currently do not support java 17.
+
 - [Liberty Tools feature](../installation/installation.md).
 
 ### Application requirements
 
 - Define a Liberty server.xml configuration file at location src/main/liberty/config.
-- Configure the [Liberty Maven Plugin](https://github.com/OpenLiberty/ci.maven#configuration) or [Liberty Gradle Plugin](https://github.com/OpenLiberty/ci.gradle#adding-the-plugin-to-the-build-script)
 
+- Configure the [Liberty Maven Plugin](https://github.com/OpenLiberty/ci.maven#configuration) or [Liberty Gradle Plugin](https://github.com/OpenLiberty/ci.gradle#adding-the-plugin-to-the-build-script). We recommend using newer versions of the plugins as several important bug fixes have been included in recent versions.
 
+  Recommended minimum versions of:
+
+  - Liberty Maven Plugin -> 3.6.1
+    
+  - Liberty Gradle Plugin -> 3.4.1
 
 ## Opening the Liberty tools dashboard view
 
