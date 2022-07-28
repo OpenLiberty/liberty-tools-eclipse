@@ -47,19 +47,27 @@ public class LocalDevModeLauncherDelegate extends LocalLauncherDelegate {
      */
     @Override
     public ITerminalConnector createTerminalConnector(Map<String, Object> properties) {
+        ITerminalConnector connector = null;
         String projectName = (String) properties.get(ITerminalsConnectorConstants.PROP_DATA);
-        ProjectTabController tptm = ProjectTabController.getInstance();
-        ITerminalConnector connector = tptm.getProjectConnector(projectName);
 
-        if (connector == null) {
-            connector = super.createTerminalConnector(properties);
-            tptm.setProjectConnector(projectName, connector);
+        if (projectName != null) {
+            ProjectTabController tptm = ProjectTabController.getInstance();
+            connector = tptm.getProjectConnector(projectName);
 
-            if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_UI,
-                        "New terminal connection created for project: " + projectName + ". Connector: " + connector);
+            if (connector == null) {
+                connector = super.createTerminalConnector(properties);
+                tptm.setProjectConnector(projectName, connector);
+
+                if (Trace.isEnabled()) {
+                    Trace.getTracer().trace(Trace.TRACE_UI,
+                            "New terminal connection created for project: " + projectName + ". Connector: " + connector);
+                }
+
             }
-
+        } else {
+            Trace.getTracer().trace(Trace.TRACE_UI,
+                    "The project name was not found in the list of properties received from the caller. This maybe a recovery case currently not supported. Properties: "
+                            + properties);
         }
 
         return connector;
