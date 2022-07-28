@@ -4,9 +4,9 @@ set -Eexo pipefail
 
 DOCKER_WORK_DIR="eclipse-ltp"
 DOCKER_REL_REPO_DIR_LOC="/liberty-tools-eclipse/releng/io.openliberty.tools.update/target/repository"
-DOCKER_REL_ZIP_LOC="/liberty-tools-eclipse/releng/io.openliberty.tools.update/target/io.openliberty.tools.update.eclipse-repository-0.1.0.zip"
+DOCKER_REL_ZIP_LOC="/liberty-tools-eclipse/releng/io.openliberty.tools.update/target/io.openliberty.tools.update.eclipse-repository-0.1.1.zip"
 DOCKER_DOMAIN="release"
-DOCKER_IMG_NAME="liberty-tools-eclipse:0.1.0"
+DOCKER_IMG_NAME="tmp-build-image-liberty-tools-eclipse:0.1.1"
 DOCKER_IMG="${DOCKER_DOMAIN}/${DOCKER_IMG_NAME}"
 
 RELEASE_OUTPUT_DIR="release-artifacts"
@@ -17,7 +17,7 @@ if [ ! -d  "$RELEASE_OUTPUT_DIR" ]; then
 fi
 
 # Build the image.
-docker build --progress plain -t "$DOCKER_IMG" .
+docker build --no-cache --progress plain -t "$DOCKER_IMG" .
 
 # Create a container.
 container_id=$(docker create "$DOCKER_IMG")
