@@ -24,8 +24,7 @@ For more detailed instructions on making use of the Open Liberty Tools dashboard
 
 ## Features
 
-- View supported `liberty-maven-plugin`(version `3.6.1` or higher) or `liberty-gradle-plugin`(version `3.4.1` or higher)
-  projects in the workspace.
+- View supported projects in the dashboard.
 - Start/Stop dev mode.
 - Start dev mode with custom parameters.
 - Start dev mode in a container.
