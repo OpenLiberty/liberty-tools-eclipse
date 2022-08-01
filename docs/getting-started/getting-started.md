@@ -115,3 +115,22 @@ To stop your application project, go to the Liberty tools dashboard, right click
 ![Stop action](images/maven-devModeStopped.png)
 
 Once the project is stopped, the terminal in which it ran is closed.
+
+## Configuring a Liberty server (editing server.xml)
+
+1. Start the project in dev mode, using one of the dashboard start commands above.  This will install the Liberty features required for your app and allow the generation of a corresponding server.xml XSD schema file.
+
+2. Double-click on your server.xml file which will cause it to be opened in the "Generic Text Editor" (an editor in which the function here is enabled).
+
+3. Proceed to use development support:  hover support, content assist via clicking to insert the cursor then typing `<Ctrl>+<Space>` at a given point within the document.
+
+## Developing MicroProfile applications
+
+1. Start dev mode.
+2. Open a Java or microprofile-config.properties file.
+3. Proceed to take advantage of the MicroProfile Language Server support: hover support, content assist (via `<Ctrl>+<Space>`), etc.
+
+Though it is not written for Liberty Tools specifically, [this article](
+https://microprofile.io/2020/09/25/announcement-language-server-for-microprofile-and-the-tools-for-microprofile-vs-code-extension/) shows the MicroProfile Language Server tooling features in another context.
+
+
