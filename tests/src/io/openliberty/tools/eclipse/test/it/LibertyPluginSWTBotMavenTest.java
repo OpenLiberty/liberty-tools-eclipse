@@ -12,7 +12,13 @@
 *******************************************************************************/
 package io.openliberty.tools.eclipse.test.it;
 
-import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.*;
+import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.deleteFile;
+import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.isInternalBrowserSupportAvailable;
+import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.isTextInFile;
+import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.onWindows;
+import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.updateJVMEnvVariableCache;
+import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.validateApplicationOutcome;
+import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.validateTestReportExists;
 
 import java.io.File;
 import java.io.IOException;
@@ -49,15 +55,8 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
-import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.test.it.utils.SWTPluginOperations;
 import io.openliberty.tools.eclipse.ui.DashboardView;
-
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IWorkspace;
-import org.eclipse.core.resources.IWorkspaceRoot;
-import io.openliberty.tools.eclipse.Project;
-import io.openliberty.tools.eclipse.DevModeOperations;
 
 /**
  * Tests Open Liberty Eclipse plugin functions.
@@ -78,21 +77,11 @@ public class LibertyPluginSWTBotMavenTest {
      * Application name.
      */
     static final String MVN_APP_NAME = "liberty.maven.test.app";
-    
-    /**
-     * Wrapper Application name.
-     */
-    static final String MVN_WRAPPER_APP_NAME = "liberty.maven.test.wrapper.app";
 
     /**
      * Test app relative path.
      */
     static final Path projectPath = Paths.get("resources", "applications", "maven", "liberty-maven-test-app");
-    
-    /**
-     * Test app relative path.
-     */
-    static final Path wrapperProjectPath = Paths.get("resources", "applications", "maven", "liberty-maven-test-wrapper-app");
 
     /**
      * Expected menu items.
@@ -144,12 +133,12 @@ public class LibertyPluginSWTBotMavenTest {
         dashboard = SWTPluginOperations.openDashboardUsingMenu(bot);
 
         // Check that the dashboard can be opened and its content retrieved.
-        String[] dashboardContent = SWTPluginOperations.getDashboardContent(bot, dashboard);
+        List<String> projetList = SWTPluginOperations.getDashboardContent(bot, dashboard);
 
         // Check that dashboard contains the expected applications.
         boolean foundApp = false;
-        for (int i = 0; i < dashboardContent.length; i++) {
-            if (dashboardContent[i].equals(MVN_APP_NAME)) {
+        for (String project : projetList) {
+            if (MVN_APP_NAME.equals(project)) {
                 foundApp = true;
                 break;
             }
@@ -168,64 +157,68 @@ public class LibertyPluginSWTBotMavenTest {
      * Tests the start menu action on a dashboard listed application.
      */
     @Test
-    
     public void testStartWithWrapper() {
-        
-        // Start dev mode.
-        SWTPluginOperations.launchAppMenuStartAction(bot, dashboard, MVN_WRAPPER_APP_NAME);
+        String invalidMvnHomePath = "INVALID";
+        String originalEnvVariable = System.getenv("MAVEN_HOME");
+
+        if (originalEnvVariable != null) {
+            // Update the MAVEN_HOME environment variable with an invalid value
+            try {
+                updateJVMEnvVariableCache("MAVEN_HOME", invalidMvnHomePath);
+                String updatedValue = System.getenv("MAVEN_HOME");
+                Assertions.assertTrue(updatedValue.equals(invalidMvnHomePath),
+                        () -> "The updated value of " + updatedValue + " does not match the expected value of " + invalidMvnHomePath);
+                System.out.println("INFO: MAVEN_HOME updated to invalid value: " + updatedValue);
+            } catch (Exception e) {
+                Assertions.fail("Unable to update the value of environment variable MAVEN_HOME. Error: " + e.getMessage());
+            }
+        }
+
+        // Call the start action. This is expected to fail because there is an invalid MAVEN_HOME value set.
+        SWTPluginOperations.launchAppMenuStartAction(bot, dashboard, MVN_APP_NAME);
         SWTBotView terminal = bot.viewByTitle("Terminal");
         terminal.show();
-
-        // Validate application is up and running.
-        validateApplicationOutcome(MVN_WRAPPER_APP_NAME, true, wrapperProjectPath.toAbsolutePath().toString() + "/target/liberty");
-
-        // Stop dev mode.
-        SWTPluginOperations.launchAppMenuStopAction(bot, dashboard, MVN_WRAPPER_APP_NAME);
-        terminal.show();
-
-        // Validate application stopped.
-        validateApplicationOutcome(MVN_WRAPPER_APP_NAME, false, wrapperProjectPath.toAbsolutePath().toString() + "/target/liberty");
-
-        // Close the terminal.
+        validateApplicationOutcome(MVN_APP_NAME, false, projectPath.toAbsolutePath().toString() + "/target/liberty");
         terminal.close();
-    }
-    
-    @Test
-    public void UTImportProjIsMaven() throws IOException, InterruptedException {
 
-        DevModeOperations devMode = new DevModeOperations();
-        IWorkspace workspace = ResourcesPlugin.getWorkspace();
-        IWorkspaceRoot root = workspace.getRoot();
-        String projectName = MVN_APP_NAME;
-        IProject proj = root.getProject(projectName);
-        Assertions.assertTrue(Project.isMaven(proj));
-        
-        String projPath = proj.getLocation().toOSString();
-        
-        String localMvnCmd = isWindows() ? "mvn.cmd" : "mvn";
-        String opaqueMvnCmd = devMode.getMavenCommand(projPath, "io.openliberty.tools:liberty-maven-plugin:dev -f " + projPath);
-        Assertions.assertTrue(opaqueMvnCmd.contains(localMvnCmd + " io.openliberty.tools:liberty-maven-plugin:dev"), "Expected cmd to contain 'mvn io.openliberty.tools...' but cmd = " + opaqueMvnCmd);       
-    }
-    
+        // Add wrapper artifacts to the project.
+        copyWrapperArtifactsToProject();
 
-    private boolean isWindows() {
-        return System.getProperty("os.name").contains("Windows");
-    }
-    
-    @Test
-    public void UTImportProjIsMavenWrapper() throws IOException, InterruptedException {
+        // Call the start/stop actions. This is expected to work because, currently, the plugin's order of precedence
+        // when
+        // selecting the maven command gives preference to the mvn wrapper command over the maven command installation
+        // pointed to by the MAVEN_HOME environment variable.
+        try {
+            // Start dev mode.
+            SWTPluginOperations.launchAppMenuStartAction(bot, dashboard, MVN_APP_NAME);
+            terminal = bot.viewByTitle("Terminal");
+            terminal.show();
+            validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
 
-        DevModeOperations devMode = new DevModeOperations();
-        IWorkspace workspace = ResourcesPlugin.getWorkspace();
-        IWorkspaceRoot root = workspace.getRoot();
-        String projectName = MVN_WRAPPER_APP_NAME;
-        IProject proj = root.getProject(projectName);
-        Assertions.assertTrue(Project.isMaven(proj));
-        
-        String projPath = proj.getLocation().toOSString();
-        
-        String opaqueMvnwCmd = devMode.getMavenCommand(projPath, "io.openliberty.tools:liberty-maven-plugin:dev -f " + projPath);
-        Assertions.assertTrue(opaqueMvnwCmd.contains("mvnw"), "Expected cmd to contain 'mvnw' but cmd = " + opaqueMvnwCmd );
+            // Stop dev mode.
+            SWTPluginOperations.launchAppMenuStopAction(bot, dashboard, MVN_APP_NAME);
+            terminal.show();
+            validateApplicationOutcome(MVN_APP_NAME, false, projectPath.toAbsolutePath().toString() + "/target/liberty");
+            terminal.close();
+        } finally {
+
+            if (originalEnvVariable != null) {
+                // Update the MAVEN_HOME environment variable with the original value.
+                try {
+                    updateJVMEnvVariableCache("MAVEN_HOME", originalEnvVariable);
+                    String updatedValue = System.getenv("MAVEN_HOME");
+                    Assertions.assertTrue(updatedValue.equals(originalEnvVariable),
+                            () -> "The updated value of " + updatedValue + " does not match the expected value of " + originalEnvVariable);
+                    System.out.println("INFO: MAVEN_HOME reset to its original value: " + updatedValue);
+
+                } catch (Exception e) {
+                    Assertions.fail("Unable to update the value of environment variable MAVEN_HOME. Error: " + e.getMessage());
+                }
+            }
+
+            // Remove all wrapper artifacts.
+            removeWrapperArtifactsFromProject();
+        }
     }
 
     /**
@@ -257,7 +250,7 @@ public class LibertyPluginSWTBotMavenTest {
      */
     @Test
     public void testStartWithParms() {
-        Path pathToITReport = DevModeOperations.getMavenIntegrationTestReportPath(projectPath.toString());
+        Path pathToITReport = Paths.get(projectPath.toString(), "target", "site", "failsafe-report.html");
         boolean testReportDeleted = deleteFile(pathToITReport.toFile());
         Assertions.assertTrue(testReportDeleted, () -> "File: " + pathToITReport + " was not be deleted.");
 
@@ -289,11 +282,11 @@ public class LibertyPluginSWTBotMavenTest {
     @Test
     public void testRunTests() {
         // Delete the test report files before we start this test.
-        Path pathToITReport = DevModeOperations.getMavenIntegrationTestReportPath(projectPath.toString());
+        Path pathToITReport = Paths.get(projectPath.toString(), "target", "site", "failsafe-report.html");
         boolean itReportDeleted = deleteFile(pathToITReport.toFile());
         Assertions.assertTrue(itReportDeleted, () -> "Test report file: " + pathToITReport + " was not be deleted.");
 
-        Path pathToUTReport = DevModeOperations.getMavenUnitTestReportPath(projectPath.toString());
+        Path pathToUTReport = Paths.get(projectPath.toString(), "target", "site", "surefire-report.html");
         boolean utReportDeleted = deleteFile(pathToITReport.toFile());
         Assertions.assertTrue(utReportDeleted, () -> "Test report file: " + pathToITReport + " was not be deleted.");
 
@@ -332,78 +325,81 @@ public class LibertyPluginSWTBotMavenTest {
 
     /**
      * Tests the refresh action on the dashboard's toolbar.
-     * @throws IOException 
-     * @throws InterruptedException 
+     * 
+     * @throws IOException
+     * @throws InterruptedException
      */
     @Disabled("Issue 58")
     @Test
     public void testRefresh() throws IOException, InterruptedException {
         // Get the list of entries on the dashboard and verify the expected number found.
-        String[] dashboardContent = SWTPluginOperations.getDashboardContent(bot, dashboard);
+        List<String> projectList = SWTPluginOperations.getDashboardContent(bot, dashboard);
         boolean mavenAppFound = false;
-        for (int i = 0; i < dashboardContent.length; i++) {
-        	if (MVN_APP_NAME.equals(dashboardContent[i])) {
-        		mavenAppFound = true;
-        	}
+        for (String project : projectList) {
+            if (MVN_APP_NAME.equals(project)) {
+                mavenAppFound = true;
+            }
         }
         Assertions.assertTrue(mavenAppFound, () -> "The maven test app was not found.");
 
         Path original = Paths.get("resources", "applications", "maven", "liberty-maven-test-app", "pom.xml").toAbsolutePath();
         Path original_backup = Paths.get("resources", "applications", "maven", "liberty-maven-test-app", "pom.xml_backup").toAbsolutePath();
         Path updated = Paths.get("resources", "files", "apps", "maven", "liberty-maven-test-app", "pom.xml").toAbsolutePath();
-        
+
         try {
-        	// Move pom.xml files
-        	Files.copy(original, original_backup, StandardCopyOption.REPLACE_EXISTING);
+            // Move pom.xml files
+            Files.copy(original, original_backup, StandardCopyOption.REPLACE_EXISTING);
             Files.copy(updated, original, StandardCopyOption.REPLACE_EXISTING);
-            
+
             // Refresh
             SWTPluginOperations.refreshDashboard(bot);
 
             // Get the list of entries on the dashboard and verify the expected number is found.
-            dashboardContent = SWTPluginOperations.getDashboardContent(bot, dashboard);
+            projectList = SWTPluginOperations.getDashboardContent(bot, dashboard);
             mavenAppFound = false;
-            for (int i = 0; i < dashboardContent.length; i++) {
-            	if (MVN_APP_NAME.equals(dashboardContent[i])) {
-            		mavenAppFound = true;
-            	}
+            for (String project : projectList) {
+                if (MVN_APP_NAME.equals(project)) {
+                    mavenAppFound = true;
+                }
             }
             Assertions.assertFalse(mavenAppFound, () -> "The maven test app was found.");
 
         } finally {
-        	// Reset pom.xml files
-        	if(onWindows()) {
-        		// Windows may hold a lock on the file, so retry a few times
-        		int count = 0;
-        		while(true) {
-        		    try {
-        		    	Files.copy(original_backup, original, StandardCopyOption.REPLACE_EXISTING);
-        		    	Files.delete(original_backup);
-        		    	break;
-        		    } catch (Exception e) {
-        		    	System.out.println("Waiting for Windows file to delete.........");
-        		    	Thread.sleep(3000);
-        		        if (++count == 50) throw e;
-        		    }
-        		}
-        	} else {
-        	    Files.copy(original_backup, original, StandardCopyOption.REPLACE_EXISTING);
-        	    Files.delete(original_backup);
-        	}
-            
+            // Reset pom.xml files
+            if (onWindows()) {
+                // Windows may hold a lock on the file, so retry a few times
+                int count = 0;
+                while (true) {
+                    try {
+                        Files.copy(original_backup, original, StandardCopyOption.REPLACE_EXISTING);
+                        Files.delete(original_backup);
+                        break;
+                    } catch (Exception e) {
+                        System.out.println("Waiting for Windows file to delete.........");
+                        Thread.sleep(3000);
+                        if (++count == 50)
+                            throw e;
+                    }
+                }
+            } else {
+                Files.copy(original_backup, original, StandardCopyOption.REPLACE_EXISTING);
+                Files.delete(original_backup);
+            }
+
             // Validate that the pom.xml was correctly updated.
-            Assertions.assertTrue(isTextInFile(original.toString(), "liberty-maven-plugin"), "The pom.xml file does not contain the Liberty Maven plugin");
-            
+            Assertions.assertTrue(isTextInFile(original.toString(), "liberty-maven-plugin"),
+                    "The pom.xml file does not contain the Liberty Maven plugin");
+
             // Refresh
             SWTPluginOperations.refreshDashboard(bot);
 
             // Get the list of entries on the dashboard and verify the expected number is found.
-            dashboardContent = SWTPluginOperations.getDashboardContent(bot, dashboard);
+            projectList = SWTPluginOperations.getDashboardContent(bot, dashboard);
             mavenAppFound = false;
-            for (int i = 0; i < dashboardContent.length; i++) {
-            	if (MVN_APP_NAME.equals(dashboardContent[i])) {
-            		mavenAppFound = true;
-            	}
+            for (String project : projectList) {
+                if (MVN_APP_NAME.equals(project)) {
+                    mavenAppFound = true;
+                }
             }
             Assertions.assertTrue(mavenAppFound, () -> "The maven test app was not found.");
         }
@@ -420,7 +416,6 @@ public class LibertyPluginSWTBotMavenTest {
                 File workspaceRoot = ResourcesPlugin.getWorkspace().getRoot().getLocation().toFile();
                 ArrayList<String> projectPaths = new ArrayList<String>();
                 projectPaths.add(projectPath.toString());
-                projectPaths.add(wrapperProjectPath.toString());
 
                 try {
                     importProjects(workspaceRoot, projectPaths);

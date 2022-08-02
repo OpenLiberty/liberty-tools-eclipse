@@ -12,7 +12,12 @@
 *******************************************************************************/
 package io.openliberty.tools.eclipse.test.it;
 
-import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.*;
+import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.deleteFile;
+import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.isInternalBrowserSupportAvailable;
+import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.isTextInFile;
+import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.onWindows;
+import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.validateApplicationOutcome;
+import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.validateTestReportExists;
 
 import java.io.File;
 import java.io.IOException;
@@ -70,7 +75,7 @@ public class LibertyPluginSWTBotGradleTest {
      * Application name.
      */
     static final String GRADLE_APP_NAME = "liberty-gradle-test-app";
-    
+
     static String testAppPath;
 
     /**
@@ -100,7 +105,7 @@ public class LibertyPluginSWTBotGradleTest {
         bot.closeAllShells();
         bot.resetWorkbench();
     }
-    
+
     @BeforeEach
     public void beforeEach(TestInfo info) {
         System.out.println("INFO: Test " + info.getDisplayName() + " entry: " + java.time.LocalDateTime.now());
@@ -111,7 +116,6 @@ public class LibertyPluginSWTBotGradleTest {
         System.out.println("INFO: Test " + info.getDisplayName() + " exit: " + java.time.LocalDateTime.now());
     }
 
-
     /**
      * Makes sure that some basics elements can be accessed or are present before running the tests. The following are
      * checked:
@@ -120,19 +124,19 @@ public class LibertyPluginSWTBotGradleTest {
      * 3. The menu for the expected application contains the required actions.
      */
     public static final void initialize() {
-    	
-    	Path projPath = Paths.get("resources", "applications", "gradle", GRADLE_APP_NAME);
+
+        Path projPath = Paths.get("resources", "applications", "gradle", GRADLE_APP_NAME);
         File projectFile = projPath.toFile();
         testAppPath = Paths.get(projectFile.getPath()).toAbsolutePath().toString();
         dashboard = SWTPluginOperations.openDashboardUsingMenu(bot);
 
         // Check that the dashboard can be opened and its content retrieved.
-        String[] dashboardContent = SWTPluginOperations.getDashboardContent(bot, dashboard);
+        List<String> projectList = SWTPluginOperations.getDashboardContent(bot, dashboard);
 
         // Check that dashboard contains the expected applications.
         boolean foundApp = false;
-        for (int i = 0; i < dashboardContent.length; i++) {
-            if (dashboardContent[i].equals(GRADLE_APP_NAME)) {
+        for (String project : projectList) {
+            if (GRADLE_APP_NAME.equals(project)) {
                 foundApp = true;
                 break;
             }
@@ -141,8 +145,8 @@ public class LibertyPluginSWTBotGradleTest {
 
         // Check that the menu for the expected application contains the required actions.
         List<String> menuItems = SWTPluginOperations.getDashboardItemMenuActions(bot, dashboard, GRADLE_APP_NAME);
-        Assertions.assertTrue(menuItems.size() == gradleMenuItems.length,
-                () -> "Gradle application " + GRADLE_APP_NAME + " does not contain the expected number of menu items: " + gradleMenuItems.length);
+        Assertions.assertTrue(menuItems.size() == gradleMenuItems.length, () -> "Gradle application " + GRADLE_APP_NAME
+                + " does not contain the expected number of menu items: " + gradleMenuItems.length);
         Assertions.assertTrue(menuItems.containsAll(Arrays.asList(gradleMenuItems)),
                 () -> "Gradle application " + GRADLE_APP_NAME + " does not contain the expected menu items: " + gradleMenuItems);
     }
@@ -191,7 +195,7 @@ public class LibertyPluginSWTBotGradleTest {
 
         // Validate that the test reports were generated.
         validateTestReportExists(pathToTestReport);
-        
+
         // Stop dev mode.
         SWTPluginOperations.launchAppMenuStopAction(bot, dashboard, GRADLE_APP_NAME);
         terminal.show();
@@ -230,7 +234,7 @@ public class LibertyPluginSWTBotGradleTest {
         if (isInternalBrowserSupportAvailable()) {
             SWTPluginOperations.launchAppMenuViewGradleTestReportAction(bot, dashboard, GRADLE_APP_NAME);
         }
-        
+
         // Stop dev mode.
         SWTPluginOperations.launchAppMenuStopAction(bot, dashboard, GRADLE_APP_NAME);
         terminal.show();
@@ -251,74 +255,75 @@ public class LibertyPluginSWTBotGradleTest {
     @Test
     public void testRefresh() throws IOException, InterruptedException {
         // Get the list of entries on the dashboard and verify the expected number found.
-        String[] dashboardContent = SWTPluginOperations.getDashboardContent(bot, dashboard);
+        List<String> projectList = SWTPluginOperations.getDashboardContent(bot, dashboard);
         boolean gradleAppFound = false;
-        for (int i = 0; i < dashboardContent.length; i++) {
-        	if (GRADLE_APP_NAME.equals(dashboardContent[i])) {
-        		gradleAppFound = true;
-        	}
+        for (String project : projectList) {
+            if (GRADLE_APP_NAME.equals(project)) {
+                gradleAppFound = true;
+            }
         }
         Assertions.assertTrue(gradleAppFound, () -> "The gradle test app was not found.");
 
         Path original = Paths.get("resources", "applications", "gradle", GRADLE_APP_NAME, "build.gradle").toAbsolutePath();
         Path original_backup = Paths.get("resources", "applications", "gradle", GRADLE_APP_NAME, "build.gradle_backup").toAbsolutePath();
         Path updated = Paths.get("resources", "files", "apps", "gradle", GRADLE_APP_NAME, "build.gradle").toAbsolutePath();
-        
+
         try {
-        	// Move build.gradle files
-        	Files.copy(original, original_backup, StandardCopyOption.REPLACE_EXISTING);
-            Files.copy(updated, original, StandardCopyOption.REPLACE_EXISTING); 
-            
+            // Move build.gradle files
+            Files.copy(original, original_backup, StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(updated, original, StandardCopyOption.REPLACE_EXISTING);
+
             // Refresh
             SWTPluginOperations.refreshDashboard(bot);
 
             // Get the list of entries on the dashboard and verify the expected number is found.
-            dashboardContent = SWTPluginOperations.getDashboardContent(bot, dashboard);
+            projectList = SWTPluginOperations.getDashboardContent(bot, dashboard);
             gradleAppFound = false;
-            for (int i = 0; i < dashboardContent.length; i++) {
-            	if (GRADLE_APP_NAME.equals(dashboardContent[i])) {
-            		gradleAppFound = true;
-            	}
+            for (String project : projectList) {
+                if (GRADLE_APP_NAME.equals(project)) {
+                    gradleAppFound = true;
+                }
             }
             Assertions.assertFalse(gradleAppFound, () -> "The gradle test app was found.");
 
-
         } finally {
-        	
-        	// Reset build.gradle files
-        	if(onWindows()) {
-        		// Windows may hold a lock on the file, so retry a few times
-        		int count = 0;
-        		while(true) {
-        		    try {
-        		    	Files.copy(original_backup, original, StandardCopyOption.REPLACE_EXISTING);
-        		    	Files.delete(original_backup);
-        		    	break;
-        		    } catch (Exception e) {
-        		    	System.out.println("Waiting for Windows file to delete.........");
-        		    	Thread.sleep(3000);
-        		        if (++count == 50) throw e;
-        		    }
-        		}
-        	} else {
-        	    Files.copy(original_backup, original, StandardCopyOption.REPLACE_EXISTING);
-        	    Files.delete(original_backup);
-        	}
-        	Files.delete(original_backup);
-            
+
+            // Reset build.gradle files
+            if (onWindows()) {
+                // Windows may hold a lock on the file, so retry a few times
+                int count = 0;
+                while (true) {
+                    try {
+                        Files.copy(original_backup, original, StandardCopyOption.REPLACE_EXISTING);
+                        Files.delete(original_backup);
+                        break;
+                    } catch (Exception e) {
+                        System.out.println("Waiting for Windows file to delete.........");
+                        Thread.sleep(3000);
+                        if (++count == 50)
+                            throw e;
+                    }
+                }
+            } else {
+                Files.copy(original_backup, original, StandardCopyOption.REPLACE_EXISTING);
+                Files.delete(original_backup);
+            }
+            Files.delete(original_backup);
+
             // Validate that the editor was correctly updated.
-            Assertions.assertTrue(isTextInFile(original.toString(), "liberty-gradle-plugin"), "The build.gradle file does not contain the Liberty Gradle plugin");
-            
+            Assertions.assertTrue(isTextInFile(original.toString(), "liberty-gradle-plugin"),
+                    "The build.gradle file does not contain the Liberty Gradle plugin");
+
             // Refresh
             SWTPluginOperations.refreshDashboard(bot);
 
             // Get the list of entries on the dashboard and verify the expected number is found.
-            dashboardContent = SWTPluginOperations.getDashboardContent(bot, dashboard);
+            projectList = SWTPluginOperations.getDashboardContent(bot, dashboard);
             gradleAppFound = false;
-            for (int i = 0; i < dashboardContent.length; i++) {
-            	if (GRADLE_APP_NAME.equals(dashboardContent[i])) {
-            		gradleAppFound = true;
-            	}
+            for (String project : projectList) {
+                if (GRADLE_APP_NAME.equals(project)) {
+                    gradleAppFound = true;
+                }
             }
             Assertions.assertTrue(gradleAppFound, () -> "The gradle test app was not found.");
 
@@ -333,7 +338,7 @@ public class LibertyPluginSWTBotGradleTest {
 
             @Override
             public void run() {
-            	
+
                 Path projPath = Paths.get("resources", "applications", "gradle", GRADLE_APP_NAME);
                 File project = projPath.toFile();
 
@@ -357,7 +362,7 @@ public class LibertyPluginSWTBotGradleTest {
      * @throws CoreException
      */
     public static void importProjects(File projectFile) throws InterruptedException, CoreException {
-    	IPath projectLocation = org.eclipse.core.runtime.Path.fromOSString(Paths.get(projectFile.getPath()).toAbsolutePath().toString());
+        IPath projectLocation = org.eclipse.core.runtime.Path.fromOSString(Paths.get(projectFile.getPath()).toAbsolutePath().toString());
 
         // get an IProject instance and create the project
         IWorkspace workspace = ResourcesPlugin.getWorkspace();
@@ -369,14 +374,14 @@ public class LibertyPluginSWTBotGradleTest {
         // open the project
         project.open(IResource.NONE, new NullProgressMonitor());
     }
-    
+
     /**
      * Copies gradle build wrapper artifacts to the project.
      */
     public void copyWrapperArtifactsToProject() {
         Path sourceDirPath = Paths.get(Paths.get("").toAbsolutePath().toString(), "resources", "files", "apps", "gradle",
                 "liberty-gradle-test-app", "wrapper");
-        
+
         Path projectPath = Paths.get(Paths.get("").toAbsolutePath().toString(), "resources", "applications", "gradle",
                 "liberty-gradle-test-app", "wrapper");
         try {
@@ -401,9 +406,9 @@ public class LibertyPluginSWTBotGradleTest {
      * Removes all wrapper related artifacts.
      */
     public void removeWrapperArtifactsFromProject() {
-    	Path projectPath = Paths.get(Paths.get("").toAbsolutePath().toString(), "resources", "applications", "gradle",
+        Path projectPath = Paths.get(Paths.get("").toAbsolutePath().toString(), "resources", "applications", "gradle",
                 "liberty-gradle-test-app", "wrapper");
-    	
+
         Path gradlew = Paths.get(projectPath.toString(), "gradlew");
         boolean gradlewDeleted = deleteFile(gradlew.toFile());
         Assertions.assertTrue(gradlewDeleted, () -> "File: " + gradlew + " was not be deleted.");
