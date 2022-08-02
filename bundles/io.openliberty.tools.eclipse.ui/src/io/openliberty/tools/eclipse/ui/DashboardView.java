@@ -161,10 +161,10 @@ public class DashboardView extends ViewPart {
             mgr.add(stopAction);
             mgr.add(runTestAction);
 
-            if (project.isMaven()) {
+            if (project.getBuildType() == Project.BuildType.MAVEN) {
                 mgr.add(viewMavenITestReportsAction);
                 mgr.add(viewMavenUTestReportsAction);
-            } else if (project.isGradle()) {
+            } else if (project.getBuildType() == Project.BuildType.GRADLE) {
                 mgr.add(viewGradleTestReportsAction);
             } else {
                 Dialog.displayErrorMessage("Project" + projectName + "is not a Gradle or Maven project.");

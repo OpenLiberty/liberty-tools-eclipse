@@ -131,10 +131,16 @@ public class Dashboard {
         ConcurrentHashMap<String, Project> finalGradleContent = new ConcurrentHashMap<String, Project>();
         for (Project p : projectList.values()) {
             if (p.isSupported()) {
-                if (p.isMaven()) {
-                    finalMavenContent.put(p.getIProject().getName(), p);
-                } else if (p.isGradle()) {
-                    finalGradleContent.put(p.getIProject().getName(), p);
+                String projectName = p.getIProject().getName();
+                if (p.getBuildType() == Project.BuildType.MAVEN) {
+                    finalMavenContent.put(projectName, p);
+                } else if (p.getBuildType() == Project.BuildType.GRADLE) {
+                    finalGradleContent.put(projectName, p);
+                } else {
+                    if (Trace.isEnabled()) {
+                        Trace.getTracer().trace(Trace.TRACE_UTILS,
+                                "Project " + projectName + " could not be identified as being a Maven or Gradle project.");
+                    }
                 }
             }
         }

@@ -31,6 +31,23 @@ import io.openliberty.tools.eclipse.logging.Trace;
 public class Project {
 
     /**
+     * Maven project nature.
+     */
+    public final String MAVEN_NATURE = "org.eclipse.m2e.core.maven2Nature";
+
+    /**
+     * Gradle project nature.
+     */
+    public final String GRADLE_NATURE = "org.eclipse.buildship.core.gradleprojectnature";
+
+    /**
+     * Project build types.
+     */
+    public static enum BuildType {
+        UNKNOWN, GRADLE, MAVEN
+    };
+
+    /**
      * The Eclipse project reference.
      */
     IProject iProject;
@@ -41,12 +58,57 @@ public class Project {
     boolean multiModule;
 
     /**
+     * Build type associated with this project.
+     */
+    BuildType type;
+
+    /**
      * Constructor.
      * 
      * @param project The Eclipse project reference.
      */
     public Project(IProject project) {
         this.iProject = project;
+        type = findBuildType();
+    }
+
+    /**
+     * Returns the build type associated with this project.
+     * @return The build type associated with this project.
+     */
+    public BuildType getBuildType() {
+        return type;
+    }
+
+    /**
+     * Finds the build type to be associated with this project. If a project can be built
+     * as a Maven or Gradle project, the Maven build type takes precedence.
+     */
+    private BuildType findBuildType() {
+
+        // Check the installed project's nature.
+        try {
+            if (iProject.getDescription().hasNature(MAVEN_NATURE)) {
+                return BuildType.MAVEN;
+            } else if (iProject.getDescription().hasNature(GRADLE_NATURE)) {
+                return BuildType.GRADLE;
+            }
+        } catch (Exception e) {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UTILS,
+                        "An error occurred while attempting to find the nature of project " + iProject.getName(), e);
+            }
+        }
+
+        // Check the build configuration file.
+        if (iProject.getFile("pom.xml").exists()) {
+            return BuildType.MAVEN;
+        } else if ((iProject.getFile("build.gradle").exists())) {
+            return BuildType.GRADLE;
+        }
+
+        return BuildType.UNKNOWN;
+
     }
 
     /**
@@ -93,53 +155,6 @@ public class Project {
     }
 
     /**
-     * Returns true if this project is a Maven built project. False otherwise.
-     *
-     * @return True if this project is a Maven built project. False, otherwise.
-     */
-    public boolean isMaven() {
-        boolean isMaven = false;
-
-        try {
-            isMaven = iProject.getDescription().hasNature("org.eclipse.m2e.core.maven2Nature");
-
-            if (!isMaven) {
-                isMaven = iProject.getFile("pom.xml").exists();
-            }
-        } catch (Exception e) {
-            if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_UTILS,
-                        "An error occurred while checking if project " + iProject.getName() + "is a Maven project", e);
-            }
-        }
-
-        return isMaven;
-    }
-
-    /**
-     * Returns true if this project is a Gradle built project. False, otherwise.
-     *
-     * @return True if this project is a Gradle built project. False otherwise.
-     */
-    public boolean isGradle() {
-        boolean isGradle = false;
-
-        try {
-            isGradle = iProject.getDescription().hasNature("org.eclipse.buildship.core.gradleprojectnature");
-            if (!isGradle) {
-                isGradle = iProject.getFile("build.gradle").exists();
-            }
-        } catch (Exception e) {
-            if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_UTILS,
-                        "An error occurred while checking if project " + iProject.getName() + "is a Gradle project", e);
-            }
-        }
-
-        return isGradle;
-    }
-
-    /**
      * Returns true if the input project is configured to run in Liberty and it uses a supported build mechanism. False,
      * otherwise. If it is determined that the project is a supported type, the outcome is persisted by associating the project
      * with a Liberty type/nature.
@@ -168,7 +183,7 @@ public class Project {
         // Check if the project has a server.xml config file in a specific location.
         // Gradle built multi-module projects are excluded. Dev mode currently does not support
         // that type of project.
-        if (isMultiModule() && !isGradle()) {
+        if (isMultiModule() && (type != BuildType.GRADLE)) {
             for (IResource resource : iProject.members()) {
                 if (resource.getType() == IResource.FOLDER) {
                     IFolder folder = ((IFolder) resource);
@@ -256,7 +271,7 @@ public class Project {
 
     @Override
     public String toString() {
-        return "IProject: " + iProject.toString() + ". Muti-module: " + multiModule;
+        return "IProject: " + iProject.toString() + ". BuildType: " + type + ". Muti-module: " + multiModule;
     }
 
 }

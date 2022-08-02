@@ -67,7 +67,7 @@ public class DashboardEntryLabelProvider extends LabelProvider implements ITable
             Project project = devModeOps.getDashboardProject(projectName);
 
             if (project != null) {
-                if (project.isGradle()) {
+                if (project.getBuildType() == Project.BuildType.GRADLE) {
                     img = gradleImg;
                 } else {
                     img = mavenImg;

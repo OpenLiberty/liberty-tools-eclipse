@@ -159,9 +159,9 @@ public class DevModeOperations {
 
             // Prepare the Liberty plugin dev mode command.
             String cmd = "";
-            if (project.isMaven()) {
+            if (project.getBuildType() == Project.BuildType.MAVEN) {
                 cmd = getMavenCommand(projectPath, "io.openliberty.tools:liberty-maven-plugin:dev -f " + projectPath);
-            } else if (project.isGradle()) {
+            } else if (project.getBuildType() == Project.BuildType.GRADLE) {
                 cmd = getGradleCommand(projectPath, "libertyDev -p=" + projectPath);
             } else {
                 throw new Exception("Project" + projectName + "is not a Gradle or Maven project.");
@@ -260,9 +260,9 @@ public class DevModeOperations {
 
             // Prepare the Liberty plugin dev mode command.
             String cmd = "";
-            if (project.isMaven()) {
+            if (project.getBuildType() == Project.BuildType.MAVEN) {
                 cmd = getMavenCommand(projectPath, "io.openliberty.tools:liberty-maven-plugin:dev " + userParms + " -f " + projectPath);
-            } else if (project.isGradle()) {
+            } else if (project.getBuildType() == Project.BuildType.GRADLE) {
                 cmd = getGradleCommand(projectPath, "libertyDev " + userParms + " -p=" + projectPath);
             } else {
                 throw new Exception("Project" + projectName + "is not a Gradle or Maven project.");
@@ -353,9 +353,9 @@ public class DevModeOperations {
 
             // Prepare the Liberty plugin container dev mode command.
             String cmd = "";
-            if (project.isMaven()) {
+            if (project.getBuildType() == Project.BuildType.MAVEN) {
                 cmd = getMavenCommand(projectPath, "io.openliberty.tools:liberty-maven-plugin:devc -f " + projectPath);
-            } else if (project.isGradle()) {
+            } else if (project.getBuildType() == Project.BuildType.GRADLE) {
                 cmd = getGradleCommand(projectPath, "libertyDevc -p=" + projectPath);
             } else {
                 throw new Exception("Project" + projectName + "is not a Gradle or Maven project.");
@@ -1027,10 +1027,10 @@ public class DevModeOperations {
      */
     public List<String> getDashboardProjects() throws Exception {
         dashboard.retrieveSupportedProjects();
-        List<String> gradleProjs = dashboard.getGradleProjectNames();
-        Collections.sort(gradleProjs);
         List<String> mvnProjs = dashboard.getMavenProjectNames();
         Collections.sort(mvnProjs);
+        List<String> gradleProjs = dashboard.getGradleProjectNames();
+        Collections.sort(gradleProjs);
 
         ArrayList<String> sortedProjects = new ArrayList<String>();
         sortedProjects.addAll(mvnProjs);
