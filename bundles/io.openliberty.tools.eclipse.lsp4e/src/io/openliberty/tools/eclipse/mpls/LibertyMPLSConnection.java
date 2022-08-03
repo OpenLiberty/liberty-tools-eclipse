@@ -42,7 +42,10 @@ public class LibertyMPLSConnection extends ProcessStreamConnectionProvider {
 	public LibertyMPLSConnection() {
 		List<String> commands = new ArrayList<>();
 		commands.add(computeJavaPath());
-		//commands.add("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=8000");
+		String debugPortString = System.getProperty(getClass().getName() + ".debugPort");
+		if (debugPortString != null) {
+			commands.add("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=" + debugPortString);
+		}
 		commands.add("-classpath");
 		try {
 			commands.add(computeClasspath());
