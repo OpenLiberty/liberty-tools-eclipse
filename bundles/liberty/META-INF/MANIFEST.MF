@@ -7,7 +7,10 @@ Bundle-Version: 0.1.0
 Bundle-Activator: io.openliberty.tools.eclipse.LibertyDevPlugin
 Export-Package: io.openliberty.tools.eclipse,
  io.openliberty.tools.eclipse.ui
-Require-Bundle: org.eclipse.ui
+Require-Bundle: org.eclipse.ui,
+ org.eclipse.core.resources,
+ org.eclipse.ui.ide,
+ org.eclipse.core.runtime
 Bundle-RequiredExecutionEnvironment: JavaSE-11
 Automatic-Module-Name: liberty
 Bundle-ActivationPolicy: lazy
@@ -30,3 +33,5 @@ Import-Package: org.eclipse.core.commands,
  org.eclipse.ui.handlers,
  org.eclipse.ui.plugin,
  org.osgi.framework
+Bundle-ClassPath: .,
+ json-20220320.jar

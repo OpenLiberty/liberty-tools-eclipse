@@ -12,9 +12,19 @@
 *******************************************************************************/
 package io.openliberty.tools.eclipse.ui.terminal;
 
+import java.io.BufferedInputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
+import java.net.http.HttpResponse.BodyHandlers;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -42,7 +52,11 @@ import io.openliberty.tools.eclipse.ui.DashboardView;
  * Represents a terminal tab item within the terminal view associated with a running application project.
  */
 public class ProjectTab {
-
+	
+    /**
+     * The default buffer size for output stream
+     */
+	public static final int DEFAULT_BUFFER_SIZE = 8192;
     /**
      * The name of the application project associated with this terminal.
      */
@@ -157,6 +171,45 @@ public class ProjectTab {
             public void done(IStatus status) {            }
         };
         
+        HttpClient client = HttpClient.newHttpClient();
+        
+        try {
+			HttpRequest request = HttpRequest.newBuilder()
+					  .uri(new URI("https://start.openliberty.io/api/start?a=app-name&b=maven&e=9.1&g=com.demo&j=11&m=5.0"))
+					  .GET()
+					  .build();
+			
+		    HttpResponse<InputStream> response =
+		            client.send(request, BodyHandlers.ofInputStream());
+
+		    InputStream in = new BufferedInputStream(response.body());
+		    //OutputStream out = new BufferedOutputStream(new FileOutputStream(new File("sometest.zip")));
+		    
+		    String home = System.getProperty("user.home");
+		    File file = new File(new File(home, "Downloads"), "app-name.zip");
+		    
+
+	        try (FileOutputStream outputStream = new FileOutputStream(file, false)) {
+	            int read;
+	            byte[] bytes = new byte[DEFAULT_BUFFER_SIZE];
+	            while ((read = in.read(bytes)) != -1) {
+	                outputStream.write(bytes, 0, read);
+	            }
+	        }
+		    
+		    //System.out.println(response.body());
+			
+		} catch (URISyntaxException e) {
+			System.out.println("uhoh");
+			e.printStackTrace();
+		} catch (IOException e) {
+			System.out.println("uhoh2");
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			System.out.println("uhoh3");
+			e.printStackTrace();
+		}
+
         String cmd = "curl --help";
         if (isWindows()) {
         	cmd = "/c " + cmd;

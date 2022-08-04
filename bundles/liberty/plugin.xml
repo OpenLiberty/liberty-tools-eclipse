@@ -207,4 +207,19 @@
          </bundle>
       </component>
   </extension>
+  <extension
+        point="org.eclipse.ui.newWizards">
+     <category
+           id="liberty"
+           name="Liberty Starter Wizard">
+     </category>
+     <wizard
+           category="liberty"
+           class="liberty.wizards.LibertyStarterWizard"
+           icon="icons/openLibertyLogo.png"
+           id="liberty.wizards.LibertyStarterWizard"
+           name="Liberty Starter"
+           project="true">
+     </wizard>
+  </extension>
 </plugin>
