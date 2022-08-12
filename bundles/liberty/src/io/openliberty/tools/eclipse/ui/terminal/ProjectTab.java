@@ -183,7 +183,6 @@ public class ProjectTab {
 		            client.send(request, BodyHandlers.ofInputStream());
 
 		    InputStream in = new BufferedInputStream(response.body());
-		    //OutputStream out = new BufferedOutputStream(new FileOutputStream(new File("sometest.zip")));
 		    
 		    String home = System.getProperty("user.home");
 		    File file = new File(new File(home, "Downloads"), "app-name.zip");
@@ -196,17 +195,12 @@ public class ProjectTab {
 	                outputStream.write(bytes, 0, read);
 	            }
 	        }
-		    
-		    //System.out.println(response.body());
 			
 		} catch (URISyntaxException e) {
-			System.out.println("uhoh");
 			e.printStackTrace();
 		} catch (IOException e) {
-			System.out.println("uhoh2");
 			e.printStackTrace();
 		} catch (InterruptedException e) {
-			System.out.println("uhoh3");
 			e.printStackTrace();
 		}
 
