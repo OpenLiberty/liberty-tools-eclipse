@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2022 IBM Corporation and others.
  *
  * This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License 2.0
@@ -159,7 +159,7 @@ public class LibertyStartWizardCreationPage extends WizardPage {
 	@Override
 	public void createControl(Composite parent) {
 		
-		
+		//API request to liberty starter info endpoint to get selection options and version constraints 
         HttpClient client = HttpClient.newHttpClient();
         try {
 			HttpRequest request = HttpRequest.newBuilder()
@@ -170,28 +170,22 @@ public class LibertyStartWizardCreationPage extends WizardPage {
 		    HttpResponse<String> response =
 		            client.send(request, BodyHandlers.ofString());
 
-		    System.out.println(response.body());
-
+		    //Uses two hashmaps to map constraint dependencies between java EE and Microprofile versions
 		    try {
 		        JSONObject jsonObject = new JSONObject(response.body());
 		        setInitialProjectName(jsonObject.getJSONObject("a").get("default").toString());
-		        System.out.println(jsonObject.getJSONObject("a").get("default").toString());
+
 		        optionsBuild = jsonObject.getJSONObject("b").getJSONArray("options");
 		        optionsSE = jsonObject.getJSONObject("j").getJSONArray("options");
 		        optionsEE = jsonObject.getJSONObject("e").getJSONArray("options");
 		        optionsMP = jsonObject.getJSONObject("m").getJSONArray("options");
-		        System.out.println(optionsSE);
-		        System.out.println(optionsBuild);
-		        System.out.println(optionsEE);
-		        System.out.println(optionsMP);
 		        
 		    	dependenciesEE2MP = new HashMap<String, JSONArray>();
 		    	dependenciesMP2EE = new HashMap<String, JSONArray>();
 		        
+		    	//parsing JSON and storing constraints in hashmaps
 		        for(int i = 0; i < optionsEE.length(); i++) {
 		        	JSONArray validMPVersions = jsonObject.getJSONObject("e").getJSONObject("constraints").getJSONObject(optionsEE.getString(i)).getJSONArray("m");
-		        	System.out.println(optionsEE.getString(i));
-		        	System.out.println(validMPVersions.toString());
 		        	dependenciesEE2MP.put(optionsEE.getString(i), validMPVersions);
 		        	
 		        	for(int x = 0; x < validMPVersions.length(); x++) {
@@ -200,7 +194,6 @@ public class LibertyStartWizardCreationPage extends WizardPage {
 			        		dependenciesMP2EE.put(validMPVersions.getString(x), arr);
 			        	}
 			        	dependenciesMP2EE.get(validMPVersions.getString(x)).put(optionsEE.getString(i));
-			        	System.out.println(validMPVersions.getString(x) + " : " + dependenciesMP2EE.get(validMPVersions.getString(x)));
 		        	}
 		        	
 		        }
@@ -214,15 +207,14 @@ public class LibertyStartWizardCreationPage extends WizardPage {
 		    
 			
 		} catch (URISyntaxException e) {
-			System.out.println("uhoh");
 			e.printStackTrace();
 		} catch (IOException e) {
-			System.out.println("uhoh2");
 			e.printStackTrace();
 		} catch (InterruptedException e) {
-			System.out.println("uhoh3");
 			e.printStackTrace();
 		}
+        
+        //Building the form UI
         
 		Composite composite = new Composite(parent, SWT.NULL);
 
@@ -248,7 +240,6 @@ public class LibertyStartWizardCreationPage extends WizardPage {
 		label.setText("&Build Tool:");
 
 	    Combo buildTool = new Combo(composite, SWT.BORDER | SWT.READ_ONLY);
-	    //String buildTools[] = { "Maven", "Gradle" };
 	    
 	    String[] buildTools = new String[optionsBuild.length()];
 	    for(int i=0; i< buildTools.length; i++) {
@@ -256,11 +247,10 @@ public class LibertyStartWizardCreationPage extends WizardPage {
 	    }
 	    
   	    int indexBuild = 0;
-  	    //TURN THIS INTO A METHOD
+  	    //Parse JSON to find default selection for Build tool
 	  	for(int i=0; i< buildTools.length; i++) {
 	  		if(buildTools[i].equals(defaultBuild)) {
 	  			indexBuild = i;
-	  			System.out.println("DEFAULT BUILD: " + buildTools[i]);
 	  		}
 		}
 	    
@@ -269,17 +259,10 @@ public class LibertyStartWizardCreationPage extends WizardPage {
 	    buildTool.select(indexBuild);
 	    selectionBuild = buildTools[indexBuild];
 
-	    buildTool.addSelectionListener(new SelectionAdapter() {
-	      public void widgetSelected(SelectionEvent e) {
-	        System.out.println(buildTool.getText());
-	      }
-	    });
-
 		Label label1 = new Label(composite, SWT.NULL);
 		label1.setText("&Java SE Version:");
 
 	    Combo javaVersionSE = new Combo(composite, SWT.BORDER | SWT.READ_ONLY);
-	    //String javaVersionsSE[] = { "17", "11", "8" };
 	    
 	    String[] javaVersionsSE = new String[optionsSE.length()];
 	    for(int i=0; i< javaVersionsSE.length; i++) {
@@ -287,11 +270,10 @@ public class LibertyStartWizardCreationPage extends WizardPage {
 	    }
 	    
   	    int indexSE = 0;
-  	    //TURN THIS INTO A METHOD
+  	    //Parse JSON to find default selection for java SE 
 	  	for(int i=0; i< javaVersionsSE.length; i++) {
 	  		if(javaVersionsSE[i].equals(defaultSE)) {
 	  			indexSE = i;
-	  			System.out.println("DEFAULT SE: " + javaVersionsSE[i]);
 	  		}
 		}
 	    
@@ -300,17 +282,10 @@ public class LibertyStartWizardCreationPage extends WizardPage {
 	    javaVersionSE.select(indexSE);
 	    selectionSE = javaVersionsSE[indexSE];
 	    
-	    javaVersionSE.addSelectionListener(new SelectionAdapter() {
-		      public void widgetSelected(SelectionEvent e) {
-			        System.out.println(javaVersionSE.getText());
-			  }
-		});
-	    
 		Label label2 = new Label(composite, SWT.NULL);
 		label2.setText("&Java EE/Jakarta EE Version:");
 	    
 	    javaVersionEE = new Combo(composite, SWT.BORDER | SWT.READ_ONLY);
-	    //String javaVersionsEE[] = { "9.1", "8.0", "7.0", "None" };
 	    
 	    javaVersionsEE = new String[optionsEE.length()];
 	    for(int i=0; i< javaVersionsEE.length; i++) {
@@ -324,20 +299,14 @@ public class LibertyStartWizardCreationPage extends WizardPage {
 	    javaVersionEE.addSelectionListener(new SelectionAdapter() {
 		      public void widgetSelected(SelectionEvent e) {
 		    	  selectionEE = javaVersionEE.getText();			        
-		    	  System.out.println("Java EE Version: " + selectionEE);
-		    	  System.out.println("Dependencies: " + dependenciesEE2MP.get(selectionEE));
-		    	  //String[] microProfileVersions = new String[dependenciesEE2MP.get(selectionEE).length()];
 		    	  JSONArray arr = dependenciesEE2MP.get(selectionEE);
 		    	  String toFind = arr.getString(arr.length()-1);
-		    	  System.out.println(toFind);
 		    	  int index = 0;
 			  	  for(int i=0; i< microProfileVersions.length; i++) {
 			  		  if(microProfileVersions[i].equals(toFind)) {
 			  			  index = i;
-			  			System.out.println("MATCH: " + microProfileVersions[i]);
 			  		  }
 				  }
-				  //microProfile.setItems(microProfileVersions);
 				  if(!selectionMP.equals(microProfileVersions[index])) {
 					  infoLabel.setText("MicroProfile Version has been automatically updated from "+ selectionMP +" to "+ microProfileVersions[index] +" for compatibility with Java EE / Jakarta EE Version.");
 				  } else {
@@ -352,7 +321,6 @@ public class LibertyStartWizardCreationPage extends WizardPage {
 		label3.setText("&MicroProfile Version:");
 	    
 	    microProfile = new Combo(composite, SWT.BORDER | SWT.READ_ONLY);
-	    //String microProfileVersions[] = { "5.0", "4.0", "3.3", "2.2", "1.4", "none" };
 	    
 	    microProfileVersions = new String[optionsMP.length()];
 	    for(int i=0; i< microProfileVersions.length; i++) {
@@ -366,20 +334,14 @@ public class LibertyStartWizardCreationPage extends WizardPage {
 	    microProfile.addSelectionListener(new SelectionAdapter() {
 		      public void widgetSelected(SelectionEvent e) {
 		    	  selectionMP = microProfile.getText();	
-			      System.out.println("Micro Profile Version: " + selectionMP);
-			      System.out.println("Dependencies: " + dependenciesMP2EE.get(selectionMP));
-			      //javaVersionsEE = new String[dependenciesMP2EE.get(selectionMP).length()];
 		    	  JSONArray arr = dependenciesMP2EE.get(selectionMP);
 		    	  String toFind = arr.getString(arr.length()-1);
-		    	  System.out.println(toFind);
 			      int index = 0;
 				  for(int i=0; i< javaVersionsEE.length; i++) {
 					  if(javaVersionsEE[i].equals(toFind)) {
 						  index = i;
-						  System.out.println("MATCH: " + javaVersionsEE[i]);
 					  }
 				  }
-				  //javaVersionEE.setItems(javaVersionsEE);
 				  
 				  if(!selectionEE.equals(javaVersionsEE[index])) {
 					  infoLabel.setText("Java EE / Jakarta EE Version has been automatically updated from "+ selectionEE +" to "+ javaVersionsEE[index] +" for compatibility with MicroProfile Version.");
@@ -388,7 +350,6 @@ public class LibertyStartWizardCreationPage extends WizardPage {
 				  }
 				  javaVersionEE.select(index);
 				  selectionEE = javaVersionsEE[index];
-				  System.out.println(javaVersionsEE.length-1 + " : " + selectionEE);
 			   }
 		});
 		
@@ -658,13 +619,11 @@ public class LibertyStartWizardCreationPage extends WizardPage {
 		}
 		
 		if (!projectFieldContents.matches("^([a-z]+-)*[a-z]+$")) {
-			System.out.println(projectFieldContents);
 			setErrorMessage("App name must be a-z characters separated by dashes (-)");
 			return false;
 		} 
 		
 		if (!projectGroupContents.matches("^([a-z]+\\.)*[a-z]+$")) {
-			System.out.println(projectGroupContents);
 			setErrorMessage("Group name must be a-z separated by periods (.)");
 			return false;
 		}

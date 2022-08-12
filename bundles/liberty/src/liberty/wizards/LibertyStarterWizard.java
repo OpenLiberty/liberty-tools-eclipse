@@ -1,3 +1,16 @@
+/*******************************************************************************
+* Copyright (c) 2022 IBM Corporation and others.
+*
+* This program and the accompanying materials are made available under the
+* terms of the Eclipse Public License v. 2.0 which is available at
+* http://www.eclipse.org/legal/epl-2.0.
+*
+* SPDX-License-Identifier: EPL-2.0
+*
+* Contributors:
+*     IBM Corporation - initial implementation
+*******************************************************************************/
+
 package liberty.wizards;
 
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -35,11 +48,10 @@ import org.eclipse.ui.wizards.datatransfer.ImportOperation;
 
 /**
  * This is a Liberty Starter wizard. Its role is to call the Liberty Starter API
- * resource in the provided container. If the container resource
+ * resource in the provided container. 
  */
 
 public class LibertyStarterWizard extends Wizard implements INewWizard {
-	private LibertyStarterWizardPage page;
 	private LibertyStartWizardCreationPage mainPage;
 	private WizardNewProjectReferencePage testPage;
 	private ISelection selection;
@@ -75,17 +87,16 @@ public class LibertyStarterWizard extends Wizard implements INewWizard {
 	 */
 	@Override
 	public boolean performFinish() {
-		//final String containerName = page.getContainerName();
+		//Take input from the LibertyStartWizardCreationPage form after user clicks 'finish'
         String appName = mainPage.getProjectName();
         String groupName = mainPage.getGroupName();
         String build = mainPage.selectionBuild;
         String SE = mainPage.selectionSE;
         String EE = mainPage.selectionEE;
         String MP = mainPage.selectionMP;
-		
-        System.out.println("https://start.openliberty.io/api/start?a=" + appName + "&b=maven&e="+ EE +"&g=" + groupName + "&j="+ SE +"&m=" +MP);
         
 		IRunnableWithProgress op = monitor -> {
+			//Send API request to Liberty Starter endpoint and stream to zip file in downloads
 	        HttpClient client = HttpClient.newHttpClient();
 	        try {
 				HttpRequest request = HttpRequest.newBuilder()
@@ -116,15 +127,8 @@ public class LibertyStarterWizard extends Wizard implements INewWizard {
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
-			
-			/*try {
-				doFinish(containerName, fileName, monitor);
-			} catch (CoreException e) {
-				throw new InvocationTargetException(e);
-			} finally {
-				monitor.done();
-			}*/
 		};
+		
 		try {
 			getContainer().run(true, false, op);
 		} catch (InterruptedException e) {
@@ -137,59 +141,6 @@ public class LibertyStarterWizard extends Wizard implements INewWizard {
 		return true;
 	}
 	
-	/**
-	 * The worker method. It will find the container, create the
-	 * file if missing or just replace its contents, and open
-	 * the editor on the newly created file.
-	 */
-
-	private void doFinish(
-		String containerName,
-		String fileName,
-		IProgressMonitor monitor)
-		throws CoreException {
-		// create a sample file
-		monitor.beginTask("Creating " + fileName, 2);
-		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
-		IResource resource = root.findMember(new Path(containerName));
-		if (!resource.exists() || !(resource instanceof IContainer)) {
-			throw new CoreException(Status.error("Container \"" + containerName + "\" does not exist."));
-		}
-		IContainer container = (IContainer) resource;
-		final IFile file = container.getFile(new Path(fileName));
-		try {
-			InputStream stream = openContentStream();
-			if (file.exists()) {
-				file.setContents(stream, true, true, monitor);
-			} else {
-				file.create(stream, true, monitor);
-			}
-			stream.close();
-		} catch (IOException e) {
-		}
-		monitor.worked(1);
-		monitor.setTaskName("Opening file for editing...");
-		getShell().getDisplay().asyncExec(() -> {
-			IWorkbenchPage page =
-				PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-			try {
-				IDE.openEditor(page, file, true);
-			} catch (PartInitException e) {
-			}
-		});
-		monitor.worked(1);
-	}
-	
-	/**
-	 * We will initialize file contents with a sample text.
-	 */
-
-	private InputStream openContentStream() {
-		String contents =
-			"This is the initial file contents for *.mpe file that should be word-sorted in the Preview page of the multi-page editor";
-		return new ByteArrayInputStream(contents.getBytes());
-	}
-
 	/**
 	 * We will accept the selection in the workbench to see if
 	 * we can initialize from it.
