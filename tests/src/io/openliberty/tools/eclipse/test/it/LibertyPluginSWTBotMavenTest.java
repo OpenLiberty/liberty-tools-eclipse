@@ -55,7 +55,7 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 import io.openliberty.tools.eclipse.test.it.utils.SWTPluginOperations;
-import io.openliberty.tools.eclipse.ui.DashboardView;
+import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspace;

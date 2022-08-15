@@ -26,6 +26,8 @@
 
    <!-- Commands -->
    <extension point="org.eclipse.ui.commands">
+
+      <!-- Dashboard -->
       <category
             id="io.openliberty.tools.eclipse.command.category"
             name="Liberty Tools">
@@ -75,17 +77,56 @@
             name="Liberty View Gradle Test Report"
             categoryId="io.openliberty.tools.eclipse.command.category">
       </command>
+
+      <!-- Run Configuration -->
+      <command
+            id="io.openliberty.tools.eclipse.launch.config.start.shortcut.run"
+            name="Liberty start"
+            description="Launches Liberty dev mode"
+            categoryId="org.eclipse.debug.ui.category.run">
+      </command>
+      <command
+            id="io.openliberty.tools.eclipse.launch.config.start.container.shortcut.run"
+            name="Liberty start in container"
+            description="Launches Liberty dev mode in a container"
+            categoryId="org.eclipse.debug.ui.category.run">
+      </command>
+      <command
+            id="io.openliberty.tools.eclipse.launch.config.stop.shortcut.run"
+            name="Liberty stop"
+            description="Launches action to stop Liberty dev mode"
+            categoryId="org.eclipse.debug.ui.category.run">
+      </command>
+      <command
+            id="io.openliberty.tools.eclipse.launch.config.run.tests.shortcut.run"
+            name="Liberty run tests"
+            description="Launches dev mode start"
+            categoryId="org.eclipse.debug.ui.category.run">
+      </command>
+      <command
+            id="io.openliberty.tools.eclipse.launch.config.maven.itest.report.shortcut.run"
+            name="Liberty viewe integration test reports"
+            description="Launches the action that displays Maven integration test reports"
+            categoryId="org.eclipse.debug.ui.category.run">
+      </command>
+      <command
+            id="io.openliberty.tools.eclipse.launch.config.maven.utest.report.shortcut.run"
+            name="Liberty Start shortcut"
+            description="Launches the action that displays Maven unit test reports"
+            categoryId="org.eclipse.debug.ui.category.run">
+      </command>
+      <command
+            id="io.openliberty.tools.eclipse.launch.config.gradle.test.report.shortcut.run"
+            name="Liberty Start shortcut"
+            description="Launches the action that displays Gradle test reports"
+            categoryId="org.eclipse.debug.ui.category.run">
+      </command>
    </extension>
 
-   <extension point="org.eclipse.ui.handlers">
-      <handler
-            class="io.openliberty.tools.eclipse.handlers.DashboardHandler"
-            commandId="io.openliberty.tools.eclipse.open.dashboard.command">
-      </handler>
-   </extension>
-
-   <!-- Bindings -->
+   <!-- Key-command bindings -->
    <extension point="org.eclipse.ui.bindings">
+
+      <!-- Dashboard -->
       <key commandId="io.openliberty.tools.eclipse.open.dashboard.command"
            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
            contextId="org.eclipse.ui.contexts.window"
@@ -138,6 +179,58 @@
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
             sequence="M2+M3+L R">
       </key>
+
+      <!-- Run Configuration shortcuts -->
+      <key
+            commandId="io.openliberty.tools.eclipse.launch.config.start.shortcut.run"
+            contextId="org.eclipse.ui.contexts.window"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M2+M3+L S">
+      </key>
+      <key
+            commandId="io.openliberty.tools.eclipse.launch.config.start.container.shortcut.run"
+            contextId="org.eclipse.ui.contexts.window"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M2+M3+L C">
+      </key>
+      <key
+            commandId="io.openliberty.tools.eclipse.launch.config.stop.shortcut.run"
+            contextId="org.eclipse.ui.contexts.window"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M2+M3+L Q">
+      </key>
+      <key
+            commandId="io.openliberty.tools.eclipse.launch.config.run.tests.shortcut.run"
+            contextId="org.eclipse.ui.contexts.window"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M2+M3+L T">
+      </key>
+      <key
+            commandId="io.openliberty.tools.eclipse.launch.config.maven.itest.report.shortcut.run"
+            contextId="org.eclipse.ui.contexts.window"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M2+M3+L I">
+      </key>
+      <key
+            commandId="io.openliberty.tools.eclipse.launch.config.maven.utest.report.shortcut.run"
+            contextId="org.eclipse.ui.contexts.window"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M2+M3+L U">
+      </key>
+      <key
+            commandId="io.openliberty.tools.eclipse.launch.config.gradle.test.report.shortcut.run"
+            contextId="org.eclipse.ui.contexts.window"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M2+M3+L R">
+      </key>
+   </extension>
+
+   <!-- Command handlers -->
+   <extension point="org.eclipse.ui.handlers">
+      <handler
+            class="io.openliberty.tools.eclipse.handlers.DashboardHandler"
+            commandId="io.openliberty.tools.eclipse.open.dashboard.command">
+      </handler>
    </extension>
 
    <!-- Menu/Toolbar -->
@@ -166,6 +259,210 @@
       </menuContribution>
    </extension>
 
+  <!-- Launch configuration -->
+  <extension point="org.eclipse.debug.core.launchConfigurationTypes">
+      <launchConfigurationType
+          name="Liberty Tools"
+          delegate="io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher"
+          modes="run, debug"
+          id="io.openliberty.tools.eclipse.launch.config.type">
+      </launchConfigurationType>
+  </extension>
+  <extension point="org.eclipse.debug.ui.launchConfigurationTypeImages">
+      <launchConfigurationTypeImage
+          id="io.openliberty.tools.eclipse.launch.config.type.image"
+          configTypeID="io.openliberty.tools.eclipse.launch.config.type"
+          icon="icons/openLibertyLogo.png">
+      </launchConfigurationTypeImage>
+  </extension>
+  <extension point="org.eclipse.debug.ui.launchConfigurationTabGroups">
+      <launchConfigurationTabGroup
+          class="io.openliberty.tools.eclipse.ui.launch.LaunchConfigTabGroup"
+          id="io.openliberty.tools.eclipse.launch.config.tab.group"
+          type="io.openliberty.tools.eclipse.launch.config.type">
+      </launchConfigurationTabGroup>
+  </extension>
+  <extension point="org.eclipse.debug.ui.launchShortcuts">
+      <shortcut
+          class="io.openliberty.tools.eclipse.ui.launch.shortcuts.StartAction"
+          icon="icons/openLibertyLogo.png"
+          id="io.openliberty.tools.eclipse.launch.config.start.shortcut"
+          label="Liberty Start"
+          modes="run, debug"
+          path="io.openliberty.tools.eclipse.launch.shortcuts.group1"
+          description="Launches the associated project on Liberty using dev mode">
+          <contextualLaunch>
+              <enablement>
+                  <with
+                      variable="selection">
+                      <count
+                          value="1">
+                      </count>
+	                  <iterate>
+                          <and>
+                              <instanceof value="org.eclipse.core.runtime.IAdaptable"/>
+		                      <test property="org.eclipse.debug.ui.projectNature" value="io.openliberty.tools.eclipse.ui.libertyNature"/>
+                          </and>
+	                  </iterate>
+                  </with>
+              </enablement>
+          </contextualLaunch>
+      </shortcut>
+      <shortcut
+          class="io.openliberty.tools.eclipse.ui.launch.shortcuts.StartInContainerAction"
+          icon="icons/openLibertyLogo.png"
+          id="io.openliberty.tools.eclipse.launch.config.start.container.shortcut"
+          label="Liberty Start in Container"
+          modes="run, debug"
+          path="io.openliberty.tools.eclipse.launch.shortcuts.group1"
+          description="Launches the associated project in a container on Liberty using dev mode">
+          <contextualLaunch>
+              <enablement>
+                  <with
+                      variable="selection">
+                      <count
+                          value="1">
+                      </count>
+	                  <iterate>
+                          <and>
+                              <instanceof value="org.eclipse.core.runtime.IAdaptable"/>
+		                      <test property="org.eclipse.debug.ui.projectNature" value="io.openliberty.tools.eclipse.ui.libertyNature"/>
+                          </and>
+	                  </iterate>
+                  </with>
+              </enablement>
+          </contextualLaunch>
+      </shortcut>
+      <shortcut
+          class="io.openliberty.tools.eclipse.ui.launch.shortcuts.StopAction"
+          icon="icons/openLibertyLogo.png"
+          id="io.openliberty.tools.eclipse.launch.config.stop.shortcut"
+          label="Liberty Stop"
+          path="io.openliberty.tools.eclipse.launch.shortcuts.group1"
+          modes="run, debug"
+          description="Launches a request to stop the associated project">
+          <contextualLaunch>
+              <enablement>
+                  <with
+                      variable="selection">
+                      <count
+                          value="1">
+                      </count>
+	                  <iterate>
+                          <and>
+                              <instanceof value="org.eclipse.core.runtime.IAdaptable"/>
+		                      <test property="org.eclipse.debug.ui.projectNature" value="io.openliberty.tools.eclipse.ui.libertyNature"/>
+                          </and>
+	                  </iterate>
+                  </with>
+              </enablement>
+          </contextualLaunch>
+      </shortcut>
+      <shortcut
+          class="io.openliberty.tools.eclipse.ui.launch.shortcuts.RunTestsAction"
+          icon="icons/openLibertyLogo.png"
+          id="io.openliberty.tools.eclipse.launch.config.run.tests.shortcut"
+          label="Liberty Run Tests"
+          modes="run, debug"
+          path="io.openliberty.tools.eclipse.launch.shortcuts.group2"
+          description="Launches a request to run the tests provided by the associated project">
+          <contextualLaunch>
+              <enablement>
+                  <with
+                      variable="selection">
+                      <count
+                          value="1">
+                      </count>
+	                  <iterate>
+                          <and>
+                              <instanceof value="org.eclipse.core.runtime.IAdaptable"/>
+		                      <test property="org.eclipse.debug.ui.projectNature" value="io.openliberty.tools.eclipse.ui.libertyNature"/>
+                          </and>
+	                  </iterate>
+                  </with>
+              </enablement>
+          </contextualLaunch>
+      </shortcut>
+      <shortcut
+          class="io.openliberty.tools.eclipse.ui.launch.shortcuts.OpenMavenITestReportAction"
+          icon="icons/openLibertyLogo.png"
+          id="io.openliberty.tools.eclipse.launch.config.maven.itest.report.shortcut"
+          label="Liberty View Integration Test Report"
+          modes="run,debug"
+          path="io.openliberty.tools.eclipse.launch.shortcuts.group2"
+          description="Launches a request to display the integration test reports for the associated project">
+          <contextualLaunch>
+              <enablement>
+                  <with
+                      variable="selection">
+                      <count
+                          value="1">
+                      </count>
+	                  <iterate>
+                          <and>
+                              <instanceof value="org.eclipse.core.runtime.IAdaptable"/>
+		                      <test property="org.eclipse.debug.ui.projectNature" value="io.openliberty.tools.eclipse.ui.libertyNature"/>
+		                      <test property="org.eclipse.debug.ui.projectNature" value="org.eclipse.m2e.core.maven2Nature"/>
+                          </and>
+	                  </iterate>
+                  </with>
+              </enablement>
+          </contextualLaunch>
+      </shortcut>
+      <shortcut
+          class="io.openliberty.tools.eclipse.ui.launch.shortcuts.OpenMavenUTestReportAction"
+          icon="icons/openLibertyLogo.png"
+          id="io.openliberty.tools.eclipse.launch.config.maven.utest.report.shortcut"
+          label="Liberty View Unit Test Report"
+          modes="run,debug"
+          path="io.openliberty.tools.eclipse.launch.shortcuts.group2"
+          description="Launches a request to display the unit test reports for the associated project">
+          <contextualLaunch>
+              <enablement>
+                  <with
+                      variable="selection">
+                      <count
+                          value="1">
+                      </count>
+	                  <iterate>
+                          <and>
+                              <instanceof value="org.eclipse.core.runtime.IAdaptable"/>
+		                      <test property="org.eclipse.debug.ui.projectNature" value="io.openliberty.tools.eclipse.ui.libertyNature"/>
+		                      <test property="org.eclipse.debug.ui.projectNature" value="org.eclipse.m2e.core.maven2Nature"/>
+                          </and>
+	                  </iterate>
+                  </with>
+              </enablement>
+          </contextualLaunch>
+      </shortcut>
+      <shortcut
+          class="io.openliberty.tools.eclipse.ui.launch.shortcuts.OpenGradleTestReportAction"
+          icon="icons/openLibertyLogo.png"
+          id="io.openliberty.tools.eclipse.launch.config.gradle.test.report.shortcut"
+          label="Liberty View Test Report"
+          modes="run,debug"
+          path="io.openliberty.tools.eclipse.launch.shortcuts.group2"
+          description="Launches a request to display the test reports for the associated project">
+          <contextualLaunch>
+              <enablement>
+                  <with
+                      variable="selection">
+                      <count
+                          value="1">
+                      </count>
+	                  <iterate>
+                          <and>
+                              <instanceof value="org.eclipse.core.runtime.IAdaptable"/>
+		                      <test property="org.eclipse.debug.ui.projectNature" value="io.openliberty.tools.eclipse.ui.libertyNature"/>
+		                      <test property="org.eclipse.debug.ui.projectNature" value="org.eclipse.buildship.core.gradleprojectnature"/>
+                          </and>
+	                  </iterate>
+                  </with>
+              </enablement>
+          </contextualLaunch>
+      </shortcut>
+   </extension>
+
    <!-- Views -->
   <extension point="org.eclipse.ui.views">
      <category 
@@ -176,7 +473,7 @@
            name="Liberty Dashboard"
            icon="icons/openLibertyLogo.png"
            category="io.openliberty.tools.eclipse.view.category"
-           class="io.openliberty.tools.eclipse.ui.DashboardView"/>
+           class="io.openliberty.tools.eclipse.ui.dashboard.DashboardView"/>
   </extension>
 
   <!-- Nature -->
@@ -195,7 +492,7 @@
           label="io.openliberty.tools.eclipse.ui.terminal.local.devmode.launcher.delegate.label">
       </delegate>
   </extension>
-
+   
   <!-- Trace-->
   <extension
       point="org.eclipse.ui.trace.traceComponents">

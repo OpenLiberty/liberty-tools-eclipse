@@ -10,7 +10,7 @@
 * Contributors:
 *     IBM Corporation - initial implementation
 *******************************************************************************/
-package io.openliberty.tools.eclipse.ui;
+package io.openliberty.tools.eclipse.ui.dashboard;
 
 import java.net.URL;
 
@@ -80,7 +80,14 @@ public class DashboardView extends ViewPart {
     /**
      * DevModeOperations reference.
      */
-    public static DevModeOperations devModeOps = new DevModeOperations();
+    private DevModeOperations devModeOps;
+
+    /**
+     * Constructor.
+     */
+    public DashboardView() {
+        devModeOps = DevModeOperations.getInstance();
+    }
 
     /**
      * {@inheritDoc}
@@ -92,7 +99,7 @@ public class DashboardView extends ViewPart {
         viewer.setLabelProvider(new DashboardEntryLabelProvider(devModeOps));
 
         try {
-            viewer.setInput(devModeOps.getDashboardProjects());
+            viewer.setInput(devModeOps.getSupportedProjects());
         } catch (Exception e) {
             String msg = "An error was detected while retrieving Liberty projects.";
             if (Trace.isEnabled()) {
@@ -152,7 +159,7 @@ public class DashboardView extends ViewPart {
     private void addActionsToContextMenu(IMenuManager mgr) {
         IProject iProject = devModeOps.getSelectedDashboardProject();
         String projectName = iProject.getName();
-        Project project = devModeOps.getDashboardProject(projectName);
+        Project project = devModeOps.getSupportedProject(projectName);
 
         if (project != null) {
             mgr.add(startAction);
@@ -296,7 +303,7 @@ public class DashboardView extends ViewPart {
             @Override
             public void run() {
                 try {
-                    viewer.setInput(devModeOps.getDashboardProjects());
+                    viewer.setInput(devModeOps.getSupportedProjects());
                 } catch (Exception e) {
                     Dialog.displayErrorMessageWithDetails("An error was detected while retrieving Liberty projects.", e);
                     return;

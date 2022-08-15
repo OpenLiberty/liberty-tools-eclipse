@@ -35,7 +35,7 @@ import org.eclipse.ui.browser.IWebBrowser;
 import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
 
 import io.openliberty.tools.eclipse.logging.Trace;
-import io.openliberty.tools.eclipse.ui.DashboardView;
+import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
 import io.openliberty.tools.eclipse.ui.terminal.ProjectTab;
 import io.openliberty.tools.eclipse.ui.terminal.ProjectTab.State;
 import io.openliberty.tools.eclipse.ui.terminal.ProjectTabController;
@@ -74,13 +74,30 @@ public class DevModeOperations {
     private String pathEnv;
 
     /**
+     * The instance of this class.
+     */
+    private static DevModeOperations instance;
+
+    /**
      * Constructor.
      */
     public DevModeOperations() {
         projectTabController = ProjectTabController.getInstance();
         dashboard = new Dashboard();
-
         pathEnv = System.getenv("PATH");
+    }
+
+    /**
+     * Returns an instance of this class.
+     * 
+     * @return An instance of this class.
+     */
+    public static DevModeOperations getInstance() {
+        if (instance == null) {
+            instance = new DevModeOperations();
+        }
+
+        return instance;
     }
 
     /**
@@ -93,14 +110,24 @@ public class DevModeOperations {
     }
 
     /**
-     * Starts the server in dev mode.
-     *
-     * @return An error message or null if the command was processed successfully.
+     * Starts the Liberty server in dev mode.
      */
     public void start() {
+        start(null);
+    }
+
+    /**
+     * Starts the Liberty server in dev mode.
+     * 
+     * @param inputProject The project instance to associate with this action.
+     */
+    public void start(IProject inputProject) {
         // Get the object representing the selected application project. The returned project should never be null, but check it
         // just in case it is.
-        IProject iProject = getSelectedDashboardProject();
+        IProject iProject = inputProject;
+        if (iProject == null) {
+            iProject = getSelectedDashboardProject();
+        }
 
         if (Trace.isEnabled()) {
             Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, iProject);
@@ -185,14 +212,25 @@ public class DevModeOperations {
     }
 
     /**
-     * Starts the server in dev mode.
-     *
-     * @return An error message or null if the command was processed successfully.
+     * Starts the Liberty server in dev mode with parameters.
      */
     public void startWithParms() {
+        startWithParms(null, null);
+    }
+
+    /**
+     * Starts the Liberty server in dev mode with parameters.
+     * 
+     * @param iProjectName The project instance to associate with this action.
+     * @param startParms The dev mode start parameters to use.
+     */
+    public void startWithParms(IProject inputProject, String startParms) {
         // Get the object representing the selected application project. The returned project should never be null, but check it
         // just in case it is.
-        IProject iProject = getSelectedDashboardProject();
+        IProject iProject = inputProject;
+        if (iProject == null) {
+            iProject = getSelectedDashboardProject();
+        }
 
         if (Trace.isEnabled()) {
             Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, iProject);
@@ -200,7 +238,7 @@ public class DevModeOperations {
 
         if (iProject == null) {
             String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_START_PARMS
-                    + " action. The object representing the selected project on the dashboard could not be found.";
+                    + " action. The object representing the selected project could not be found. When using the Run Configuration launcher, be sure to select a project or project content first.";
             Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op.");
             Dialog.displayErrorMessage(msg);
             return;
@@ -244,12 +282,15 @@ public class DevModeOperations {
 
             // Get start parameters from the user. If the user cancelled or closed the parameter dialog,
             // take that as indication that no action should take place.
-            String userParms = getStartParms();
+            String userParms = startParms;
             if (userParms == null) {
-                if (Trace.isEnabled()) {
-                    Trace.getTracer().trace(Trace.TRACE_TOOLS, "Invalid user parms. No-op.");
+                userParms = getStartParms();
+                if (userParms == null) {
+                    if (Trace.isEnabled()) {
+                        Trace.getTracer().trace(Trace.TRACE_TOOLS, "Invalid user parms. No-op.");
+                    }
+                    return;
                 }
-                return;
             }
 
             // Get the absolute path to the application project.
@@ -286,14 +327,24 @@ public class DevModeOperations {
     }
 
     /**
-     * Starts the server in dev mode.
-     *
-     * @return An error message or null if the command was processed successfully.
+     * Starts the Liberty server in dev mode in a container.
      */
     public void startInContainer() {
+        startInContainer(null);
+    }
+
+    /**
+     * Starts the Liberty server in dev mode in a container.
+     * 
+     * @param inputProject The project instance to associate with this action.
+     */
+    public void startInContainer(IProject inputProject) {
         // Get the object representing the selected application project. The returned project should never be null, but check it
         // just in case it is.
-        IProject iProject = getSelectedDashboardProject();
+        IProject iProject = inputProject;
+        if (iProject == null) {
+            iProject = getSelectedDashboardProject();
+        }
 
         if (Trace.isEnabled()) {
             Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, iProject);
@@ -301,7 +352,7 @@ public class DevModeOperations {
 
         if (iProject == null) {
             String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_START_IN_CONTAINER
-                    + " action. The object representing the selected project on the dashboard could not be found.";
+                    + " action. The object representing the selected project could not be found. When using the Run Configuration launcher, be sure to select a project or project content first.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, msg + " No-op.");
             }
@@ -379,14 +430,24 @@ public class DevModeOperations {
     }
 
     /**
-     * Starts the server in dev mode.
-     *
-     * @return An error message or null if the command was processed successfully.
+     * Stops the Liberty server.
      */
     public void stop() {
+        stop(null);
+    }
+
+    /**
+     * Stops the Liberty server.
+     * 
+     * @param inputProject The project instance to associate with this action.
+     */
+    public void stop(IProject inputProject) {
         // Get the object representing the selected application project. The returned project should never be null, but check it
         // just in case it is.
-        IProject iProject = getSelectedDashboardProject();
+        IProject iProject = inputProject;
+        if (iProject == null) {
+            iProject = getSelectedDashboardProject();
+        }
 
         if (Trace.isEnabled()) {
             Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, iProject);
@@ -394,7 +455,7 @@ public class DevModeOperations {
 
         if (iProject == null) {
             String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_STOP
-                    + " action. The object representing the selected project on the dashboard could not be found.";
+                    + " action. The object representing the selected project could not be found. When using the Run Configuration launcher, be sure to select a project or project content first.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op.");
             }
@@ -467,13 +528,23 @@ public class DevModeOperations {
 
     /**
      * Runs the tests provided by the application.
-     *
-     * @return An error message or null if the command was processed successfully.
      */
     public void runTests() {
+        runTests(null);
+    }
+
+    /**
+     * Runs the tests provided by the application.
+     * 
+     * @param inputProject The project instance to associate with this action.
+     */
+    public void runTests(IProject inputProject) {
         // Get the object representing the selected application project. The returned project should never be null, but check it
         // just in case it is.
-        IProject iProject = getSelectedDashboardProject();
+        IProject iProject = inputProject;
+        if (iProject == null) {
+            iProject = getSelectedDashboardProject();
+        }
 
         if (Trace.isEnabled()) {
             Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, iProject);
@@ -481,7 +552,7 @@ public class DevModeOperations {
 
         if (iProject == null) {
             String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_RUN_TESTS
-                    + " action. The object representing the selected project on the dashboard could not be found.";
+                    + " action. The object representing the selected project could not be found. When using the Run Configuration launcher, be sure to select a project or project content first.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op.");
             }
@@ -544,9 +615,21 @@ public class DevModeOperations {
      * Open Maven integration test report.
      */
     public void openMavenIntegrationTestReport() {
+        openMavenIntegrationTestReport(null);
+    }
+
+    /**
+     * Open Maven integration test report.
+     * 
+     * @param inputProject The project instance to associate with this action.
+     */
+    public void openMavenIntegrationTestReport(IProject inputProject) {
         // Get the object representing the selected application project. The returned project should never be null, but check it
         // just in case it is.
-        IProject iProject = getSelectedDashboardProject();
+        IProject iProject = inputProject;
+        if (iProject == null) {
+            iProject = getSelectedDashboardProject();
+        }
 
         if (Trace.isEnabled()) {
             Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, iProject);
@@ -554,7 +637,7 @@ public class DevModeOperations {
 
         if (iProject == null) {
             String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_VIEW_MVN_IT_REPORT
-                    + " action. The object representing the selected project on the dashboard could not be found.";
+                    + " action. The object representing the selected project could not be found. When using the Run Configuration launcher, be sure to select a project or project content first.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op.");
             }
@@ -611,9 +694,21 @@ public class DevModeOperations {
      * Open Maven unit test report.
      */
     public void openMavenUnitTestReport() {
+        openMavenUnitTestReport(null);
+    }
+
+    /**
+     * Open Maven unit test report.
+     * 
+     * @param inputProject The project instance to associate with this action.
+     */
+    public void openMavenUnitTestReport(IProject inputProject) {
         // Get the object representing the selected application project. The returned project should never be null, but check it
         // just in case it is.
-        IProject iProject = getSelectedDashboardProject();
+        IProject iProject = inputProject;
+        if (iProject == null) {
+            iProject = getSelectedDashboardProject();
+        }
 
         if (Trace.isEnabled()) {
             if (Trace.isEnabled()) {
@@ -623,7 +718,7 @@ public class DevModeOperations {
 
         if (iProject == null) {
             String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_VIEW_MVN_UT_REPORT
-                    + " action. The object representing the selected project on the dashboard could not be found.";
+                    + " action. The object representing the selected project could not be found. When using the Run Configuration launcher, be sure to select a project or project content first.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op.");
             }
@@ -679,9 +774,21 @@ public class DevModeOperations {
      * Open Gradle test report.
      */
     public void openGradleTestReport() {
+        openGradleTestReport(null);
+    }
+
+    /**
+     * Open Gradle test report.
+     * 
+     * @param inputProject The project instance to associate with this action.
+     */
+    public void openGradleTestReport(IProject inputProject) {
         // Get the object representing the selected application project. The returned project should never be null, but check it
         // just in case it is.
-        IProject iProject = getSelectedDashboardProject();
+        IProject iProject = inputProject;
+        if (iProject == null) {
+            iProject = getSelectedDashboardProject();
+        }
 
         if (Trace.isEnabled()) {
             Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, iProject);
@@ -689,7 +796,7 @@ public class DevModeOperations {
 
         if (iProject == null) {
             String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT
-                    + " action. The object representing the selected project on the dashboard could not be found.";
+                    + " action. The object representing the selected project could not be found. When using the Run Configuration launcher, be sure to select a project or project content first.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op.");
             }
@@ -1019,7 +1126,7 @@ public class DevModeOperations {
      *
      * @throws Exception
      */
-    public List<String> getDashboardProjects() throws Exception {
+    public List<String> getSupportedProjects() throws Exception {
         dashboard.retrieveSupportedProjects();
         List<String> mvnProjs = dashboard.getMavenProjectNames();
         Collections.sort(mvnProjs);
@@ -1039,7 +1146,29 @@ public class DevModeOperations {
      * 
      * @return The project associated with the input name.
      */
-    public Project getDashboardProject(String name) {
+    public Project getSupportedProject(String name) {
         return dashboard.getProject(name);
+    }
+
+    /**
+     * Verifies that the input project is known to the plugin and that it is a supported project.
+     * 
+     * @param iProject The project to validate. If null, this operation is a no-op.
+     * 
+     * @throws Exception If the input project is not supported.
+     */
+    public void verifyProjectSupport(IProject iProject) throws Exception {
+        if (iProject != null) {
+            String projectName = iProject.getName();
+            Project project = getSupportedProject(projectName);
+            if (project == null) {
+                getSupportedProjects();
+                project = getSupportedProject(iProject.getName());
+                if (project == null) {
+                    throw new Exception(
+                            "Project " + projectName + " is not a supported project. Make sure the project is a Liberty project.");
+                }
+            }
+        }
     }
 }

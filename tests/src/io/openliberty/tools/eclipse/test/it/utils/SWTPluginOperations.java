@@ -44,7 +44,7 @@ import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
-import io.openliberty.tools.eclipse.ui.DashboardView;
+import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
 
 /**
  * Provides a set of SWTBot wrapper functions.
