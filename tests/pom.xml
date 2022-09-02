@@ -33,8 +33,66 @@
         <configuration>
           <useUIHarness>true</useUIHarness>
           <useUIThread>false</useUIThread>
+          <testRuntime>p2Installed</testRuntime>
         </configuration>
       </plugin>
+      <plugin>
+		   <groupId>org.eclipse.tycho</groupId>
+		   <artifactId>target-platform-configuration</artifactId>
+		   <version>${tycho.version}</version>
+		   <configuration>
+		      <dependency-resolution>
+		         <extraRequirements>
+		            <!-- product IU under test -->
+		            <requirement>
+		               <type>p2-installable-unit</type>
+		               <id>org.eclipse.jdt.feature.group</id>
+		               <versionRange>0.0.0</versionRange>
+		            </requirement>
+		            <requirement>
+		               <type>p2-installable-unit</type>
+		               <id>org.eclipse.platform.sdk</id>
+		               <versionRange>0.0.0</versionRange>
+		            </requirement>
+		            <requirement>
+		               <type>p2-installable-unit</type>
+		               <id>org.eclipse.emf.sdk.feature.group</id>
+		               <versionRange>0.0.0</versionRange>
+		            </requirement>		            
+		            <requirement>
+		               <type>p2-installable-unit</type>
+		               <id>org.eclipse.lsp4e</id>
+		               <versionRange>0.0.0</versionRange>
+		            </requirement>
+		            <requirement>
+		               <type>p2-installable-unit</type>
+		               <id>org.eclipse.lsp4e.jdt</id>
+		               <versionRange>0.0.0</versionRange>
+		            </requirement>
+		            <requirement>
+		               <type>p2-installable-unit</type>
+		               <id>org.eclipse.lsp4mp.jdt.core</id>
+		               <versionRange>0.0.0</versionRange>
+		            </requirement>
+		            <requirement>
+		               <type>p2-installable-unit</type>
+		               <id>org.eclipse.jdt.ls.core</id>
+		               <versionRange>0.0.0</versionRange>
+		            </requirement>
+		            <requirement>
+		               <type>p2-installable-unit</type>
+		               <id>org.eclipse.m2e.wtp.feature.feature.group</id>
+		               <versionRange>0.0.0</versionRange>
+		            </requirement>
+		            <requirement>
+		               <type>p2-installable-unit</type>
+		               <id>org.eclipse.equinox.sdk.feature.group</id>
+		               <versionRange>0.0.0</versionRange>
+		            </requirement>
+		         </extraRequirements>
+		      </dependency-resolution>
+		   </configuration>
+	  </plugin>
     </plugins>
   </build>
 

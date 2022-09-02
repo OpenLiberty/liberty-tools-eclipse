@@ -5,8 +5,10 @@ Bundle-Name: Liberty Tools Support for Language Servers
 Bundle-Vendor: IBM
 Bundle-SymbolicName: io.openliberty.tools.eclipse.lsp4e;singleton:=true
 Bundle-Version: 0.2.0.qualifier
+Bundle-Activator: io.openliberty.tools.eclipse.LibertyDevPlugin
 Automatic-Module-Name: io.openliberty.tools.eclipse.lsp4e
 Bundle-RequiredExecutionEnvironment: JavaSE-11
+Export-Package: io.openliberty.tools.eclipse.mpls
 Require-Bundle: org.eclipse.lsp4mp.jdt.core,
  org.eclipse.lsp4e,
  org.eclipse.lsp4e.jdt,

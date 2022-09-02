@@ -12,6 +12,8 @@
 *******************************************************************************/
 package io.openliberty.tools.eclipse.test.it.utils;
 
+import org.eclipse.swt.browser.Browser;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotEditor;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotView;
@@ -93,6 +95,52 @@ public class SWTTestCondition {
 			@Override
 			public String getFailureMessage() {
 				return "Editor " + fileName + " is not active";
+			}
+		};
+	}
+	
+	/**
+	 * Retursn true if the editor containing the input name is active. False, otherwise. 
+	 * 
+	 * @param wbbot The Workbench bot instance.
+	 * @param fileName The editor title or a subset of the title name.
+	 * 
+	 * @return True if the editor containing the input name is active. False, otherwise.
+	 */
+	public static ICondition isControlActive(Control cbot, String popupName) {
+		return new CustomCondition() {
+
+			@Override
+			public boolean test() throws Exception {
+				return (cbot != null);
+			}
+
+			@Override
+			public String getFailureMessage() {
+				return "Browser Control for " + popupName + " is not active.";
+			}
+		};
+	}
+	
+	/**
+	 * Retursn true if the editor containing the input name is active. False, otherwise. 
+	 * 
+	 * @param wbbot The Workbench bot instance.
+	 * @param fileName The editor title or a subset of the title name.
+	 * 
+	 * @return True if the editor containing the input name is active. False, otherwise.
+	 */
+	public static ICondition isBrowserActive(Browser bbot, String popupName) {
+		return new CustomCondition() {
+
+			@Override
+			public boolean test() throws Exception {
+				return (bbot != null);
+			}
+
+			@Override
+			public String getFailureMessage() {
+				return "Browser for " + popupName + " is not active.";
 			}
 		};
 	}

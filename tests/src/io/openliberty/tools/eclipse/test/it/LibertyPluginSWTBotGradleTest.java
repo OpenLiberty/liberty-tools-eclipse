@@ -84,6 +84,9 @@ public class LibertyPluginSWTBotGradleTest {
     static String[] gradleMenuItems = new String[] { DashboardView.APP_MENU_ACTION_START, DashboardView.APP_MENU_ACTION_START_PARMS,
             DashboardView.APP_MENU_ACTION_START_IN_CONTAINER, DashboardView.APP_MENU_ACTION_STOP, DashboardView.APP_MENU_ACTION_RUN_TESTS,
             DashboardView.APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT };
+    
+    static String appMsg = "Hello! How are you today?";
+    static String appURL = "http://localhost:9080/" + GRADLE_APP_NAME + "/servlet";
 
     /**
      * Setup.
@@ -162,14 +165,14 @@ public class LibertyPluginSWTBotGradleTest {
         terminal.show();
 
         // Validate application is up and running.
-        validateApplicationOutcome(GRADLE_APP_NAME, true, testAppPath + "/build");
+        validateApplicationOutcome(GRADLE_APP_NAME, true, testAppPath + "/build", appMsg, appURL);
 
         // Stop dev mode.
         SWTPluginOperations.launchAppMenuStopAction(bot, dashboard, GRADLE_APP_NAME);
         terminal.show();
 
         // Validate application stopped.
-        validateApplicationOutcome(GRADLE_APP_NAME, false, testAppPath + "/build");
+        validateApplicationOutcome(GRADLE_APP_NAME, false, testAppPath + "/build", appMsg, appURL);
 
         // Close the terminal.
         terminal.close();
@@ -191,7 +194,7 @@ public class LibertyPluginSWTBotGradleTest {
         terminal.show();
 
         // Validate application is up and running.
-        validateApplicationOutcome(GRADLE_APP_NAME, true, testAppPath + "/build");
+        validateApplicationOutcome(GRADLE_APP_NAME, true, testAppPath + "/build", appMsg, appURL);
 
         // Validate that the test reports were generated.
         validateTestReportExists(pathToTestReport);
@@ -201,7 +204,7 @@ public class LibertyPluginSWTBotGradleTest {
         terminal.show();
 
         // Validate application stopped.
-        validateApplicationOutcome(GRADLE_APP_NAME, false, testAppPath + "/build");
+        validateApplicationOutcome(GRADLE_APP_NAME, false, testAppPath + "/build", appMsg, appURL);
 
         // Close the terminal.
         terminal.close();
@@ -224,7 +227,7 @@ public class LibertyPluginSWTBotGradleTest {
         terminal.show();
 
         // Validate application is up and running.
-        validateApplicationOutcome(GRADLE_APP_NAME, true, testAppPath + "/build");
+        validateApplicationOutcome(GRADLE_APP_NAME, true, testAppPath + "/build", appMsg, appURL);
 
         // Run Tests.
         SWTPluginOperations.launchAppMenuRunTestsAction(bot, dashboard, GRADLE_APP_NAME);
@@ -240,7 +243,7 @@ public class LibertyPluginSWTBotGradleTest {
         terminal.show();
 
         // Validate application stopped.
-        validateApplicationOutcome(GRADLE_APP_NAME, false, testAppPath + "/build");
+        validateApplicationOutcome(GRADLE_APP_NAME, false, testAppPath + "/build", appMsg, appURL);
 
         // Close the terminal.
         terminal.close();

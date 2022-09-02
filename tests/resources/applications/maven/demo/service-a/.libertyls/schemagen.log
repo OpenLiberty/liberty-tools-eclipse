@@ -1,0 +1,4 @@
+CWWKG0030E: Pid reference com.ibm.ws.jca.resourceAdapter listed on ibm:reference extension does not exist.
+CWWKG0030E: Pid reference com.ibm.ws.security.jca.internal.authdata.config listed on ibm:reference extension does not exist.
+CWWKG0030E: Pid reference com.ibm.ws.jdbc.dataSource listed on ibm:reference extension does not exist.
+CWWKG0109I: The schema was created in the [C:\Andy\TestApps\demo-mvn\demo\service-a\.libertyls\ol-22.0.0.8.xsd] file.

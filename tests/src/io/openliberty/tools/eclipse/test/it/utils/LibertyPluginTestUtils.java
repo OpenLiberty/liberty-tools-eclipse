@@ -42,9 +42,12 @@ public class LibertyPluginTestUtils {
      *
      * @param expectSuccess True if the validation is expected to be successful. False, otherwise.
      */
-    public static void validateApplicationOutcome(String appName, boolean expectSuccess, String testAppPath) {
-        String expectedMvnAppResp = "Hello! How are you today?";
-        String appUrl = "http://localhost:9080/" + appName + "/servlet";
+    public static void validateApplicationOutcome(String appName, boolean expectSuccess, String testAppPath, String msg, String urlParam) {
+        //String expectedMvnAppResp = "Hello! How are you today?";
+        //String appUrl = "http://localhost:9080/" + appName + "/servlet";
+    	String expectedMvnAppResp = msg;
+        String appUrl = urlParam;
+        
         int retryCountLimit = 40;
         int reryIntervalSecs = 3;
         int retryCount = 0;

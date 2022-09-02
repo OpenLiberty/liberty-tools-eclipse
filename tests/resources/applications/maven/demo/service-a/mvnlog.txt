@@ -1,0 +1,1663 @@
+[1mApache Maven 3.6.0 (97c98ec64a1fdfee7767ce5ffb20918da4f719f3; 2018-10-24T14:41:47-04:00)[m
+Maven home: C:\maven\apache-maven-3.6.0
+Java version: 11.0.4, vendor: AdoptOpenJDK, runtime: C:\Java\OpenJDK11\jdk-11.0.4+11
+Default locale: en_US, platform encoding: Cp1252
+OS name: "windows 10", version: "10.0", arch: "amd64", family: "windows"
+[[1;36mDEBUG[m] Created new class realm maven.api
+[[1;36mDEBUG[m] Importing foreign packages into class realm maven.api
+[[1;36mDEBUG[m]   Imported: javax.annotation.* < plexus.core
+[[1;36mDEBUG[m]   Imported: javax.annotation.security.* < plexus.core
+[[1;36mDEBUG[m]   Imported: javax.enterprise.inject.* < plexus.core
+[[1;36mDEBUG[m]   Imported: javax.enterprise.util.* < plexus.core
+[[1;36mDEBUG[m]   Imported: javax.inject.* < plexus.core
+[[1;36mDEBUG[m]   Imported: org.apache.maven.* < plexus.core
+[[1;36mDEBUG[m]   Imported: org.apache.maven.artifact < plexus.core
+[[1;36mDEBUG[m]   Imported: org.apache.maven.classrealm < plexus.core
+[[1;36mDEBUG[m]   Imported: org.apache.maven.cli < plexus.core
+[[1;36mDEBUG[m]   Imported: org.apache.maven.configuration < plexus.core
+[[1;36mDEBUG[m]   Imported: org.apache.maven.exception < plexus.core
+[[1;36mDEBUG[m]   Imported: org.apache.maven.execution < plexus.core
+[[1;36mDEBUG[m]   Imported: org.apache.maven.execution.scope < plexus.core
+[[1;36mDEBUG[m]   Imported: org.apache.maven.lifecycle < plexus.core
+[[1;36mDEBUG[m]   Imported: org.apache.maven.model < plexus.core
+[[1;36mDEBUG[m]   Imported: org.apache.maven.monitor < plexus.core
+[[1;36mDEBUG[m]   Imported: org.apache.maven.plugin < plexus.core
+[[1;36mDEBUG[m]   Imported: org.apache.maven.profiles < plexus.core
+[[1;36mDEBUG[m]   Imported: org.apache.maven.project < plexus.core
+[[1;36mDEBUG[m]   Imported: org.apache.maven.reporting < plexus.core
+[[1;36mDEBUG[m]   Imported: org.apache.maven.repository < plexus.core
+[[1;36mDEBUG[m]   Imported: org.apache.maven.rtinfo < plexus.core
+[[1;36mDEBUG[m]   Imported: org.apache.maven.settings < plexus.core
+[[1;36mDEBUG[m]   Imported: org.apache.maven.toolchain < plexus.core
+[[1;36mDEBUG[m]   Imported: org.apache.maven.usability < plexus.core
+[[1;36mDEBUG[m]   Imported: org.apache.maven.wagon.* < plexus.core
+[[1;36mDEBUG[m]   Imported: org.apache.maven.wagon.authentication < plexus.core
+[[1;36mDEBUG[m]   Imported: org.apache.maven.wagon.authorization < plexus.core
+[[1;36mDEBUG[m]   Imported: org.apache.maven.wagon.events < plexus.core
+[[1;36mDEBUG[m]   Imported: org.apache.maven.wagon.observers < plexus.core
+[[1;36mDEBUG[m]   Imported: org.apache.maven.wagon.proxy < plexus.core
+[[1;36mDEBUG[m]   Imported: org.apache.maven.wagon.repository < plexus.core
+[[1;36mDEBUG[m]   Imported: org.apache.maven.wagon.resource < plexus.core
+[[1;36mDEBUG[m]   Imported: org.codehaus.classworlds < plexus.core
+[[1;36mDEBUG[m]   Imported: org.codehaus.plexus.* < plexus.core
+[[1;36mDEBUG[m]   Imported: org.codehaus.plexus.classworlds < plexus.core
+[[1;36mDEBUG[m]   Imported: org.codehaus.plexus.component < plexus.core
+[[1;36mDEBUG[m]   Imported: org.codehaus.plexus.configuration < plexus.core
+[[1;36mDEBUG[m]   Imported: org.codehaus.plexus.container < plexus.core
+[[1;36mDEBUG[m]   Imported: org.codehaus.plexus.context < plexus.core
+[[1;36mDEBUG[m]   Imported: org.codehaus.plexus.lifecycle < plexus.core
+[[1;36mDEBUG[m]   Imported: org.codehaus.plexus.logging < plexus.core
+[[1;36mDEBUG[m]   Imported: org.codehaus.plexus.personality < plexus.core
+[[1;36mDEBUG[m]   Imported: org.codehaus.plexus.util.xml.Xpp3Dom < plexus.core
+[[1;36mDEBUG[m]   Imported: org.codehaus.plexus.util.xml.pull.XmlPullParser < plexus.core
+[[1;36mDEBUG[m]   Imported: org.codehaus.plexus.util.xml.pull.XmlPullParserException < plexus.core
+[[1;36mDEBUG[m]   Imported: org.codehaus.plexus.util.xml.pull.XmlSerializer < plexus.core
+[[1;36mDEBUG[m]   Imported: org.eclipse.aether.* < plexus.core
+[[1;36mDEBUG[m]   Imported: org.eclipse.aether.artifact < plexus.core
+[[1;36mDEBUG[m]   Imported: org.eclipse.aether.collection < plexus.core
+[[1;36mDEBUG[m]   Imported: org.eclipse.aether.deployment < plexus.core
+[[1;36mDEBUG[m]   Imported: org.eclipse.aether.graph < plexus.core
+[[1;36mDEBUG[m]   Imported: org.eclipse.aether.impl < plexus.core
+[[1;36mDEBUG[m]   Imported: org.eclipse.aether.installation < plexus.core
+[[1;36mDEBUG[m]   Imported: org.eclipse.aether.internal.impl < plexus.core
+[[1;36mDEBUG[m]   Imported: org.eclipse.aether.metadata < plexus.core
+[[1;36mDEBUG[m]   Imported: org.eclipse.aether.repository < plexus.core
+[[1;36mDEBUG[m]   Imported: org.eclipse.aether.resolution < plexus.core
+[[1;36mDEBUG[m]   Imported: org.eclipse.aether.spi < plexus.core
+[[1;36mDEBUG[m]   Imported: org.eclipse.aether.transfer < plexus.core
+[[1;36mDEBUG[m]   Imported: org.eclipse.aether.version < plexus.core
+[[1;36mDEBUG[m]   Imported: org.fusesource.jansi.* < plexus.core
+[[1;36mDEBUG[m]   Imported: org.slf4j.* < plexus.core
+[[1;36mDEBUG[m]   Imported: org.slf4j.helpers.* < plexus.core
+[[1;36mDEBUG[m]   Imported: org.slf4j.spi.* < plexus.core
+[[1;36mDEBUG[m] Populating class realm maven.api
+[[1;34mINFO[m] Error stacktraces are turned on.
+[[1;36mDEBUG[m] Message scheme: color
+[[1;36mDEBUG[m] Message styles: [1;36mdebug[m [1;34minfo[m [1;33mwarning[m [1;31merror[m [1;32msuccess[m [1;31mfailure[m [1mstrong[m [32mmojo[m [36mproject[m
+[[1;36mDEBUG[m] Reading global settings from C:\maven\apache-maven-3.6.0\conf\settings.xml
+[[1;36mDEBUG[m] Reading user settings from C:\Users\AndrewMauer\.m2\settings.xml
+[[1;36mDEBUG[m] Reading global toolchains from C:\maven\apache-maven-3.6.0\conf\toolchains.xml
+[[1;36mDEBUG[m] Reading user toolchains from C:\Users\AndrewMauer\.m2\toolchains.xml
+[[1;36mDEBUG[m] Using local repository at C:\Users\AndrewMauer\.m2\repository
+[[1;36mDEBUG[m] Using manager EnhancedLocalRepositoryManager with priority 10.0 for C:\Users\AndrewMauer\.m2\repository
+[[1;34mINFO[m] Scanning for projects...
+[[1;36mDEBUG[m] Extension realms for project com.example:demo-service-a:war:1.0-SNAPSHOT: (none)
+[[1;36mDEBUG[m] Looking up lifecycle mappings for packaging war from ClassRealm[plexus.core, parent: null]
+[[1;36mDEBUG[m] Resolving plugin prefix liberty from [org.apache.maven.plugins, org.codehaus.mojo]
+[[1;36mDEBUG[m] Resolved plugin prefix liberty to io.openliberty.tools:liberty-maven-plugin from POM com.example:demo-service-a:war:1.0-SNAPSHOT
+[[1;36mDEBUG[m] === REACTOR BUILD PLAN ================================================
+[[1;36mDEBUG[m] Project: com.example:demo-service-a:war:1.0-SNAPSHOT
+[[1;36mDEBUG[m] Tasks:   [liberty:dev]
+[[1;36mDEBUG[m] Style:   Regular
+[[1;36mDEBUG[m] =======================================================================
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m---------------------< [0;36mcom.example:demo-service-a[0;1m >---------------------[m
+[[1;34mINFO[m] [1mBuilding demo-service-a 1.0-SNAPSHOT[m
+[[1;34mINFO[m] [1m--------------------------------[ war ]---------------------------------[m
+[[1;36mDEBUG[m] Resolving plugin prefix liberty from [org.apache.maven.plugins, org.codehaus.mojo]
+[[1;36mDEBUG[m] Resolved plugin prefix liberty to io.openliberty.tools:liberty-maven-plugin from POM com.example:demo-service-a:war:1.0-SNAPSHOT
+[[1;36mDEBUG[m] Lifecycle default -> [validate, initialize, generate-sources, process-sources, generate-resources, process-resources, compile, process-classes, generate-test-sources, process-test-sources, generate-test-resources, process-test-resources, test-compile, process-test-classes, test, prepare-package, package, pre-integration-test, integration-test, post-integration-test, verify, install, deploy]
+[[1;36mDEBUG[m] Lifecycle clean -> [pre-clean, clean, post-clean]
+[[1;36mDEBUG[m] Lifecycle site -> [pre-site, site, post-site, site-deploy]
+[[1;36mDEBUG[m] === PROJECT BUILD PLAN ================================================
+[[1;36mDEBUG[m] Project:       com.example:demo-service-a:1.0-SNAPSHOT
+[[1;36mDEBUG[m] Dependencies (collect): [test]
+[[1;36mDEBUG[m] Dependencies (resolve): [test]
+[[1;36mDEBUG[m] Repositories (dependencies): [central (https://repo.maven.apache.org/maven2, default, releases)]
+[[1;36mDEBUG[m] Repositories (plugins)     : [central (https://repo.maven.apache.org/maven2, default, releases)]
+[[1;36mDEBUG[m] -----------------------------------------------------------------------
+[[1;36mDEBUG[m] Goal:          io.openliberty.tools:liberty-maven-plugin:3.5.1:dev (default-cli)
+[[1;36mDEBUG[m] Style:         Regular
+[[1;36mDEBUG[m] Configuration: <?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <applications>${applications}</applications>
+  <appsDirectory>${appsDirectory}</appsDirectory>
+  <artifactRepository default-value="${localRepository}"/>
+  <assemblyArchive>${runtimeArchive}</assemblyArchive>
+  <assemblyArtifact>${runtimeArtifact}</assemblyArtifact>
+  <assemblyInstallDirectory default-value="${project.build.directory}/liberty">${runtimeInstallDirectory}</assemblyInstallDirectory>
+  <bootstrapProperties>
+    <project.name>demo</project.name>
+    <jwt.issuer>https://server.example.com</jwt.issuer>
+    <app.context.root>/</app.context.root>
+  </bootstrapProperties>
+  <bootstrapPropertiesFile>${bootstrapPropertiesFile}</bootstrapPropertiesFile>
+  <clean default-value="false">${clean}</clean>
+  <compileWait default-value="0.5">${compileWait}</compileWait>
+  <configDirectory default-value="${basedir}/src/main/liberty/config">${configDirectory}</configDirectory>
+  <container default-value="false">${container}</container>
+  <deployPackages default-value="project">${deployPackages}</deployPackages>
+  <dockerBuildContext>${dockerBuildContext}</dockerBuildContext>
+  <dockerBuildTimeout default-value="600">${dockerBuildTimeout}</dockerBuildTimeout>
+  <dockerRunOpts>${dockerRunOpts}</dockerRunOpts>
+  <dockerfile>${dockerfile}</dockerfile>
+  <hotTests default-value="false">${hotTests}</hotTests>
+  <installDirectory>${installDirectory}</installDirectory>
+  <isInstall default-value="true">${isInstall}</isInstall>
+  <jvmOptionsFile>${jvmOptionsFile}</jvmOptionsFile>
+  <keepTempDockerfile default-value="false">${keepTempDockerfile}</keepTempDockerfile>
+  <libertyDebug default-value="true">${debug}</libertyDebug>
+  <libertyDebugPort default-value="7777">${debugPort}</libertyDebugPort>
+  <libertyRuntimeArtifactId>${liberty.runtime.artifactId}</libertyRuntimeArtifactId>
+  <libertyRuntimeGroupId>${liberty.runtime.groupId}</libertyRuntimeGroupId>
+  <libertyRuntimeVersion>${liberty.runtime.version}</libertyRuntimeVersion>
+  <looseApplication default-value="true">${looseApplication}</looseApplication>
+  <mergeServerEnv default-value="false">${mergeServerEnv}</mergeServerEnv>
+  <multiModuleProjectDirectory default-value="${maven.multiModuleProjectDirectory}"/>
+  <outputDirectory default-value="${project.build.outputDirectory}"/>
+  <plugin default-value="${plugin}"/>
+  <pollingTest default-value="false">${pollingTest}</pollingTest>
+  <project default-value="${project}"/>
+  <reactorProjects>${reactorProjects}</reactorProjects>
+  <recompileDependencies>${recompileDependencies}</recompileDependencies>
+  <refresh default-value="false">${refresh}</refresh>
+  <repoSession default-value="${repositorySystemSession}"/>
+  <repositories default-value="${project.remoteProjectRepositories}"/>
+  <serverEnvFile>${serverEnvFile}</serverEnvFile>
+  <serverName default-value="defaultServer">demo</serverName>
+  <serverStartTimeout default-value="90">${serverStartTimeout}</serverStartTimeout>
+  <serverXmlFile>${serverXmlFile}</serverXmlFile>
+  <session default-value="${session}"/>
+  <settings default-value="${settings}"/>
+  <skip default-value="false">${skip}</skip>
+  <skipDefaultPorts default-value="false">${skipDefaultPorts}</skipDefaultPorts>
+  <skipITs default-value="false">${skipITs}</skipITs>
+  <skipTests default-value="false">${skipTests}</skipTests>
+  <skipUTs default-value="false">${skipUTs}</skipUTs>
+  <sourceDirectoryString default-value=" ${project.build.sourceDirectory}"/>
+  <stripVersion default-value="false">${stripVersion}</stripVersion>
+  <testOutputDirectory default-value="${project.build.testOutputDirectory}"/>
+  <testSourceDirectoryString default-value=" ${project.build.testSourceDirectory}"/>
+  <useOpenLiberty>${useOpenLiberty}</useOpenLiberty>
+  <userDirectory>${userDirectory}</userDirectory>
+  <verifyTimeout default-value="30">${verifyTimeout}</verifyTimeout>
+</configuration>
+[[1;36mDEBUG[m] =======================================================================
+[[1;36mDEBUG[m] Dependency collection stats: {ConflictMarker.analyzeTime=904700, ConflictMarker.markTime=315300, ConflictMarker.nodeCount=49, ConflictIdSorter.graphTime=589700, ConflictIdSorter.topsortTime=377200, ConflictIdSorter.conflictIdCount=34, ConflictIdSorter.conflictIdCycleCount=0, ConflictResolver.totalTime=5471500, ConflictResolver.conflictItemCount=46, DefaultDependencyCollector.collectTime=349915100, DefaultDependencyCollector.transformTime=10221800}
+[[1;36mDEBUG[m] com.example:demo-service-a:war:1.0-SNAPSHOT
+[[1;36mDEBUG[m]    org.eclipse.microprofile:microprofile:pom:4.1:provided
+[[1;36mDEBUG[m]       jakarta.enterprise:jakarta.enterprise.cdi-api:jar:2.0.2:provided
+[[1;36mDEBUG[m]          jakarta.interceptor:jakarta.interceptor-api:jar:1.2.5:provided
+[[1;36mDEBUG[m]          jakarta.inject:jakarta.inject-api:jar:1.0:provided
+[[1;36mDEBUG[m]       jakarta.ws.rs:jakarta.ws.rs-api:jar:2.1.6:provided
+[[1;36mDEBUG[m]       jakarta.json.bind:jakarta.json.bind-api:jar:1.0.2:provided
+[[1;36mDEBUG[m]       jakarta.json:jakarta.json-api:jar:1.1.6:provided
+[[1;36mDEBUG[m]       jakarta.annotation:jakarta.annotation-api:jar:1.3.5:provided
+[[1;36mDEBUG[m]       org.eclipse.microprofile.config:microprofile-config-api:jar:2.0:provided
+[[1;36mDEBUG[m]       org.eclipse.microprofile.fault-tolerance:microprofile-fault-tolerance-api:jar:3.0:provided
+[[1;36mDEBUG[m]       org.eclipse.microprofile.health:microprofile-health-api:jar:3.1:provided
+[[1;36mDEBUG[m]       org.eclipse.microprofile.metrics:microprofile-metrics-api:jar:3.0:provided
+[[1;36mDEBUG[m]       org.eclipse.microprofile.jwt:microprofile-jwt-auth-api:jar:1.2:provided
+[[1;36mDEBUG[m]       org.eclipse.microprofile.openapi:microprofile-openapi-api:jar:2.0:provided
+[[1;36mDEBUG[m]       org.eclipse.microprofile.rest.client:microprofile-rest-client-api:jar:2.0:provided
+[[1;36mDEBUG[m]       org.eclipse.microprofile.opentracing:microprofile-opentracing-api:jar:2.0:provided
+[[1;36mDEBUG[m]    io.jaegertracing:jaeger-client:jar:1.5.0:compile
+[[1;36mDEBUG[m]       io.jaegertracing:jaeger-thrift:jar:1.5.0:compile
+[[1;36mDEBUG[m]          org.apache.thrift:libthrift:jar:0.13.0:compile
+[[1;36mDEBUG[m]             javax.annotation:javax.annotation-api:jar:1.3.2:compile
+[[1;36mDEBUG[m]          com.squareup.okhttp3:okhttp:jar:4.9.0:compile
+[[1;36mDEBUG[m]             com.squareup.okio:okio:jar:2.8.0:compile
+[[1;36mDEBUG[m]                org.jetbrains.kotlin:kotlin-stdlib-common:jar:1.4.0:compile
+[[1;36mDEBUG[m]             org.jetbrains.kotlin:kotlin-stdlib:jar:1.4.10:compile
+[[1;36mDEBUG[m]                org.jetbrains:annotations:jar:13.0:compile
+[[1;36mDEBUG[m]       io.jaegertracing:jaeger-core:jar:1.5.0:compile
+[[1;36mDEBUG[m]          io.opentracing:opentracing-api:jar:0.33.0:compile
+[[1;36mDEBUG[m]          io.opentracing:opentracing-util:jar:0.33.0:compile
+[[1;36mDEBUG[m]             io.opentracing:opentracing-noop:jar:0.33.0:compile
+[[1;36mDEBUG[m]          com.google.code.gson:gson:jar:2.8.6:compile
+[[1;36mDEBUG[m]       io.jaegertracing:jaeger-tracerresolver:jar:1.5.0:compile
+[[1;36mDEBUG[m]          io.opentracing.contrib:opentracing-tracerresolver:jar:0.1.8:compile
+[[1;36mDEBUG[m]    org.slf4j:slf4j-api:jar:1.7.30:compile
+[[1;36mDEBUG[m]    org.slf4j:slf4j-jdk14:jar:1.7.30:compile
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m--- [0;32mliberty-maven-plugin:3.5.1:dev[m [1m(default-cli)[m @ [36mdemo-service-a[0;1m ---[m
+[[1;36mDEBUG[m] Dependency collection stats: {ConflictMarker.analyzeTime=372900, ConflictMarker.markTime=307700, ConflictMarker.nodeCount=165, ConflictIdSorter.graphTime=143200, ConflictIdSorter.topsortTime=53700, ConflictIdSorter.conflictIdCount=58, ConflictIdSorter.conflictIdCycleCount=0, ConflictResolver.totalTime=2824200, ConflictResolver.conflictItemCount=109, DefaultDependencyCollector.collectTime=618480900, DefaultDependencyCollector.transformTime=3789800}
+[[1;36mDEBUG[m] io.openliberty.tools:liberty-maven-plugin:jar:3.5.1:
+[[1;36mDEBUG[m]    io.openliberty.tools:liberty-ant-tasks:jar:1.9.9:compile
+[[1;36mDEBUG[m]       junit:junit:jar:4.13.1:compile
+[[1;36mDEBUG[m]          org.hamcrest:hamcrest-core:jar:1.3:compile
+[[1;36mDEBUG[m]       org.apache.ant:ant:jar:1.10.11:compile
+[[1;36mDEBUG[m]          org.apache.ant:ant-launcher:jar:1.10.11:compile
+[[1;36mDEBUG[m]       commons-io:commons-io:jar:2.8.0:compile
+[[1;36mDEBUG[m]       org.json:json:jar:20180813:compile
+[[1;36mDEBUG[m]    org.codehaus.mojo:plugin-support:jar:1.0-alpha-1:compile
+[[1;36mDEBUG[m]       ant:ant:jar:1.6.5:compile
+[[1;36mDEBUG[m]       commons-lang:commons-lang:jar:2.3:compile
+[[1;36mDEBUG[m]       commons-logging:commons-logging:jar:1.0.4:compile
+[[1;36mDEBUG[m]       commons-jexl:commons-jexl:jar:1.1:compile
+[[1;36mDEBUG[m]    org.apache.maven.shared:maven-mapping:jar:3.0.0:compile
+[[1;36mDEBUG[m]       org.codehaus.plexus:plexus-interpolation:jar:1.21:compile
+[[1;36mDEBUG[m]    org.apache.maven:maven-core:jar:3.5.0:compile
+[[1;36mDEBUG[m]       org.apache.maven:maven-model:jar:3.5.0:compile
+[[1;36mDEBUG[m]       org.apache.maven:maven-settings:jar:3.5.0:compile
+[[1;36mDEBUG[m]       org.apache.maven:maven-settings-builder:jar:3.5.0:compile
+[[1;36mDEBUG[m]          org.apache.maven:maven-builder-support:jar:3.5.0:compile
+[[1;36mDEBUG[m]       org.apache.maven:maven-repository-metadata:jar:3.5.0:compile
+[[1;36mDEBUG[m]       org.apache.maven:maven-artifact:jar:3.5.0:compile
+[[1;36mDEBUG[m]       org.apache.maven:maven-plugin-api:jar:3.5.0:compile
+[[1;36mDEBUG[m]       org.apache.maven:maven-model-builder:jar:3.5.0:compile
+[[1;36mDEBUG[m]          com.google.guava:guava:jar:20.0:compile
+[[1;36mDEBUG[m]       org.apache.maven:maven-resolver-provider:jar:3.5.0:compile
+[[1;36mDEBUG[m]       org.apache.maven.resolver:maven-resolver-impl:jar:1.0.3:compile
+[[1;36mDEBUG[m]       org.apache.maven.resolver:maven-resolver-api:jar:1.0.3:compile
+[[1;36mDEBUG[m]       org.apache.maven.resolver:maven-resolver-spi:jar:1.0.3:compile
+[[1;36mDEBUG[m]       org.apache.maven.resolver:maven-resolver-util:jar:1.0.3:compile
+[[1;36mDEBUG[m]       org.apache.maven.shared:maven-shared-utils:jar:3.1.0:compile
+[[1;36mDEBUG[m]       org.eclipse.sisu:org.eclipse.sisu.plexus:jar:0.3.3:compile
+[[1;36mDEBUG[m]          javax.enterprise:cdi-api:jar:1.0:compile
+[[1;36mDEBUG[m]             javax.annotation:jsr250-api:jar:1.0:compile
+[[1;36mDEBUG[m]          org.eclipse.sisu:org.eclipse.sisu.inject:jar:0.3.3:compile
+[[1;36mDEBUG[m]       com.google.inject:guice:jar:no_aop:4.0:compile
+[[1;36mDEBUG[m]          javax.inject:javax.inject:jar:1:compile
+[[1;36mDEBUG[m]          aopalliance:aopalliance:jar:1.0:compile
+[[1;36mDEBUG[m]       org.codehaus.plexus:plexus-classworlds:jar:2.5.2:compile
+[[1;36mDEBUG[m]       org.codehaus.plexus:plexus-component-annotations:jar:1.7.1:compile
+[[1;36mDEBUG[m]       org.sonatype.plexus:plexus-sec-dispatcher:jar:1.4:compile
+[[1;36mDEBUG[m]          org.sonatype.plexus:plexus-cipher:jar:1.4:compile
+[[1;36mDEBUG[m]       org.apache.commons:commons-lang3:jar:3.5:compile
+[[1;36mDEBUG[m]    org.codehaus.plexus:plexus-utils:jar:3.1.0:compile
+[[1;36mDEBUG[m]    org.sonatype.plexus:plexus-build-api:jar:0.0.7:compile
+[[1;36mDEBUG[m]    io.openliberty.tools:ci.common:jar:1.8.18:compile
+[[1;36mDEBUG[m]       javax.xml.bind:jaxb-api:jar:2.2.12:runtime
+[[1;36mDEBUG[m]    org.twdata.maven:mojo-executor:jar:2.3.2:compile
+[[1;36mDEBUG[m]       org.slf4j:slf4j-api:jar:1.7.25:compile
+[[1;36mDEBUG[m]    xmlunit:xmlunit:jar:1.6:compile
+[[1;36mDEBUG[m] Created new class realm plugin>io.openliberty.tools:liberty-maven-plugin:3.5.1
+[[1;36mDEBUG[m] Importing foreign packages into class realm plugin>io.openliberty.tools:liberty-maven-plugin:3.5.1
+[[1;36mDEBUG[m]   Imported:  < maven.api
+[[1;36mDEBUG[m] Populating class realm plugin>io.openliberty.tools:liberty-maven-plugin:3.5.1
+[[1;36mDEBUG[m]   Included: io.openliberty.tools:liberty-maven-plugin:jar:3.5.1
+[[1;36mDEBUG[m]   Included: io.openliberty.tools:liberty-ant-tasks:jar:1.9.9
+[[1;36mDEBUG[m]   Included: junit:junit:jar:4.13.1
+[[1;36mDEBUG[m]   Included: org.hamcrest:hamcrest-core:jar:1.3
+[[1;36mDEBUG[m]   Included: org.apache.ant:ant:jar:1.10.11
+[[1;36mDEBUG[m]   Included: org.apache.ant:ant-launcher:jar:1.10.11
+[[1;36mDEBUG[m]   Included: commons-io:commons-io:jar:2.8.0
+[[1;36mDEBUG[m]   Included: org.json:json:jar:20180813
+[[1;36mDEBUG[m]   Included: org.codehaus.mojo:plugin-support:jar:1.0-alpha-1
+[[1;36mDEBUG[m]   Included: ant:ant:jar:1.6.5
+[[1;36mDEBUG[m]   Included: commons-lang:commons-lang:jar:2.3
+[[1;36mDEBUG[m]   Included: commons-logging:commons-logging:jar:1.0.4
+[[1;36mDEBUG[m]   Included: commons-jexl:commons-jexl:jar:1.1
+[[1;36mDEBUG[m]   Included: org.apache.maven.shared:maven-mapping:jar:3.0.0
+[[1;36mDEBUG[m]   Included: org.codehaus.plexus:plexus-interpolation:jar:1.21
+[[1;36mDEBUG[m]   Included: org.apache.maven:maven-builder-support:jar:3.5.0
+[[1;36mDEBUG[m]   Included: com.google.guava:guava:jar:20.0
+[[1;36mDEBUG[m]   Included: org.apache.maven.resolver:maven-resolver-util:jar:1.0.3
+[[1;36mDEBUG[m]   Included: org.apache.maven.shared:maven-shared-utils:jar:3.1.0
+[[1;36mDEBUG[m]   Included: javax.enterprise:cdi-api:jar:1.0
+[[1;36mDEBUG[m]   Included: org.eclipse.sisu:org.eclipse.sisu.inject:jar:0.3.3
+[[1;36mDEBUG[m]   Included: com.google.inject:guice:jar:no_aop:4.0
+[[1;36mDEBUG[m]   Included: aopalliance:aopalliance:jar:1.0
+[[1;36mDEBUG[m]   Included: org.codehaus.plexus:plexus-component-annotations:jar:1.7.1
+[[1;36mDEBUG[m]   Included: org.sonatype.plexus:plexus-sec-dispatcher:jar:1.4
+[[1;36mDEBUG[m]   Included: org.sonatype.plexus:plexus-cipher:jar:1.4
+[[1;36mDEBUG[m]   Included: org.apache.commons:commons-lang3:jar:3.5
+[[1;36mDEBUG[m]   Included: org.codehaus.plexus:plexus-utils:jar:3.1.0
+[[1;36mDEBUG[m]   Included: org.sonatype.plexus:plexus-build-api:jar:0.0.7
+[[1;36mDEBUG[m]   Included: io.openliberty.tools:ci.common:jar:1.8.18
+[[1;36mDEBUG[m]   Included: javax.xml.bind:jaxb-api:jar:2.2.12
+[[1;36mDEBUG[m]   Included: org.twdata.maven:mojo-executor:jar:2.3.2
+[[1;36mDEBUG[m]   Included: xmlunit:xmlunit:jar:1.6
+[[1;36mDEBUG[m] Configuring mojo io.openliberty.tools:liberty-maven-plugin:3.5.1:dev from plugin realm ClassRealm[plugin>io.openliberty.tools:liberty-maven-plugin:3.5.1, parent: jdk.internal.loader.ClassLoaders$AppClassLoader@2cdf8d8a]
+[[1;36mDEBUG[m] Configuring mojo 'io.openliberty.tools:liberty-maven-plugin:3.5.1:dev' with basic configurator -->
+[[1;36mDEBUG[m]   (f) artifactRepository =       id: local
+      url: file:///C:/Users/AndrewMauer/.m2/repository/
+   layout: default
+snapshots: [enabled => true, update => always]
+ releases: [enabled => true, update => always]
+
+[[1;36mDEBUG[m]   (f) assemblyArtifact = null:null:null:null:jar
+[[1;36mDEBUG[m]   (f) assemblyInstallDirectory = C:\Andy\demo-SanityCheck\demo\service-a\target\liberty
+[[1;36mDEBUG[m]   (f) bootstrapProperties = {app.context.root=/, jwt.issuer=https://server.example.com, project.name=demo}
+[[1;36mDEBUG[m]   (f) clean = false
+[[1;36mDEBUG[m]   (f) compileWait = 0.5
+[[1;36mDEBUG[m]   (f) configDirectory = C:\Andy\demo-SanityCheck\demo\service-a\src\main\liberty\config
+[[1;36mDEBUG[m]   (f) container = false
+[[1;36mDEBUG[m]   (f) deployPackages = project
+[[1;36mDEBUG[m]   (f) dockerBuildTimeout = 600
+[[1;36mDEBUG[m]   (f) hotTests = false
+[[1;36mDEBUG[m]   (f) isInstall = true
+[[1;36mDEBUG[m]   (f) keepTempDockerfile = false
+[[1;36mDEBUG[m]   (f) libertyDebug = true
+[[1;36mDEBUG[m]   (f) libertyDebugPort = 7777
+[[1;36mDEBUG[m]   (f) looseApplication = true
+[[1;36mDEBUG[m]   (f) mergeServerEnv = false
+[[1;36mDEBUG[m]   (f) multiModuleProjectDirectory = C:\Andy\demo-SanityCheck\demo\service-a
+[[1;36mDEBUG[m]   (f) outputDirectory = C:\Andy\demo-SanityCheck\demo\service-a\target\classes
+[[1;36mDEBUG[m]   (f) plugin = Component Descriptor: role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.server.CleanServerMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:clean'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.jsp.CompileJspMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:compile-jsp'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.extensions.arquillian.ConfigureArquillianMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:configure-arquillian'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.server.CreateServerMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:create'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.server.DebugServerMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:debug'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.applications.DeployMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:deploy'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.server.DevMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:dev'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.server.DevcMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:devc'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.applications.DisplayUrlMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:display-url'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.server.DumpServerMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:dump'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.server.HelpMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:help'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.server.InstallFeatureMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:install-feature'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.server.InstallServerMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:install-server'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.server.JavaDumpServerMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:java-dump'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.server.PackageServerMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:package'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.server.PrepareFeatureMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:prepare-feature'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.server.RunServerMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:run'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.server.StartServerMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:start'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.server.CheckStatusMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:status'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.server.StopServerMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:stop'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.server.TestStartServerMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:test-start'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.server.TestStopServerMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:test-stop'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.applications.UndeployAppMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:undeploy'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.server.UninstallFeatureMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:uninstall-feature'
+---
+[[1;36mDEBUG[m]   (f) pollingTest = false
+[[1;36mDEBUG[m]   (f) project = MavenProject: com.example:demo-service-a:1.0-SNAPSHOT @ C:\Andy\demo-SanityCheck\demo\service-a\pom.xml
+[[1;36mDEBUG[m]   (f) reactorProjects = [MavenProject: com.example:demo-service-a:1.0-SNAPSHOT @ C:\Andy\demo-SanityCheck\demo\service-a\pom.xml]
+[[1;36mDEBUG[m]   (f) refresh = false
+[[1;36mDEBUG[m]   (f) repoSession = org.eclipse.aether.DefaultRepositorySystemSession@a7ad6e5
+[[1;36mDEBUG[m]   (f) repositories = [central (https://repo.maven.apache.org/maven2, default, releases)]
+[[1;36mDEBUG[m]   (f) serverName = demo
+[[1;36mDEBUG[m]   (f) serverStartTimeout = 90
+[[1;36mDEBUG[m]   (f) session = org.apache.maven.execution.MavenSession@3b1ed14b
+[[1;36mDEBUG[m]   (f) settings = org.apache.maven.execution.SettingsAdapter@690bc15e
+[[1;36mDEBUG[m]   (f) skip = false
+[[1;36mDEBUG[m]   (f) skipDefaultPorts = false
+[[1;36mDEBUG[m]   (f) skipITs = false
+[[1;36mDEBUG[m]   (f) skipTests = false
+[[1;36mDEBUG[m]   (f) skipUTs = false
+[[1;36mDEBUG[m]   (f) sourceDirectoryString =  C:\Andy\demo-SanityCheck\demo\service-a\src\main\java
+[[1;36mDEBUG[m]   (f) stripVersion = false
+[[1;36mDEBUG[m]   (f) testOutputDirectory = C:\Andy\demo-SanityCheck\demo\service-a\target\test-classes
+[[1;36mDEBUG[m]   (f) testSourceDirectoryString =  C:\Andy\demo-SanityCheck\demo\service-a\src\test\java
+[[1;36mDEBUG[m]   (f) verifyTimeout = 30
+[[1;36mDEBUG[m] -- end configuration --
+[[1;36mDEBUG[m] Defaulting runtimeArtifact group id to 'io.openliberty'
+[[1;36mDEBUG[m] Defaulting runtimeArtifact artifact id to 'openliberty-kernel'
+[[1;36mDEBUG[m] Defaulting runtimeArtifact version to '[21.0.0.9,)'
+[[1;36mDEBUG[m] Could not find metadata io.openliberty:openliberty-kernel/maven-metadata.xml in local (C:\Users\AndrewMauer\.m2\repository)
+[[1;36mDEBUG[m] Skipped remote request for io.openliberty:openliberty-kernel/maven-metadata.xml, locally cached metadata up-to-date.
+[[1;36mDEBUG[m] Available versions: [21.0.0.9, 21.0.0.10, 21.0.0.11, 21.0.0.12, 22.0.0.1, 22.0.0.2, 22.0.0.3, 22.0.0.4, 22.0.0.5]
+[[1;36mDEBUG[m] io.openliberty:openliberty-kernel:22.0.0.5 is resolved from project repositories.
+[[1;34mINFO[m] CWWKM2102I: Using artifact based assembly archive : io.openliberty:openliberty-kernel:null:22.0.0.5:zip.
+[[1;36mDEBUG[m] CWWKM2104I: Discovering serverHome variable...
+[[1;34mINFO[m] CWWKM2102I: Using installDirectory : C:\Andy\demo-SanityCheck\demo\service-a\target\liberty\wlp.
+[[1;34mINFO[m] CWWKM2102I: Using serverName : demo.
+[[1;34mINFO[m] CWWKM2102I: Using serverDirectory : C:\Andy\demo-SanityCheck\demo\service-a\target\liberty\wlp\usr\servers\demo.
+[[1;36mDEBUG[m] Maven version: 3.6.0
+[[1;36mDEBUG[m] The recompileDependencies parameter was not explicitly set. The default value -DrecompileDependencies=false will be used.
+[[1;34mINFO[m] The recompileDependencies parameter is set to "false". On a file change only the affected classes will be recompiled.
+[[1;36mDEBUG[m] maven-resources-plugin:resources configuration
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration/>
+[[1;34mINFO[m] Running maven-resources-plugin:resources
+[[1;36mDEBUG[m] configuration:
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration/>
+[[1;36mDEBUG[m] Running executeMojo for Plugin [org.apache.maven.plugins:maven-resources-plugin]
+[[1;36mDEBUG[m] Attempting to load plugin Plugin [org.apache.maven.plugins:maven-resources-plugin] using pluginManager org.apache.maven.plugin.DefaultBuildPluginManager@65d57e4e and repositories [central (https://repo.maven.apache.org/maven2, default, releases)]
+[[1;36mDEBUG[m] Dependency collection stats: {ConflictMarker.analyzeTime=371300, ConflictMarker.markTime=264400, ConflictMarker.nodeCount=77, ConflictIdSorter.graphTime=350400, ConflictIdSorter.topsortTime=65000, ConflictIdSorter.conflictIdCount=26, ConflictIdSorter.conflictIdCycleCount=0, ConflictResolver.totalTime=1790600, ConflictResolver.conflictItemCount=74, DefaultDependencyCollector.collectTime=138429700, DefaultDependencyCollector.transformTime=2881700}
+[[1;36mDEBUG[m] org.apache.maven.plugins:maven-resources-plugin:jar:2.6:
+[[1;36mDEBUG[m]    org.apache.maven:maven-plugin-api:jar:2.0.6:compile
+[[1;36mDEBUG[m]    org.apache.maven:maven-project:jar:2.0.6:compile
+[[1;36mDEBUG[m]       org.apache.maven:maven-profile:jar:2.0.6:compile
+[[1;36mDEBUG[m]       org.apache.maven:maven-artifact-manager:jar:2.0.6:compile
+[[1;36mDEBUG[m]       org.apache.maven:maven-plugin-registry:jar:2.0.6:compile
+[[1;36mDEBUG[m]    org.apache.maven:maven-core:jar:2.0.6:compile
+[[1;36mDEBUG[m]       org.apache.maven:maven-plugin-parameter-documenter:jar:2.0.6:compile
+[[1;36mDEBUG[m]       org.apache.maven.reporting:maven-reporting-api:jar:2.0.6:compile
+[[1;36mDEBUG[m]          org.apache.maven.doxia:doxia-sink-api:jar:1.0-alpha-7:compile
+[[1;36mDEBUG[m]       org.apache.maven:maven-repository-metadata:jar:2.0.6:compile
+[[1;36mDEBUG[m]       org.apache.maven:maven-error-diagnostics:jar:2.0.6:compile
+[[1;36mDEBUG[m]       commons-cli:commons-cli:jar:1.0:compile
+[[1;36mDEBUG[m]       org.apache.maven:maven-plugin-descriptor:jar:2.0.6:compile
+[[1;36mDEBUG[m]       org.codehaus.plexus:plexus-interactivity-api:jar:1.0-alpha-4:compile
+[[1;36mDEBUG[m]       classworlds:classworlds:jar:1.1:compile
+[[1;36mDEBUG[m]    org.apache.maven:maven-artifact:jar:2.0.6:compile
+[[1;36mDEBUG[m]    org.apache.maven:maven-settings:jar:2.0.6:compile
+[[1;36mDEBUG[m]    org.apache.maven:maven-model:jar:2.0.6:compile
+[[1;36mDEBUG[m]    org.apache.maven:maven-monitor:jar:2.0.6:compile
+[[1;36mDEBUG[m]    org.codehaus.plexus:plexus-container-default:jar:1.0-alpha-9-stable-1:compile
+[[1;36mDEBUG[m]       junit:junit:jar:3.8.1:compile
+[[1;36mDEBUG[m]    org.codehaus.plexus:plexus-utils:jar:2.0.5:compile
+[[1;36mDEBUG[m]    org.apache.maven.shared:maven-filtering:jar:1.1:compile
+[[1;36mDEBUG[m]       org.sonatype.plexus:plexus-build-api:jar:0.0.4:compile
+[[1;36mDEBUG[m]    org.codehaus.plexus:plexus-interpolation:jar:1.13:compile
+[[1;36mDEBUG[m] Created new class realm plugin>org.apache.maven.plugins:maven-resources-plugin:2.6
+[[1;36mDEBUG[m] Importing foreign packages into class realm plugin>org.apache.maven.plugins:maven-resources-plugin:2.6
+[[1;36mDEBUG[m]   Imported:  < maven.api
+[[1;36mDEBUG[m] Populating class realm plugin>org.apache.maven.plugins:maven-resources-plugin:2.6
+[[1;36mDEBUG[m]   Included: org.apache.maven.plugins:maven-resources-plugin:jar:2.6
+[[1;36mDEBUG[m]   Included: org.apache.maven.reporting:maven-reporting-api:jar:2.0.6
+[[1;36mDEBUG[m]   Included: org.apache.maven.doxia:doxia-sink-api:jar:1.0-alpha-7
+[[1;36mDEBUG[m]   Included: commons-cli:commons-cli:jar:1.0
+[[1;36mDEBUG[m]   Included: org.codehaus.plexus:plexus-interactivity-api:jar:1.0-alpha-4
+[[1;36mDEBUG[m]   Included: junit:junit:jar:3.8.1
+[[1;36mDEBUG[m]   Included: org.codehaus.plexus:plexus-utils:jar:2.0.5
+[[1;36mDEBUG[m]   Included: org.apache.maven.shared:maven-filtering:jar:1.1
+[[1;36mDEBUG[m]   Included: org.sonatype.plexus:plexus-build-api:jar:0.0.4
+[[1;36mDEBUG[m]   Included: org.codehaus.plexus:plexus-interpolation:jar:1.13
+[[1;36mDEBUG[m] Configuring mojo org.apache.maven.plugins:maven-resources-plugin:2.6:resources from plugin realm ClassRealm[plugin>org.apache.maven.plugins:maven-resources-plugin:2.6, parent: jdk.internal.loader.ClassLoaders$AppClassLoader@2cdf8d8a]
+[[1;36mDEBUG[m] Configuring mojo 'org.apache.maven.plugins:maven-resources-plugin:2.6:resources' with basic configurator -->
+[[1;36mDEBUG[m]   (f) buildFilters = []
+[[1;36mDEBUG[m]   (f) escapeWindowsPaths = true
+[[1;36mDEBUG[m]   (s) includeEmptyDirs = false
+[[1;36mDEBUG[m]   (s) outputDirectory = C:\Andy\demo-SanityCheck\demo\service-a\target\classes
+[[1;36mDEBUG[m]   (s) overwrite = false
+[[1;36mDEBUG[m]   (f) project = MavenProject: com.example:demo-service-a:1.0-SNAPSHOT @ C:\Andy\demo-SanityCheck\demo\service-a\pom.xml
+[[1;36mDEBUG[m]   (s) resources = [Resource {targetPath: null, filtering: false, FileSet {directory: C:\Andy\demo-SanityCheck\demo\service-a\src\main\resources, PatternSet [includes: {}, excludes: {}]}}]
+[[1;36mDEBUG[m]   (f) session = org.apache.maven.execution.MavenSession@3b1ed14b
+[[1;36mDEBUG[m]   (f) supportMultiLineFiltering = false
+[[1;36mDEBUG[m]   (f) useBuildFilters = true
+[[1;36mDEBUG[m]   (s) useDefaultDelimiters = true
+[[1;36mDEBUG[m] -- end configuration --
+[[1;36mDEBUG[m] properties used {env.TERM=xterm, env.NUMBER_OF_PROCESSORS=12, env.USERPROFILE=C:\Users\AndrewMauer, java.specification.version=11, jaeger.client.version=1.5.0, sun.cpu.isalist=amd64, env.APPSODY_PATH=C:\appsody\, sun.arch.data.model=64, env.PROGRAMW6432=C:\Program Files, java.vendor.url=https://adoptopenjdk.net/, env.OS=Windows_NT, env.GOPATH=C:\latestodo, sun.boot.library.path=C:\Java\OpenJDK11\jdk-11.0.4+11\bin, sun.java.command=org.codehaus.plexus.classworlds.launcher.Launcher -X liberty:dev, env.SYSTEMROOT=C:\WINDOWS, jdk.debug=release, maven.version=3.6.0, java.specification.vendor=Oracle Corporation, java.version.date=2019-07-16, java.home=C:\Java\OpenJDK11\jdk-11.0.4+11, java.specification.name=Java Platform API Specification, java.vm.specification.vendor=Oracle Corporation, env.CHOCOLATEYINSTALL=C:\ProgramData\chocolatey, env.MANPATH=C:\Program Files\Git\mingw64\local\man;C:\Program Files\Git\mingw64\share\man;C:\Program Files\Git\usr\local\man;C:\Program Files\Git\usr\share\man;C:\Program Files\Git\usr\man;C:\Program Files\Git\share\man, env.LOCALAPPDATA=C:\Users\AndrewMauer\AppData\Local, env.USERDOMAIN_ROAMINGPROFILE=GMX, env.SSH_ASKPASS=C:/Program Files/Git/mingw64/libexec/git-core/git-gui--askpass, user.script=, sun.management.compiler=HotSpot 64-Bit Tiered Compilers, java.runtime.version=11.0.4+11, env.PATH=C:\Users\AndrewMauer\bin;C:\Program Files\Git\mingw64\bin;C:\Program Files\Git\usr\local\bin;C:\Program Files\Git\usr\bin;C:\Program Files\Git\usr\bin;C:\Program Files\Git\mingw64\bin;C:\Program Files\Git\usr\bin;C:\Users\AndrewMauer\bin;C:\Python310\Scripts;C:\Python310;C:\Java\AdoptOpenJDK\jdk-11.0.4.11-openj9\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0;C:\WINDOWS\System32\OpenSSH;C:\Program Files\Git\cmd;C:\Program Files\TortoiseGit\bin;C:\maven\apache-maven-3.6.0\bin;C:\Java\IBM\Java80\bin;C:\Program Files (x86)\Webex\Webex\Applications;C:\Program Files (x86)\Symantec\VIP Access Client;C:\Program Files\Intel\WiFi\bin;C:\Program Files\Common Files\Intel\WirelessCommon;C:\latestodo;C:\Go\bin;C:\ProgramData\chocolatey\bin;C:\Program Files\PuTTY;C:\Program Files (x86)\Sennheiser\SenncomSDK;C:\Program Files\Docker\Docker\resources\bin;C:\ProgramData\DockerDesktop\version-bin;C:\gradle-latest\gradle-7.4.1\bin;C:\Users\AndrewMauer\AppData\Local\Microsoft\WindowsApps;C:\Users\AndrewMauer\AppData\Local\Programs\Microsoft VS Code\bin;C:\Program Files\Intel\WiFi\bin;C:\Program Files\Common Files\Intel\WirelessCommon;C:\gradle-5.6.2-bin\gradle-5.6.2\bin;C:\ant\apache-ant-1.9.14-bin\apache-ant-1.9.14\bin;C:\appsody;C:\oc;C:\Program Files\IBM\Cloud\bin;C:\jq;C:\curl;C:\Users\AndrewMauer\AppData\Local\Box\Box Edit;C:\apache-ant-1.8.4\bin;C:\Program Files\Git\usr\bin\vendor_perl;C:\Program Files\Git\usr\bin\core_perl, env.PUBLIC=C:\Users\Public, env.COMMONPROGRAMW6432=C:\Program Files\Common Files, file.encoding=Cp1252, final.name=demo, java.vendor.version=AdoptOpenJDK, env.COMPUTERNAME=LAPTOP-P7ACSKBJ, env.HOSTNAME=LAPTOP-P7ACSKBJ, env.HOMEPATH=\Users\AndrewMauer, env.SHLVL=1, env.APPDATA=C:\Users\AndrewMauer\AppData\Roaming, java.io.tmpdir=C:\Users\ANDREW~1\AppData\Local\Temp\, java.version=11.0.4, java.vm.specification.name=Java Virtual Machine Specification, java.awt.printerjob=sun.awt.windows.WPrinterJob, env.MINGW_CHOST=x86_64-w64-mingw32, java.library.path=C:\Java\OpenJDK11\jdk-11.0.4+11\bin;C:\WINDOWS\Sun\Java\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\Users\AndrewMauer\bin;C:\Program Files\Git\mingw64\bin;C:\Program Files\Git\usr\local\bin;C:\Program Files\Git\usr\bin;C:\Program Files\Git\usr\bin;C:\Program Files\Git\mingw64\bin;C:\Program Files\Git\usr\bin;C:\Users\AndrewMauer\bin;C:\Python310\Scripts;C:\Python310;C:\Java\AdoptOpenJDK\jdk-11.0.4.11-openj9\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0;C:\WINDOWS\System32\OpenSSH;C:\Program Files\Git\cmd;C:\Program Files\TortoiseGit\bin;C:\maven\apache-maven-3.6.0\bin;C:\Java\IBM\Java80\bin;C:\Program Files (x86)\Webex\Webex\Applications;C:\Program Files (x86)\Symantec\VIP Access Client;C:\Program Files\Intel\WiFi\bin;C:\Program Files\Common Files\Intel\WirelessCommon;C:\latestodo;C:\Go\bin;C:\ProgramData\chocolatey\bin;C:\Program Files\PuTTY;C:\Program Files (x86)\Sennheiser\SenncomSDK;C:\Program Files\Docker\Docker\resources\bin;C:\ProgramData\DockerDesktop\version-bin;C:\gradle-latest\gradle-7.4.1\bin;C:\Users\AndrewMauer\AppData\Local\Microsoft\WindowsApps;C:\Users\AndrewMauer\AppData\Local\Programs\Microsoft VS Code\bin;C:\Program Files\Intel\WiFi\bin;C:\Program Files\Common Files\Intel\WirelessCommon;C:\gradle-5.6.2-bin\gradle-5.6.2\bin;C:\ant\apache-ant-1.9.14-bin\apache-ant-1.9.14\bin;C:\appsody;C:\oc;C:\Program Files\IBM\Cloud\bin;C:\jq;C:\curl;C:\Users\AndrewMauer\AppData\Local\Box\Box Edit;C:\apache-ant-1.8.4\bin;C:\Program Files\Git\usr\bin\vendor_perl;C:\Program Files\Git\usr\bin\core_perl;., java.vendor=AdoptOpenJDK, slf4j.jdk.version=1.7.30, classworlds.conf=C:/maven/apache-maven-3.6.0/bin/m2.conf, sun.io.unicode.encoding=UnicodeLittle, sun.desktop=windows, env.LANG=s, env.GRADLE_HOME=C:\gradle-latest\gradle-7.4.1, user.timezone=, os.name=Windows 10, java.vm.specification.version=11, env.DISPLAY=needs-to-be-defined, env.=::=::\, maven.compiler.source=11, user.home=C:\Users\AndrewMauer, env.MSYSTEM_CHOST=x86_64-w64-mingw32, env.ALLUSERSPROFILE=C:\ProgramData, env.SESSIONNAME=Console, java.awt.graphicsenv=sun.awt.Win32GraphicsEnvironment, env.MSYSTEM_PREFIX=C:/Program Files/Git/mingw64, env.ANT_HOME=C:\apache-ant-1.8.4, path.separator=;, os.version=10.0, env.ORIGINAL_TMP=C:/Users/ANDREW~1/AppData/Local/Temp, env.PATHEXT=.COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC;.PY;.PYW, java.vm.name=OpenJDK 64-Bit Server VM, env.SHELL=C:\Program Files\Git\usr\bin\bash.exe, env.EXEPATH=C:\Program Files\Git, env.USERNAME=938752897, os.arch=amd64, maven.multiModuleProjectDirectory=C:/Andy/demo-SanityCheck/demo/service-a, env.CONFIG_SITE=C:/Program Files/Git/mingw64/etc/config.site, env.MAVEN_PROJECTBASEDIR=C:/Andy/demo-SanityCheck/demo/service-a, java.vm.info=mixed mode, slf4j.api.version=1.7.30, env.TEMP=C:\Users\ANDREW~1\AppData\Local\Temp, java.class.version=55.0, env.ORIGINAL_TEMP=C:/Users/ANDREW~1/AppData/Local/Temp, awt.toolkit=sun.awt.windows.WToolkit, env.MSYSTEM=MINGW64, env.ONEDRIVE=C:\Users\AndrewMauer\OneDrive, sun.jnu.encoding=Cp1252, maven.build.version=Apache Maven 3.6.0 (97c98ec64a1fdfee7767ce5ffb20918da4f719f3; 2018-10-24T14:41:47-04:00), maven.home=C:\maven\apache-maven-3.6.0, env.JAVA_HOME=C:/Java/OpenJDK11/jdk-11.0.4+11, env.PROGRAMFILES=C:\Program Files, file.separator=\, java.vm.compressedOopsMode=Zero based, line.separator=
+, env.PROCESSOR_REVISION=9e0a, openliberty.maven.version=3.5.1, env.PROCESSOR_IDENTIFIER=Intel64 Family 6 Model 158 Stepping 10, GenuineIntel, env.PROGRAMDATA=C:\ProgramData, user.name=938752897, env.PLINK_PROTOCOL=ssh, env.DRIVERDATA=C:\Windows\System32\Drivers\DriverData, env.SYSTEMDRIVE=C:, env.PROGRAMFILES(X86)=C:\Program Files (x86), env.PROCESSOR_LEVEL=6, env.HOMEDRIVE=C:, env.PSMODULEPATH=C:\Program Files\WindowsPowerShell\Modules;C:\WINDOWS\system32\WindowsPowerShell\v1.0\Modules, env.TMP=C:\Users\ANDREW~1\AppData\Local\Temp, env.ACLOCAL_PATH=C:\Program Files\Git\mingw64\share\aclocal;C:\Program Files\Git\usr\share\aclocal, sun.os.patch.level=, maven.compiler.target=11, env.TMPDIR=C:\Users\ANDREW~1\AppData\Local\Temp, env.LOGONSERVER=\\LAPTOP-P7ACSKBJ, env.INFOPATH=C:\Program Files\Git\usr\local\info;C:\Program Files\Git\usr\share\info;C:\Program Files\Git\usr\info;C:\Program Files\Git\share\info, library.jansi.path=C:/maven/apache-maven-3.6.0/lib/jansi-native, env.WINDIR=C:\WINDOWS, env.OLDPWD=C:/Andy/demo-SanityCheck/demo/service-a, env.PWD=C:/Andy/demo-SanityCheck/demo/service-a, failOnMissingWebXml=false, env.USERDNSDOMAIN=gmx.ibm.com, env.MINGW_PREFIX=C:/Program Files/Git/mingw64, java.class.path=C:/maven/apache-maven-3.6.0/boot/plexus-classworlds-2.5.2.jar, env.HOME=C:\Users\AndrewMauer, java.vm.vendor=AdoptOpenJDK, env.PROCESSOR_ARCHITECTURE=AMD64, user.variant=, env.COMMONPROGRAMFILES=C:\Program Files\Common Files, maven.conf=C:/maven/apache-maven-3.6.0/conf, sun.java.launcher=SUN_STANDARD, user.country=US, env.USERDOMAIN=GMX, env.COMSPEC=C:\WINDOWS\system32\cmd.exe, sun.cpu.endian=little, user.language=en, env.ORIGINAL_PATH=C:\Program Files\Git\mingw64\bin;C:\Program Files\Git\usr\bin;C:\Users\AndrewMauer\bin;C:\Python310\Scripts;C:\Python310;C:\Java\AdoptOpenJDK\jdk-11.0.4.11-openj9\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0;C:\WINDOWS\System32\OpenSSH;C:\Program Files\Git\cmd;C:\Program Files\TortoiseGit\bin;C:\maven\apache-maven-3.6.0\bin;C:\Java\IBM\Java80\bin;C:\Program Files (x86)\Webex\Webex\Applications;C:\Program Files (x86)\Symantec\VIP Access Client;C:\Program Files\Intel\WiFi\bin;C:\Program Files\Common Files\Intel\WirelessCommon;C:\latestodo;C:\Go\bin;C:\ProgramData\chocolatey\bin;C:\Program Files\PuTTY;C:\Program Files (x86)\Sennheiser\SenncomSDK;C:\Program Files\Docker\Docker\resources\bin;C:\ProgramData\DockerDesktop\version-bin;C:\gradle-latest\gradle-7.4.1\bin;C:\Users\AndrewMauer\AppData\Local\Microsoft\WindowsApps;C:\Users\AndrewMauer\AppData\Local\Programs\Microsoft VS Code\bin;C:\Program Files\Intel\WiFi\bin;C:\Program Files\Common Files\Intel\WirelessCommon;C:\gradle-5.6.2-bin\gradle-5.6.2\bin;C:\ant\apache-ant-1.9.14-bin\apache-ant-1.9.14\bin;C:\appsody;C:\oc;C:\Program Files\IBM\Cloud\bin;C:\jq;C:\curl;C:\Users\AndrewMauer\AppData\Local\Box\Box Edit;C:\apache-ant-1.8.4\bin, env.MINGW_PACKAGE_PREFIX=mingw-w64-x86_64, env.PKG_CONFIG_PATH=C:\Program Files\Git\mingw64\lib\pkgconfig;C:\Program Files\Git\mingw64\share\pkgconfig, env.MAVEN_HOME=C:/maven/apache-maven-3.6.0, env.MSYSTEM_CARCH=x86_64, env.CONFIGSETROOT=C:\WINDOWS\ConfigSetRoot, java.runtime.name=OpenJDK Runtime Environment, env.CHOCOLATEYLASTPATHUPDATE=132570170661002883, env.COMMONPROGRAMFILES(X86)=C:\Program Files (x86)\Common Files, env.ZES_ENABLE_SYSMAN=1, env.MAVEN_CMD_LINE_ARGS= -X liberty:dev, java.vendor.url.bug=https://github.com/AdoptOpenJDK/openjdk-build/issues, user.dir=C:\Andy\demo-SanityCheck\demo\service-a, env.ONEDRIVECONSUMER=C:\Users\AndrewMauer\OneDrive, java.vm.version=11.0.4+11}
+[[1;33mWARNING[m] Using platform encoding (Cp1252 actually) to copy filtered resources, i.e. build is platform dependent!
+[[1;36mDEBUG[m] resource with targetPath null
+directory C:\Andy\demo-SanityCheck\demo\service-a\src\main\resources
+excludes []
+includes []
+[[1;36mDEBUG[m] ignoreDelta true
+[[1;34mINFO[m] Copying 2 resources
+[[1;36mDEBUG[m] file .gitkeep has a filtered file extension
+[[1;36mDEBUG[m] copy C:\Andy\demo-SanityCheck\demo\service-a\src\main\resources\.gitkeep to C:\Andy\demo-SanityCheck\demo\service-a\target\classes\.gitkeep
+[[1;36mDEBUG[m] file microprofile-config.properties has a filtered file extension
+[[1;36mDEBUG[m] copy C:\Andy\demo-SanityCheck\demo\service-a\src\main\resources\META-INF\microprofile-config.properties to C:\Andy\demo-SanityCheck\demo\service-a\target\classes\META-INF\microprofile-config.properties
+[[1;36mDEBUG[m] no use filter components
+[[1;36mDEBUG[m] maven-compiler-plugin:compile configuration
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration/>
+[[1;34mINFO[m] Running maven-compiler-plugin:compile on C:\Andy\demo-SanityCheck\demo\service-a\pom.xml
+[[1;36mDEBUG[m] configuration:
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <failOnError>false</failOnError>
+</configuration>
+[[1;36mDEBUG[m] Running executeMojo for Plugin [org.apache.maven.plugins:maven-compiler-plugin]
+[[1;36mDEBUG[m] Attempting to load plugin Plugin [org.apache.maven.plugins:maven-compiler-plugin] using pluginManager org.apache.maven.plugin.DefaultBuildPluginManager@65d57e4e and repositories [central (https://repo.maven.apache.org/maven2, default, releases)]
+[[1;36mDEBUG[m] Dependency collection stats: {ConflictMarker.analyzeTime=401800, ConflictMarker.markTime=99100, ConflictMarker.nodeCount=160, ConflictIdSorter.graphTime=177300, ConflictIdSorter.topsortTime=104400, ConflictIdSorter.conflictIdCount=43, ConflictIdSorter.conflictIdCycleCount=0, ConflictResolver.totalTime=1864800, ConflictResolver.conflictItemCount=63, DefaultDependencyCollector.collectTime=236099300, DefaultDependencyCollector.transformTime=2672000}
+[[1;36mDEBUG[m] org.apache.maven.plugins:maven-compiler-plugin:jar:3.1:
+[[1;36mDEBUG[m]    org.apache.maven:maven-plugin-api:jar:2.0.9:compile
+[[1;36mDEBUG[m]    org.apache.maven:maven-artifact:jar:2.0.9:compile
+[[1;36mDEBUG[m]       org.codehaus.plexus:plexus-utils:jar:1.5.1:compile
+[[1;36mDEBUG[m]    org.apache.maven:maven-core:jar:2.0.9:compile
+[[1;36mDEBUG[m]       org.apache.maven:maven-settings:jar:2.0.9:compile
+[[1;36mDEBUG[m]       org.apache.maven:maven-plugin-parameter-documenter:jar:2.0.9:compile
+[[1;36mDEBUG[m]       org.apache.maven:maven-profile:jar:2.0.9:compile
+[[1;36mDEBUG[m]       org.apache.maven:maven-model:jar:2.0.9:compile
+[[1;36mDEBUG[m]       org.apache.maven:maven-repository-metadata:jar:2.0.9:compile
+[[1;36mDEBUG[m]       org.apache.maven:maven-error-diagnostics:jar:2.0.9:compile
+[[1;36mDEBUG[m]       org.apache.maven:maven-project:jar:2.0.9:compile
+[[1;36mDEBUG[m]          org.apache.maven:maven-plugin-registry:jar:2.0.9:compile
+[[1;36mDEBUG[m]       org.apache.maven:maven-plugin-descriptor:jar:2.0.9:compile
+[[1;36mDEBUG[m]       org.apache.maven:maven-artifact-manager:jar:2.0.9:compile
+[[1;36mDEBUG[m]       org.apache.maven:maven-monitor:jar:2.0.9:compile
+[[1;36mDEBUG[m]    org.apache.maven:maven-toolchain:jar:1.0:compile
+[[1;36mDEBUG[m]    org.apache.maven.shared:maven-shared-utils:jar:0.1:compile
+[[1;36mDEBUG[m]       com.google.code.findbugs:jsr305:jar:2.0.1:compile
+[[1;36mDEBUG[m]    org.apache.maven.shared:maven-shared-incremental:jar:1.1:compile
+[[1;36mDEBUG[m]       org.codehaus.plexus:plexus-component-annotations:jar:1.5.5:compile
+[[1;36mDEBUG[m]    org.codehaus.plexus:plexus-compiler-api:jar:2.2:compile
+[[1;36mDEBUG[m]    org.codehaus.plexus:plexus-compiler-manager:jar:2.2:compile
+[[1;36mDEBUG[m]    org.codehaus.plexus:plexus-compiler-javac:jar:2.2:runtime
+[[1;36mDEBUG[m]    org.codehaus.plexus:plexus-container-default:jar:1.5.5:compile
+[[1;36mDEBUG[m]       org.codehaus.plexus:plexus-classworlds:jar:2.2.2:compile
+[[1;36mDEBUG[m]       org.apache.xbean:xbean-reflect:jar:3.4:compile
+[[1;36mDEBUG[m]          log4j:log4j:jar:1.2.12:compile
+[[1;36mDEBUG[m]          commons-logging:commons-logging-api:jar:1.1:compile
+[[1;36mDEBUG[m]       com.google.collections:google-collections:jar:1.0:compile
+[[1;36mDEBUG[m]       junit:junit:jar:3.8.2:compile
+[[1;36mDEBUG[m] Created new class realm plugin>org.apache.maven.plugins:maven-compiler-plugin:3.1
+[[1;36mDEBUG[m] Importing foreign packages into class realm plugin>org.apache.maven.plugins:maven-compiler-plugin:3.1
+[[1;36mDEBUG[m]   Imported:  < maven.api
+[[1;36mDEBUG[m] Populating class realm plugin>org.apache.maven.plugins:maven-compiler-plugin:3.1
+[[1;36mDEBUG[m]   Included: org.apache.maven.plugins:maven-compiler-plugin:jar:3.1
+[[1;36mDEBUG[m]   Included: org.codehaus.plexus:plexus-utils:jar:1.5.1
+[[1;36mDEBUG[m]   Included: org.apache.maven.shared:maven-shared-utils:jar:0.1
+[[1;36mDEBUG[m]   Included: com.google.code.findbugs:jsr305:jar:2.0.1
+[[1;36mDEBUG[m]   Included: org.apache.maven.shared:maven-shared-incremental:jar:1.1
+[[1;36mDEBUG[m]   Included: org.codehaus.plexus:plexus-component-annotations:jar:1.5.5
+[[1;36mDEBUG[m]   Included: org.codehaus.plexus:plexus-compiler-api:jar:2.2
+[[1;36mDEBUG[m]   Included: org.codehaus.plexus:plexus-compiler-manager:jar:2.2
+[[1;36mDEBUG[m]   Included: org.codehaus.plexus:plexus-compiler-javac:jar:2.2
+[[1;36mDEBUG[m]   Included: org.apache.xbean:xbean-reflect:jar:3.4
+[[1;36mDEBUG[m]   Included: log4j:log4j:jar:1.2.12
+[[1;36mDEBUG[m]   Included: commons-logging:commons-logging-api:jar:1.1
+[[1;36mDEBUG[m]   Included: com.google.collections:google-collections:jar:1.0
+[[1;36mDEBUG[m]   Included: junit:junit:jar:3.8.2
+[[1;36mDEBUG[m] Configuring mojo org.apache.maven.plugins:maven-compiler-plugin:3.1:compile from plugin realm ClassRealm[plugin>org.apache.maven.plugins:maven-compiler-plugin:3.1, parent: jdk.internal.loader.ClassLoaders$AppClassLoader@2cdf8d8a]
+[[1;36mDEBUG[m] Configuring mojo 'org.apache.maven.plugins:maven-compiler-plugin:3.1:compile' with basic configurator -->
+[[1;36mDEBUG[m]   (f) failOnError = false
+[[1;36mDEBUG[m]   (f) basedir = C:\Andy\demo-SanityCheck\demo\service-a
+[[1;36mDEBUG[m]   (f) buildDirectory = C:\Andy\demo-SanityCheck\demo\service-a\target
+[[1;36mDEBUG[m]   (f) classpathElements = [C:\Andy\demo-SanityCheck\demo\service-a\target\classes, C:\Users\AndrewMauer\.m2\repository\jakarta\enterprise\jakarta.enterprise.cdi-api\2.0.2\jakarta.enterprise.cdi-api-2.0.2.jar, C:\Users\AndrewMauer\.m2\repository\jakarta\interceptor\jakarta.interceptor-api\1.2.5\jakarta.interceptor-api-1.2.5.jar, C:\Users\AndrewMauer\.m2\repository\jakarta\inject\jakarta.inject-api\1.0\jakarta.inject-api-1.0.jar, C:\Users\AndrewMauer\.m2\repository\jakarta\ws\rs\jakarta.ws.rs-api\2.1.6\jakarta.ws.rs-api-2.1.6.jar, C:\Users\AndrewMauer\.m2\repository\jakarta\json\bind\jakarta.json.bind-api\1.0.2\jakarta.json.bind-api-1.0.2.jar, C:\Users\AndrewMauer\.m2\repository\jakarta\json\jakarta.json-api\1.1.6\jakarta.json-api-1.1.6.jar, C:\Users\AndrewMauer\.m2\repository\jakarta\annotation\jakarta.annotation-api\1.3.5\jakarta.annotation-api-1.3.5.jar, C:\Users\AndrewMauer\.m2\repository\org\eclipse\microprofile\config\microprofile-config-api\2.0\microprofile-config-api-2.0.jar, C:\Users\AndrewMauer\.m2\repository\org\eclipse\microprofile\fault-tolerance\microprofile-fault-tolerance-api\3.0\microprofile-fault-tolerance-api-3.0.jar, C:\Users\AndrewMauer\.m2\repository\org\eclipse\microprofile\health\microprofile-health-api\3.1\microprofile-health-api-3.1.jar, C:\Users\AndrewMauer\.m2\repository\org\eclipse\microprofile\metrics\microprofile-metrics-api\3.0\microprofile-metrics-api-3.0.jar, C:\Users\AndrewMauer\.m2\repository\org\eclipse\microprofile\jwt\microprofile-jwt-auth-api\1.2\microprofile-jwt-auth-api-1.2.jar, C:\Users\AndrewMauer\.m2\repository\org\eclipse\microprofile\openapi\microprofile-openapi-api\2.0\microprofile-openapi-api-2.0.jar, C:\Users\AndrewMauer\.m2\repository\org\eclipse\microprofile\rest\client\microprofile-rest-client-api\2.0\microprofile-rest-client-api-2.0.jar, C:\Users\AndrewMauer\.m2\repository\org\eclipse\microprofile\opentracing\microprofile-opentracing-api\2.0\microprofile-opentracing-api-2.0.jar, C:\Users\AndrewMauer\.m2\repository\io\jaegertracing\jaeger-client\1.5.0\jaeger-client-1.5.0.jar, C:\Users\AndrewMauer\.m2\repository\io\jaegertracing\jaeger-thrift\1.5.0\jaeger-thrift-1.5.0.jar, C:\Users\AndrewMauer\.m2\repository\org\apache\thrift\libthrift\0.13.0\libthrift-0.13.0.jar, C:\Users\AndrewMauer\.m2\repository\javax\annotation\javax.annotation-api\1.3.2\javax.annotation-api-1.3.2.jar, C:\Users\AndrewMauer\.m2\repository\com\squareup\okhttp3\okhttp\4.9.0\okhttp-4.9.0.jar, C:\Users\AndrewMauer\.m2\repository\com\squareup\okio\okio\2.8.0\okio-2.8.0.jar, C:\Users\AndrewMauer\.m2\repository\org\jetbrains\kotlin\kotlin-stdlib-common\1.4.0\kotlin-stdlib-common-1.4.0.jar, C:\Users\AndrewMauer\.m2\repository\org\jetbrains\kotlin\kotlin-stdlib\1.4.10\kotlin-stdlib-1.4.10.jar, C:\Users\AndrewMauer\.m2\repository\org\jetbrains\annotations\13.0\annotations-13.0.jar, C:\Users\AndrewMauer\.m2\repository\io\jaegertracing\jaeger-core\1.5.0\jaeger-core-1.5.0.jar, C:\Users\AndrewMauer\.m2\repository\io\opentracing\opentracing-api\0.33.0\opentracing-api-0.33.0.jar, C:\Users\AndrewMauer\.m2\repository\io\opentracing\opentracing-util\0.33.0\opentracing-util-0.33.0.jar, C:\Users\AndrewMauer\.m2\repository\io\opentracing\opentracing-noop\0.33.0\opentracing-noop-0.33.0.jar, C:\Users\AndrewMauer\.m2\repository\com\google\code\gson\gson\2.8.6\gson-2.8.6.jar, C:\Users\AndrewMauer\.m2\repository\io\jaegertracing\jaeger-tracerresolver\1.5.0\jaeger-tracerresolver-1.5.0.jar, C:\Users\AndrewMauer\.m2\repository\io\opentracing\contrib\opentracing-tracerresolver\0.1.8\opentracing-tracerresolver-0.1.8.jar, C:\Users\AndrewMauer\.m2\repository\org\slf4j\slf4j-api\1.7.30\slf4j-api-1.7.30.jar, C:\Users\AndrewMauer\.m2\repository\org\slf4j\slf4j-jdk14\1.7.30\slf4j-jdk14-1.7.30.jar]
+[[1;36mDEBUG[m]   (f) compileSourceRoots = [C:\Andy\demo-SanityCheck\demo\service-a\src\main\java]
+[[1;36mDEBUG[m]   (f) compilerId = javac
+[[1;36mDEBUG[m]   (f) debug = true
+[[1;36mDEBUG[m]   (f) forceJavacCompilerUse = false
+[[1;36mDEBUG[m]   (f) fork = false
+[[1;36mDEBUG[m]   (f) generatedSourcesDirectory = C:\Andy\demo-SanityCheck\demo\service-a\target\generated-sources\annotations
+[[1;36mDEBUG[m]   (f) mojoExecution = org.apache.maven.plugins:maven-compiler-plugin:3.1:compile {execution: null}
+[[1;36mDEBUG[m]   (f) optimize = false
+[[1;36mDEBUG[m]   (f) outputDirectory = C:\Andy\demo-SanityCheck\demo\service-a\target\classes
+[[1;36mDEBUG[m]   (f) projectArtifact = com.example:demo-service-a:war:1.0-SNAPSHOT
+[[1;36mDEBUG[m]   (f) showDeprecation = false
+[[1;36mDEBUG[m]   (f) showWarnings = false
+[[1;36mDEBUG[m]   (f) skipMultiThreadWarning = false
+[[1;36mDEBUG[m]   (f) source = 11
+[[1;36mDEBUG[m]   (f) staleMillis = 0
+[[1;36mDEBUG[m]   (f) target = 11
+[[1;36mDEBUG[m]   (f) useIncrementalCompilation = true
+[[1;36mDEBUG[m]   (f) verbose = false
+[[1;36mDEBUG[m]   (f) mavenSession = org.apache.maven.execution.MavenSession@29fa6b65
+[[1;36mDEBUG[m]   (f) session = org.apache.maven.execution.MavenSession@29fa6b65
+[[1;36mDEBUG[m] -- end configuration --
+[[1;36mDEBUG[m] Using compiler 'javac'.
+[[1;36mDEBUG[m] Source directories: [C:\Andy\demo-SanityCheck\demo\service-a\src\main\java]
+[[1;36mDEBUG[m] Classpath: [C:\Andy\demo-SanityCheck\demo\service-a\target\classes
+ C:\Users\AndrewMauer\.m2\repository\jakarta\enterprise\jakarta.enterprise.cdi-api\2.0.2\jakarta.enterprise.cdi-api-2.0.2.jar
+ C:\Users\AndrewMauer\.m2\repository\jakarta\interceptor\jakarta.interceptor-api\1.2.5\jakarta.interceptor-api-1.2.5.jar
+ C:\Users\AndrewMauer\.m2\repository\jakarta\inject\jakarta.inject-api\1.0\jakarta.inject-api-1.0.jar
+ C:\Users\AndrewMauer\.m2\repository\jakarta\ws\rs\jakarta.ws.rs-api\2.1.6\jakarta.ws.rs-api-2.1.6.jar
+ C:\Users\AndrewMauer\.m2\repository\jakarta\json\bind\jakarta.json.bind-api\1.0.2\jakarta.json.bind-api-1.0.2.jar
+ C:\Users\AndrewMauer\.m2\repository\jakarta\json\jakarta.json-api\1.1.6\jakarta.json-api-1.1.6.jar
+ C:\Users\AndrewMauer\.m2\repository\jakarta\annotation\jakarta.annotation-api\1.3.5\jakarta.annotation-api-1.3.5.jar
+ C:\Users\AndrewMauer\.m2\repository\org\eclipse\microprofile\config\microprofile-config-api\2.0\microprofile-config-api-2.0.jar
+ C:\Users\AndrewMauer\.m2\repository\org\eclipse\microprofile\fault-tolerance\microprofile-fault-tolerance-api\3.0\microprofile-fault-tolerance-api-3.0.jar
+ C:\Users\AndrewMauer\.m2\repository\org\eclipse\microprofile\health\microprofile-health-api\3.1\microprofile-health-api-3.1.jar
+ C:\Users\AndrewMauer\.m2\repository\org\eclipse\microprofile\metrics\microprofile-metrics-api\3.0\microprofile-metrics-api-3.0.jar
+ C:\Users\AndrewMauer\.m2\repository\org\eclipse\microprofile\jwt\microprofile-jwt-auth-api\1.2\microprofile-jwt-auth-api-1.2.jar
+ C:\Users\AndrewMauer\.m2\repository\org\eclipse\microprofile\openapi\microprofile-openapi-api\2.0\microprofile-openapi-api-2.0.jar
+ C:\Users\AndrewMauer\.m2\repository\org\eclipse\microprofile\rest\client\microprofile-rest-client-api\2.0\microprofile-rest-client-api-2.0.jar
+ C:\Users\AndrewMauer\.m2\repository\org\eclipse\microprofile\opentracing\microprofile-opentracing-api\2.0\microprofile-opentracing-api-2.0.jar
+ C:\Users\AndrewMauer\.m2\repository\io\jaegertracing\jaeger-client\1.5.0\jaeger-client-1.5.0.jar
+ C:\Users\AndrewMauer\.m2\repository\io\jaegertracing\jaeger-thrift\1.5.0\jaeger-thrift-1.5.0.jar
+ C:\Users\AndrewMauer\.m2\repository\org\apache\thrift\libthrift\0.13.0\libthrift-0.13.0.jar
+ C:\Users\AndrewMauer\.m2\repository\javax\annotation\javax.annotation-api\1.3.2\javax.annotation-api-1.3.2.jar
+ C:\Users\AndrewMauer\.m2\repository\com\squareup\okhttp3\okhttp\4.9.0\okhttp-4.9.0.jar
+ C:\Users\AndrewMauer\.m2\repository\com\squareup\okio\okio\2.8.0\okio-2.8.0.jar
+ C:\Users\AndrewMauer\.m2\repository\org\jetbrains\kotlin\kotlin-stdlib-common\1.4.0\kotlin-stdlib-common-1.4.0.jar
+ C:\Users\AndrewMauer\.m2\repository\org\jetbrains\kotlin\kotlin-stdlib\1.4.10\kotlin-stdlib-1.4.10.jar
+ C:\Users\AndrewMauer\.m2\repository\org\jetbrains\annotations\13.0\annotations-13.0.jar
+ C:\Users\AndrewMauer\.m2\repository\io\jaegertracing\jaeger-core\1.5.0\jaeger-core-1.5.0.jar
+ C:\Users\AndrewMauer\.m2\repository\io\opentracing\opentracing-api\0.33.0\opentracing-api-0.33.0.jar
+ C:\Users\AndrewMauer\.m2\repository\io\opentracing\opentracing-util\0.33.0\opentracing-util-0.33.0.jar
+ C:\Users\AndrewMauer\.m2\repository\io\opentracing\opentracing-noop\0.33.0\opentracing-noop-0.33.0.jar
+ C:\Users\AndrewMauer\.m2\repository\com\google\code\gson\gson\2.8.6\gson-2.8.6.jar
+ C:\Users\AndrewMauer\.m2\repository\io\jaegertracing\jaeger-tracerresolver\1.5.0\jaeger-tracerresolver-1.5.0.jar
+ C:\Users\AndrewMauer\.m2\repository\io\opentracing\contrib\opentracing-tracerresolver\0.1.8\opentracing-tracerresolver-0.1.8.jar
+ C:\Users\AndrewMauer\.m2\repository\org\slf4j\slf4j-api\1.7.30\slf4j-api-1.7.30.jar
+ C:\Users\AndrewMauer\.m2\repository\org\slf4j\slf4j-jdk14\1.7.30\slf4j-jdk14-1.7.30.jar]
+[[1;36mDEBUG[m] Output directory: C:\Andy\demo-SanityCheck\demo\service-a\target\classes
+[[1;36mDEBUG[m] CompilerReuseStrategy: reuseCreated
+[[1;36mDEBUG[m] useIncrementalCompilation enabled
+[[1;34mINFO[m] Nothing to compile - all classes are up to date
+[[1;36mDEBUG[m] maven-resources-plugin:testResources configuration
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration/>
+[[1;34mINFO[m] Running maven-resources-plugin:testResources
+[[1;36mDEBUG[m] configuration:
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration/>
+[[1;36mDEBUG[m] Running executeMojo for Plugin [org.apache.maven.plugins:maven-resources-plugin]
+[[1;36mDEBUG[m] Attempting to load plugin Plugin [org.apache.maven.plugins:maven-resources-plugin] using pluginManager org.apache.maven.plugin.DefaultBuildPluginManager@65d57e4e and repositories [central (https://repo.maven.apache.org/maven2, default, releases)]
+[[1;36mDEBUG[m] Configuring mojo org.apache.maven.plugins:maven-resources-plugin:2.6:testResources from plugin realm ClassRealm[plugin>org.apache.maven.plugins:maven-resources-plugin:2.6, parent: jdk.internal.loader.ClassLoaders$AppClassLoader@2cdf8d8a]
+[[1;36mDEBUG[m] Configuring mojo 'org.apache.maven.plugins:maven-resources-plugin:2.6:testResources' with basic configurator -->
+[[1;36mDEBUG[m]   (f) buildFilters = []
+[[1;36mDEBUG[m]   (f) escapeWindowsPaths = true
+[[1;36mDEBUG[m]   (s) includeEmptyDirs = false
+[[1;36mDEBUG[m]   (s) outputDirectory = C:\Andy\demo-SanityCheck\demo\service-a\target\test-classes
+[[1;36mDEBUG[m]   (s) overwrite = false
+[[1;36mDEBUG[m]   (f) project = MavenProject: com.example:demo-service-a:1.0-SNAPSHOT @ C:\Andy\demo-SanityCheck\demo\service-a\pom.xml
+[[1;36mDEBUG[m]   (s) resources = [Resource {targetPath: null, filtering: false, FileSet {directory: C:\Andy\demo-SanityCheck\demo\service-a\src\test\resources, PatternSet [includes: {}, excludes: {}]}}]
+[[1;36mDEBUG[m]   (f) session = org.apache.maven.execution.MavenSession@3b1ed14b
+[[1;36mDEBUG[m]   (f) supportMultiLineFiltering = false
+[[1;36mDEBUG[m]   (f) useBuildFilters = true
+[[1;36mDEBUG[m]   (s) useDefaultDelimiters = true
+[[1;36mDEBUG[m] -- end configuration --
+[[1;36mDEBUG[m] properties used {env.TERM=xterm, env.NUMBER_OF_PROCESSORS=12, env.USERPROFILE=C:\Users\AndrewMauer, java.specification.version=11, jaeger.client.version=1.5.0, sun.cpu.isalist=amd64, env.APPSODY_PATH=C:\appsody\, sun.arch.data.model=64, env.PROGRAMW6432=C:\Program Files, java.vendor.url=https://adoptopenjdk.net/, env.OS=Windows_NT, env.GOPATH=C:\latestodo, sun.boot.library.path=C:\Java\OpenJDK11\jdk-11.0.4+11\bin, sun.java.command=org.codehaus.plexus.classworlds.launcher.Launcher -X liberty:dev, env.SYSTEMROOT=C:\WINDOWS, jdk.debug=release, maven.version=3.6.0, java.specification.vendor=Oracle Corporation, java.version.date=2019-07-16, java.home=C:\Java\OpenJDK11\jdk-11.0.4+11, java.specification.name=Java Platform API Specification, java.vm.specification.vendor=Oracle Corporation, env.CHOCOLATEYINSTALL=C:\ProgramData\chocolatey, env.MANPATH=C:\Program Files\Git\mingw64\local\man;C:\Program Files\Git\mingw64\share\man;C:\Program Files\Git\usr\local\man;C:\Program Files\Git\usr\share\man;C:\Program Files\Git\usr\man;C:\Program Files\Git\share\man, env.LOCALAPPDATA=C:\Users\AndrewMauer\AppData\Local, env.USERDOMAIN_ROAMINGPROFILE=GMX, env.SSH_ASKPASS=C:/Program Files/Git/mingw64/libexec/git-core/git-gui--askpass, user.script=, sun.management.compiler=HotSpot 64-Bit Tiered Compilers, java.runtime.version=11.0.4+11, env.PATH=C:\Users\AndrewMauer\bin;C:\Program Files\Git\mingw64\bin;C:\Program Files\Git\usr\local\bin;C:\Program Files\Git\usr\bin;C:\Program Files\Git\usr\bin;C:\Program Files\Git\mingw64\bin;C:\Program Files\Git\usr\bin;C:\Users\AndrewMauer\bin;C:\Python310\Scripts;C:\Python310;C:\Java\AdoptOpenJDK\jdk-11.0.4.11-openj9\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0;C:\WINDOWS\System32\OpenSSH;C:\Program Files\Git\cmd;C:\Program Files\TortoiseGit\bin;C:\maven\apache-maven-3.6.0\bin;C:\Java\IBM\Java80\bin;C:\Program Files (x86)\Webex\Webex\Applications;C:\Program Files (x86)\Symantec\VIP Access Client;C:\Program Files\Intel\WiFi\bin;C:\Program Files\Common Files\Intel\WirelessCommon;C:\latestodo;C:\Go\bin;C:\ProgramData\chocolatey\bin;C:\Program Files\PuTTY;C:\Program Files (x86)\Sennheiser\SenncomSDK;C:\Program Files\Docker\Docker\resources\bin;C:\ProgramData\DockerDesktop\version-bin;C:\gradle-latest\gradle-7.4.1\bin;C:\Users\AndrewMauer\AppData\Local\Microsoft\WindowsApps;C:\Users\AndrewMauer\AppData\Local\Programs\Microsoft VS Code\bin;C:\Program Files\Intel\WiFi\bin;C:\Program Files\Common Files\Intel\WirelessCommon;C:\gradle-5.6.2-bin\gradle-5.6.2\bin;C:\ant\apache-ant-1.9.14-bin\apache-ant-1.9.14\bin;C:\appsody;C:\oc;C:\Program Files\IBM\Cloud\bin;C:\jq;C:\curl;C:\Users\AndrewMauer\AppData\Local\Box\Box Edit;C:\apache-ant-1.8.4\bin;C:\Program Files\Git\usr\bin\vendor_perl;C:\Program Files\Git\usr\bin\core_perl, env.PUBLIC=C:\Users\Public, env.COMMONPROGRAMW6432=C:\Program Files\Common Files, file.encoding=Cp1252, final.name=demo, java.vendor.version=AdoptOpenJDK, env.COMPUTERNAME=LAPTOP-P7ACSKBJ, env.HOSTNAME=LAPTOP-P7ACSKBJ, env.HOMEPATH=\Users\AndrewMauer, env.SHLVL=1, env.APPDATA=C:\Users\AndrewMauer\AppData\Roaming, java.io.tmpdir=C:\Users\ANDREW~1\AppData\Local\Temp\, java.version=11.0.4, java.vm.specification.name=Java Virtual Machine Specification, java.awt.printerjob=sun.awt.windows.WPrinterJob, env.MINGW_CHOST=x86_64-w64-mingw32, java.library.path=C:\Java\OpenJDK11\jdk-11.0.4+11\bin;C:\WINDOWS\Sun\Java\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\Users\AndrewMauer\bin;C:\Program Files\Git\mingw64\bin;C:\Program Files\Git\usr\local\bin;C:\Program Files\Git\usr\bin;C:\Program Files\Git\usr\bin;C:\Program Files\Git\mingw64\bin;C:\Program Files\Git\usr\bin;C:\Users\AndrewMauer\bin;C:\Python310\Scripts;C:\Python310;C:\Java\AdoptOpenJDK\jdk-11.0.4.11-openj9\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0;C:\WINDOWS\System32\OpenSSH;C:\Program Files\Git\cmd;C:\Program Files\TortoiseGit\bin;C:\maven\apache-maven-3.6.0\bin;C:\Java\IBM\Java80\bin;C:\Program Files (x86)\Webex\Webex\Applications;C:\Program Files (x86)\Symantec\VIP Access Client;C:\Program Files\Intel\WiFi\bin;C:\Program Files\Common Files\Intel\WirelessCommon;C:\latestodo;C:\Go\bin;C:\ProgramData\chocolatey\bin;C:\Program Files\PuTTY;C:\Program Files (x86)\Sennheiser\SenncomSDK;C:\Program Files\Docker\Docker\resources\bin;C:\ProgramData\DockerDesktop\version-bin;C:\gradle-latest\gradle-7.4.1\bin;C:\Users\AndrewMauer\AppData\Local\Microsoft\WindowsApps;C:\Users\AndrewMauer\AppData\Local\Programs\Microsoft VS Code\bin;C:\Program Files\Intel\WiFi\bin;C:\Program Files\Common Files\Intel\WirelessCommon;C:\gradle-5.6.2-bin\gradle-5.6.2\bin;C:\ant\apache-ant-1.9.14-bin\apache-ant-1.9.14\bin;C:\appsody;C:\oc;C:\Program Files\IBM\Cloud\bin;C:\jq;C:\curl;C:\Users\AndrewMauer\AppData\Local\Box\Box Edit;C:\apache-ant-1.8.4\bin;C:\Program Files\Git\usr\bin\vendor_perl;C:\Program Files\Git\usr\bin\core_perl;., java.vendor=AdoptOpenJDK, slf4j.jdk.version=1.7.30, classworlds.conf=C:/maven/apache-maven-3.6.0/bin/m2.conf, sun.io.unicode.encoding=UnicodeLittle, sun.desktop=windows, env.LANG=s, env.GRADLE_HOME=C:\gradle-latest\gradle-7.4.1, user.timezone=, os.name=Windows 10, java.vm.specification.version=11, env.DISPLAY=needs-to-be-defined, env.=::=::\, maven.compiler.source=11, user.home=C:\Users\AndrewMauer, env.MSYSTEM_CHOST=x86_64-w64-mingw32, env.ALLUSERSPROFILE=C:\ProgramData, env.SESSIONNAME=Console, java.awt.graphicsenv=sun.awt.Win32GraphicsEnvironment, env.MSYSTEM_PREFIX=C:/Program Files/Git/mingw64, env.ANT_HOME=C:\apache-ant-1.8.4, path.separator=;, os.version=10.0, env.ORIGINAL_TMP=C:/Users/ANDREW~1/AppData/Local/Temp, env.PATHEXT=.COM;.EXE;.BAT;.CMD;.VBS;.VBE;.JS;.JSE;.WSF;.WSH;.MSC;.PY;.PYW, java.vm.name=OpenJDK 64-Bit Server VM, env.SHELL=C:\Program Files\Git\usr\bin\bash.exe, env.EXEPATH=C:\Program Files\Git, env.USERNAME=938752897, os.arch=amd64, maven.multiModuleProjectDirectory=C:/Andy/demo-SanityCheck/demo/service-a, env.CONFIG_SITE=C:/Program Files/Git/mingw64/etc/config.site, env.MAVEN_PROJECTBASEDIR=C:/Andy/demo-SanityCheck/demo/service-a, java.vm.info=mixed mode, slf4j.api.version=1.7.30, env.TEMP=C:\Users\ANDREW~1\AppData\Local\Temp, java.class.version=55.0, env.ORIGINAL_TEMP=C:/Users/ANDREW~1/AppData/Local/Temp, awt.toolkit=sun.awt.windows.WToolkit, env.MSYSTEM=MINGW64, env.ONEDRIVE=C:\Users\AndrewMauer\OneDrive, sun.jnu.encoding=Cp1252, maven.build.version=Apache Maven 3.6.0 (97c98ec64a1fdfee7767ce5ffb20918da4f719f3; 2018-10-24T14:41:47-04:00), maven.home=C:\maven\apache-maven-3.6.0, env.JAVA_HOME=C:/Java/OpenJDK11/jdk-11.0.4+11, env.PROGRAMFILES=C:\Program Files, file.separator=\, java.vm.compressedOopsMode=Zero based, line.separator=
+, env.PROCESSOR_REVISION=9e0a, openliberty.maven.version=3.5.1, env.PROCESSOR_IDENTIFIER=Intel64 Family 6 Model 158 Stepping 10, GenuineIntel, env.PROGRAMDATA=C:\ProgramData, user.name=938752897, env.PLINK_PROTOCOL=ssh, env.DRIVERDATA=C:\Windows\System32\Drivers\DriverData, env.SYSTEMDRIVE=C:, env.PROGRAMFILES(X86)=C:\Program Files (x86), env.PROCESSOR_LEVEL=6, env.HOMEDRIVE=C:, env.PSMODULEPATH=C:\Program Files\WindowsPowerShell\Modules;C:\WINDOWS\system32\WindowsPowerShell\v1.0\Modules, env.TMP=C:\Users\ANDREW~1\AppData\Local\Temp, env.ACLOCAL_PATH=C:\Program Files\Git\mingw64\share\aclocal;C:\Program Files\Git\usr\share\aclocal, sun.os.patch.level=, maven.compiler.target=11, env.TMPDIR=C:\Users\ANDREW~1\AppData\Local\Temp, env.LOGONSERVER=\\LAPTOP-P7ACSKBJ, env.INFOPATH=C:\Program Files\Git\usr\local\info;C:\Program Files\Git\usr\share\info;C:\Program Files\Git\usr\info;C:\Program Files\Git\share\info, library.jansi.path=C:/maven/apache-maven-3.6.0/lib/jansi-native, env.WINDIR=C:\WINDOWS, env.OLDPWD=C:/Andy/demo-SanityCheck/demo/service-a, env.PWD=C:/Andy/demo-SanityCheck/demo/service-a, failOnMissingWebXml=false, env.USERDNSDOMAIN=gmx.ibm.com, env.MINGW_PREFIX=C:/Program Files/Git/mingw64, java.class.path=C:/maven/apache-maven-3.6.0/boot/plexus-classworlds-2.5.2.jar, env.HOME=C:\Users\AndrewMauer, java.vm.vendor=AdoptOpenJDK, env.PROCESSOR_ARCHITECTURE=AMD64, user.variant=, env.COMMONPROGRAMFILES=C:\Program Files\Common Files, maven.conf=C:/maven/apache-maven-3.6.0/conf, sun.java.launcher=SUN_STANDARD, user.country=US, env.USERDOMAIN=GMX, env.COMSPEC=C:\WINDOWS\system32\cmd.exe, sun.cpu.endian=little, user.language=en, env.ORIGINAL_PATH=C:\Program Files\Git\mingw64\bin;C:\Program Files\Git\usr\bin;C:\Users\AndrewMauer\bin;C:\Python310\Scripts;C:\Python310;C:\Java\AdoptOpenJDK\jdk-11.0.4.11-openj9\bin;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\WindowsPowerShell\v1.0;C:\WINDOWS\System32\OpenSSH;C:\Program Files\Git\cmd;C:\Program Files\TortoiseGit\bin;C:\maven\apache-maven-3.6.0\bin;C:\Java\IBM\Java80\bin;C:\Program Files (x86)\Webex\Webex\Applications;C:\Program Files (x86)\Symantec\VIP Access Client;C:\Program Files\Intel\WiFi\bin;C:\Program Files\Common Files\Intel\WirelessCommon;C:\latestodo;C:\Go\bin;C:\ProgramData\chocolatey\bin;C:\Program Files\PuTTY;C:\Program Files (x86)\Sennheiser\SenncomSDK;C:\Program Files\Docker\Docker\resources\bin;C:\ProgramData\DockerDesktop\version-bin;C:\gradle-latest\gradle-7.4.1\bin;C:\Users\AndrewMauer\AppData\Local\Microsoft\WindowsApps;C:\Users\AndrewMauer\AppData\Local\Programs\Microsoft VS Code\bin;C:\Program Files\Intel\WiFi\bin;C:\Program Files\Common Files\Intel\WirelessCommon;C:\gradle-5.6.2-bin\gradle-5.6.2\bin;C:\ant\apache-ant-1.9.14-bin\apache-ant-1.9.14\bin;C:\appsody;C:\oc;C:\Program Files\IBM\Cloud\bin;C:\jq;C:\curl;C:\Users\AndrewMauer\AppData\Local\Box\Box Edit;C:\apache-ant-1.8.4\bin, env.MINGW_PACKAGE_PREFIX=mingw-w64-x86_64, env.PKG_CONFIG_PATH=C:\Program Files\Git\mingw64\lib\pkgconfig;C:\Program Files\Git\mingw64\share\pkgconfig, env.MAVEN_HOME=C:/maven/apache-maven-3.6.0, env.MSYSTEM_CARCH=x86_64, env.CONFIGSETROOT=C:\WINDOWS\ConfigSetRoot, java.runtime.name=OpenJDK Runtime Environment, env.CHOCOLATEYLASTPATHUPDATE=132570170661002883, env.COMMONPROGRAMFILES(X86)=C:\Program Files (x86)\Common Files, env.ZES_ENABLE_SYSMAN=1, env.MAVEN_CMD_LINE_ARGS= -X liberty:dev, java.vendor.url.bug=https://github.com/AdoptOpenJDK/openjdk-build/issues, user.dir=C:\Andy\demo-SanityCheck\demo\service-a, env.ONEDRIVECONSUMER=C:\Users\AndrewMauer\OneDrive, java.vm.version=11.0.4+11}
+[[1;33mWARNING[m] Using platform encoding (Cp1252 actually) to copy filtered resources, i.e. build is platform dependent!
+[[1;36mDEBUG[m] resource with targetPath null
+directory C:\Andy\demo-SanityCheck\demo\service-a\src\test\resources
+excludes []
+includes []
+[[1;34mINFO[m] skip non existing resourceDirectory C:\Andy\demo-SanityCheck\demo\service-a\src\test\resources
+[[1;36mDEBUG[m] no use filter components
+[[1;36mDEBUG[m] maven-compiler-plugin:testCompile configuration
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration/>
+[[1;34mINFO[m] Running maven-compiler-plugin:testCompile on C:\Andy\demo-SanityCheck\demo\service-a\pom.xml
+[[1;36mDEBUG[m] configuration:
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <failOnError>false</failOnError>
+</configuration>
+[[1;36mDEBUG[m] Running executeMojo for Plugin [org.apache.maven.plugins:maven-compiler-plugin]
+[[1;36mDEBUG[m] Attempting to load plugin Plugin [org.apache.maven.plugins:maven-compiler-plugin] using pluginManager org.apache.maven.plugin.DefaultBuildPluginManager@65d57e4e and repositories [central (https://repo.maven.apache.org/maven2, default, releases)]
+[[1;36mDEBUG[m] Configuring mojo org.apache.maven.plugins:maven-compiler-plugin:3.1:testCompile from plugin realm ClassRealm[plugin>org.apache.maven.plugins:maven-compiler-plugin:3.1, parent: jdk.internal.loader.ClassLoaders$AppClassLoader@2cdf8d8a]
+[[1;36mDEBUG[m] Configuring mojo 'org.apache.maven.plugins:maven-compiler-plugin:3.1:testCompile' with basic configurator -->
+[[1;36mDEBUG[m]   (f) failOnError = false
+[[1;36mDEBUG[m]   (f) basedir = C:\Andy\demo-SanityCheck\demo\service-a
+[[1;36mDEBUG[m]   (f) buildDirectory = C:\Andy\demo-SanityCheck\demo\service-a\target
+[[1;36mDEBUG[m]   (f) classpathElements = [C:\Andy\demo-SanityCheck\demo\service-a\target\test-classes, C:\Andy\demo-SanityCheck\demo\service-a\target\classes, C:\Users\AndrewMauer\.m2\repository\jakarta\enterprise\jakarta.enterprise.cdi-api\2.0.2\jakarta.enterprise.cdi-api-2.0.2.jar, C:\Users\AndrewMauer\.m2\repository\jakarta\interceptor\jakarta.interceptor-api\1.2.5\jakarta.interceptor-api-1.2.5.jar, C:\Users\AndrewMauer\.m2\repository\jakarta\inject\jakarta.inject-api\1.0\jakarta.inject-api-1.0.jar, C:\Users\AndrewMauer\.m2\repository\jakarta\ws\rs\jakarta.ws.rs-api\2.1.6\jakarta.ws.rs-api-2.1.6.jar, C:\Users\AndrewMauer\.m2\repository\jakarta\json\bind\jakarta.json.bind-api\1.0.2\jakarta.json.bind-api-1.0.2.jar, C:\Users\AndrewMauer\.m2\repository\jakarta\json\jakarta.json-api\1.1.6\jakarta.json-api-1.1.6.jar, C:\Users\AndrewMauer\.m2\repository\jakarta\annotation\jakarta.annotation-api\1.3.5\jakarta.annotation-api-1.3.5.jar, C:\Users\AndrewMauer\.m2\repository\org\eclipse\microprofile\config\microprofile-config-api\2.0\microprofile-config-api-2.0.jar, C:\Users\AndrewMauer\.m2\repository\org\eclipse\microprofile\fault-tolerance\microprofile-fault-tolerance-api\3.0\microprofile-fault-tolerance-api-3.0.jar, C:\Users\AndrewMauer\.m2\repository\org\eclipse\microprofile\health\microprofile-health-api\3.1\microprofile-health-api-3.1.jar, C:\Users\AndrewMauer\.m2\repository\org\eclipse\microprofile\metrics\microprofile-metrics-api\3.0\microprofile-metrics-api-3.0.jar, C:\Users\AndrewMauer\.m2\repository\org\eclipse\microprofile\jwt\microprofile-jwt-auth-api\1.2\microprofile-jwt-auth-api-1.2.jar, C:\Users\AndrewMauer\.m2\repository\org\eclipse\microprofile\openapi\microprofile-openapi-api\2.0\microprofile-openapi-api-2.0.jar, C:\Users\AndrewMauer\.m2\repository\org\eclipse\microprofile\rest\client\microprofile-rest-client-api\2.0\microprofile-rest-client-api-2.0.jar, C:\Users\AndrewMauer\.m2\repository\org\eclipse\microprofile\opentracing\microprofile-opentracing-api\2.0\microprofile-opentracing-api-2.0.jar, C:\Users\AndrewMauer\.m2\repository\io\jaegertracing\jaeger-client\1.5.0\jaeger-client-1.5.0.jar, C:\Users\AndrewMauer\.m2\repository\io\jaegertracing\jaeger-thrift\1.5.0\jaeger-thrift-1.5.0.jar, C:\Users\AndrewMauer\.m2\repository\org\apache\thrift\libthrift\0.13.0\libthrift-0.13.0.jar, C:\Users\AndrewMauer\.m2\repository\javax\annotation\javax.annotation-api\1.3.2\javax.annotation-api-1.3.2.jar, C:\Users\AndrewMauer\.m2\repository\com\squareup\okhttp3\okhttp\4.9.0\okhttp-4.9.0.jar, C:\Users\AndrewMauer\.m2\repository\com\squareup\okio\okio\2.8.0\okio-2.8.0.jar, C:\Users\AndrewMauer\.m2\repository\org\jetbrains\kotlin\kotlin-stdlib-common\1.4.0\kotlin-stdlib-common-1.4.0.jar, C:\Users\AndrewMauer\.m2\repository\org\jetbrains\kotlin\kotlin-stdlib\1.4.10\kotlin-stdlib-1.4.10.jar, C:\Users\AndrewMauer\.m2\repository\org\jetbrains\annotations\13.0\annotations-13.0.jar, C:\Users\AndrewMauer\.m2\repository\io\jaegertracing\jaeger-core\1.5.0\jaeger-core-1.5.0.jar, C:\Users\AndrewMauer\.m2\repository\io\opentracing\opentracing-api\0.33.0\opentracing-api-0.33.0.jar, C:\Users\AndrewMauer\.m2\repository\io\opentracing\opentracing-util\0.33.0\opentracing-util-0.33.0.jar, C:\Users\AndrewMauer\.m2\repository\io\opentracing\opentracing-noop\0.33.0\opentracing-noop-0.33.0.jar, C:\Users\AndrewMauer\.m2\repository\com\google\code\gson\gson\2.8.6\gson-2.8.6.jar, C:\Users\AndrewMauer\.m2\repository\io\jaegertracing\jaeger-tracerresolver\1.5.0\jaeger-tracerresolver-1.5.0.jar, C:\Users\AndrewMauer\.m2\repository\io\opentracing\contrib\opentracing-tracerresolver\0.1.8\opentracing-tracerresolver-0.1.8.jar, C:\Users\AndrewMauer\.m2\repository\org\slf4j\slf4j-api\1.7.30\slf4j-api-1.7.30.jar, C:\Users\AndrewMauer\.m2\repository\org\slf4j\slf4j-jdk14\1.7.30\slf4j-jdk14-1.7.30.jar]
+[[1;36mDEBUG[m]   (f) compileSourceRoots = [C:\Andy\demo-SanityCheck\demo\service-a\src\test\java]
+[[1;36mDEBUG[m]   (f) compilerId = javac
+[[1;36mDEBUG[m]   (f) debug = true
+[[1;36mDEBUG[m]   (f) forceJavacCompilerUse = false
+[[1;36mDEBUG[m]   (f) fork = false
+[[1;36mDEBUG[m]   (f) generatedTestSourcesDirectory = C:\Andy\demo-SanityCheck\demo\service-a\target\generated-test-sources\test-annotations
+[[1;36mDEBUG[m]   (f) mojoExecution = org.apache.maven.plugins:maven-compiler-plugin:3.1:testCompile {execution: null}
+[[1;36mDEBUG[m]   (f) optimize = false
+[[1;36mDEBUG[m]   (f) outputDirectory = C:\Andy\demo-SanityCheck\demo\service-a\target\test-classes
+[[1;36mDEBUG[m]   (f) showDeprecation = false
+[[1;36mDEBUG[m]   (f) showWarnings = false
+[[1;36mDEBUG[m]   (f) skipMultiThreadWarning = false
+[[1;36mDEBUG[m]   (f) source = 11
+[[1;36mDEBUG[m]   (f) staleMillis = 0
+[[1;36mDEBUG[m]   (f) target = 11
+[[1;36mDEBUG[m]   (f) useIncrementalCompilation = true
+[[1;36mDEBUG[m]   (f) verbose = false
+[[1;36mDEBUG[m]   (f) mavenSession = org.apache.maven.execution.MavenSession@4fd05028
+[[1;36mDEBUG[m]   (f) session = org.apache.maven.execution.MavenSession@4fd05028
+[[1;36mDEBUG[m] -- end configuration --
+[[1;36mDEBUG[m] Using compiler 'javac'.
+[[1;34mINFO[m] No sources to compile
+[[1;36mDEBUG[m] Source directory: C:\Andy\demo-SanityCheck\demo\service-a\src\main\java
+[[1;36mDEBUG[m] Output directory: C:\Andy\demo-SanityCheck\demo\service-a\target\classes
+[[1;36mDEBUG[m] Test Source directory: C:\Andy\demo-SanityCheck\demo\service-a\src\test\java
+[[1;36mDEBUG[m] Test Output directory: C:\Andy\demo-SanityCheck\demo\service-a\target\test-classes
+[[1;36mDEBUG[m] Setting plugin version to 3.5.1
+[[1;36mDEBUG[m] liberty-maven-plugin:create configuration
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <outputDirectory>target/wlp-package</outputDirectory>
+  <serverName>demo</serverName>
+  <bootstrapProperties>
+    <project.name>demo</project.name>
+    <jwt.issuer>https://server.example.com</jwt.issuer>
+    <app.context.root>/</app.context.root>
+  </bootstrapProperties>
+</configuration>
+[[1;34mINFO[m] Running liberty:create
+[[1;36mDEBUG[m] configuration:
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <outputDirectory>target/wlp-package</outputDirectory>
+  <serverName>demo</serverName>
+  <bootstrapProperties>
+    <project.name>demo</project.name>
+    <jwt.issuer>https://server.example.com</jwt.issuer>
+    <app.context.root>/</app.context.root>
+  </bootstrapProperties>
+</configuration>
+[[1;36mDEBUG[m] Setting plugin version to 3.5.1
+[[1;36mDEBUG[m] Running executeMojo for Plugin [io.openliberty.tools:liberty-maven-plugin]
+[[1;36mDEBUG[m] Attempting to load plugin Plugin [io.openliberty.tools:liberty-maven-plugin] using pluginManager org.apache.maven.plugin.DefaultBuildPluginManager@65d57e4e and repositories [central (https://repo.maven.apache.org/maven2, default, releases)]
+[[1;36mDEBUG[m] Configuring mojo io.openliberty.tools:liberty-maven-plugin:3.5.1:create from plugin realm ClassRealm[plugin>io.openliberty.tools:liberty-maven-plugin:3.5.1, parent: jdk.internal.loader.ClassLoaders$AppClassLoader@2cdf8d8a]
+[[1;36mDEBUG[m] Configuring mojo 'io.openliberty.tools:liberty-maven-plugin:3.5.1:create' with basic configurator -->
+[[1;36mDEBUG[m]   (f) outputDirectory = C:\Andy\demo-SanityCheck\demo\service-a\target\wlp-package
+[[1;36mDEBUG[m]   (f) serverName = demo
+[[1;36mDEBUG[m]   (f) bootstrapProperties = {app.context.root=/, jwt.issuer=https://server.example.com, project.name=demo}
+[[1;36mDEBUG[m]   (f) artifactRepository =       id: local
+      url: file:///C:/Users/AndrewMauer/.m2/repository/
+   layout: default
+snapshots: [enabled => true, update => always]
+ releases: [enabled => true, update => always]
+
+[[1;36mDEBUG[m]   (f) assemblyArtifact = null:null:null:null:jar
+[[1;36mDEBUG[m]   (f) assemblyInstallDirectory = C:\Andy\demo-SanityCheck\demo\service-a\target\liberty
+[[1;36mDEBUG[m]   (f) configDirectory = C:\Andy\demo-SanityCheck\demo\service-a\src\main\liberty\config
+[[1;36mDEBUG[m]   (f) deployPackages = project
+[[1;36mDEBUG[m]   (f) isInstall = true
+[[1;36mDEBUG[m]   (f) libertySettingsFolder = C:\Andy\demo-SanityCheck\demo\service-a\src\main\resources\etc
+[[1;36mDEBUG[m]   (f) looseApplication = true
+[[1;36mDEBUG[m]   (f) mergeServerEnv = false
+[[1;36mDEBUG[m]   (f) multiModuleProjectDirectory = C:\Andy\demo-SanityCheck\demo\service-a
+[[1;36mDEBUG[m]   (f) noPassword = false
+[[1;36mDEBUG[m]   (f) plugin = Component Descriptor: role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.server.CleanServerMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:clean'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.jsp.CompileJspMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:compile-jsp'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.extensions.arquillian.ConfigureArquillianMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:configure-arquillian'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.server.CreateServerMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:create'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.server.DebugServerMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:debug'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.applications.DeployMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:deploy'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.server.DevMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:dev'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.server.DevcMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:devc'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.applications.DisplayUrlMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:display-url'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.server.DumpServerMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:dump'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.server.HelpMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:help'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.server.InstallFeatureMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:install-feature'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.server.InstallServerMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:install-server'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.server.JavaDumpServerMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:java-dump'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.server.PackageServerMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:package'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.server.PrepareFeatureMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:prepare-feature'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.server.RunServerMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:run'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.server.StartServerMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:start'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.server.CheckStatusMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:status'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.server.StopServerMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:stop'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.server.TestStartServerMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:test-start'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.server.TestStopServerMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:test-stop'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.applications.UndeployAppMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:undeploy'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.server.UninstallFeatureMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:uninstall-feature'
+---
+[[1;36mDEBUG[m]   (f) project = MavenProject: com.example:demo-service-a:1.0-SNAPSHOT @ C:\Andy\demo-SanityCheck\demo\service-a\pom.xml
+[[1;36mDEBUG[m]   (f) reactorProjects = [MavenProject: com.example:demo-service-a:1.0-SNAPSHOT @ C:\Andy\demo-SanityCheck\demo\service-a\pom.xml]
+[[1;36mDEBUG[m]   (f) refresh = false
+[[1;36mDEBUG[m]   (f) repoSession = org.eclipse.aether.DefaultRepositorySystemSession@a7ad6e5
+[[1;36mDEBUG[m]   (f) repositories = [central (https://repo.maven.apache.org/maven2, default, releases)]
+[[1;36mDEBUG[m]   (f) session = org.apache.maven.execution.MavenSession@3b1ed14b
+[[1;36mDEBUG[m]   (f) settings = org.apache.maven.execution.SettingsAdapter@690bc15e
+[[1;36mDEBUG[m]   (f) skip = false
+[[1;36mDEBUG[m]   (f) stripVersion = false
+[[1;36mDEBUG[m] -- end configuration --
+[[1;36mDEBUG[m] Defaulting runtimeArtifact group id to 'io.openliberty'
+[[1;36mDEBUG[m] Defaulting runtimeArtifact artifact id to 'openliberty-kernel'
+[[1;36mDEBUG[m] Defaulting runtimeArtifact version to '[21.0.0.9,)'
+[[1;36mDEBUG[m] Could not find metadata io.openliberty:openliberty-kernel/maven-metadata.xml in local (C:\Users\AndrewMauer\.m2\repository)
+[[1;36mDEBUG[m] Skipped remote request for io.openliberty:openliberty-kernel/maven-metadata.xml, locally cached metadata up-to-date.
+[[1;36mDEBUG[m] Available versions: [21.0.0.9, 21.0.0.10, 21.0.0.11, 21.0.0.12, 22.0.0.1, 22.0.0.2, 22.0.0.3, 22.0.0.4, 22.0.0.5]
+[[1;36mDEBUG[m] io.openliberty:openliberty-kernel:22.0.0.5 is resolved from project repositories.
+[[1;34mINFO[m] CWWKM2102I: Using artifact based assembly archive : io.openliberty:openliberty-kernel:null:22.0.0.5:zip.
+[[1;36mDEBUG[m] CWWKM2104I: Discovering serverHome variable...
+[[1;34mINFO[m] CWWKM2102I: Using installDirectory : C:\Andy\demo-SanityCheck\demo\service-a\target\liberty\wlp.
+[[1;34mINFO[m] CWWKM2102I: Using serverName : demo.
+[[1;34mINFO[m] CWWKM2102I: Using serverDirectory : C:\Andy\demo-SanityCheck\demo\service-a\target\liberty\wlp\usr\servers\demo.
+[[1;36mDEBUG[m] WAR source directory from POM: null
+[[1;36mDEBUG[m] Final WAR source directory: C:\Andy\demo-SanityCheck\demo\service-a\src\main\webapp (absolute: C:\Andy\demo-SanityCheck\demo\service-a\src\main\webapp)
+[[1;34mINFO[m] CWWKM2112I: Re-using previously installed assembly.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) Detected Java version: 11 in: C:\Java\OpenJDK11\jdk-11.0.4+11
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) Detected OS: Windows 10
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) parsing buildfile jar:file:/C:/Users/AndrewMauer/.m2/repository/org/apache/ant/ant/1.10.11/ant-1.10.11.jar!/org/apache/tools/ant/antlib.xml with URI = jar:file:/C:/Users/AndrewMauer/.m2/repository/org/apache/ant/ant/1.10.11/ant-1.10.11.jar!/org/apache/tools/ant/antlib.xml from a zip file
+[[1;34mINFO[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) Copying 1 file to C:\Andy\demo-SanityCheck\demo\service-a\target\liberty\wlp\usr\servers\demo
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) Copying C:\Andy\demo-SanityCheck\demo\service-a\src\main\liberty\config\server.xml to C:\Andy\demo-SanityCheck\demo\service-a\target\liberty\wlp\usr\servers\demo\server.xml
+[[1;34mINFO[m] CWWKM2144I: Update server configuration file server.xml from C:\Andy\demo-SanityCheck\demo\service-a\src\main\liberty\config\server.xml.
+[[1;34mINFO[m] CWWKM2144I: Update server configuration file bootstrap.properties from inlined configuration.
+[[1;36mDEBUG[m] No custom Liberty configuration folder found.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.logging.Logging) Resetting
+[[1;36mDEBUG[m] Setting plugin version to 3.5.1
+[[1;36mDEBUG[m] liberty-maven-plugin:install-feature configuration
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <outputDirectory>target/wlp-package</outputDirectory>
+  <serverName>demo</serverName>
+</configuration>
+[[1;34mINFO[m] Running liberty:install-feature
+[[1;36mDEBUG[m] configuration:
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <outputDirectory>target/wlp-package</outputDirectory>
+  <serverName>demo</serverName>
+</configuration>
+[[1;36mDEBUG[m] Setting plugin version to 3.5.1
+[[1;36mDEBUG[m] Running executeMojo for Plugin [io.openliberty.tools:liberty-maven-plugin]
+[[1;36mDEBUG[m] Attempting to load plugin Plugin [io.openliberty.tools:liberty-maven-plugin] using pluginManager org.apache.maven.plugin.DefaultBuildPluginManager@65d57e4e and repositories [central (https://repo.maven.apache.org/maven2, default, releases)]
+[[1;36mDEBUG[m] Configuring mojo io.openliberty.tools:liberty-maven-plugin:3.5.1:install-feature from plugin realm ClassRealm[plugin>io.openliberty.tools:liberty-maven-plugin:3.5.1, parent: jdk.internal.loader.ClassLoaders$AppClassLoader@2cdf8d8a]
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.logging.Logging) Initialized
+[[1;36mDEBUG[m] Configuring mojo 'io.openliberty.tools:liberty-maven-plugin:3.5.1:install-feature' with basic configurator -->
+[[1;36mDEBUG[m]   (f) outputDirectory = C:\Andy\demo-SanityCheck\demo\service-a\target\wlp-package
+[[1;36mDEBUG[m]   (f) serverName = demo
+[[1;36mDEBUG[m]   (f) artifactRepository =       id: local
+      url: file:///C:/Users/AndrewMauer/.m2/repository/
+   layout: default
+snapshots: [enabled => true, update => always]
+ releases: [enabled => true, update => always]
+
+[[1;36mDEBUG[m]   (f) assemblyArtifact = null:null:null:null:jar
+[[1;36mDEBUG[m]   (f) assemblyInstallDirectory = C:\Andy\demo-SanityCheck\demo\service-a\target\liberty
+[[1;36mDEBUG[m]   (f) configDirectory = C:\Andy\demo-SanityCheck\demo\service-a\src\main\liberty\config
+[[1;36mDEBUG[m]   (f) isInstall = true
+[[1;36mDEBUG[m]   (f) mergeServerEnv = false
+[[1;36mDEBUG[m]   (f) multiModuleProjectDirectory = C:\Andy\demo-SanityCheck\demo\service-a
+[[1;36mDEBUG[m]   (f) project = MavenProject: com.example:demo-service-a:1.0-SNAPSHOT @ C:\Andy\demo-SanityCheck\demo\service-a\pom.xml
+[[1;36mDEBUG[m]   (f) reactorProjects = [MavenProject: com.example:demo-service-a:1.0-SNAPSHOT @ C:\Andy\demo-SanityCheck\demo\service-a\pom.xml]
+[[1;36mDEBUG[m]   (f) refresh = false
+[[1;36mDEBUG[m]   (f) repoSession = org.eclipse.aether.DefaultRepositorySystemSession@a7ad6e5
+[[1;36mDEBUG[m]   (f) repositories = [central (https://repo.maven.apache.org/maven2, default, releases)]
+[[1;36mDEBUG[m]   (f) session = org.apache.maven.execution.MavenSession@3b1ed14b
+[[1;36mDEBUG[m]   (f) settings = org.apache.maven.execution.SettingsAdapter@690bc15e
+[[1;36mDEBUG[m]   (f) skip = false
+[[1;36mDEBUG[m] -- end configuration --
+[[1;36mDEBUG[m] Defaulting runtimeArtifact group id to 'io.openliberty'
+[[1;36mDEBUG[m] Defaulting runtimeArtifact artifact id to 'openliberty-kernel'
+[[1;36mDEBUG[m] Defaulting runtimeArtifact version to '[21.0.0.9,)'
+[[1;36mDEBUG[m] Could not find metadata io.openliberty:openliberty-kernel/maven-metadata.xml in local (C:\Users\AndrewMauer\.m2\repository)
+[[1;36mDEBUG[m] Skipped remote request for io.openliberty:openliberty-kernel/maven-metadata.xml, locally cached metadata up-to-date.
+[[1;36mDEBUG[m] Available versions: [21.0.0.9, 21.0.0.10, 21.0.0.11, 21.0.0.12, 22.0.0.1, 22.0.0.2, 22.0.0.3, 22.0.0.4, 22.0.0.5]
+[[1;36mDEBUG[m] io.openliberty:openliberty-kernel:22.0.0.5 is resolved from project repositories.
+[[1;34mINFO[m] CWWKM2102I: Using artifact based assembly archive : io.openliberty:openliberty-kernel:null:22.0.0.5:zip.
+[[1;36mDEBUG[m] CWWKM2104I: Discovering serverHome variable...
+[[1;34mINFO[m] CWWKM2102I: Using installDirectory : C:\Andy\demo-SanityCheck\demo\service-a\target\liberty\wlp.
+[[1;34mINFO[m] CWWKM2102I: Using serverName : demo.
+[[1;34mINFO[m] CWWKM2102I: Using serverDirectory : C:\Andy\demo-SanityCheck\demo\service-a\target\liberty\wlp\usr\servers\demo.
+[[1;36mDEBUG[m] Feature-bom is not provided by the user
+[[1;36mDEBUG[m] Could not find metadata io.openliberty.features:install-map/maven-metadata.xml in local (C:\Users\AndrewMauer\.m2\repository)
+[[1;36mDEBUG[m] Skipped remote request for io.openliberty.features:install-map/maven-metadata.xml, locally cached metadata up-to-date.
+[[1;36mDEBUG[m] Using jar from Liberty directory for install-map bundle.
+[[1;36mDEBUG[m] io.openliberty.features:features:22.0.0.5 is resolved from project repositories.
+[[1;36mDEBUG[m] hasFrom: false
+[[1;36mDEBUG[m] hasPluginListedEsas: false
+[[1;34mINFO[m] Parsing the server file C:\Andy\demo-SanityCheck\demo\service-a\target\liberty\wlp\usr\servers\demo\server.xml for features and includes.
+[[1;34mINFO[m] Installing features: [microprofile-4.1]
+[[1;36mDEBUG[m] JSON repos: [C:\Users\AndrewMauer\.m2\repository\io\openliberty\features\features\22.0.0.5\features-22.0.0.5.json]
+[[1;36mDEBUG[m] Is installing only Open Liberty features? true
+[[1;36mDEBUG[m] Could not find metadata io.openliberty.features:repository-resolver/maven-metadata.xml in local (C:\Users\AndrewMauer\.m2\repository)
+[[1;36mDEBUG[m] Skipped remote request for io.openliberty.features:repository-resolver/maven-metadata.xml, locally cached metadata up-to-date.
+[[1;36mDEBUG[m] Using jar from Liberty directory for repository-resolver bundle.
+[[1;36mDEBUG[m] install.map.jar.file: C:\Andy\demo-SanityCheck\demo\service-a\target\liberty\wlp\lib\com.ibm.ws.install.map_1.0.64.jar
+
+[[1;36mDEBUG[m] install.kernel.init.code: 0
+[[1;36mDEBUG[m] install.kernel.init.error.message: null
+[[1;36mDEBUG[m] action.exception.stacktrace: null
+[[1;36mDEBUG[m] resolvedFeatures was empty but the install kernel did not issue any messages
+[[1;34mINFO[m] The features are already installed, so no action is needed.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.logging.Logging) Resetting
+[[1;36mDEBUG[m] Setting plugin version to 3.5.1
+[[1;36mDEBUG[m] liberty-maven-plugin:deploy configuration
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <outputDirectory>target/wlp-package</outputDirectory>
+  <serverName>demo</serverName>
+  <bootstrapProperties>
+    <project.name>demo</project.name>
+    <jwt.issuer>https://server.example.com</jwt.issuer>
+    <app.context.root>/</app.context.root>
+  </bootstrapProperties>
+</configuration>
+[[1;34mINFO[m] Running liberty:deploy
+[[1;36mDEBUG[m] configuration:
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <outputDirectory>target/wlp-package</outputDirectory>
+  <serverName>demo</serverName>
+  <bootstrapProperties>
+    <project.name>demo</project.name>
+    <jwt.issuer>https://server.example.com</jwt.issuer>
+    <app.context.root>/</app.context.root>
+  </bootstrapProperties>
+</configuration>
+[[1;36mDEBUG[m] Setting plugin version to 3.5.1
+[[1;36mDEBUG[m] Running executeMojo for Plugin [io.openliberty.tools:liberty-maven-plugin]
+[[1;36mDEBUG[m] Attempting to load plugin Plugin [io.openliberty.tools:liberty-maven-plugin] using pluginManager org.apache.maven.plugin.DefaultBuildPluginManager@65d57e4e and repositories [central (https://repo.maven.apache.org/maven2, default, releases)]
+[[1;36mDEBUG[m] Configuring mojo io.openliberty.tools:liberty-maven-plugin:3.5.1:deploy from plugin realm ClassRealm[plugin>io.openliberty.tools:liberty-maven-plugin:3.5.1, parent: jdk.internal.loader.ClassLoaders$AppClassLoader@2cdf8d8a]
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.logging.Logging) Initialized
+[[1;36mDEBUG[m] Configuring mojo 'io.openliberty.tools:liberty-maven-plugin:3.5.1:deploy' with basic configurator -->
+[[1;36mDEBUG[m]   (f) outputDirectory = C:\Andy\demo-SanityCheck\demo\service-a\target\wlp-package
+[[1;36mDEBUG[m]   (f) serverName = demo
+[[1;36mDEBUG[m]   (f) bootstrapProperties = {app.context.root=/, jwt.issuer=https://server.example.com, project.name=demo}
+[[1;36mDEBUG[m]   (f) artifactRepository =       id: local
+      url: file:///C:/Users/AndrewMauer/.m2/repository/
+   layout: default
+snapshots: [enabled => true, update => always]
+ releases: [enabled => true, update => always]
+
+[[1;36mDEBUG[m]   (f) assemblyArtifact = null:null:null:null:jar
+[[1;36mDEBUG[m]   (f) assemblyInstallDirectory = C:\Andy\demo-SanityCheck\demo\service-a\target\liberty
+[[1;36mDEBUG[m]   (f) configDirectory = C:\Andy\demo-SanityCheck\demo\service-a\src\main\liberty\config
+[[1;36mDEBUG[m]   (f) deployPackages = project
+[[1;36mDEBUG[m]   (f) isInstall = true
+[[1;36mDEBUG[m]   (f) looseApplication = true
+[[1;36mDEBUG[m]   (f) mergeServerEnv = false
+[[1;36mDEBUG[m]   (f) multiModuleProjectDirectory = C:\Andy\demo-SanityCheck\demo\service-a
+[[1;36mDEBUG[m]   (f) plugin = Component Descriptor: role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.server.CleanServerMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:clean'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.jsp.CompileJspMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:compile-jsp'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.extensions.arquillian.ConfigureArquillianMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:configure-arquillian'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.server.CreateServerMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:create'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.server.DebugServerMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:debug'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.applications.DeployMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:deploy'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.server.DevMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:dev'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.server.DevcMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:devc'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.applications.DisplayUrlMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:display-url'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.server.DumpServerMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:dump'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.server.HelpMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:help'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.server.InstallFeatureMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:install-feature'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.server.InstallServerMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:install-server'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.server.JavaDumpServerMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:java-dump'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.server.PackageServerMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:package'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.server.PrepareFeatureMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:prepare-feature'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.server.RunServerMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:run'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.server.StartServerMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:start'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.server.CheckStatusMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:status'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.server.StopServerMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:stop'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.server.TestStartServerMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:test-start'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.server.TestStopServerMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:test-stop'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.applications.UndeployAppMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:undeploy'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'io.openliberty.tools.maven.server.UninstallFeatureMojo', role hint: 'io.openliberty.tools:liberty-maven-plugin:3.5.1:uninstall-feature'
+---
+[[1;36mDEBUG[m]   (f) project = MavenProject: com.example:demo-service-a:1.0-SNAPSHOT @ C:\Andy\demo-SanityCheck\demo\service-a\pom.xml
+[[1;36mDEBUG[m]   (f) reactorProjects = [MavenProject: com.example:demo-service-a:1.0-SNAPSHOT @ C:\Andy\demo-SanityCheck\demo\service-a\pom.xml]
+[[1;36mDEBUG[m]   (f) refresh = false
+[[1;36mDEBUG[m]   (f) repoSession = org.eclipse.aether.DefaultRepositorySystemSession@a7ad6e5
+[[1;36mDEBUG[m]   (f) repositories = [central (https://repo.maven.apache.org/maven2, default, releases)]
+[[1;36mDEBUG[m]   (f) session = org.apache.maven.execution.MavenSession@3b1ed14b
+[[1;36mDEBUG[m]   (f) settings = org.apache.maven.execution.SettingsAdapter@690bc15e
+[[1;36mDEBUG[m]   (f) skip = false
+[[1;36mDEBUG[m]   (f) stripVersion = false
+[[1;36mDEBUG[m]   (f) timeout = 40
+[[1;36mDEBUG[m] -- end configuration --
+[[1;36mDEBUG[m] Defaulting runtimeArtifact group id to 'io.openliberty'
+[[1;36mDEBUG[m] Defaulting runtimeArtifact artifact id to 'openliberty-kernel'
+[[1;36mDEBUG[m] Defaulting runtimeArtifact version to '[21.0.0.9,)'
+[[1;36mDEBUG[m] Could not find metadata io.openliberty:openliberty-kernel/maven-metadata.xml in local (C:\Users\AndrewMauer\.m2\repository)
+[[1;36mDEBUG[m] Skipped remote request for io.openliberty:openliberty-kernel/maven-metadata.xml, locally cached metadata up-to-date.
+[[1;36mDEBUG[m] Available versions: [21.0.0.9, 21.0.0.10, 21.0.0.11, 21.0.0.12, 22.0.0.1, 22.0.0.2, 22.0.0.3, 22.0.0.4, 22.0.0.5]
+[[1;36mDEBUG[m] io.openliberty:openliberty-kernel:22.0.0.5 is resolved from project repositories.
+[[1;34mINFO[m] CWWKM2102I: Using artifact based assembly archive : io.openliberty:openliberty-kernel:null:22.0.0.5:zip.
+[[1;36mDEBUG[m] CWWKM2104I: Discovering serverHome variable...
+[[1;34mINFO[m] CWWKM2102I: Using installDirectory : C:\Andy\demo-SanityCheck\demo\service-a\target\liberty\wlp.
+[[1;34mINFO[m] CWWKM2102I: Using serverName : demo.
+[[1;34mINFO[m] CWWKM2102I: Using serverDirectory : C:\Andy\demo-SanityCheck\demo\service-a\target\liberty\wlp\usr\servers\demo.
+[[1;34mINFO[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) Copying 1 file to C:\Andy\demo-SanityCheck\demo\service-a\target\liberty\wlp\usr\servers\demo
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) Copying C:\Andy\demo-SanityCheck\demo\service-a\src\main\liberty\config\server.xml to C:\Andy\demo-SanityCheck\demo\service-a\target\liberty\wlp\usr\servers\demo\server.xml
+[[1;34mINFO[m] CWWKM2144I: Update server configuration file server.xml from C:\Andy\demo-SanityCheck\demo\service-a\src\main\liberty\config\server.xml.
+[[1;34mINFO[m] CWWKM2144I: Update server configuration file bootstrap.properties from inlined configuration.
+[[1;36mDEBUG[m] Application configuration is found in server.xml.
+[[1;34mINFO[m] CWWKM2185I: The liberty-maven-plugin configuration parameter "appsDirectory" value defaults to "apps".
+[[1;36mDEBUG[m] WAR source directory from POM: null
+[[1;36mDEBUG[m] Final WAR source directory: C:\Andy\demo-SanityCheck\demo\service-a\src\main\webapp (absolute: C:\Andy\demo-SanityCheck\demo\service-a\src\main\webapp)
+[[1;36mDEBUG[m] Application configuration is found in server.xml : demo.war
+[[1;34mINFO[m] CWWKM2160I: Installing application demo.war.xml.
+[[1;36mDEBUG[m] Number of compile dependencies for demo-service-a : 34
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.logging.Logging) Resetting
+[[1;36mDEBUG[m] maven-compiler-plugin:compile configuration
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration/>
+[[1;36mDEBUG[m] Setting compiler source to 11
+[[1;36mDEBUG[m] Setting compiler target to 11
+[[1;34mINFO[m] Parsing the server file C:\Andy\demo-SanityCheck\demo\service-a\target\liberty\wlp\usr\servers\demo\server.xml for features and includes.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) parsing buildfile jar:file:/C:/Users/AndrewMauer/.m2/repository/io/openliberty/tools/liberty-ant-tasks/1.9.9/liberty-ant-tasks-1.9.9.jar!/io/openliberty/tools/ant/antlib.xml with URI = jar:file:/C:/Users/AndrewMauer/.m2/repository/io/openliberty/tools/liberty-ant-tasks/1.9.9/liberty-ant-tasks-1.9.9.jar!/io/openliberty/tools/ant/antlib.xml from a zip file
+[[1;34mINFO[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) Copying 1 file to C:\Andy\demo-SanityCheck\demo\service-a\target\liberty\wlp\usr\servers\demo
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) Copying C:\Andy\demo-SanityCheck\demo\service-a\src\main\liberty\config\server.xml to C:\Andy\demo-SanityCheck\demo\service-a\target\liberty\wlp\usr\servers\demo\server.xml
+[[1;34mINFO[m] CWWKM2144I: Update server configuration file server.xml from C:\Andy\demo-SanityCheck\demo\service-a\src\main\liberty\config\server.xml.
+[[1;34mINFO[m] CWWKM2144I: Update server configuration file bootstrap.properties from inlined configuration.
+[[1;33mWARNING[m] The debug port 7777 is not available.  Using 56227 as the debug port instead.
+[[1;36mDEBUG[m] server.env already exists
+[[1;36mDEBUG[m] Creating server.env file: C:\Andy\demo-SanityCheck\demo\service-a\target\liberty\wlp\usr\servers\demo\server.env
+[[1;36mDEBUG[m] Successfully created liberty:dev server.env file
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2001I: installDir is C:\Andy\demo-SanityCheck\demo\service-a\target\liberty\wlp.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2001I: userDir is C:\Andy\demo-SanityCheck\demo\service-a\target\liberty\wlp\usr.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2001I: server.config.dir is C:\Andy\demo-SanityCheck\demo\service-a\target\liberty\wlp\usr\servers\demo.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2001I: outputDir is C:\Andy\demo-SanityCheck\demo\service-a\target\liberty\wlp\usr\servers.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2001I: server.output.dir is C:\Andy\demo-SanityCheck\demo\service-a\target\liberty\wlp\usr\servers\demo.
+[[1;34mINFO[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2001I: Invoke command is ["C:\Andy\demo-SanityCheck\demo\service-a\target\liberty\wlp\bin\server.bat", debug, demo].
+[[1;34mINFO[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) Listening for transport dt_socket at address: 56227
+[[1;34mINFO[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) Launching demo (Open Liberty 22.0.0.5/wlp-1.0.64.cl220520220425-0301) on OpenJDK 64-Bit Server VM, version 11.0.4+11 (en_US)
+[[1;34mINFO[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) [AUDIT   ] CWWKE0001I: The server demo has been launched.
+[[1;36mDEBUG[m] messages.log has been changed
+[[1;34mINFO[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2010I: Searching for CWWKF0011I: in C:\Andy\demo-SanityCheck\demo\service-a\target\liberty\wlp\usr\servers\demo\logs\messages.log. This search will timeout after 90 seconds.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;34mINFO[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) [AUDIT   ] CWWKZ0058I: Monitoring dropins for applications.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;34mINFO[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) [ERROR   ] CWWKE0701E: FrameworkEvent ERROR org.osgi.framework.ServiceException: Exception in org.apache.felix.scr.impl.manager.SingleComponentManager.getService()
+[[1;34mINFO[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) 	at org.eclipse.osgi.internal.serviceregistry.ServiceFactoryUse.factoryGetService(ServiceFactoryUse.java:230)
+[[1;34mINFO[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) 	at [internal classes]
+[[1;34mINFO[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) Caused by: java.lang.NoClassDefFoundError: com/ibm/ws/jaxrs/defaultexceptionmapper/DefaultExceptionMapperCallback
+[[1;34mINFO[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) 	at java.base/java.lang.ClassLoader.defineClass1(Native Method)
+[[1;34mINFO[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) 	at java.base/java.lang.ClassLoader.defineClass(ClassLoader.java:1016)
+[[1;34mINFO[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) 	at org.eclipse.osgi.internal.loader.ModuleClassLoader.defineClass(ModuleClassLoader.java:283)
+[[1;34mINFO[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) 	... 1 more
+[[1;34mINFO[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) Caused by: java.lang.ClassNotFoundException: com.ibm.ws.jaxrs.defaultexceptionmapper.DefaultExceptionMapperCallback cannot be found by io.openliberty.microprofile.metrics.internal.3.0.monitor_1.0.64.cl220520220425-0301
+[[1;34mINFO[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) 	at org.eclipse.osgi.internal.loader.BundleLoader.generateException(BundleLoader.java:541)
+[[1;34mINFO[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) 	... 1 more
+[[1;34mINFO[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper)  Event:org.osgi.framework.FrameworkEvent[source=io.openliberty.microprofile.metrics.internal.3.0.monitor_1.0.64.cl220520220425-0301 [254]] 
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;34mINFO[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) [AUDIT   ] CWWKT0016I: Web application available (default_host): http://localhost:9080/health/
+[[1;34mINFO[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) [AUDIT   ] CWWKT0016I: Web application available (default_host): http://localhost:9080/jwt/
+[[1;34mINFO[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) [AUDIT   ] CWWKT0016I: Web application available (default_host): http://localhost:9080/openapi/
+[[1;34mINFO[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) [AUDIT   ] CWWKT0016I: Web application available (default_host): http://localhost:9080/openapi/ui/
+[[1;34mINFO[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) [AUDIT   ] CWWKT0016I: Web application available (default_host): http://localhost:9080/ibm/api/
+[[1;34mINFO[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) [AUDIT   ] CWWKT0016I: Web application available (default_host): http://localhost:9080/metrics/
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;34mINFO[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) [AUDIT   ] CWWKT0016I: Web application available (default_host): http://localhost:9080/
+[[1;34mINFO[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) [AUDIT   ] CWWKZ0001I: Application demo started in 7.467 seconds.
+[[1;34mINFO[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) [ERROR   ] CWWKO0221E: TCP Channel defaultHttpEndpoint initialization did not succeed.  The socket bind did not succeed for host localhost and port 9080.  The port might already be in use.  Exception Message: Address already in use: bind
+[[1;34mINFO[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) [AUDIT   ] CWWKT0028I: Web application moved (default_host): https://localhost:9443/jwt/
+[[1;34mINFO[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) [AUDIT   ] CWWKT0028I: Web application moved (default_host): https://localhost:9443/openapi/ui/
+[[1;34mINFO[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) [AUDIT   ] CWWKT0028I: Web application moved (default_host): https://localhost:9443/health/
+[[1;34mINFO[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) [AUDIT   ] CWWKT0028I: Web application moved (default_host): https://localhost:9443/metrics/
+[[1;34mINFO[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) [AUDIT   ] CWWKT0028I: Web application moved (default_host): https://localhost:9443/
+[[1;34mINFO[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) [AUDIT   ] CWWKT0028I: Web application moved (default_host): https://localhost:9443/openapi/
+[[1;34mINFO[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) [AUDIT   ] CWWKT0028I: Web application moved (default_host): https://localhost:9443/ibm/api/
+[[1;34mINFO[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) [ERROR   ] CWWKO0221E: TCP Channel defaultHttpEndpoint-ssl initialization did not succeed.  The socket bind did not succeed for host localhost and port 9443.  The port might already be in use.  Exception Message: Address already in use: bind
+[[1;34mINFO[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) [AUDIT   ] CWWKT0017I: Web application removed (default_host): https://localhost:9443/jwt/
+[[1;34mINFO[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) [AUDIT   ] CWWKT0017I: Web application removed (default_host): https://localhost:9443/openapi/ui/
+[[1;34mINFO[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) [AUDIT   ] CWWKT0017I: Web application removed (default_host): https://localhost:9443/health/
+[[1;34mINFO[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) [AUDIT   ] CWWKT0017I: Web application removed (default_host): https://localhost:9443/metrics/
+[[1;34mINFO[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) [AUDIT   ] CWWKT0017I: Web application removed (default_host): https://localhost:9443/
+[[1;34mINFO[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) [AUDIT   ] CWWKT0017I: Web application removed (default_host): https://localhost:9443/openapi/
+[[1;34mINFO[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) [AUDIT   ] CWWKT0017I: Web application removed (default_host): https://localhost:9443/ibm/api/
+[[1;34mINFO[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) [AUDIT   ] CWWKF0012I: The server installed the following features: [appSecurity-3.0, cdi-2.0, distributedMap-1.0, el-3.0, jaxrs-2.1, jaxrsClient-2.1, jndi-1.0, json-1.0, jsonb-1.0, jsonp-1.1, jwt-1.0, microProfile-4.1, monitor-1.0, mpConfig-2.0, mpFaultTolerance-3.0, mpHealth-3.1, mpJwt-1.2, mpMetrics-3.0, mpOpenAPI-2.0, mpOpenTracing-2.0, mpRestClient-2.0, opentracing-2.0, servlet-4.0, ssl-1.0].
+[[1;34mINFO[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) [AUDIT   ] CWWKF0011I: The demo server is ready to run a smarter planet. The demo server started in 39.447 seconds.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKF0011I: in messages.log.
+[[1;34mINFO[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2015I: Match number: 1 is [5/26/22, 12:07:55:949 EDT] 00000026 com.ibm.ws.kernel.feature.internal.FeatureManager            A CWWKF0011I: The demo server is ready to run a smarter planet. The demo server started in 39.447 seconds..
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKO0221E: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2015I: Match number: 1 is [5/26/22, 12:07:55:872 EDT] 00000026 com.ibm.ws.tcpchannel.internal.TCPPort                       E CWWKO0221E: TCP Channel defaultHttpEndpoint initialization did not succeed.  The socket bind did not succeed for host localhost and port 9080.  The port might already be in use.  Exception Message: Address already in use: bind.
+[[1;31mERROR[m]  TCP Channel defaultHttpEndpoint initialization did not succeed.  The socket bind did not succeed for host localhost and port 9080.  The port might already be in use.  Exception Message: Address already in use: bind
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKT0016I: in messages.log.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2015I: Match number: 1 is [5/26/22, 12:07:49:058 EDT] 0000002e com.ibm.ws.http.internal.VirtualHostImpl                     A CWWKT0016I: Web application available (default_host): http://localhost:9080/health/.
+[[1;36mDEBUG[m] Web app available message: [5/26/22, 12:07:49:058 EDT] 0000002e com.ibm.ws.http.internal.VirtualHostImpl                     A CWWKT0016I: Web application available (default_host): http://localhost:9080/health/
+[[1;36mDEBUG[m] Parsed host name: localhost
+[[1;36mDEBUG[m] Parsed http port: 9080
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKO0219I: in messages.log.
+[[1;36mDEBUG[m] Could not find https port. The server might not be configured for https.
+[[1;36mDEBUG[m] Started hotkey reader.
+[[1;36mDEBUG[m] Running hotkey reader thread
+[[1;34mINFO[m] ************************************************************************
+[[1;34mINFO[m] *    Liberty is running in dev mode.
+[[1;34mINFO[m] *        To run tests on demand, press Enter.
+[[1;34mINFO[m] *        To restart the server, type 'r' and press Enter.
+[[1;34mINFO[m] *        To stop the server and quit dev mode, press Ctrl-C or type 'q' and press Enter.
+[[1;34mINFO[m] *        
+[[1;34mINFO[m] *    Liberty server port information:
+[[1;34mINFO[m] *        Liberty server HTTP port: [ 9080 ]
+[[1;34mINFO[m] *        Liberty debug port: [ 56227 ]
+[[1;34mINFO[m] ************************************************************************
+[[1;36mDEBUG[m] Application configuration is found in server.xml.
+[[1;36mDEBUG[m] Loose application configuration file set to: C:\Andy\demo-SanityCheck\demo\service-a\target\liberty\wlp\usr\servers\demo\apps\demo.war.xml
+[[1;36mDEBUG[m] Registering all files in directory: C:\Andy\demo-SanityCheck\demo\service-a\src\main\java
+[[1;36mDEBUG[m] Adding subdirectory to file observers: C:\Andy\demo-SanityCheck\demo\service-a\src\main\java
+[[1;36mDEBUG[m] Adding subdirectory to WatchService: C:\Andy\demo-SanityCheck\demo\service-a\src\main\java
+[[1;36mDEBUG[m] Adding subdirectory to file observers: C:\Andy\demo-SanityCheck\demo\service-a\src\main\java\com
+[[1;36mDEBUG[m] Adding subdirectory to WatchService: C:\Andy\demo-SanityCheck\demo\service-a\src\main\java\com
+[[1;36mDEBUG[m] Adding subdirectory to file observers: C:\Andy\demo-SanityCheck\demo\service-a\src\main\java\com\example
+[[1;36mDEBUG[m] Adding subdirectory to WatchService: C:\Andy\demo-SanityCheck\demo\service-a\src\main\java\com\example
+[[1;36mDEBUG[m] Adding subdirectory to file observers: C:\Andy\demo-SanityCheck\demo\service-a\src\main\java\com\example\demo
+[[1;36mDEBUG[m] Adding subdirectory to WatchService: C:\Andy\demo-SanityCheck\demo\service-a\src\main\java\com\example\demo
+[[1;36mDEBUG[m] Adding subdirectory to file observers: C:\Andy\demo-SanityCheck\demo\service-a\src\main\java\com\example\demo\client
+[[1;36mDEBUG[m] Adding subdirectory to WatchService: C:\Andy\demo-SanityCheck\demo\service-a\src\main\java\com\example\demo\client
+[[1;36mDEBUG[m] Adding subdirectory to file observers: C:\Andy\demo-SanityCheck\demo\service-a\src\main\java\com\example\demo\config
+[[1;36mDEBUG[m] Adding subdirectory to WatchService: C:\Andy\demo-SanityCheck\demo\service-a\src\main\java\com\example\demo\config
+[[1;36mDEBUG[m] Adding subdirectory to file observers: C:\Andy\demo-SanityCheck\demo\service-a\src\main\java\com\example\demo\health
+[[1;36mDEBUG[m] Adding subdirectory to WatchService: C:\Andy\demo-SanityCheck\demo\service-a\src\main\java\com\example\demo\health
+[[1;36mDEBUG[m] Registering all files in directory: C:\Andy\demo-SanityCheck\demo\service-a\src\main\liberty\config
+[[1;36mDEBUG[m] Adding subdirectory to file observers: C:\Andy\demo-SanityCheck\demo\service-a\src\main\liberty\config
+[[1;36mDEBUG[m] Adding subdirectory to WatchService: C:\Andy\demo-SanityCheck\demo\service-a\src\main\liberty\config
+[[1;36mDEBUG[m] Registering all files in directory: C:\Andy\demo-SanityCheck\demo\service-a\src\main\resources
+[[1;36mDEBUG[m] Adding subdirectory to file observers: C:\Andy\demo-SanityCheck\demo\service-a\src\main\resources
+[[1;36mDEBUG[m] Adding subdirectory to WatchService: C:\Andy\demo-SanityCheck\demo\service-a\src\main\resources
+[[1;36mDEBUG[m] Adding subdirectory to file observers: C:\Andy\demo-SanityCheck\demo\service-a\src\main\resources\META-INF
+[[1;36mDEBUG[m] Adding subdirectory to WatchService: C:\Andy\demo-SanityCheck\demo\service-a\src\main\resources\META-INF
+[[1;36mDEBUG[m] Registering single file polling for C:\Andy\demo-SanityCheck\demo\service-a\pom.xml
+[[1;36mDEBUG[m] Adding single file observer for: C:\Andy\demo-SanityCheck\demo\service-a\pom.xml
+[[1;36mDEBUG[m] Adding directory to WatchService C:\Andy\demo-SanityCheck\demo\service-a for single file pom.xml
+[[1;36mDEBUG[m] Recompiling Java source files: [C:\Andy\demo-SanityCheck\demo\service-a\src\main\java\com\example\demo\DemoRestApplication.java, C:\Andy\demo-SanityCheck\demo\service-a\src\main\java\com\example\demo\client\Service.java, C:\Andy\demo-SanityCheck\demo\service-a\src\main\java\com\example\demo\client\ClientController.java, C:\Andy\demo-SanityCheck\demo\service-a\src\main\java\com\example\demo\health\ServiceReadyHealthCheck.java, C:\Andy\demo-SanityCheck\demo\service-a\src\main\java\com\example\demo\health\ServiceStartupHealthCheck.java, C:\Andy\demo-SanityCheck\demo\service-a\src\main\java\com\example\demo\HelloController.java, C:\Andy\demo-SanityCheck\demo\service-a\src\main\java\com\example\demo\config\ConfigTestController.java, C:\Andy\demo-SanityCheck\demo\service-a\src\main\java\com\example\demo\health\ServiceLiveHealthCheck.java]
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for CWWKZ0003I: in messages.log.
+[[1;36mDEBUG[m] Message occurrences before compile: 0
+[[1;36mDEBUG[m] Compiler options: [-g, -parameters, -nowarn, -source, 11, -target, 11]
+[[1;34mINFO[m] Source compilation was successful.
+[[1;34mINFO[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) [AUDIT   ] CWWKZ0009I: The application demo has stopped successfully.
+[[1;34mINFO[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) [AUDIT   ] CWWKZ0003I: The application demo updated in 2.974 seconds.
+[[1;36mDEBUG[m] Waiting for Enter key to run tests
+[[1;36mDEBUG[m] Detected Enter key. Running tests... 
+[[1;36mDEBUG[m] Waiting for Enter key to run tests
+[[1;36mDEBUG[m] Running tests for: C:\Andy\demo-SanityCheck\demo\service-a\pom.xml; skipTests: false; skipITs: false; skipUTs: false
+[[1;34mINFO[m] Running unit tests...
+[[1;36mDEBUG[m] maven-surefire-plugin:test configuration
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration/>
+[[1;36mDEBUG[m] POM file: C:\Andy\demo-SanityCheck\demo\service-a\pom.xml
+org.apache.maven.plugins:maven-surefire-plugin test configuration:
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <properties>
+    <liberty.dev.test.run.id>0</liberty.dev.test.run.id>
+  </properties>
+</configuration>
+[[1;36mDEBUG[m] Running executeMojo for Plugin [org.apache.maven.plugins:maven-surefire-plugin]
+[[1;36mDEBUG[m] Attempting to load plugin Plugin [org.apache.maven.plugins:maven-surefire-plugin] using pluginManager org.apache.maven.plugin.DefaultBuildPluginManager@65d57e4e and repositories [central (https://repo.maven.apache.org/maven2, default, releases)]
+[[1;36mDEBUG[m] Dependency collection stats: {ConflictMarker.analyzeTime=188300, ConflictMarker.markTime=55500, ConflictMarker.nodeCount=132, ConflictIdSorter.graphTime=59700, ConflictIdSorter.topsortTime=21200, ConflictIdSorter.conflictIdCount=27, ConflictIdSorter.conflictIdCycleCount=0, ConflictResolver.totalTime=682700, ConflictResolver.conflictItemCount=77, DefaultDependencyCollector.collectTime=247808300, DefaultDependencyCollector.transformTime=1028100}
+[[1;36mDEBUG[m] org.apache.maven.plugins:maven-surefire-plugin:jar:2.12.4:
+[[1;36mDEBUG[m]    org.apache.maven:maven-plugin-api:jar:2.0.9:compile
+[[1;36mDEBUG[m]    org.apache.maven.surefire:surefire-booter:jar:2.12.4:compile
+[[1;36mDEBUG[m]       org.apache.maven.surefire:surefire-api:jar:2.12.4:compile
+[[1;36mDEBUG[m]    org.apache.maven.surefire:maven-surefire-common:jar:2.12.4:compile
+[[1;36mDEBUG[m]       org.apache.commons:commons-lang3:jar:3.1:compile
+[[1;36mDEBUG[m]       org.apache.maven.shared:maven-common-artifact-filters:jar:1.3:compile
+[[1;36mDEBUG[m]    org.codehaus.plexus:plexus-utils:jar:3.0.8:compile
+[[1;36mDEBUG[m]    org.apache.maven:maven-artifact:jar:2.0.9:compile
+[[1;36mDEBUG[m]    org.apache.maven:maven-project:jar:2.0.9:compile
+[[1;36mDEBUG[m]       org.apache.maven:maven-settings:jar:2.0.9:compile
+[[1;36mDEBUG[m]       org.apache.maven:maven-profile:jar:2.0.9:compile
+[[1;36mDEBUG[m]       org.apache.maven:maven-model:jar:2.0.9:compile
+[[1;36mDEBUG[m]       org.apache.maven:maven-artifact-manager:jar:2.0.9:compile
+[[1;36mDEBUG[m]       org.apache.maven:maven-plugin-registry:jar:2.0.9:compile
+[[1;36mDEBUG[m]       org.codehaus.plexus:plexus-container-default:jar:1.0-alpha-9-stable-1:compile
+[[1;36mDEBUG[m]          junit:junit:jar:3.8.1:test
+[[1;36mDEBUG[m]    org.apache.maven:maven-core:jar:2.0.9:compile
+[[1;36mDEBUG[m]       org.apache.maven:maven-plugin-parameter-documenter:jar:2.0.9:compile
+[[1;36mDEBUG[m]       org.apache.maven.reporting:maven-reporting-api:jar:2.0.9:compile
+[[1;36mDEBUG[m]       org.apache.maven:maven-repository-metadata:jar:2.0.9:compile
+[[1;36mDEBUG[m]       org.apache.maven:maven-error-diagnostics:jar:2.0.9:compile
+[[1;36mDEBUG[m]       org.apache.maven:maven-plugin-descriptor:jar:2.0.9:compile
+[[1;36mDEBUG[m]       org.apache.maven:maven-monitor:jar:2.0.9:compile
+[[1;36mDEBUG[m]       classworlds:classworlds:jar:1.1:compile
+[[1;36mDEBUG[m]    org.apache.maven:maven-toolchain:jar:2.0.9:compile
+[[1;36mDEBUG[m]    org.apache.maven.plugin-tools:maven-plugin-annotations:jar:3.1:compile
+[[1;36mDEBUG[m] Created new class realm plugin>org.apache.maven.plugins:maven-surefire-plugin:2.12.4
+[[1;36mDEBUG[m] Importing foreign packages into class realm plugin>org.apache.maven.plugins:maven-surefire-plugin:2.12.4
+[[1;36mDEBUG[m]   Imported:  < maven.api
+[[1;36mDEBUG[m] Populating class realm plugin>org.apache.maven.plugins:maven-surefire-plugin:2.12.4
+[[1;36mDEBUG[m]   Included: org.apache.maven.plugins:maven-surefire-plugin:jar:2.12.4
+[[1;36mDEBUG[m]   Included: org.apache.maven.surefire:surefire-booter:jar:2.12.4
+[[1;36mDEBUG[m]   Included: org.apache.maven.surefire:surefire-api:jar:2.12.4
+[[1;36mDEBUG[m]   Included: org.apache.maven.surefire:maven-surefire-common:jar:2.12.4
+[[1;36mDEBUG[m]   Included: org.apache.commons:commons-lang3:jar:3.1
+[[1;36mDEBUG[m]   Included: org.apache.maven.shared:maven-common-artifact-filters:jar:1.3
+[[1;36mDEBUG[m]   Included: org.codehaus.plexus:plexus-utils:jar:3.0.8
+[[1;36mDEBUG[m]   Included: org.apache.maven.reporting:maven-reporting-api:jar:2.0.9
+[[1;36mDEBUG[m]   Included: org.apache.maven.plugin-tools:maven-plugin-annotations:jar:3.1
+[[1;36mDEBUG[m] Configuring mojo org.apache.maven.plugins:maven-surefire-plugin:2.12.4:test from plugin realm ClassRealm[plugin>org.apache.maven.plugins:maven-surefire-plugin:2.12.4, parent: jdk.internal.loader.ClassLoaders$AppClassLoader@2cdf8d8a]
+[[1;36mDEBUG[m] Configuring mojo 'org.apache.maven.plugins:maven-surefire-plugin:2.12.4:test' with basic configurator -->
+[[1;36mDEBUG[m]   (s) properties = {liberty.dev.test.run.id=0}
+[[1;36mDEBUG[m]   (s) basedir = C:\Andy\demo-SanityCheck\demo\service-a
+[[1;36mDEBUG[m]   (s) childDelegation = false
+[[1;36mDEBUG[m]   (s) classesDirectory = C:\Andy\demo-SanityCheck\demo\service-a\target\classes
+[[1;36mDEBUG[m]   (s) disableXmlReport = false
+[[1;36mDEBUG[m]   (s) enableAssertions = true
+[[1;36mDEBUG[m]   (s) forkMode = once
+[[1;36mDEBUG[m]   (s) junitArtifactName = junit:junit
+[[1;36mDEBUG[m]   (s) localRepository =       id: local
+      url: file:///C:/Users/AndrewMauer/.m2/repository/
+   layout: default
+snapshots: [enabled => true, update => always]
+ releases: [enabled => true, update => always]
+
+[[1;36mDEBUG[m]   (f) parallelMavenExecution = false
+[[1;36mDEBUG[m]   (s) perCoreThreadCount = true
+[[1;36mDEBUG[m]   (s) pluginArtifactMap = {org.apache.maven.plugins:maven-surefire-plugin=org.apache.maven.plugins:maven-surefire-plugin:maven-plugin:2.12.4:, org.apache.maven:maven-plugin-api=org.apache.maven:maven-plugin-api:jar:2.0.9:compile, org.apache.maven.surefire:surefire-booter=org.apache.maven.surefire:surefire-booter:jar:2.12.4:compile, org.apache.maven.surefire:surefire-api=org.apache.maven.surefire:surefire-api:jar:2.12.4:compile, org.apache.maven.surefire:maven-surefire-common=org.apache.maven.surefire:maven-surefire-common:jar:2.12.4:compile, org.apache.commons:commons-lang3=org.apache.commons:commons-lang3:jar:3.1:compile, org.apache.maven.shared:maven-common-artifact-filters=org.apache.maven.shared:maven-common-artifact-filters:jar:1.3:compile, org.codehaus.plexus:plexus-utils=org.codehaus.plexus:plexus-utils:jar:3.0.8:compile, org.apache.maven:maven-artifact=org.apache.maven:maven-artifact:jar:2.0.9:compile, org.apache.maven:maven-project=org.apache.maven:maven-project:jar:2.0.9:compile, org.apache.maven:maven-settings=org.apache.maven:maven-settings:jar:2.0.9:compile, org.apache.maven:maven-profile=org.apache.maven:maven-profile:jar:2.0.9:compile, org.apache.maven:maven-model=org.apache.maven:maven-model:jar:2.0.9:compile, org.apache.maven:maven-artifact-manager=org.apache.maven:maven-artifact-manager:jar:2.0.9:compile, org.apache.maven:maven-plugin-registry=org.apache.maven:maven-plugin-registry:jar:2.0.9:compile, org.codehaus.plexus:plexus-container-default=org.codehaus.plexus:plexus-container-default:jar:1.0-alpha-9-stable-1:compile, org.apache.maven:maven-core=org.apache.maven:maven-core:jar:2.0.9:compile, org.apache.maven:maven-plugin-parameter-documenter=org.apache.maven:maven-plugin-parameter-documenter:jar:2.0.9:compile, org.apache.maven.reporting:maven-reporting-api=org.apache.maven.reporting:maven-reporting-api:jar:2.0.9:compile, org.apache.maven:maven-repository-metadata=org.apache.maven:maven-repository-metadata:jar:2.0.9:compile, org.apache.maven:maven-error-diagnostics=org.apache.maven:maven-error-diagnostics:jar:2.0.9:compile, org.apache.maven:maven-plugin-descriptor=org.apache.maven:maven-plugin-descriptor:jar:2.0.9:compile, org.apache.maven:maven-monitor=org.apache.maven:maven-monitor:jar:2.0.9:compile, classworlds:classworlds=classworlds:classworlds:jar:1.1:compile, org.apache.maven:maven-toolchain=org.apache.maven:maven-toolchain:jar:2.0.9:compile, org.apache.maven.plugin-tools:maven-plugin-annotations=org.apache.maven.plugin-tools:maven-plugin-annotations:jar:3.1:compile}
+[[1;36mDEBUG[m]   (f) pluginDescriptor = Component Descriptor: role: 'org.apache.maven.plugin.Mojo', implementation: 'org.apache.maven.plugin.surefire.HelpMojo', role hint: 'org.apache.maven.plugins:maven-surefire-plugin:2.12.4:help'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'org.apache.maven.plugin.surefire.SurefirePlugin', role hint: 'org.apache.maven.plugins:maven-surefire-plugin:2.12.4:test'
+---
+[[1;36mDEBUG[m]   (s) printSummary = true
+[[1;36mDEBUG[m]   (s) projectArtifactMap = {org.eclipse.microprofile:microprofile=org.eclipse.microprofile:microprofile:pom:4.1:provided, jakarta.enterprise:jakarta.enterprise.cdi-api=jakarta.enterprise:jakarta.enterprise.cdi-api:jar:2.0.2:provided, jakarta.interceptor:jakarta.interceptor-api=jakarta.interceptor:jakarta.interceptor-api:jar:1.2.5:provided, jakarta.inject:jakarta.inject-api=jakarta.inject:jakarta.inject-api:jar:1.0:provided, jakarta.ws.rs:jakarta.ws.rs-api=jakarta.ws.rs:jakarta.ws.rs-api:jar:2.1.6:provided, jakarta.json.bind:jakarta.json.bind-api=jakarta.json.bind:jakarta.json.bind-api:jar:1.0.2:provided, jakarta.json:jakarta.json-api=jakarta.json:jakarta.json-api:jar:1.1.6:provided, jakarta.annotation:jakarta.annotation-api=jakarta.annotation:jakarta.annotation-api:jar:1.3.5:provided, org.eclipse.microprofile.config:microprofile-config-api=org.eclipse.microprofile.config:microprofile-config-api:jar:2.0:provided, org.eclipse.microprofile.fault-tolerance:microprofile-fault-tolerance-api=org.eclipse.microprofile.fault-tolerance:microprofile-fault-tolerance-api:jar:3.0:provided, org.eclipse.microprofile.health:microprofile-health-api=org.eclipse.microprofile.health:microprofile-health-api:jar:3.1:provided, org.eclipse.microprofile.metrics:microprofile-metrics-api=org.eclipse.microprofile.metrics:microprofile-metrics-api:jar:3.0:provided, org.eclipse.microprofile.jwt:microprofile-jwt-auth-api=org.eclipse.microprofile.jwt:microprofile-jwt-auth-api:jar:1.2:provided, org.eclipse.microprofile.openapi:microprofile-openapi-api=org.eclipse.microprofile.openapi:microprofile-openapi-api:jar:2.0:provided, org.eclipse.microprofile.rest.client:microprofile-rest-client-api=org.eclipse.microprofile.rest.client:microprofile-rest-client-api:jar:2.0:provided, org.eclipse.microprofile.opentracing:microprofile-opentracing-api=org.eclipse.microprofile.opentracing:microprofile-opentracing-api:jar:2.0:provided, io.jaegertracing:jaeger-client=io.jaegertracing:jaeger-client:jar:1.5.0:compile, io.jaegertracing:jaeger-thrift=io.jaegertracing:jaeger-thrift:jar:1.5.0:compile, org.apache.thrift:libthrift=org.apache.thrift:libthrift:jar:0.13.0:compile, javax.annotation:javax.annotation-api=javax.annotation:javax.annotation-api:jar:1.3.2:compile, com.squareup.okhttp3:okhttp=com.squareup.okhttp3:okhttp:jar:4.9.0:compile, com.squareup.okio:okio=com.squareup.okio:okio:jar:2.8.0:compile, org.jetbrains.kotlin:kotlin-stdlib-common=org.jetbrains.kotlin:kotlin-stdlib-common:jar:1.4.0:compile, org.jetbrains.kotlin:kotlin-stdlib=org.jetbrains.kotlin:kotlin-stdlib:jar:1.4.10:compile, org.jetbrains:annotations=org.jetbrains:annotations:jar:13.0:compile, io.jaegertracing:jaeger-core=io.jaegertracing:jaeger-core:jar:1.5.0:compile, io.opentracing:opentracing-api=io.opentracing:opentracing-api:jar:0.33.0:compile, io.opentracing:opentracing-util=io.opentracing:opentracing-util:jar:0.33.0:compile, io.opentracing:opentracing-noop=io.opentracing:opentracing-noop:jar:0.33.0:compile, com.google.code.gson:gson=com.google.code.gson:gson:jar:2.8.6:compile, io.jaegertracing:jaeger-tracerresolver=io.jaegertracing:jaeger-tracerresolver:jar:1.5.0:compile, io.opentracing.contrib:opentracing-tracerresolver=io.opentracing.contrib:opentracing-tracerresolver:jar:0.1.8:compile, org.slf4j:slf4j-api=org.slf4j:slf4j-api:jar:1.7.30:compile, org.slf4j:slf4j-jdk14=org.slf4j:slf4j-jdk14:jar:1.7.30:compile}
+[[1;36mDEBUG[m]   (s) redirectTestOutputToFile = false
+[[1;36mDEBUG[m]   (s) remoteRepositories = [      id: central
+      url: https://repo.maven.apache.org/maven2
+   layout: default
+snapshots: [enabled => false, update => daily]
+ releases: [enabled => true, update => never]
+]
+[[1;36mDEBUG[m]   (s) reportFormat = brief
+[[1;36mDEBUG[m]   (s) reportsDirectory = C:\Andy\demo-SanityCheck\demo\service-a\target\surefire-reports
+[[1;36mDEBUG[m]   (s) runOrder = filesystem
+[[1;36mDEBUG[m]   (s) skip = false
+[[1;36mDEBUG[m]   (s) skipTests = false
+[[1;36mDEBUG[m]   (s) testClassesDirectory = C:\Andy\demo-SanityCheck\demo\service-a\target\test-classes
+[[1;36mDEBUG[m]   (s) testFailureIgnore = false
+[[1;36mDEBUG[m]   (s) testNGArtifactName = org.testng:testng
+[[1;36mDEBUG[m]   (s) testSourceDirectory = C:\Andy\demo-SanityCheck\demo\service-a\src\test\java
+[[1;36mDEBUG[m]   (s) trimStackTrace = true
+[[1;36mDEBUG[m]   (s) useFile = true
+[[1;36mDEBUG[m]   (s) useManifestOnlyJar = true
+[[1;36mDEBUG[m]   (s) useSystemClassLoader = true
+[[1;36mDEBUG[m]   (s) useUnlimitedThreads = false
+[[1;36mDEBUG[m]   (s) workingDirectory = C:\Andy\demo-SanityCheck\demo\service-a
+[[1;36mDEBUG[m]   (s) project = MavenProject: com.example:demo-service-a:1.0-SNAPSHOT @ C:\Andy\demo-SanityCheck\demo\service-a\pom.xml
+[[1;36mDEBUG[m]   (s) session = org.apache.maven.execution.MavenSession@260cbc12
+[[1;36mDEBUG[m] -- end configuration --
+[[1;36mDEBUG[m] maven-surefire-report-plugin:report-only configuration
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration/>
+[[1;36mDEBUG[m] maven-surefire-plugin:test configuration
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration/>
+[[1;36mDEBUG[m] POM file: C:\Andy\demo-SanityCheck\demo\service-a\pom.xml
+org.apache.maven.plugins:maven-surefire-report-plugin report-only configuration:
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <linkXRef>false</linkXRef>
+</configuration>
+[[1;36mDEBUG[m] Running executeMojo for Plugin [org.apache.maven.plugins:maven-surefire-report-plugin]
+[[1;36mDEBUG[m] Attempting to load plugin Plugin [org.apache.maven.plugins:maven-surefire-report-plugin] using pluginManager org.apache.maven.plugin.DefaultBuildPluginManager@65d57e4e and repositories [central (https://repo.maven.apache.org/maven2, default, releases)]
+[[1;36mDEBUG[m] Could not find metadata org.apache.maven.plugins:maven-surefire-report-plugin/maven-metadata.xml in local (C:\Users\AndrewMauer\.m2\repository)
+[[1;36mDEBUG[m] Skipped remote request for org.apache.maven.plugins:maven-surefire-report-plugin/maven-metadata.xml, locally cached metadata up-to-date.
+[[1;36mDEBUG[m] Could not find metadata org.apache.maven.plugins:maven-surefire-report-plugin/maven-metadata.xml in local (C:\Users\AndrewMauer\.m2\repository)
+[[1;36mDEBUG[m] Skipped remote request for org.apache.maven.plugins:maven-surefire-report-plugin/maven-metadata.xml, locally cached metadata up-to-date.
+[[1;36mDEBUG[m] Dependency collection stats: {ConflictMarker.analyzeTime=131900, ConflictMarker.markTime=53000, ConflictMarker.nodeCount=132, ConflictIdSorter.graphTime=55300, ConflictIdSorter.topsortTime=35000, ConflictIdSorter.conflictIdCount=50, ConflictIdSorter.conflictIdCycleCount=0, ConflictResolver.totalTime=1181900, ConflictResolver.conflictItemCount=90, DefaultDependencyCollector.collectTime=1054103100, DefaultDependencyCollector.transformTime=1478400}
+[[1;36mDEBUG[m] org.apache.maven.plugins:maven-surefire-report-plugin:jar:3.0.0-M5:
+[[1;36mDEBUG[m]    org.apache.maven.surefire:surefire-report-parser:jar:3.0.0-M5:compile
+[[1;36mDEBUG[m]       org.apache.maven.surefire:surefire-logger-api:jar:3.0.0-M5:compile
+[[1;36mDEBUG[m]       org.apache.maven.surefire:surefire-shared-utils:jar:3.0.0-M4:compile
+[[1;36mDEBUG[m]       org.apache.maven.reporting:maven-reporting-api:jar:3.0:compile
+[[1;36mDEBUG[m]    org.apache.maven:maven-plugin-api:jar:3.0:compile
+[[1;36mDEBUG[m]       org.apache.maven:maven-model:jar:3.0:compile
+[[1;36mDEBUG[m]       org.apache.maven:maven-artifact:jar:3.0:compile
+[[1;36mDEBUG[m]       org.sonatype.sisu:sisu-inject-plexus:jar:1.4.2:compile
+[[1;36mDEBUG[m]          org.codehaus.plexus:plexus-classworlds:jar:2.2.3:compile
+[[1;36mDEBUG[m]          org.sonatype.sisu:sisu-inject-bean:jar:1.4.2:compile
+[[1;36mDEBUG[m]             org.sonatype.sisu:sisu-guice:jar:noaop:2.1.7:compile
+[[1;36mDEBUG[m]    org.apache.maven.reporting:maven-reporting-impl:jar:3.0.0:compile
+[[1;36mDEBUG[m]       org.apache.maven.shared:maven-shared-utils:jar:3.1.0:compile
+[[1;36mDEBUG[m]       org.codehaus.plexus:plexus-utils:jar:3.0.24:compile
+[[1;36mDEBUG[m]    org.apache.maven.doxia:doxia-sink-api:jar:1.9.1:compile
+[[1;36mDEBUG[m]       org.apache.maven.doxia:doxia-logging-api:jar:1.9.1:compile
+[[1;36mDEBUG[m]    org.apache.maven.doxia:doxia-decoration-model:jar:1.9.2:compile
+[[1;36mDEBUG[m]       org.codehaus.plexus:plexus-component-annotations:jar:2.0.0:compile
+[[1;36mDEBUG[m]    org.apache.maven.doxia:doxia-core:jar:1.9.1:compile
+[[1;36mDEBUG[m]       org.codehaus.plexus:plexus-container-default:jar:1.7.1:compile
+[[1;36mDEBUG[m]          org.apache.xbean:xbean-reflect:jar:3.7:compile
+[[1;36mDEBUG[m]          com.google.collections:google-collections:jar:1.0:compile
+[[1;36mDEBUG[m]       org.apache.commons:commons-lang3:jar:3.8.1:compile
+[[1;36mDEBUG[m]       org.apache.httpcomponents:httpclient:jar:4.5.8:compile
+[[1;36mDEBUG[m]          commons-logging:commons-logging:jar:1.2:compile
+[[1;36mDEBUG[m]          commons-codec:commons-codec:jar:1.11:compile
+[[1;36mDEBUG[m]       org.apache.httpcomponents:httpcore:jar:4.4.11:compile
+[[1;36mDEBUG[m]    org.apache.maven.doxia:doxia-site-renderer:jar:1.9.2:compile
+[[1;36mDEBUG[m]       org.apache.maven.doxia:doxia-skin-model:jar:1.9.2:compile
+[[1;36mDEBUG[m]       org.apache.maven.doxia:doxia-module-xhtml:jar:1.9.1:compile
+[[1;36mDEBUG[m]       org.apache.maven.doxia:doxia-module-xhtml5:jar:1.9.1:compile
+[[1;36mDEBUG[m]       org.codehaus.plexus:plexus-i18n:jar:1.0-beta-10:compile
+[[1;36mDEBUG[m]       org.codehaus.plexus:plexus-velocity:jar:1.2:compile
+[[1;36mDEBUG[m]       org.apache.velocity:velocity:jar:1.7:compile
+[[1;36mDEBUG[m]       org.apache.velocity:velocity-tools:jar:2.0:compile
+[[1;36mDEBUG[m]          commons-beanutils:commons-beanutils:jar:1.7.0:compile
+[[1;36mDEBUG[m]          commons-digester:commons-digester:jar:1.8:compile
+[[1;36mDEBUG[m]          commons-chain:commons-chain:jar:1.1:compile
+[[1;36mDEBUG[m]          dom4j:dom4j:jar:1.1:compile
+[[1;36mDEBUG[m]          oro:oro:jar:2.0.8:compile
+[[1;36mDEBUG[m]       commons-collections:commons-collections:jar:3.2.2:compile
+[[1;36mDEBUG[m]    commons-lang:commons-lang:jar:2.6:compile
+[[1;36mDEBUG[m] Created new class realm plugin>org.apache.maven.plugins:maven-surefire-report-plugin:RELEASE
+[[1;36mDEBUG[m] Importing foreign packages into class realm plugin>org.apache.maven.plugins:maven-surefire-report-plugin:RELEASE
+[[1;36mDEBUG[m]   Imported:  < maven.api
+[[1;36mDEBUG[m] Populating class realm plugin>org.apache.maven.plugins:maven-surefire-report-plugin:RELEASE
+[[1;36mDEBUG[m]   Included: org.apache.maven.plugins:maven-surefire-report-plugin:jar:3.0.0-M5
+[[1;36mDEBUG[m]   Included: org.apache.maven.surefire:surefire-report-parser:jar:3.0.0-M5
+[[1;36mDEBUG[m]   Included: org.apache.maven.surefire:surefire-logger-api:jar:3.0.0-M5
+[[1;36mDEBUG[m]   Included: org.apache.maven.surefire:surefire-shared-utils:jar:3.0.0-M4
+[[1;36mDEBUG[m]   Included: org.apache.maven.reporting:maven-reporting-api:jar:3.0
+[[1;36mDEBUG[m]   Included: org.sonatype.sisu:sisu-inject-bean:jar:1.4.2
+[[1;36mDEBUG[m]   Included: org.sonatype.sisu:sisu-guice:jar:noaop:2.1.7
+[[1;36mDEBUG[m]   Included: org.apache.maven.reporting:maven-reporting-impl:jar:3.0.0
+[[1;36mDEBUG[m]   Included: org.apache.maven.shared:maven-shared-utils:jar:3.1.0
+[[1;36mDEBUG[m]   Included: org.codehaus.plexus:plexus-utils:jar:3.0.24
+[[1;36mDEBUG[m]   Included: org.apache.maven.doxia:doxia-sink-api:jar:1.9.1
+[[1;36mDEBUG[m]   Included: org.apache.maven.doxia:doxia-logging-api:jar:1.9.1
+[[1;36mDEBUG[m]   Included: org.apache.maven.doxia:doxia-decoration-model:jar:1.9.2
+[[1;36mDEBUG[m]   Included: org.codehaus.plexus:plexus-component-annotations:jar:2.0.0
+[[1;36mDEBUG[m]   Included: org.apache.maven.doxia:doxia-core:jar:1.9.1
+[[1;36mDEBUG[m]   Included: org.apache.xbean:xbean-reflect:jar:3.7
+[[1;36mDEBUG[m]   Included: com.google.collections:google-collections:jar:1.0
+[[1;36mDEBUG[m]   Included: org.apache.commons:commons-lang3:jar:3.8.1
+[[1;36mDEBUG[m]   Included: org.apache.httpcomponents:httpclient:jar:4.5.8
+[[1;36mDEBUG[m]   Included: commons-logging:commons-logging:jar:1.2
+[[1;36mDEBUG[m]   Included: commons-codec:commons-codec:jar:1.11
+[[1;36mDEBUG[m]   Included: org.apache.httpcomponents:httpcore:jar:4.4.11
+[[1;36mDEBUG[m]   Included: org.apache.maven.doxia:doxia-site-renderer:jar:1.9.2
+[[1;36mDEBUG[m]   Included: org.apache.maven.doxia:doxia-skin-model:jar:1.9.2
+[[1;36mDEBUG[m]   Included: org.apache.maven.doxia:doxia-module-xhtml:jar:1.9.1
+[[1;36mDEBUG[m]   Included: org.apache.maven.doxia:doxia-module-xhtml5:jar:1.9.1
+[[1;36mDEBUG[m]   Included: org.codehaus.plexus:plexus-i18n:jar:1.0-beta-10
+[[1;36mDEBUG[m]   Included: org.codehaus.plexus:plexus-velocity:jar:1.2
+[[1;36mDEBUG[m]   Included: org.apache.velocity:velocity:jar:1.7
+[[1;36mDEBUG[m]   Included: org.apache.velocity:velocity-tools:jar:2.0
+[[1;36mDEBUG[m]   Included: commons-beanutils:commons-beanutils:jar:1.7.0
+[[1;36mDEBUG[m]   Included: commons-digester:commons-digester:jar:1.8
+[[1;36mDEBUG[m]   Included: commons-chain:commons-chain:jar:1.1
+[[1;36mDEBUG[m]   Included: dom4j:dom4j:jar:1.1
+[[1;36mDEBUG[m]   Included: oro:oro:jar:2.0.8
+[[1;36mDEBUG[m]   Included: commons-collections:commons-collections:jar:3.2.2
+[[1;36mDEBUG[m]   Included: commons-lang:commons-lang:jar:2.6
+[[1;36mDEBUG[m] Configuring mojo org.apache.maven.plugins:maven-surefire-report-plugin:3.0.0-M5:report-only from plugin realm ClassRealm[plugin>org.apache.maven.plugins:maven-surefire-report-plugin:RELEASE, parent: jdk.internal.loader.ClassLoaders$AppClassLoader@2cdf8d8a]
+[[1;36mDEBUG[m] Setting property: velocimacro.permissions.allow.inline.to.replace.global => 'true'.
+[[1;36mDEBUG[m] Setting property: eventhandler.include.class => 'org.apache.velocity.app.event.implement.IncludeRelativePath'.
+[[1;36mDEBUG[m] Setting property: velocimacro.messages.on => 'false'.
+[[1;36mDEBUG[m] Setting property: file.resource.loader.path => ''.
+[[1;36mDEBUG[m] Setting property: resource.loader => 'classpath,file'.
+[[1;36mDEBUG[m] Setting property: file.resource.loader.class => 'org.apache.velocity.runtime.resource.loader.FileResourceLoader'.
+[[1;36mDEBUG[m] Setting property: runtime.log.invalid.references => 'false'.
+[[1;36mDEBUG[m] Setting property: resource.manager.logwhenfound => 'false'.
+[[1;36mDEBUG[m] Setting property: classpath.resource.loader.class => 'org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader'.
+[[1;36mDEBUG[m] Initializing Velocity, Calling init()...
+[[1;36mDEBUG[m] *******************************************************************
+[[1;36mDEBUG[m] Starting Apache Velocity v1.7 (compiled: 2010-11-19 12:14:37)
+[[1;36mDEBUG[m] RuntimeInstance initializing.
+[[1;36mDEBUG[m] Default Properties File: org\apache\velocity\runtime\defaults\velocity.properties
+[[1;36mDEBUG[m] Default ResourceManager initializing. (class org.apache.velocity.runtime.resource.ResourceManagerImpl)
+[[1;36mDEBUG[m] ResourceLoader instantiated: org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader
+[[1;36mDEBUG[m] ClasspathResourceLoader : initialization complete.
+[[1;36mDEBUG[m] ResourceLoader instantiated: org.apache.velocity.runtime.resource.loader.FileResourceLoader
+[[1;36mDEBUG[m] FileResourceLoader : initialization starting.
+[[1;36mDEBUG[m] Do unicode file recognition:  false
+[[1;36mDEBUG[m] FileResourceLoader : adding path ''
+[[1;36mDEBUG[m] FileResourceLoader : initialization complete.
+[[1;36mDEBUG[m] ResourceCache: initialized (class org.apache.velocity.runtime.resource.ResourceCacheImpl) with class java.util.Collections$SynchronizedMap cache map.
+[[1;36mDEBUG[m] Default ResourceManager initialization complete.
+[[1;36mDEBUG[m] Loaded System Directive: org.apache.velocity.runtime.directive.Stop
+[[1;36mDEBUG[m] Loaded System Directive: org.apache.velocity.runtime.directive.Define
+[[1;36mDEBUG[m] Loaded System Directive: org.apache.velocity.runtime.directive.Break
+[[1;36mDEBUG[m] Loaded System Directive: org.apache.velocity.runtime.directive.Evaluate
+[[1;36mDEBUG[m] Loaded System Directive: org.apache.velocity.runtime.directive.Literal
+[[1;36mDEBUG[m] Loaded System Directive: org.apache.velocity.runtime.directive.Macro
+[[1;36mDEBUG[m] Loaded System Directive: org.apache.velocity.runtime.directive.Parse
+[[1;36mDEBUG[m] Loaded System Directive: org.apache.velocity.runtime.directive.Include
+[[1;36mDEBUG[m] Loaded System Directive: org.apache.velocity.runtime.directive.Foreach
+[[1;36mDEBUG[m] Created '20' parsers.
+[[1;36mDEBUG[m] Velocimacro : initialization starting.
+[[1;36mDEBUG[m] Velocimacro : allowInline = true : VMs can be defined inline in templates
+[[1;36mDEBUG[m] Velocimacro : allowInlineToOverride = true : VMs defined inline may replace previous VM definitions
+[[1;36mDEBUG[m] Velocimacro : allowInlineLocal = false : VMs defined inline will be global in scope if allowed.
+[[1;36mDEBUG[m] Velocimacro : autoload off : VM system will not automatically reload global library macros
+[[1;36mDEBUG[m] Velocimacro : Velocimacro : initialization complete.
+[[1;36mDEBUG[m] RuntimeInstance successfully initialized.
+[[1;36mDEBUG[m] Configuring mojo 'org.apache.maven.plugins:maven-surefire-report-plugin:3.0.0-M5:report-only' with basic configurator -->
+[[1;36mDEBUG[m]   (f) linkXRef = false
+[[1;36mDEBUG[m]   (f) aggregate = false
+[[1;36mDEBUG[m]   (f) alwaysGenerateSurefireReport = true
+[[1;36mDEBUG[m]   (f) outputDirectory = C:\Andy\demo-SanityCheck\demo\service-a\target\site
+[[1;36mDEBUG[m]   (f) outputName = surefire-report
+[[1;36mDEBUG[m]   (f) project = MavenProject: com.example:demo-service-a:1.0-SNAPSHOT @ C:\Andy\demo-SanityCheck\demo\service-a\pom.xml
+[[1;36mDEBUG[m]   (f) reactorProjects = [MavenProject: com.example:demo-service-a:1.0-SNAPSHOT @ C:\Andy\demo-SanityCheck\demo\service-a\pom.xml]
+[[1;36mDEBUG[m]   (f) showSuccess = true
+[[1;36mDEBUG[m]   (f) skipSurefireReport = false
+[[1;36mDEBUG[m]   (f) xrefLocation = C:\Andy\demo-SanityCheck\demo\service-a\target\site\xref-test
+[[1;36mDEBUG[m] -- end configuration --
+[[1;36mDEBUG[m] Processing Velocity for template org/apache/maven/doxia/siterenderer/resources/default-site.vm on surefire-report.html
+[[1;36mDEBUG[m] Velocimacro : added VM link: source=org/apache/maven/doxia/siterenderer/resources/default-site-macros.vm
+[[1;36mDEBUG[m] Velocimacro : added VM image: source=org/apache/maven/doxia/siterenderer/resources/default-site-macros.vm
+[[1;36mDEBUG[m] Velocimacro : added VM banner: source=org/apache/maven/doxia/siterenderer/resources/default-site-macros.vm
+[[1;36mDEBUG[m] Velocimacro : added VM links: source=org/apache/maven/doxia/siterenderer/resources/default-site-macros.vm
+[[1;36mDEBUG[m] Velocimacro : added VM breadcrumbs: source=org/apache/maven/doxia/siterenderer/resources/default-site-macros.vm
+[[1;36mDEBUG[m] Velocimacro : added VM displayTree: source=org/apache/maven/doxia/siterenderer/resources/default-site-macros.vm
+[[1;36mDEBUG[m] Velocimacro : added VM menuItem: source=org/apache/maven/doxia/siterenderer/resources/default-site-macros.vm
+[[1;36mDEBUG[m] Velocimacro : added VM mainMenu: source=org/apache/maven/doxia/siterenderer/resources/default-site-macros.vm
+[[1;36mDEBUG[m] Velocimacro : added VM copyright: source=org/apache/maven/doxia/siterenderer/resources/default-site-macros.vm
+[[1;36mDEBUG[m] Velocimacro : added VM publishDate: source=org/apache/maven/doxia/siterenderer/resources/default-site-macros.vm
+[[1;36mDEBUG[m] Velocimacro : added VM poweredByLogo: source=org/apache/maven/doxia/siterenderer/resources/default-site-macros.vm
+[[1;36mDEBUG[m] Velocimacro : added VM googleAnalytics: source=org/apache/maven/doxia/siterenderer/resources/default-site-macros.vm
+[[1;36mDEBUG[m] Velocimacro : added VM generatedBy: source=org/apache/maven/doxia/siterenderer/resources/default-site-macros.vm
+[[1;34mINFO[m] Unit tests finished.
+[[1;34mINFO[m] 
+[[1;34mINFO[m] Waiting up to 30 seconds to find the application start up or update message...
+[[1;34mINFO[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2010I: Searching for (CWWKZ0001I:|CWWKZ0003I:) in C:\Andy\demo-SanityCheck\demo\service-a\target\liberty\wlp\usr\servers\demo\logs\messages.log. This search will timeout after 30 seconds.
+[[1;36mDEBUG[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2014I: Now looking for (CWWKZ0001I:|CWWKZ0003I:) in messages.log.
+[[1;34mINFO[m] (org.codehaus.mojo.pluginsupport.ant.AntHelper) CWWKM2015I: Match number: 1 is [5/26/22, 12:07:55:837 EDT] 0000003b com.ibm.ws.app.manager.AppMessageHelper                      A CWWKZ0001I: Application demo started in 7.467 seconds..
+[[1;34mINFO[m] Running integration tests...
+[[1;36mDEBUG[m] maven-failsafe-plugin:integration-test configuration
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration/>
+[[1;36mDEBUG[m] Looking for summary file at C:\Andy\demo-SanityCheck\demo\service-a\target\failsafe-reports\failsafe-summary.xml
+[[1;36mDEBUG[m] Summary file deleted? true
+[[1;36mDEBUG[m] POM file: C:\Andy\demo-SanityCheck\demo\service-a\pom.xml
+org.apache.maven.plugins:maven-failsafe-plugin integration-test configuration:
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <properties>
+    <liberty.dev.test.run.id>1</liberty.dev.test.run.id>
+  </properties>
+  <systemPropertyVariables>
+    <liberty.hostname>localhost</liberty.hostname>
+    <liberty.http.port>9080</liberty.http.port>
+    <microshed_hostname>localhost</microshed_hostname>
+    <microshed_http_port>9080</microshed_http_port>
+    <wlp.user.dir>C:\Andy\demo-SanityCheck\demo\service-a\target\liberty\wlp\usr</wlp.user.dir>
+  </systemPropertyVariables>
+</configuration>
+[[1;36mDEBUG[m] Running executeMojo for Plugin [org.apache.maven.plugins:maven-failsafe-plugin]
+[[1;36mDEBUG[m] Attempting to load plugin Plugin [org.apache.maven.plugins:maven-failsafe-plugin] using pluginManager org.apache.maven.plugin.DefaultBuildPluginManager@65d57e4e and repositories [central (https://repo.maven.apache.org/maven2, default, releases)]
+[[1;36mDEBUG[m] Could not find metadata org.apache.maven.plugins:maven-failsafe-plugin/maven-metadata.xml in local (C:\Users\AndrewMauer\.m2\repository)
+[[1;36mDEBUG[m] Skipped remote request for org.apache.maven.plugins:maven-failsafe-plugin/maven-metadata.xml, locally cached metadata up-to-date.
+[[1;36mDEBUG[m] Could not find metadata org.apache.maven.plugins:maven-failsafe-plugin/maven-metadata.xml in local (C:\Users\AndrewMauer\.m2\repository)
+[[1;36mDEBUG[m] Skipped remote request for org.apache.maven.plugins:maven-failsafe-plugin/maven-metadata.xml, locally cached metadata up-to-date.
+[[1;36mDEBUG[m] Dependency collection stats: {ConflictMarker.analyzeTime=75200, ConflictMarker.markTime=37400, ConflictMarker.nodeCount=76, ConflictIdSorter.graphTime=30300, ConflictIdSorter.topsortTime=43300, ConflictIdSorter.conflictIdCount=39, ConflictIdSorter.conflictIdCycleCount=0, ConflictResolver.totalTime=601600, ConflictResolver.conflictItemCount=75, DefaultDependencyCollector.collectTime=712090000, DefaultDependencyCollector.transformTime=806800}
+[[1;36mDEBUG[m] org.apache.maven.plugins:maven-failsafe-plugin:jar:3.0.0-M6:
+[[1;36mDEBUG[m]    org.apache.maven.surefire:maven-surefire-common:jar:3.0.0-M6:compile
+[[1;36mDEBUG[m]       org.apache.maven.surefire:surefire-api:jar:3.0.0-M6:compile
+[[1;36mDEBUG[m]          org.apache.maven.surefire:surefire-logger-api:jar:3.0.0-M6:compile
+[[1;36mDEBUG[m]       org.apache.maven.surefire:surefire-extensions-api:jar:3.0.0-M6:compile
+[[1;36mDEBUG[m]       org.apache.maven.surefire:surefire-booter:jar:3.0.0-M6:compile
+[[1;36mDEBUG[m]          org.apache.maven.surefire:surefire-extensions-spi:jar:3.0.0-M6:compile
+[[1;36mDEBUG[m]       org.apache.maven.shared:maven-common-artifact-filters:jar:3.1.1:compile
+[[1;36mDEBUG[m]          org.apache.maven:maven-artifact:jar:3.2.5:provided
+[[1;36mDEBUG[m]             org.codehaus.plexus:plexus-utils:jar:3.3.0:provided
+[[1;36mDEBUG[m]          org.apache.maven:maven-core:jar:3.2.5:provided
+[[1;36mDEBUG[m]             org.apache.maven:maven-settings:jar:3.2.5:provided
+[[1;36mDEBUG[m]             org.apache.maven:maven-settings-builder:jar:3.2.5:provided
+[[1;36mDEBUG[m]             org.apache.maven:maven-repository-metadata:jar:3.2.5:provided
+[[1;36mDEBUG[m]             org.apache.maven:maven-model-builder:jar:3.2.5:provided
+[[1;36mDEBUG[m]             org.apache.maven:maven-aether-provider:jar:3.2.5:provided
+[[1;36mDEBUG[m]                org.eclipse.aether:aether-spi:jar:1.0.0.v20140518:provided
+[[1;36mDEBUG[m]             org.eclipse.aether:aether-impl:jar:1.0.0.v20140518:provided
+[[1;36mDEBUG[m]             org.eclipse.aether:aether-api:jar:1.0.0.v20140518:provided
+[[1;36mDEBUG[m]             org.eclipse.aether:aether-util:jar:1.0.0.v20140518:provided
+[[1;36mDEBUG[m]             org.eclipse.sisu:org.eclipse.sisu.plexus:jar:0.3.5:provided
+[[1;36mDEBUG[m]                javax.annotation:javax.annotation-api:jar:1.2:provided
+[[1;36mDEBUG[m]                javax.enterprise:cdi-api:jar:1.2:provided
+[[1;36mDEBUG[m]                org.eclipse.sisu:org.eclipse.sisu.inject:jar:0.3.5:provided
+[[1;36mDEBUG[m]             org.sonatype.sisu:sisu-guice:jar:no_aop:3.2.3:provided
+[[1;36mDEBUG[m]                javax.inject:javax.inject:jar:1:provided
+[[1;36mDEBUG[m]                aopalliance:aopalliance:jar:1.0:provided
+[[1;36mDEBUG[m]                com.google.guava:guava:jar:16.0.1:provided
+[[1;36mDEBUG[m]             org.codehaus.plexus:plexus-interpolation:jar:1.21:provided
+[[1;36mDEBUG[m]             org.codehaus.plexus:plexus-classworlds:jar:2.5.2:provided
+[[1;36mDEBUG[m]             org.codehaus.plexus:plexus-component-annotations:jar:2.1.1:provided
+[[1;36mDEBUG[m]             org.sonatype.plexus:plexus-sec-dispatcher:jar:1.3:provided
+[[1;36mDEBUG[m]                org.sonatype.plexus:plexus-cipher:jar:1.4:provided
+[[1;36mDEBUG[m]          org.apache.maven:maven-plugin-api:jar:3.2.5:provided
+[[1;36mDEBUG[m]          commons-io:commons-io:jar:2.11.0:compile
+[[1;36mDEBUG[m]       org.codehaus.plexus:plexus-java:jar:1.1.1:compile
+[[1;36mDEBUG[m]          org.ow2.asm:asm:jar:9.2:compile
+[[1;36mDEBUG[m]          com.thoughtworks.qdox:qdox:jar:2.0.1:compile
+[[1;36mDEBUG[m]       org.apache.maven.surefire:surefire-shared-utils:jar:3.0.0-M6:compile
+[[1;36mDEBUG[m] Created new class realm plugin>org.apache.maven.plugins:maven-failsafe-plugin:RELEASE
+[[1;36mDEBUG[m] Importing foreign packages into class realm plugin>org.apache.maven.plugins:maven-failsafe-plugin:RELEASE
+[[1;36mDEBUG[m]   Imported:  < maven.api
+[[1;36mDEBUG[m] Populating class realm plugin>org.apache.maven.plugins:maven-failsafe-plugin:RELEASE
+[[1;36mDEBUG[m]   Included: org.apache.maven.plugins:maven-failsafe-plugin:jar:3.0.0-M6
+[[1;36mDEBUG[m]   Included: org.apache.maven.surefire:maven-surefire-common:jar:3.0.0-M6
+[[1;36mDEBUG[m]   Included: org.apache.maven.surefire:surefire-api:jar:3.0.0-M6
+[[1;36mDEBUG[m]   Included: org.apache.maven.surefire:surefire-logger-api:jar:3.0.0-M6
+[[1;36mDEBUG[m]   Included: org.apache.maven.surefire:surefire-extensions-api:jar:3.0.0-M6
+[[1;36mDEBUG[m]   Included: org.apache.maven.surefire:surefire-booter:jar:3.0.0-M6
+[[1;36mDEBUG[m]   Included: org.apache.maven.surefire:surefire-extensions-spi:jar:3.0.0-M6
+[[1;36mDEBUG[m]   Included: org.apache.maven.shared:maven-common-artifact-filters:jar:3.1.1
+[[1;36mDEBUG[m]   Included: commons-io:commons-io:jar:2.11.0
+[[1;36mDEBUG[m]   Included: org.codehaus.plexus:plexus-java:jar:1.1.1
+[[1;36mDEBUG[m]   Included: org.ow2.asm:asm:jar:9.2
+[[1;36mDEBUG[m]   Included: com.thoughtworks.qdox:qdox:jar:2.0.1
+[[1;36mDEBUG[m]   Included: org.apache.maven.surefire:surefire-shared-utils:jar:3.0.0-M6
+[[1;36mDEBUG[m] Configuring mojo org.apache.maven.plugins:maven-failsafe-plugin:3.0.0-M6:integration-test from plugin realm ClassRealm[plugin>org.apache.maven.plugins:maven-failsafe-plugin:RELEASE, parent: jdk.internal.loader.ClassLoaders$AppClassLoader@2cdf8d8a]
+[[1;36mDEBUG[m] Configuring mojo 'org.apache.maven.plugins:maven-failsafe-plugin:3.0.0-M6:integration-test' with basic configurator -->
+[[1;36mDEBUG[m]   (s) properties = {liberty.dev.test.run.id=1}
+[[1;36mDEBUG[m]   (s) systemPropertyVariables = {liberty.hostname=localhost, liberty.http.port=9080, microshed_hostname=localhost, microshed_http_port=9080, wlp.user.dir=C:\Andy\demo-SanityCheck\demo\service-a\target\liberty\wlp\usr}
+[[1;36mDEBUG[m]   (s) additionalClasspathElements = []
+[[1;36mDEBUG[m]   (s) basedir = C:\Andy\demo-SanityCheck\demo\service-a
+[[1;36mDEBUG[m]   (s) childDelegation = false
+[[1;36mDEBUG[m]   (s) classpathDependencyExcludes = []
+[[1;36mDEBUG[m]   (s) defaultClassesDirectory = C:\Andy\demo-SanityCheck\demo\service-a\target\classes
+[[1;36mDEBUG[m]   (s) dependenciesToScan = []
+[[1;36mDEBUG[m]   (s) disableXmlReport = false
+[[1;36mDEBUG[m]   (s) enableAssertions = true
+[[1;36mDEBUG[m]   (s) excludeJUnit5Engines = []
+[[1;36mDEBUG[m]   (f) excludedEnvironmentVariables = []
+[[1;36mDEBUG[m]   (s) excludes = []
+[[1;36mDEBUG[m]   (s) failIfNoSpecifiedTests = true
+[[1;36mDEBUG[m]   (s) failIfNoTests = false
+[[1;36mDEBUG[m]   (f) forkCount = 1
+[[1;36mDEBUG[m]   (s) forkMode = once
+[[1;36mDEBUG[m]   (s) forkedProcessExitTimeoutInSeconds = 30
+[[1;36mDEBUG[m]   (s) includeJUnit5Engines = []
+[[1;36mDEBUG[m]   (s) includes = []
+[[1;36mDEBUG[m]   (s) junitArtifactName = junit:junit
+[[1;36mDEBUG[m]   (s) localRepository =       id: local
+      url: file:///C:/Users/AndrewMauer/.m2/repository/
+   layout: default
+snapshots: [enabled => true, update => always]
+ releases: [enabled => true, update => always]
+
+[[1;36mDEBUG[m]   (f) parallelMavenExecution = false
+[[1;36mDEBUG[m]   (s) parallelOptimized = true
+[[1;36mDEBUG[m]   (s) perCoreThreadCount = true
+[[1;36mDEBUG[m]   (s) pluginArtifactMap = {org.apache.maven.plugins:maven-failsafe-plugin=org.apache.maven.plugins:maven-failsafe-plugin:maven-plugin:3.0.0-M6:, org.apache.maven.surefire:maven-surefire-common=org.apache.maven.surefire:maven-surefire-common:jar:3.0.0-M6:compile, org.apache.maven.surefire:surefire-api=org.apache.maven.surefire:surefire-api:jar:3.0.0-M6:compile, org.apache.maven.surefire:surefire-logger-api=org.apache.maven.surefire:surefire-logger-api:jar:3.0.0-M6:compile, org.apache.maven.surefire:surefire-extensions-api=org.apache.maven.surefire:surefire-extensions-api:jar:3.0.0-M6:compile, org.apache.maven.surefire:surefire-booter=org.apache.maven.surefire:surefire-booter:jar:3.0.0-M6:compile, org.apache.maven.surefire:surefire-extensions-spi=org.apache.maven.surefire:surefire-extensions-spi:jar:3.0.0-M6:compile, org.apache.maven.shared:maven-common-artifact-filters=org.apache.maven.shared:maven-common-artifact-filters:jar:3.1.1:compile, commons-io:commons-io=commons-io:commons-io:jar:2.11.0:compile, org.codehaus.plexus:plexus-java=org.codehaus.plexus:plexus-java:jar:1.1.1:compile, org.ow2.asm:asm=org.ow2.asm:asm:jar:9.2:compile, com.thoughtworks.qdox:qdox=com.thoughtworks.qdox:qdox:jar:2.0.1:compile, org.apache.maven.surefire:surefire-shared-utils=org.apache.maven.surefire:surefire-shared-utils:jar:3.0.0-M6:compile}
+[[1;36mDEBUG[m]   (f) pluginDescriptor = Component Descriptor: role: 'org.apache.maven.plugin.Mojo', implementation: 'org.apache.maven.plugin.failsafe.HelpMojo', role hint: 'org.apache.maven.plugins:maven-failsafe-plugin:3.0.0-M6:help'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'org.apache.maven.plugin.failsafe.IntegrationTestMojo', role hint: 'org.apache.maven.plugins:maven-failsafe-plugin:3.0.0-M6:integration-test'
+role: 'org.apache.maven.plugin.Mojo', implementation: 'org.apache.maven.plugin.failsafe.VerifyMojo', role hint: 'org.apache.maven.plugins:maven-failsafe-plugin:3.0.0-M6:verify'
+---
+[[1;36mDEBUG[m]   (s) printSummary = true
+[[1;36mDEBUG[m]   (s) project = MavenProject: com.example:demo-service-a:1.0-SNAPSHOT @ C:\Andy\demo-SanityCheck\demo\service-a\pom.xml
+[[1;36mDEBUG[m]   (s) projectArtifactMap = {org.eclipse.microprofile:microprofile=org.eclipse.microprofile:microprofile:pom:4.1:provided, jakarta.enterprise:jakarta.enterprise.cdi-api=jakarta.enterprise:jakarta.enterprise.cdi-api:jar:2.0.2:provided, jakarta.interceptor:jakarta.interceptor-api=jakarta.interceptor:jakarta.interceptor-api:jar:1.2.5:provided, jakarta.inject:jakarta.inject-api=jakarta.inject:jakarta.inject-api:jar:1.0:provided, jakarta.ws.rs:jakarta.ws.rs-api=jakarta.ws.rs:jakarta.ws.rs-api:jar:2.1.6:provided, jakarta.json.bind:jakarta.json.bind-api=jakarta.json.bind:jakarta.json.bind-api:jar:1.0.2:provided, jakarta.json:jakarta.json-api=jakarta.json:jakarta.json-api:jar:1.1.6:provided, jakarta.annotation:jakarta.annotation-api=jakarta.annotation:jakarta.annotation-api:jar:1.3.5:provided, org.eclipse.microprofile.config:microprofile-config-api=org.eclipse.microprofile.config:microprofile-config-api:jar:2.0:provided, org.eclipse.microprofile.fault-tolerance:microprofile-fault-tolerance-api=org.eclipse.microprofile.fault-tolerance:microprofile-fault-tolerance-api:jar:3.0:provided, org.eclipse.microprofile.health:microprofile-health-api=org.eclipse.microprofile.health:microprofile-health-api:jar:3.1:provided, org.eclipse.microprofile.metrics:microprofile-metrics-api=org.eclipse.microprofile.metrics:microprofile-metrics-api:jar:3.0:provided, org.eclipse.microprofile.jwt:microprofile-jwt-auth-api=org.eclipse.microprofile.jwt:microprofile-jwt-auth-api:jar:1.2:provided, org.eclipse.microprofile.openapi:microprofile-openapi-api=org.eclipse.microprofile.openapi:microprofile-openapi-api:jar:2.0:provided, org.eclipse.microprofile.rest.client:microprofile-rest-client-api=org.eclipse.microprofile.rest.client:microprofile-rest-client-api:jar:2.0:provided, org.eclipse.microprofile.opentracing:microprofile-opentracing-api=org.eclipse.microprofile.opentracing:microprofile-opentracing-api:jar:2.0:provided, io.jaegertracing:jaeger-client=io.jaegertracing:jaeger-client:jar:1.5.0:compile, io.jaegertracing:jaeger-thrift=io.jaegertracing:jaeger-thrift:jar:1.5.0:compile, org.apache.thrift:libthrift=org.apache.thrift:libthrift:jar:0.13.0:compile, javax.annotation:javax.annotation-api=javax.annotation:javax.annotation-api:jar:1.3.2:compile, com.squareup.okhttp3:okhttp=com.squareup.okhttp3:okhttp:jar:4.9.0:compile, com.squareup.okio:okio=com.squareup.okio:okio:jar:2.8.0:compile, org.jetbrains.kotlin:kotlin-stdlib-common=org.jetbrains.kotlin:kotlin-stdlib-common:jar:1.4.0:compile, org.jetbrains.kotlin:kotlin-stdlib=org.jetbrains.kotlin:kotlin-stdlib:jar:1.4.10:compile, org.jetbrains:annotations=org.jetbrains:annotations:jar:13.0:compile, io.jaegertracing:jaeger-core=io.jaegertracing:jaeger-core:jar:1.5.0:compile, io.opentracing:opentracing-api=io.opentracing:opentracing-api:jar:0.33.0:compile, io.opentracing:opentracing-util=io.opentracing:opentracing-util:jar:0.33.0:compile, io.opentracing:opentracing-noop=io.opentracing:opentracing-noop:jar:0.33.0:compile, com.google.code.gson:gson=com.google.code.gson:gson:jar:2.8.6:compile, io.jaegertracing:jaeger-tracerresolver=io.jaegertracing:jaeger-tracerresolver:jar:1.5.0:compile, io.opentracing.contrib:opentracing-tracerresolver=io.opentracing.contrib:opentracing-tracerresolver:jar:0.1.8:compile, org.slf4j:slf4j-api=org.slf4j:slf4j-api:jar:1.7.30:compile, org.slf4j:slf4j-jdk14=org.slf4j:slf4j-jdk14:jar:1.7.30:compile}
+[[1;36mDEBUG[m]   (s) projectBuildDirectory = C:\Andy\demo-SanityCheck\demo\service-a\target
+[[1;36mDEBUG[m]   (s) projectRemoteRepositories = [      id: central
+      url: https://repo.maven.apache.org/maven2
+   layout: default
+snapshots: [enabled => false, update => daily]
+ releases: [enabled => true, update => daily]
+]
+[[1;36mDEBUG[m]   (s) redirectTestOutputToFile = false
+[[1;36mDEBUG[m]   (s) remoteRepositories = [      id: central
+      url: https://repo.maven.apache.org/maven2
+   layout: default
+snapshots: [enabled => false, update => daily]
+ releases: [enabled => true, update => never]
+]
+[[1;36mDEBUG[m]   (s) reportFormat = brief
+[[1;36mDEBUG[m]   (s) reportsDirectory = C:\Andy\demo-SanityCheck\demo\service-a\target\failsafe-reports
+[[1;36mDEBUG[m]   (f) rerunFailingTestsCount = 0
+[[1;36mDEBUG[m]   (f) reuseForks = true
+[[1;36mDEBUG[m]   (s) runOrder = filesystem
+[[1;36mDEBUG[m]   (s) session = org.apache.maven.execution.MavenSession@14fa2c9c
+[[1;36mDEBUG[m]   (f) shutdown = exit
+[[1;36mDEBUG[m]   (s) skip = false
+[[1;36mDEBUG[m]   (f) skipAfterFailureCount = 0
+[[1;36mDEBUG[m]   (s) skipTests = false
+[[1;36mDEBUG[m]   (s) suiteXmlFiles = []
+[[1;36mDEBUG[m]   (s) summaryFile = C:\Andy\demo-SanityCheck\demo\service-a\target\failsafe-reports\failsafe-summary.xml
+[[1;36mDEBUG[m]   (s) tempDir = surefire
+[[1;36mDEBUG[m]   (s) testClassesDirectory = C:\Andy\demo-SanityCheck\demo\service-a\target\test-classes
+[[1;36mDEBUG[m]   (s) testNGArtifactName = org.testng:testng
+[[1;36mDEBUG[m]   (s) testSourceDirectory = C:\Andy\demo-SanityCheck\demo\service-a\src\test\java
+[[1;36mDEBUG[m]   (s) threadCountClasses = 0
+[[1;36mDEBUG[m]   (s) threadCountMethods = 0
+[[1;36mDEBUG[m]   (s) threadCountSuites = 0
+[[1;36mDEBUG[m]   (s) trimStackTrace = false
+[[1;36mDEBUG[m]   (s) useFile = true
+[[1;36mDEBUG[m]   (s) useManifestOnlyJar = true
+[[1;36mDEBUG[m]   (f) useModulePath = true
+[[1;36mDEBUG[m]   (s) useSystemClassLoader = true
+[[1;36mDEBUG[m]   (s) useUnlimitedThreads = false
+[[1;36mDEBUG[m]   (s) workingDirectory = C:\Andy\demo-SanityCheck\demo\service-a
+[[1;36mDEBUG[m] -- end configuration --
+[[1;36mDEBUG[m] Using JVM: C:\Java\OpenJDK11\jdk-11.0.4+11\bin\java with Java version 11.0
+[[1;36mDEBUG[m] Resolved included and excluded patterns: **/IT*.java, **/*IT.java, **/*ITCase.java, !**/*$*
+[[1;36mDEBUG[m] maven-surefire-report-plugin:failsafe-report-only configuration
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration/>
+[[1;36mDEBUG[m] maven-failsafe-plugin:integration-test configuration
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration/>
+[[1;36mDEBUG[m] POM file: C:\Andy\demo-SanityCheck\demo\service-a\pom.xml
+org.apache.maven.plugins:maven-surefire-report-plugin failsafe-report-only configuration:
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+  <linkXRef>false</linkXRef>
+</configuration>
+[[1;36mDEBUG[m] Running executeMojo for Plugin [org.apache.maven.plugins:maven-surefire-report-plugin]
+[[1;36mDEBUG[m] Attempting to load plugin Plugin [org.apache.maven.plugins:maven-surefire-report-plugin] using pluginManager org.apache.maven.plugin.DefaultBuildPluginManager@65d57e4e and repositories [central (https://repo.maven.apache.org/maven2, default, releases)]
+[[1;36mDEBUG[m] Configuring mojo org.apache.maven.plugins:maven-surefire-report-plugin:3.0.0-M5:failsafe-report-only from plugin realm ClassRealm[plugin>org.apache.maven.plugins:maven-surefire-report-plugin:RELEASE, parent: jdk.internal.loader.ClassLoaders$AppClassLoader@2cdf8d8a]
+[[1;36mDEBUG[m] Configuring mojo 'org.apache.maven.plugins:maven-surefire-report-plugin:3.0.0-M5:failsafe-report-only' with basic configurator -->
+[[1;36mDEBUG[m]   (f) linkXRef = false
+[[1;36mDEBUG[m]   (f) aggregate = false
+[[1;36mDEBUG[m]   (f) alwaysGenerateFailsafeReport = false
+[[1;36mDEBUG[m]   (f) outputDirectory = C:\Andy\demo-SanityCheck\demo\service-a\target\site
+[[1;36mDEBUG[m]   (f) outputName = failsafe-report
+[[1;36mDEBUG[m]   (f) project = MavenProject: com.example:demo-service-a:1.0-SNAPSHOT @ C:\Andy\demo-SanityCheck\demo\service-a\pom.xml
+[[1;36mDEBUG[m]   (f) reactorProjects = [MavenProject: com.example:demo-service-a:1.0-SNAPSHOT @ C:\Andy\demo-SanityCheck\demo\service-a\pom.xml]
+[[1;36mDEBUG[m]   (f) showSuccess = true
+[[1;36mDEBUG[m]   (f) skipFailsafeReport = false
+[[1;36mDEBUG[m]   (f) xrefLocation = C:\Andy\demo-SanityCheck\demo\service-a\target\site\xref-test
+[[1;36mDEBUG[m] -- end configuration --
+[[1;36mDEBUG[m] maven-failsafe-plugin:verify configuration
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration/>
+[[1;36mDEBUG[m] POM file: C:\Andy\demo-SanityCheck\demo\service-a\pom.xml
+org.apache.maven.plugins:maven-failsafe-plugin verify configuration:
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration/>
+[[1;36mDEBUG[m] Running executeMojo for Plugin [org.apache.maven.plugins:maven-failsafe-plugin]
+[[1;36mDEBUG[m] Attempting to load plugin Plugin [org.apache.maven.plugins:maven-failsafe-plugin] using pluginManager org.apache.maven.plugin.DefaultBuildPluginManager@65d57e4e and repositories [central (https://repo.maven.apache.org/maven2, default, releases)]
+[[1;36mDEBUG[m] Configuring mojo org.apache.maven.plugins:maven-failsafe-plugin:3.0.0-M6:verify from plugin realm ClassRealm[plugin>org.apache.maven.plugins:maven-failsafe-plugin:RELEASE, parent: jdk.internal.loader.ClassLoaders$AppClassLoader@2cdf8d8a]
+[[1;36mDEBUG[m] Configuring mojo 'org.apache.maven.plugins:maven-failsafe-plugin:3.0.0-M6:verify' with basic configurator -->
+[[1;36mDEBUG[m]   (s) basedir = C:\Andy\demo-SanityCheck\demo\service-a
+[[1;36mDEBUG[m]   (s) failIfNoTests = false
+[[1;36mDEBUG[m]   (s) failOnFlakeCount = 0
+[[1;36mDEBUG[m]   (s) reportsDirectory = C:\Andy\demo-SanityCheck\demo\service-a\target\failsafe-reports
+[[1;36mDEBUG[m]   (f) session = org.apache.maven.execution.MavenSession@641ed5e0
+[[1;36mDEBUG[m]   (s) skip = false
+[[1;36mDEBUG[m]   (f) summaryFile = C:\Andy\demo-SanityCheck\demo\service-a\target\failsafe-reports\failsafe-summary.xml
+[[1;36mDEBUG[m]   (s) testClassesDirectory = C:\Andy\demo-SanityCheck\demo\service-a\target\test-classes
+[[1;36mDEBUG[m]   (s) testFailureIgnore = false
+[[1;36mDEBUG[m] -- end configuration --
+[[1;36mDEBUG[m] Failsafe report directory: C:\Andy\demo-SanityCheck\demo\service-a\target\failsafe-reports
+[[1;34mINFO[m] Integration tests finished.
+[[1;34mINFO[m] 
+[[1;34mINFO[m] To run tests on demand, press Enter.

@@ -90,6 +90,9 @@ public class LibertyPluginSWTBotMavenTest {
             DashboardView.APP_MENU_ACTION_START_IN_CONTAINER, DashboardView.APP_MENU_ACTION_STOP, DashboardView.APP_MENU_ACTION_RUN_TESTS,
             DashboardView.APP_MENU_ACTION_VIEW_MVN_IT_REPORT, DashboardView.APP_MENU_ACTION_VIEW_MVN_UT_REPORT };
 
+    static String appMsg = "Hello! How are you today?";
+    static String appURL = "http://localhost:9080/" + MVN_APP_NAME + "/servlet";
+    
     /**
      * Setup.
      */
@@ -178,7 +181,7 @@ public class LibertyPluginSWTBotMavenTest {
         SWTPluginOperations.launchAppMenuStartAction(bot, dashboard, MVN_APP_NAME);
         SWTBotView terminal = bot.viewByTitle("Terminal");
         terminal.show();
-        validateApplicationOutcome(MVN_APP_NAME, false, projectPath.toAbsolutePath().toString() + "/target/liberty");
+        validateApplicationOutcome(MVN_APP_NAME, false, projectPath.toAbsolutePath().toString() + "/target/liberty", appMsg, appURL);
         terminal.close();
 
         // Add wrapper artifacts to the project.
@@ -193,12 +196,12 @@ public class LibertyPluginSWTBotMavenTest {
             SWTPluginOperations.launchAppMenuStartAction(bot, dashboard, MVN_APP_NAME);
             terminal = bot.viewByTitle("Terminal");
             terminal.show();
-            validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
+            validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty", appMsg, appURL);
 
             // Stop dev mode.
             SWTPluginOperations.launchAppMenuStopAction(bot, dashboard, MVN_APP_NAME);
             terminal.show();
-            validateApplicationOutcome(MVN_APP_NAME, false, projectPath.toAbsolutePath().toString() + "/target/liberty");
+            validateApplicationOutcome(MVN_APP_NAME, false, projectPath.toAbsolutePath().toString() + "/target/liberty", appMsg, appURL);
             terminal.close();
         } finally {
 
@@ -232,14 +235,14 @@ public class LibertyPluginSWTBotMavenTest {
         terminal.show();
 
         // Validate application is up and running.
-        validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
+        validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty", appMsg, appURL);
 
         // Stop dev mode.
         SWTPluginOperations.launchAppMenuStopAction(bot, dashboard, MVN_APP_NAME);
         terminal.show();
 
         // Validate application stopped.
-        validateApplicationOutcome(MVN_APP_NAME, false, projectPath.toAbsolutePath().toString() + "/target/liberty");
+        validateApplicationOutcome(MVN_APP_NAME, false, projectPath.toAbsolutePath().toString() + "/target/liberty", appMsg, appURL);
 
         // Close the terminal.
         terminal.close();
@@ -260,7 +263,7 @@ public class LibertyPluginSWTBotMavenTest {
         terminal.show();
 
         // Validate application is up and running.
-        validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
+        validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty", appMsg, appURL);
 
         // Validate that the test reports were generated.
         validateTestReportExists(pathToITReport);
@@ -270,7 +273,7 @@ public class LibertyPluginSWTBotMavenTest {
         terminal.show();
 
         // Validate application stopped.
-        validateApplicationOutcome(MVN_APP_NAME, false, projectPath.toAbsolutePath().toString() + "/target/liberty");
+        validateApplicationOutcome(MVN_APP_NAME, false, projectPath.toAbsolutePath().toString() + "/target/liberty", appMsg, appURL);
 
         // Close the terminal.
         terminal.close();
@@ -296,7 +299,7 @@ public class LibertyPluginSWTBotMavenTest {
         terminal.show();
 
         // Validate application is up and running.
-        validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
+        validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty", appMsg, appURL);
 
         // Run Tests.
         SWTPluginOperations.launchAppMenuRunTestsAction(bot, dashboard, MVN_APP_NAME);
@@ -317,7 +320,7 @@ public class LibertyPluginSWTBotMavenTest {
         terminal.show();
 
         // Validate application stopped.
-        validateApplicationOutcome(MVN_APP_NAME, false, projectPath.toAbsolutePath().toString() + "/target/liberty");
+        validateApplicationOutcome(MVN_APP_NAME, false, projectPath.toAbsolutePath().toString() + "/target/liberty", appMsg, appURL);
 
         // Close the terminal.
         terminal.close();
