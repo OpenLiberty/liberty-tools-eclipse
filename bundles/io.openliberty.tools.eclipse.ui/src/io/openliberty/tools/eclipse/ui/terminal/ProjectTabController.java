@@ -67,13 +67,14 @@ public class ProjectTabController {
      * Runs the specified command on a terminal.
      *
      * @param projectName The application project name.
+     * @param projectPath The application project path.
      * @param command The command to execute on the terminal.
      * @param envs The environment properties to be set on the terminal.
      */
-    public void runOnTerminal(String projectName, String command, List<String> envs) {
+    public void runOnTerminal(String projectName, String projectPath, String command, List<String> envs) {
         ProjectTab projectTab = new ProjectTab(projectName);
         projectTabMap.put(projectName, projectTab);
-        projectTab.runCommand(command, envs);
+        projectTab.runCommand(projectPath, command, envs);
     }
 
     /**
