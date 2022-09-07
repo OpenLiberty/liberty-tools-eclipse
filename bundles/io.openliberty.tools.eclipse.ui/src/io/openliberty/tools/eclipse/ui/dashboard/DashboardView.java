@@ -15,6 +15,11 @@ package io.openliberty.tools.eclipse.ui.dashboard;
 import java.net.URL;
 
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.IResourceChangeEvent;
+import org.eclipse.core.resources.IResourceChangeListener;
+import org.eclipse.core.resources.IResourceDelta;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuListener;
@@ -27,6 +32,7 @@ import org.eclipse.jface.viewers.ArrayContentProvider;
 import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.ui.contexts.IContextService;
 import org.eclipse.ui.handlers.IHandlerService;
@@ -82,9 +88,14 @@ public class DashboardView extends ViewPart {
     private Action refreshAction;
 
     /**
-     * Table viewer instance.
+     * Table viewer that holds the entries in the dashboard.
      */
     private TableViewer viewer;
+
+    /**
+     * Listener object that updates the dashboard content as actions take place on the projects it contains.
+     */
+    private IResourceChangeListener projectStateListener;
 
     /**
      * DevModeOperations reference.
@@ -122,6 +133,7 @@ public class DashboardView extends ViewPart {
         createContextMenu();
         addToolbarActions();
         getSite().setSelectionProvider(viewer);
+        registerResourceListener();
     }
 
     /**
@@ -130,6 +142,18 @@ public class DashboardView extends ViewPart {
     @Override
     public void setFocus() {
         viewer.getControl().setFocus();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void dispose() {
+        super.dispose();
+        if (viewer == null) {
+            return;
+        }
+        ResourcesPlugin.getWorkspace().removeResourceChangeListener(projectStateListener);
     }
 
     /**
@@ -408,5 +432,97 @@ public class DashboardView extends ViewPart {
             }
         };
         refreshAction.setImageDescriptor(refreshImg);
+    }
+
+    /**
+     * Registers a resource change listener to process project open/close and project create/import/delete.
+     */
+    private void registerResourceListener() {
+        projectStateListener = new IResourceChangeListener() {
+
+            /**
+             * {@inheritDoc}
+             */
+            @Override
+            public void resourceChanged(IResourceChangeEvent event) {
+                Display.getDefault().syncExec(new Runnable() {
+
+                    @Override
+                    public void run() {
+                        IResourceDelta delta = event.getDelta();
+                        if (delta == null) {
+                            return;
+                        }
+
+                        // On entry the resource type is the root workspace. Find the child resources affected.
+                        IResourceDelta[] resourcesChanged = delta.getAffectedChildren();
+
+                        // Iterate over the affected resources.
+                        for (IResourceDelta resourceChanged : resourcesChanged) {
+                            IResource iResource = resourceChanged.getResource();
+                            if (iResource.getType() != IResource.PROJECT) {
+                                continue;
+                            }
+
+                            boolean updateCompleted = false;
+                            IProject iProject = (IProject) iResource;
+                            Project project = devModeOps.getSupportedProject(iProject.getName());
+                            int updateFlag = resourceChanged.getFlags();
+
+                            try {
+                                switch (resourceChanged.getKind()) {
+                                // Project opened/closed.
+                                // Flag OPEN (16384): "Change constant (bit mask) indicating that the resource was opened or closed"
+                                // Flag 147456: Although IResourceDelta does not have a predefined constant, this flag value is used to
+                                // denote open/close actions.
+                                case IResourceDelta.CHANGED:
+                                    if (updateFlag == IResourceDelta.OPEN || updateFlag == 147456) {
+                                        viewer.setInput(devModeOps.getSupportedProjects());
+                                        updateCompleted = true;
+                                    }
+                                    break;
+                                // Project created/imported.
+                                // Flag OPEN (16384): "This flag is ... set when the project did not exist in the "before" state."
+                                // Flag 147456: Although IResourceDelta does not have a predefined constant, this flag
+                                // value is set when a project, that previously did not exist, is created.
+                                case IResourceDelta.ADDED:
+                                    if (project == null && (updateFlag == IResourceDelta.OPEN || updateFlag == 147456)) {
+                                        viewer.setInput(devModeOps.getSupportedProjects());
+                                        updateCompleted = true;
+                                    }
+                                    break;
+                                // Project deleted.
+                                // Flag NO_CHANGE (0).
+                                // Flag MARKERS (130172).
+                                case IResourceDelta.REMOVED:
+                                    if (project != null
+                                            && (updateFlag == IResourceDelta.NO_CHANGE || updateFlag == IResourceDelta.MARKERS)) {
+                                        viewer.setInput(devModeOps.getSupportedProjects());
+                                        updateCompleted = true;
+                                    }
+                                    break;
+                                default:
+                                    break;
+                                }
+                            } catch (Exception e) {
+                                Dialog.displayErrorMessageWithDetails(
+                                        "An error was detected while auto-refreshing the Liberty dashboard content.", e);
+                                return;
+                            }
+
+                            // If the update completed for the project we are done.
+                            if (updateCompleted) {
+                                break;
+                            }
+                        }
+                    }
+                });
+            }
+        };
+
+        // Register the resource listener to be invoked on PRE-BUILD events only. The event is triggered during resource create, modify,
+        // and delete actions. This event type allows for workspace/resource modification while the registered listener is running.
+        // The listener is registered when the the dashboard is opened and unregistered when the dashboard is closed/disposed.
+        ResourcesPlugin.getWorkspace().addResourceChangeListener(projectStateListener, IResourceChangeEvent.PRE_BUILD);
     }
 }

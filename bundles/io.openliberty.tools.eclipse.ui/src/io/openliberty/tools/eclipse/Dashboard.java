@@ -61,28 +61,31 @@ public class Dashboard {
         ConcurrentHashMap<String, Project> projects = new ConcurrentHashMap<String, Project>();
 
         for (IProject iProject : iProjects) {
-            projects.put(iProject.getLocation().toOSString(), new Project(iProject));
+            if (iProject.isOpen()) {
+                projects.put(iProject.getLocation().toOSString(), new Project(iProject));
+            }
         }
 
         try {
             for (IProject iProject : iProjects) {
                 boolean multimodSet = false;
+                if (iProject.isOpen()) {
+                    for (IResource res : iProject.members()) {
+                        if (res.getType() == IResource.FOLDER) {
+                            IFolder folder = ((IFolder) res);
+                            IFile file = folder.getFile(".project");
+                            if (file.exists()) {
+                                if (!multimodSet) {
+                                    projects.get(iProject.getLocation().toOSString()).setMultimodule(true);
+                                    multimodSet = true;
+                                }
 
-                for (IResource res : iProject.members()) {
-                    if (res.getType() == IResource.FOLDER) {
-                        IFolder folder = ((IFolder) res);
-                        IFile file = folder.getFile(".project");
-                        if (file.exists()) {
-                            if (!multimodSet) {
-                                projects.get(iProject.getLocation().toOSString()).setMultimodule(true);
-                                multimodSet = true;
-                            }
+                                String resLocation = res.getLocation().toOSString();
+                                Project matchLocProj = projects.get(resLocation);
 
-                            String resLocation = res.getLocation().toOSString();
-                            Project matchLocProj = projects.get(resLocation);
-
-                            if (matchLocProj != null) {
-                                projects.remove(resLocation);
+                                if (matchLocProj != null) {
+                                    projects.remove(resLocation);
+                                }
                             }
                         }
                     }
