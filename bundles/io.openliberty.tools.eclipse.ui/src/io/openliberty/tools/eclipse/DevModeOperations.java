@@ -785,7 +785,7 @@ public class DevModeOperations {
             envs.add("MAVEN_BASEDIR=" + projectPath);
         }
 
-        projectTabController.runOnTerminal(projectName, cmd, envs);
+        projectTabController.runOnTerminal(projectName, projectPath, cmd, envs);
     }
 
     /**

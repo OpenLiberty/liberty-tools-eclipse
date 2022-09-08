@@ -110,10 +110,11 @@ public class ProjectTab {
     /**
      * Launches a terminal and runs the input command.
      *
+     * @param projectPath The application project path.
      * @param command The command to run on the terminal.
      * @param envs The list of environment properties to be set on the terminal.
      */
-    public void runCommand(String command, List<String> envs) {
+    public void runCommand(String projectPath, String command, List<String> envs) {
         if (Trace.isEnabled()) {
             Trace.getTracer().traceEntry(Trace.TRACE_UI, new Object[] { command, envs });
         }
@@ -138,7 +139,7 @@ public class ProjectTab {
             }
         };
 
-        terminalService.openConsole(getProperties(envs, command), done);
+        terminalService.openConsole(getProperties(projectPath, envs, command), done);
 
         if (Trace.isEnabled()) {
             Trace.getTracer().traceExit(Trace.TRACE_UI);
@@ -148,12 +149,13 @@ public class ProjectTab {
     /**
      * Returns a map of properties needed to launch a terminal.
      *
+     * @param projectPath The application project path.
      * @param envs Environment variables to be set.
      * @param command The command to execute.
      *
      * @return A map of properties needed to launch a terminal.
      */
-    private Map<String, Object> getProperties(List<String> envs, String command) {
+    private Map<String, Object> getProperties(String projectPath, List<String> envs, String command) {
         HashMap<String, Object> properties = new HashMap<String, Object>();
         properties.put(ITerminalsConnectorConstants.PROP_TITLE, projectName);
         properties.put(ITerminalsConnectorConstants.PROP_ENCODING, "UTF-8");
@@ -164,6 +166,7 @@ public class ProjectTab {
         properties.put(ITerminalsConnectorConstants.PROP_DATA_NO_RECONNECT, Boolean.TRUE);
         properties.put(ITerminalsConnectorConstants.PROP_PROCESS_ARGS, command);
         properties.put(ITerminalsConnectorConstants.PROP_PROCESS_ENVIRONMENT, envs.toArray(new String[envs.size()]));
+        properties.put(ITerminalsConnectorConstants.PROP_PROCESS_WORKING_DIR, projectPath);
 
         return properties;
     }
