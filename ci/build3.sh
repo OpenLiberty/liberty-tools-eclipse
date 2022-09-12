@@ -33,8 +33,9 @@ docker start $container_id
 #run the re-package mvn command
 docker exec $container_id /bin/bash -c "mvn -pl releng tycho-p2-repository:fix-artifacts-metadata -Drepository.home=/eclipse-ltp/liberty-tools-eclipse/releng/io.openliberty.tools.update"
 
-# Copy the re-packaged release artifacts.xml locally
+# Copy the re-packaged release artifacts.xmls locally
 docker cp "${container_id}:/${DOCKER_WORK_DIR}/${DOCKER_REL_REPO_DIR_LOC}/artifacts.xml.xz" "$RELEASE_OUTPUT_DIR/repository"
+docker cp "${container_id}:/${DOCKER_WORK_DIR}/${DOCKER_REL_REPO_DIR_LOC}/artifacts.jar" "$RELEASE_OUTPUT_DIR/repository"
 
 # stop the container - this will remove it as well
 docker stop $container_id
