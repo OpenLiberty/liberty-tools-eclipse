@@ -20,13 +20,6 @@ import java.io.File;
 
 import org.eclipse.jface.bindings.keys.KeyStroke;
 import org.eclipse.jface.bindings.keys.ParseException;
-import org.eclipse.jdt.core.IClasspathEntry;
-import org.eclipse.jdt.core.IJavaProject;
-import org.eclipse.jdt.core.IPackageFragmentRoot;
-import org.eclipse.jdt.core.JavaCore;
-import org.eclipse.jdt.launching.IVMInstall;
-import org.eclipse.jdt.launching.JavaRuntime;
-import org.eclipse.jdt.launching.LibraryLocation;
 
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -34,13 +27,8 @@ import java.util.Iterator;
 import java.util.List;
 
 import  org.eclipse.swt.widgets.Control;
-import org.eclipse.core.resources.IFolder;
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IProjectDescription;
-import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.m2e.core.MavenPlugin;
 import org.eclipse.m2e.core.embedder.MavenModelManager;
@@ -56,13 +44,17 @@ import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotEclipseEditor;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotEditor;
+import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotMultiPageEditor;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotView;
 import org.eclipse.swtbot.swt.finder.SWTBot;
 import org.eclipse.swtbot.swt.finder.keyboard.KeyboardFactory;
 import org.eclipse.swtbot.swt.finder.keyboard.Keystrokes;
 import org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory;
 import org.eclipse.swtbot.swt.finder.utils.SWTBotPreferences;
+import org.eclipse.swtbot.swt.finder.waits.Conditions;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotShell;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotTable;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotText;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
 import org.hamcrest.Matcher;
 import org.junit.jupiter.api.AfterAll;
@@ -100,6 +92,9 @@ public class LibertyPluginSWTBotMPLSTest {
     static String appMsg = "Hello World";
     static String appURL = "http://localhost:9080/data/hello";
     
+    static SWTBotView projectExp;
+    static SWTBotTreeItem appProj;
+    
     /**
      * Setup.
      */
@@ -109,7 +104,8 @@ public class LibertyPluginSWTBotMPLSTest {
         SWTPluginOperations.closeWelcomePage(bot);
         System.out.println("AJM: importing app");
         importMavenApplications();
-
+        dashboard = SWTPluginOperations.openDashboardUsingMenu(bot);
+        
         // need to start app first to get a target dir created
         // Start dev mode.
         SWTPluginOperations.launchAppMenuStartAction(bot, dashboard, MVN_APP_NAME);
@@ -130,6 +126,18 @@ public class LibertyPluginSWTBotMPLSTest {
         // Close the terminal.
         terminal.close();
         System.out.println("AJM: done importing");
+        
+        projectExp = bot.viewByTitle("Project Explorer");
+    	projectExp.show();
+        bot.waitUntil(SWTTestCondition.isViewActive(projectExp, "Project Explorer"));
+        SWTBotTreeItem[] topLevelProjects = projectExp.bot().tree().getAllItems();
+        appProj = null;
+        for (SWTBotTreeItem project : topLevelProjects) {
+            if (project.getText().contains("demo-service-a")) {
+            	appProj = project;
+            }
+        }
+        System.out.println("AJM: after loading the proj explorer and app");
     }
 
     /**
@@ -137,6 +145,15 @@ public class LibertyPluginSWTBotMPLSTest {
      */
     @AfterAll
     public static void cleanup() {
+        // Stop dev mode.
+        //SWTPluginOperations.launchAppMenuStopAction(bot, dashboard, MVN_APP_NAME);
+        //terminal.show();
+       
+        //validateApplicationOutcome(MVN_APP_NAME, false, projectPath.toAbsolutePath().toString() + "/target/liberty", appMsg, appURL );
+        
+        // Close the terminal.
+        //terminal.close();
+        
         bot.closeAllEditors();
         bot.closeAllShells();
         bot.resetWorkbench();        
@@ -149,7 +166,7 @@ public class LibertyPluginSWTBotMPLSTest {
     public void testHoverOnConfig() {
     	// slow down tests
         //SWTBotPreferences.PLAYBACK_DELAY = 10;
-
+        /*
     	SWTBotView projectExp = bot.viewByTitle("Project Explorer");
     	projectExp.show();
         bot.waitUntil(SWTTestCondition.isViewActive(projectExp, "Project Explorer"));
@@ -160,7 +177,8 @@ public class LibertyPluginSWTBotMPLSTest {
             	appProj = project;
             }
         }
-    	//projectExp.bot().tree().getTreeItem("demo-service-a (in service-a)").expand()
+        do the above in setup now? */
+    	
         appProj.expand()
     	       .getNode("src").expand()
     	       .getNode("main").expand()
@@ -223,171 +241,121 @@ public class LibertyPluginSWTBotMPLSTest {
     	// slow down tests
         SWTBotPreferences.PLAYBACK_DELAY = 10;
         
-        SWTBotTreeItem appProj = null;
-        bot.viewByTitle("Project Explorer").show();
-        bot.sleep(7000);
-        SWTBotTreeItem[] appProjects = bot.tree().getAllItems();
-        bot.sleep(7000);
-        for (int i = 0; i < appProjects.length; i++) {
-        	System.out.println("AJM: contains -> " + appProjects[i].getText());
-            if (appProjects[i].getText().contains("demo")) {
-                appProj = appProjects[i];
-                break;
-            }
-        }
+        String expectedHealthText = "package com.example.demo.health;\r\n"
+        		+ "\r\n"
+        		+ "import org.eclipse.microprofile.health.HealthCheck;\r\n"
+        		+ "import org.eclipse.microprofile.health.HealthCheckResponse;\r\n"
+        		+ "import org.eclipse.microprofile.health.Liveness;\r\n"
+        		+ "\r\n"
+        		+ "import javax.enterprise.context.ApplicationScoped;\r\n"
+        		+ "\r\n"
+        		+ "@Liveness\r\n"
+        		+ "@ApplicationScoped\r\n"
+        		+ "public class ${TM_FILENAME_BASE} implements HealthCheck {\r\n"
+        		+ "\r\n"
+        		+ "	@Override\r\n"
+        		+ "	public HealthCheckResponse call() {\r\n"
+        		+ "		return HealthCheckResponse.named(${TM_FILENAME_BASE}.class.getSimpleName()).withData(\"live\",true).up().build();\r\n"
+        		+ "	}\r\n"
+        		+ "}";
         
-        bot.sleep(10000);
-        // need to start app first to get a target dir created
-        // Start dev mode.
-        SWTPluginOperations.launchAppMenuStartAction(bot, dashboard, MVN_APP_NAME);
-        bot.sleep(7000);
-        SWTBotView terminal = bot.viewByTitle("Terminal");
-        bot.sleep(7000);
-        terminal.show();
-        bot.sleep(7000);
-
-        // Validate application is up and running.
-        //validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
-
-        // Stop dev mode.
-        SWTPluginOperations.launchAppMenuStopAction(bot, dashboard, MVN_APP_NAME);
-        terminal.show();
-
-        // Validate application stopped.
-        //validateApplicationOutcome(MVN_APP_NAME, false, projectPath.toAbsolutePath().toString() + "/target/liberty");
-
-        // Close the terminal.
-        terminal.close();
-        
-        // now check hover
-        appProj.select();
-        appProj.expand();
-        SWTBotTreeItem dir = appProj.getNode("src/main/java");
-        dir.select();
-        SWTBotTreeItem filedir = dir.expand().getNode("com.example.demo.health").select().expand();
-        SWTBotTreeItem[] subtrees = filedir.getItems();
-        
-        SWTBotTreeItem file = filedir.select().expand().getNode("MyHealth.java");
-        
-        file.select();
-        file.doubleClick();
-        bot.sleep(4000);
-        
-        SWTBotEditor editor = bot.editorByTitle("MyHealth.java");
-        System.out.println("editor: " + editor);
-        editor.show();
-        editor.setFocus();
-        //editor = searchForEditor(bot, "ConfigTestController.java");
-        //System.out.println("editor2: " + editor);
-        //editor.show();
-        
-        
-        
-        
-        //SWTBotEditor editor = searchForEditor(bot, "ConfigTestController.java");
-        //editor.show();
-        SWTBotEclipseEditor javaEditor = editor.toTextEditor();
-        javaEditor.navigateTo(1, 1);
-        bot.sleep(2000);
-        //javaEditor.navigateTo(10, 45);
-        
-        String text = null;
-        SWTBotShell [] shells;
-        KeyStroke ctrl = KeyStroke.getInstance(SWT.CTRL, 0);
-        KeyStroke space = KeyStroke.getInstance(SWT.SPACE, 0);
-        KeyboardFactory.getSWTKeyboard().pressShortcut(Keystrokes.CTRL, Keystrokes.SPACE);
-        bot.sleep(5000);
-        javaEditor.bot().table().select("mpliveness");
-        javaEditor.bot().table().getTableItem("mpliveness").doubleClick();
-
-        //javaEditor.pressShortcut(ctrl , space);
-        
-		bot.sleep(5000);
-		//shells = bot.shells();
-        
-		/*
-        final Control cntl = javaEditor.bot().getFocusedWidget();
-        bot.sleep(5000);
-        
-		Shell popupWindow = syncExec(new WidgetResult<Shell>() {
-			public Shell run() {
-				return cntl.getShell();
-			}
-		});
+        appProj.expand()
+	       .getNode("src").expand()
+	       .getNode("main").expand()
+	       .getNode("java").expand()
+	       .getNode("com").expand()
+	       .getNode("example").expand()
+	       .getNode("demo").expand()
+	       .getNode("health").expand()
+	       .getNode("MyHealth.java").select().doubleClick();
+ 
+		 SWTBotEditor editor = bot.editorByTitle("MyHealth.java");
+		 
+		 SWTBotEclipseEditor javaEditor = editor.toTextEditor();
+		 javaEditor.show();
+		 javaEditor.setFocus();
 		
-		Matcher<? extends Browser> matcher = WidgetMatcherFactory.widgetOfType(Browser.class);
-		List<? extends Browser> widgets = new SWTBot().widgets(matcher);
-		String styledText = null;
-		final String[] textStr = new String[1];
-		
-		for (Browser b : widgets) {
-		  // Create a copy to work with to avoid Invalid Thread exception
-		  SWTBotBrowser browserWindow = new SWTBotBrowser(b);
-	        Display.getDefault().syncExec(new Runnable() {
-	        	public void run() {
-	        		browserWindow.widget.setFocus();
-	        		textStr[0] = browserWindow.widget.getText();
-	        	}
-	        });
-		  styledText = textStr[0];
-		  System.out.println("AJM: text -> " + styledText);
-		  // Do stuff...
-		}
-		
-		/*
-		Matcher<? extends Composite> compMatcher = WidgetMatcherFactory.widgetOfType(Composite.class);
-		List<? extends Composite> compWidgets = new SWTBot(popupWindow).widgets(matcher);
-		//String styledText = null;
-		
-		for (Composite c : compWidgets) {
-			//Control[] children = c.getChildren();
-		  // Create a copy to work with to avoid Invalid Thread exception
-		  //SWTBotCCombo compWindow = new SWTBotComposite(c);
-		  //styledText = styledTextWindow.getText();
-		  // Do stuff...
-		}
-		*/
-		//try {
-		//	bot.wait(5000);
-		//} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-		//	e.printStackTrace();
-		//}
-		/*
-		bot.sleep(5000);
-        //String cntlText = popupWindow.getText();
-        final String[] textStr = new String[1];
-        Display.getDefault().syncExec(new Runnable() {
-        	public void run() {
-        		textStr[0] = popupWindow.getS;
-        	}
-        });
-        System.out.println("AJM: text = " + textStr[0]);
-			/*final SWTBotStyledText styledText = javaEditor.getStyledText();
-			Shell mainWindow = syncExec(new WidgetResult<Shell>() {
-				public Shell run() {
-					return styledText.widget.getShell();
-				}
-			});
-			SWTBotShell shell = bot.shell("", mainWindow); //$NON-NLS-1$
-			//shell.activate();
-			//bot.sleep(6000);
-			Display.getDefault().syncExec(new Runnable() {
-				@Override
-				public void run() {
-					shell.setFocus();
-					String tooltiptext=shell.widget.getText();
-					String tooltipexttext = shell.getToolTipText();
-					System.out.println("Here " + shell.widget.getText() + "extra " + shell.getToolTipText());
-				}}); */
-		
+		 javaEditor.navigateTo(1, 1);
+		   
+			        //KeyboardFactory.getSWTKeyboard().pressShortcut(Keystrokes.CTRL, Keystrokes.SPACE);
+			        //KeyboardFactory.getSWTKeyboard().typeText("mplive");
+			        //KeyboardFactory.getSWTKeyboard().pressShortcut(Keystrokes.CR, Keystrokes.LF);
+	        		//javaEditor.autoCompleteProposal("mplive", "mpliveness");
+		 			javaEditor.setFocus();
+		 			javaEditor.bot().activeShell().activate();
+			        javaEditor.pressShortcut(Keystrokes.CTRL, Keystrokes.SPACE);
+			        javaEditor.typeText("mplive");
+			        javaEditor.pressShortcut(Keystrokes.CR, Keystrokes.LF);
+			        javaEditor.save();	
+	        
+	        String gotText = javaEditor.getText();
+	        System.out.println("AJM: retrieved health code: " + gotText);
+	        
+	        Assertions.assertTrue(gotText.contains(expectedHealthText));
+
+
+	        bot.sleep(5000);
         
-        bot.sleep(4000);
      // set to the default speed
         SWTBotPreferences.PLAYBACK_DELAY = 0;
 		
     }
 
+    /**
+     * Tests opening the dashboard using the main toolbar icon.
+     */
+    @Test
+    public void testServerXMLAddFeature() {
+    	// slow down tests
+        SWTBotPreferences.PLAYBACK_DELAY = 10;
+        
+        appProj.expand()
+	       .getNode("src").expand()
+	       .getNode("main").expand()
+	       .getNode("liberty").expand()
+	       .getNode("config").expand()
+	       .getNode("server.xml").select().doubleClick();
+ 
+        SWTBotEditor editor = bot.editorByTitle("server.xml");
+		 
+		 SWTBotEclipseEditor xmlEditor = editor.toTextEditor();
+		 
+		 xmlEditor.show();
+		 xmlEditor.setFocus();
+		 
+		 String serverXMLBeforeText = xmlEditor.getText();
+		 Assertions.assertFalse(serverXMLBeforeText.contains("<feature>el-3.0</feature>"));
+		
+		 xmlEditor.navigateTo(4, 43);
+		 
+		 xmlEditor.pressShortcut(Keystrokes.CR, Keystrokes.LF);
+		 
+			xmlEditor.pressShortcut(Keystrokes.CTRL, Keystrokes.SPACE);
+			xmlEditor.typeText("feat");
+			bot.sleep(5000);
+			xmlEditor.pressShortcut(Keystrokes.CR, Keystrokes.LF);
+
+			xmlEditor.pressShortcut(Keystrokes.CTRL, Keystrokes.SPACE);
+			xmlEditor.typeText("el-3");
+			bot.sleep(5000);
+			xmlEditor.pressShortcut(Keystrokes.CR, Keystrokes.LF);
+			//xmlEditor.pressShortcut(Keystrokes.CR, Keystrokes.LF);
+
+			//xmlEditor.selectCurrentLine();
+			//bot.sleep(5000);
+			//String addedFeature = xmlEditor.getSelection();
+			
+			//xmlEditor.save();
+			String serverXMLAfterText = xmlEditor.getText();
+			 Assertions.assertTrue(serverXMLAfterText.contains("<feature>el-3.0</feature>"));
+
+	        //bot.sleep(5000);
+        
+     // set to the default speed
+        SWTBotPreferences.PLAYBACK_DELAY = 0;
+		
+    }
+    
     /**
      * Imports existing Maven application projects into the workspace.
      */
