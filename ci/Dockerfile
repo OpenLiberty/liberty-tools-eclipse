@@ -28,5 +28,10 @@ WORKDIR /eclipse-ltp/liberty-tools-eclipse
 # build the repo and generate release artifacts.
 RUN mvn clean install -DskipTests
 
+# Move repository zip to a dedicated directory. This allows us to copy
+# the zip without knowing the specific version 
+RUN mkdir releng/io.openliberty.tools.update/target/repo_zip \
+    && mv releng/io.openliberty.tools.update/target/io.openliberty.tools.update.eclipse-repository-*.zip releng/io.openliberty.tools.update/target/repo_zip
+
 # command to run to make container available
 CMD ["sleep", "9000"]
