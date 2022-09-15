@@ -825,12 +825,6 @@ public class DevModeOperations {
 
             @Override
             public String isValid(String text) {
-                String[] parmSegments = text.split(" ");
-                for (int i = 0; i < parmSegments.length; i++) {
-                    if (parmSegments[i] != null && !parmSegments[i].isEmpty() && !parmSegments[i].startsWith("-")) {
-                        return "Parameters must start with -";
-                    }
-                }
                 return null;
             }
         };
