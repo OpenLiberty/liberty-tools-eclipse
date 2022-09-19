@@ -33,6 +33,7 @@
         <configuration>
           <useUIHarness>true</useUIHarness>
           <useUIThread>false</useUIThread>
+          <providerHint>junit5</providerHint>
         </configuration>
       </plugin>
     </plugins>

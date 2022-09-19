@@ -63,6 +63,17 @@
 		    <enabled>false</enabled>
 		  </snapshots>
 		</repository>		
+		<repository>
+            <id>sonatype-nexus-snapshots</id>
+            <name>Sonatype Nexus Snapshots</name>
+            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+            <releases>
+                <enabled>false</enabled>
+            </releases>
+        </repository>
 	</repositories>
 
 	<build>
@@ -74,7 +85,7 @@
 					<artifactId>tycho-compiler-plugin</artifactId>
 					<version>${tycho.version}</version>
 					<configuration>
-						<target>11</target>
+						<target>17</target>
 					</configuration>
 				</plugin>
 				<plugin>
@@ -156,6 +167,7 @@
 				<artifactId>target-platform-configuration</artifactId>
 				<version>${tycho.version}</version>
 				<configuration>
+				    <executionEnvironment>JavaSE-17</executionEnvironment>
 					<target>
 						<artifact>
 							<groupId>io.openliberty.tools.eclipse</groupId>

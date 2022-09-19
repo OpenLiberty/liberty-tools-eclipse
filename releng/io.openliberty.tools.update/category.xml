@@ -16,7 +16,7 @@
       <category name="io.openliberty.tools.eclipse"/>
    </feature>
    <category-def name="io.openliberty.tools.eclipse" label="Liberty Tools"/>
-   <repository-reference location="https://download.eclipse.org/jdtls/snapshots/repository/1.5.0.202109201721/" enabled="true" />
+   <repository-reference location="https://download.eclipse.org/jdtls/milestones/1.15.0/repository" enabled="true" />
    <repository-reference location="https://download.eclipse.org/lsp4mp/releases/0.4.0/repository" enabled="true" />
    <repository-reference location="https://download.eclipse.org/webtools/repository/latest" enabled="true" />
 </site>

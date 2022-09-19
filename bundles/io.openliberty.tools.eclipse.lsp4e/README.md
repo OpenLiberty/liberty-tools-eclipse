@@ -1,7 +1,7 @@
 **Liberty-Lemminx extensions for server.xml support**
 
 This jar was built from the https://github.com/OpenLiberty/liberty-language-server.git repository at commit:
-SHA: bb3a4dc34250a900fbd55cef434fa5277a707f0d
+SHA: 9a13e723471b89aae4a4b82f0d0629b9c3721c33
 
 Process for re-building the liberty-langserver-lemminx-1.0-SNAPSHOT-jar-with-dependencies.jar file:
 
