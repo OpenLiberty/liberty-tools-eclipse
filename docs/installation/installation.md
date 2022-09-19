@@ -8,7 +8,7 @@ The Liberty tools plugin can be installed as new software by using the artifacts
 
 2. Add the location containing the plugin's installation artifacts. This can be done in two ways:
 
-- Using an update site. The update site (`update-site-<version>`) is provided as a [branch on Open Liberty Tools for eclipse git repository](https://github.com/OpenLiberty/liberty-tools-eclipse/branches). Select the version you would like to install and copy a link to the branch. For example, for the early release, use the following URL: https://raw.githubusercontent.com/OpenLiberty/liberty-tools-eclipse/update-site-0.1.
+- Using an update site. The update site (`update-site-<version>`) is provided as a [branch on Open Liberty Tools for eclipse git repository](https://github.com/OpenLiberty/liberty-tools-eclipse/branches). Select the version you would like to install and copy a link to the branch. For example, for the early release, use the following URL: https://raw.githubusercontent.com/OpenLiberty/liberty-tools-eclipse/update-site-0.2.
 
 Click on the `Add...` button to open the `Add Repository` view. Specify a name, paste the copied link as the location, and click on the `Add` button. 
 
