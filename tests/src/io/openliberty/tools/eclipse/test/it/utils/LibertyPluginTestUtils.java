@@ -201,32 +201,6 @@ public class LibertyPluginTestUtils {
     }
     
     /**
-     * Adds or updates the JVM copy of the environment variables using the key and value inputs.
-     *
-     * @param key The environment variable to add or update.
-     * @param value The value associated with the input key.
-     *
-     * @throws Exception
-     */
-    @SuppressWarnings("unchecked")
-    public static void updateJVMEnvVariableCache(String key, String value) throws Exception {
-        Map<String, String> jvmEnvVars = null;
-        if (onWindows()) {
-            Class<?> pec = Class.forName("java.lang.ProcessEnvironment");
-            Field field = pec.getDeclaredField("theCaseInsensitiveEnvironment");
-            field.setAccessible(true);
-            jvmEnvVars = (Map<String, String>) field.get(null);
-        } else {
-            Map<String, String> envVariables = System.getenv();
-            Field field = envVariables.getClass().getDeclaredField("m");
-            field.setAccessible(true);
-            jvmEnvVars = ((Map<String, String>) field.get(envVariables));
-        }
-
-        jvmEnvVars.put(key, value);
-    }
-    
-    /**
      * Returns true if the current process is running on a windows environment. False, otherwise.
      *
      * @return True if the current process is running on a windows environment. False, otherwise.
