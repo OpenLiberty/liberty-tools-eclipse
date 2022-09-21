@@ -139,7 +139,7 @@
                              </excludes>
                            </artifactSet>
                            <finalName>liberty-langserver-lemminx-1.0-SNAPSHOT-jar-with-dependencies</finalName>
-                           <outputDirectory>${project.basedir}/lib</outputDirectory>
+                           <outputDirectory>${project.basedir}/server/liberty-lemminx-extn</outputDirectory>
                            <transformers>
                                <transformer implementation="org.apache.maven.plugins.shade.resource.DontIncludeResourceTransformer">
                                      <resources>
