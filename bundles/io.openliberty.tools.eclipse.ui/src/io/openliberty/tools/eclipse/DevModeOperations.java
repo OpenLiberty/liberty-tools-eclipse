@@ -21,6 +21,8 @@ import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.core.resources.IProject;
+import org.eclipse.jdt.launching.IVMInstall;
+import org.eclipse.jdt.launching.JavaRuntime;
 import org.eclipse.jface.dialogs.IInputValidator;
 import org.eclipse.jface.dialogs.InputDialog;
 import org.eclipse.jface.viewers.ISelection;
@@ -884,7 +886,10 @@ public class DevModeOperations {
      * @throws Exception If an error occurs while running the specified command.
      */
     public void startDevMode(String cmd, String projectName, String projectPath) throws Exception {
-        List<String> envs = new ArrayList<String>(1);
+        // Create a list of required environment properties.
+        List<String> envs = new ArrayList<String>();
+
+        // Add JAVA_HOME. It is required to run the mvn command.
         envs.add("JAVA_HOME=" + getJavaInstallHome());
 
         // Required on windows to work with mvnw.cmd
@@ -944,14 +949,23 @@ public class DevModeOperations {
      */
     private String getJavaInstallHome() {
         String javaHome = null;
-        // TODO: 1. Find the eclipse->java configured install path
 
-        // 2. Check for associated environment variable.
+        // 1. Check if JAVA_HOME was specfied.
+        // Example: Start Eclipse from the command line: JAVA_HOME=/path/to/java/home eclipse.
         if (javaHome == null) {
             javaHome = System.getenv("JAVA_HOME");
         }
 
-        // 3. Check for associated system properties.
+        // 2. Check Eclipse preferences -> java -> installed JREs.
+        if (javaHome == null) {
+            IVMInstall jre = JavaRuntime.getDefaultVMInstall();
+            javaHome = jre.getInstallLocation().getAbsolutePath();
+        }
+
+        // 3. Check if the the java.home system property is present(eclipse.ini -> -vm).
+        // Note that there should always be a JRE defined for the workspace, so technically
+        // this path should be a no-op. However, keep it in case the workspace JRE cannot be
+        // detected.
         if (javaHome == null) {
             javaHome = System.getProperty("java.home");
         }
