@@ -15,7 +15,7 @@
  *
  */
 
-package io.openliberty.tools.eclipse.mpls;
+package io.openliberty.tools.eclipse.liberty.languageserver;
 
 import java.io.File;
 import java.io.IOException;
@@ -37,9 +37,9 @@ import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.lsp4e.server.ProcessStreamConnectionProvider;
 
-public class LibertyMPLSConnection extends ProcessStreamConnectionProvider {
+public class LibertyLSConnection extends ProcessStreamConnectionProvider {
 
-	public LibertyMPLSConnection() {
+	public LibertyLSConnection() {
 		List<String> commands = new ArrayList<>();
 		commands.add(computeJavaPath());
 		String debugPortString = System.getProperty(getClass().getName() + ".debugPort");
@@ -49,18 +49,18 @@ public class LibertyMPLSConnection extends ProcessStreamConnectionProvider {
 		commands.add("-classpath");
 		try {
 			commands.add(computeClasspath());
-			commands.add("org.eclipse.lsp4mp.ls.MicroProfileServerLauncher");
+			commands.add("io.openliberty.tools.langserver.LibertyLanguageServerLauncher");
 			setCommands(commands);
 			setWorkingDirectory(System.getProperty("user.dir"));			
 		} catch (IOException e) {
-			LibertyMPLSPlugin.getDefault().getLog().log(new Status(IStatus.ERROR,
-					LibertyMPLSPlugin.getDefault().getBundle().getSymbolicName(), e.getMessage(), e));
+			LibertyLSPlugin.getDefault().getLog().log(new Status(IStatus.ERROR,
+					LibertyLSPlugin.getDefault().getBundle().getSymbolicName(), e.getMessage(), e));
 		}
 	}
 
 	private String computeClasspath() throws IOException {
 		StringBuilder builder = new StringBuilder();
-		URL url = FileLocator.toFileURL(getClass().getResource("/server/mp-langserver/org.eclipse.lsp4mp.ls-0.5.0-uber.jar"));
+		URL url = FileLocator.toFileURL(getClass().getResource("/server/liberty-langserver/liberty-langserver-1.0-SNAPSHOT-jar-with-dependencies.jar"));
 		builder.append(new java.io.File(url.getPath()).getAbsolutePath());
 		return builder.toString();
 	}
@@ -75,34 +75,6 @@ public class LibertyMPLSConnection extends ProcessStreamConnectionProvider {
 			javaPath = f.getAbsolutePath();
 		}
 		return javaPath;
-	}
-
-	@Override
-	public Object getInitializationOptions(URI rootUri) {
-	
-		Map<String, Object> root = new HashMap<>();
-		Map<String, Object> settings = new HashMap<>();
-		Map<String, Object> microprofile = new HashMap<>();
-		Map<String, Object> tools = new HashMap<>();
-		Map<String, Object> trace = new HashMap<>();
-		trace.put("server", "verbose");
-		tools.put("trace", trace);
-		Map<String, Object> codeLens = new HashMap<>();
-		codeLens.put("urlCodeLensEnabled", "true");
-		tools.put("codeLens", codeLens);
-		microprofile.put("tools", tools);
-		settings.put("microprofile", microprofile);
-		root.put("settings", settings);
-		Map<String, Object> extendedClientCapabilities = new HashMap<>();
-		Map<String, Object> commands = new HashMap<>();
-		Map<String, Object> commandsKind = new HashMap<>();
-		commandsKind.put("valueSet", Arrays.asList("microprofile.command.configuration.update", "microprofile.command.open.uri"));
-		commands.put("commandsKind", commandsKind);
-		extendedClientCapabilities.put("commands", commands);
-        extendedClientCapabilities.put("completion", new HashMap<>());
-        extendedClientCapabilities.put("shouldLanguageServerExitOnShutdown", Boolean.TRUE);
-		root.put("extendedClientCapabilities", extendedClientCapabilities);
-		return root;
 	}
 
 	@Override

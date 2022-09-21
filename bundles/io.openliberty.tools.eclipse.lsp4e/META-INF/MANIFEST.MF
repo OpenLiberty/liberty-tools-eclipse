@@ -22,4 +22,5 @@ Require-Bundle: org.eclipse.lsp4mp.jdt.core,
  org.eclipse.jdt.ls.core,
  org.eclipse.ui.workbench
 Bundle-ClassPath: .,
- server/org.eclipse.lsp4mp.ls-0.5.0-uber.jar
+ server/mp-langserver/org.eclipse.lsp4mp.ls-0.5.0-uber.jar,
+ server/liberty-langserver/liberty-langserver-1.0-SNAPSHOT-jar-with-dependencies.jar
