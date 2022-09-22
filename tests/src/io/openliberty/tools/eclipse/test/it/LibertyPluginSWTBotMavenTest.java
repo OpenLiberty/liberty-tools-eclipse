@@ -16,7 +16,6 @@ import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.
 import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.isInternalBrowserSupportAvailable;
 import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.isTextInFile;
 import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.onWindows;
-import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.updateJVMEnvVariableCache;
 import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.validateApplicationOutcome;
 import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.validateTestReportExists;
 
@@ -58,6 +57,12 @@ import org.junit.jupiter.api.TestInfo;
 import io.openliberty.tools.eclipse.test.it.utils.SWTPluginOperations;
 import io.openliberty.tools.eclipse.ui.DashboardView;
 
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.IWorkspaceRoot;
+import io.openliberty.tools.eclipse.Project;
+import io.openliberty.tools.eclipse.DevModeOperations;
+
 /**
  * Tests Open Liberty Eclipse plugin functions.
  */
@@ -77,11 +82,21 @@ public class LibertyPluginSWTBotMavenTest {
      * Application name.
      */
     static final String MVN_APP_NAME = "liberty.maven.test.app";
+    
+    /**
+     * Wrapper Application name.
+     */
+    static final String MVN_WRAPPER_APP_NAME = "liberty.maven.test.wrapper.app";
 
     /**
      * Test app relative path.
      */
     static final Path projectPath = Paths.get("resources", "applications", "maven", "liberty-maven-test-app");
+    
+    /**
+     * Test app relative path.
+     */
+    static final Path wrapperProjectPath = Paths.get("resources", "applications", "maven", "liberty-maven-test-wrapper-app");
 
     /**
      * Expected menu items.
@@ -158,69 +173,62 @@ public class LibertyPluginSWTBotMavenTest {
      */
     @Test
     public void testStartWithWrapper() {
-        String invalidMvnHomePath = "INVALID";
-        String originalEnvVariable = System.getenv("MAVEN_HOME");
-
-        if (originalEnvVariable != null) {
-            // Update the MAVEN_HOME environment variable with an invalid value
-            try {
-                updateJVMEnvVariableCache("MAVEN_HOME", invalidMvnHomePath);
-                String updatedValue = System.getenv("MAVEN_HOME");
-                Assertions.assertTrue(updatedValue.equals(invalidMvnHomePath),
-                        () -> "The updated value of " + updatedValue + " does not match the expected value of " + invalidMvnHomePath);
-                System.out.println("INFO: MAVEN_HOME updated to invalid value: " + updatedValue);
-            } catch (Exception e) {
-                Assertions.fail("Unable to update the value of environment variable MAVEN_HOME. Error: " + e.getMessage());
-            }
-        }
-
-        // Call the start action. This is expected to fail because there is an invalid MAVEN_HOME value set.
-        SWTPluginOperations.launchAppMenuStartAction(bot, dashboard, MVN_APP_NAME);
+        
+        // Start dev mode.
+        SWTPluginOperations.launchAppMenuStartAction(bot, dashboard, MVN_WRAPPER_APP_NAME);
         SWTBotView terminal = bot.viewByTitle("Terminal");
         terminal.show();
-        validateApplicationOutcome(MVN_APP_NAME, false, projectPath.toAbsolutePath().toString() + "/target/liberty");
+
+        // Validate application is up and running.
+        validateApplicationOutcome(MVN_WRAPPER_APP_NAME, true, wrapperProjectPath.toAbsolutePath().toString() + "/target/liberty");
+
+        // Stop dev mode.
+        SWTPluginOperations.launchAppMenuStopAction(bot, dashboard, MVN_WRAPPER_APP_NAME);
+        terminal.show();
+
+        // Validate application stopped.
+        validateApplicationOutcome(MVN_WRAPPER_APP_NAME, false, wrapperProjectPath.toAbsolutePath().toString() + "/target/liberty");
+
+        // Close the terminal.
         terminal.close();
+    }
+    
+    @Test
+    public void UTImportProjIsMaven() throws IOException, InterruptedException {
 
-        // Add wrapper artifacts to the project.
-        copyWrapperArtifactsToProject();
+        DevModeOperations devMode = new DevModeOperations();
+        IWorkspace workspace = ResourcesPlugin.getWorkspace();
+        IWorkspaceRoot root = workspace.getRoot();
+        String projectName = MVN_APP_NAME;
+        IProject proj = root.getProject(projectName);
 
-        // Call the start/stop actions. This is expected to work because, currently, the plugin's order of precedence
-        // when
-        // selecting the maven command gives preference to the mvn wrapper command over the maven command installation
-        // pointed to by the MAVEN_HOME environment variable.
-        try {
-            // Start dev mode.
-            SWTPluginOperations.launchAppMenuStartAction(bot, dashboard, MVN_APP_NAME);
-            terminal = bot.viewByTitle("Terminal");
-            terminal.show();
-            validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
+        String projPath = proj.getLocation().toOSString();
 
-            // Stop dev mode.
-            SWTPluginOperations.launchAppMenuStopAction(bot, dashboard, MVN_APP_NAME);
-            terminal.show();
-            validateApplicationOutcome(MVN_APP_NAME, false, projectPath.toAbsolutePath().toString() + "/target/liberty");
-            terminal.close();
-        } finally {
-
-            if (originalEnvVariable != null) {
-                // Update the MAVEN_HOME environment variable with the original value.
-                try {
-                    updateJVMEnvVariableCache("MAVEN_HOME", originalEnvVariable);
-                    String updatedValue = System.getenv("MAVEN_HOME");
-                    Assertions.assertTrue(updatedValue.equals(originalEnvVariable),
-                            () -> "The updated value of " + updatedValue + " does not match the expected value of " + originalEnvVariable);
-                    System.out.println("INFO: MAVEN_HOME reset to its original value: " + updatedValue);
-
-                } catch (Exception e) {
-                    Assertions.fail("Unable to update the value of environment variable MAVEN_HOME. Error: " + e.getMessage());
-                }
-            }
-
-            // Remove all wrapper artifacts.
-            removeWrapperArtifactsFromProject();
-        }
+        String localMvnCmd = isWindows() ? "mvn.cmd" : "mvn";
+        String opaqueMvnCmd = devMode.getMavenCommand(projPath, "io.openliberty.tools:liberty-maven-plugin:dev -f " + projPath);
+        Assertions.assertTrue(opaqueMvnCmd.contains(localMvnCmd + " io.openliberty.tools:liberty-maven-plugin:dev"), "Expected cmd to contain 'mvn io.openliberty.tools...' but cmd = " + opaqueMvnCmd);       
     }
 
+
+    private boolean isWindows() {
+        return System.getProperty("os.name").contains("Windows");
+    }
+
+    @Test
+    public void UTImportProjIsMavenWrapper() throws IOException, InterruptedException {
+
+        DevModeOperations devMode = new DevModeOperations();
+        IWorkspace workspace = ResourcesPlugin.getWorkspace();
+        IWorkspaceRoot root = workspace.getRoot();
+        String projectName = MVN_WRAPPER_APP_NAME;
+        IProject proj = root.getProject(projectName);
+
+        String projPath = proj.getLocation().toOSString();
+
+        String opaqueMvnwCmd = devMode.getMavenCommand(projPath, "io.openliberty.tools:liberty-maven-plugin:dev -f " + projPath);
+        Assertions.assertTrue(opaqueMvnwCmd.contains("mvnw"), "Expected cmd to contain 'mvnw' but cmd = " + opaqueMvnwCmd );
+    }
+    
     /**
      * Tests the start menu action on a dashboard listed application.
      */
@@ -416,6 +424,7 @@ public class LibertyPluginSWTBotMavenTest {
                 File workspaceRoot = ResourcesPlugin.getWorkspace().getRoot().getLocation().toFile();
                 ArrayList<String> projectPaths = new ArrayList<String>();
                 projectPaths.add(projectPath.toString());
+                projectPaths.add(wrapperProjectPath.toString());
 
                 try {
                     importProjects(workspaceRoot, projectPaths);
@@ -438,7 +447,7 @@ public class LibertyPluginSWTBotMavenTest {
     public static void importProjects(File workspaceRoot, List<String> folders) throws InterruptedException, CoreException {
         // Get the list of projects to install.
         MavenModelManager modelManager = MavenPlugin.getMavenModelManager();
-        LocalProjectScanner lps = new LocalProjectScanner(workspaceRoot, folders, false, modelManager);
+        LocalProjectScanner lps = new LocalProjectScanner(folders, false, modelManager);
         lps.run(new NullProgressMonitor());
         List<MavenProjectInfo> projects = lps.getProjects();
 

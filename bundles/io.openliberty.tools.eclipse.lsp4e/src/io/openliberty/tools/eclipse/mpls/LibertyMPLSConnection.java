@@ -60,7 +60,7 @@ public class LibertyMPLSConnection extends ProcessStreamConnectionProvider {
 
 	private String computeClasspath() throws IOException {
 		StringBuilder builder = new StringBuilder();
-		URL url = FileLocator.toFileURL(getClass().getResource("/server/org.eclipse.lsp4mp.ls-0.4.0-uber.jar"));
+		URL url = FileLocator.toFileURL(getClass().getResource("/server/org.eclipse.lsp4mp.ls-0.5.0-uber.jar"));
 		builder.append(new java.io.File(url.getPath()).getAbsolutePath());
 		return builder.toString();
 	}
