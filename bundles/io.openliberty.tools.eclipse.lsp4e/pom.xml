@@ -33,12 +33,22 @@
             <groupId>org.eclipse.lsp4mp</groupId>
             <artifactId>org.eclipse.lsp4mp.ls</artifactId>
             <version>0.5.0</version>
-         </dependency>
-         <dependency>
+       </dependency>
+       <dependency>
             <groupId>io.openliberty.tools</groupId>
             <artifactId>liberty-langserver-lemminx</artifactId>
             <version>1.0-SNAPSHOT</version>
             <classifier>jar-with-dependencies</classifier>
+        </dependency>
+        <dependency>
+            <groupId>io.openliberty.tools</groupId>
+            <artifactId>liberty-langserver-lemminx</artifactId>
+            <version>1.0-SNAPSHOT</version>
+        </dependency>
+        <dependency>
+            <groupId>io.openliberty.tools</groupId>
+            <artifactId>liberty-langserver</artifactId>
+            <version>1.0-SNAPSHOT</version>
         </dependency>
     </dependencies>
 
@@ -49,16 +59,65 @@
                 <artifactId>maven-dependency-plugin</artifactId>
                     <executions>
                         <execution>
-                            <id>get-mpls</id>
+                            <id>copy-mpls</id>
                             <goals>
-                                <goal>copy-dependencies</goal>
+                              <goal>copy</goal>
                             </goals>
                             <configuration>
-                                <classifier>uber</classifier>
-                                <outputDirectory>${project.basedir}/server/</outputDirectory>  
-                            </configuration>        
+                               <artifactItems>
+                                <artifactItem>
+                                  <groupId>org.eclipse.lsp4mp</groupId>
+                                  <artifactId>org.eclipse.lsp4mp.ls</artifactId>
+                                  <version>0.5.0</version>
+                                  <classifier>uber</classifier>
+                                  <type>jar</type>
+                                  <overWrite>true</overWrite>
+                                </artifactItem>
+                               </artifactItems> 
+                              <outputDirectory>${project.basedir}/server/mp-langserver</outputDirectory>
+                            </configuration>
                         </execution>
-                    </executions>    
+                        <execution>
+                            <id>copy-liberty-xml-ls-extn</id>
+                            <goals>
+                              <goal>copy</goal>
+                            </goals>
+                            <configuration>
+                               <artifactItems>
+                                <artifactItem>
+                                  <groupId>io.openliberty.tools</groupId>
+                                  <artifactId>liberty-langserver-lemminx</artifactId>
+                                  <version>1.0-SNAPSHOT</version>
+                                  <classifier>jar-with-dependencies</classifier>
+                                  <type>jar</type>
+                                  <overWrite>true</overWrite>
+                                  <destFileName>liberty-langserver-lemminx-1.0-SNAPSHOT-jar-with-dependencies.jar</destFileName>
+                                </artifactItem>
+                               </artifactItems> 
+                              <outputDirectory>${project.basedir}/server/liberty-lemminx-extn</outputDirectory>
+                            </configuration>
+                        </execution>    
+                        <execution>
+                            <id>copy-libertyls</id>
+                            <goals>
+                              <goal>copy</goal>
+                            </goals>
+                            <configuration>
+                               <artifactItems>
+                                <artifactItem>
+                                  <groupId>io.openliberty.tools</groupId>
+                                  <artifactId>liberty-langserver</artifactId>
+                                  <version>1.0-SNAPSHOT</version>
+                                  <classifier>jar-with-dependencies</classifier>
+                                  <type>jar</type>
+                                  <overWrite>true</overWrite>
+                                  <destFileName>liberty-langserver-1.0-SNAPSHOT-jar-with-dependencies.jar</destFileName>
+                                </artifactItem>
+                               </artifactItems> 
+                              <outputDirectory>${project.basedir}/server/liberty-langserver</outputDirectory>
+                            </configuration>
+                        </execution>
+                    </executions>
               </plugin> 
               <plugin>
                   <groupId>org.apache.maven.plugins</groupId>
@@ -97,4 +156,4 @@
              </plugin>
         </plugins>
     </build>
-</project>    
+</project>
