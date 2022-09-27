@@ -54,7 +54,7 @@ import org.junit.jupiter.api.TestInfo;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.test.it.utils.SWTPluginOperations;
-import io.openliberty.tools.eclipse.ui.DashboardView;
+import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
 
 /**
  * Tests Open Liberty Eclipse plugin functions.

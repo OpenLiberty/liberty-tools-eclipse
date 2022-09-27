@@ -12,16 +12,13 @@
 *******************************************************************************/
 package io.openliberty.tools.eclipse.ui.terminal;
 
-import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.swt.custom.CTabItem;
-import org.eclipse.swt.graphics.Image;
 import org.eclipse.tm.internal.terminal.provisional.api.ITerminalConnector;
 import org.eclipse.tm.terminal.view.core.TerminalServiceFactory;
 import org.eclipse.tm.terminal.view.core.interfaces.ITerminalService;
@@ -33,9 +30,8 @@ import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PlatformUI;
 
-import io.openliberty.tools.eclipse.LibertyDevPlugin;
 import io.openliberty.tools.eclipse.logging.Trace;
-import io.openliberty.tools.eclipse.ui.DashboardView;
+import io.openliberty.tools.eclipse.utils.Utils;
 
 /**
  * Represents a terminal tab item within the terminal view associated with a running application project.
@@ -176,29 +172,7 @@ public class ProjectTab {
      */
     private void updateImage() {
         projectTab.getDisplay().asyncExec(() -> {
-            URL url = LibertyDevPlugin.getDefault().getBundle().getResource(DashboardView.LIBERTY_LOGO_PATH);
-
-            if (url != null) {
-                InputStream stream = null;
-                try {
-                    stream = url.openStream();
-                    projectTab.setImage(new Image(projectTab.getDisplay(), stream));
-                } catch (Exception e) {
-                    if (Trace.isEnabled()) {
-                        Trace.getTracer().trace(Trace.TRACE_UI, "Error encountered while updating terminal tab image.", e);
-                    }
-                } finally {
-                    try {
-                        if (stream != null) {
-                            stream.close();
-                        }
-                    } catch (Exception e) {
-                        if (Trace.isEnabled()) {
-                            Trace.getTracer().trace(Trace.TRACE_UI, "Error encountered while closing image stream.", e);
-                        }
-                    }
-                }
-            }
+            projectTab.setImage(Utils.getLibertyImage(PlatformUI.getWorkbench().getDisplay()));
         });
     }
 

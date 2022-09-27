@@ -1,4 +1,4 @@
-package io.openliberty.tools.eclipse.ui;
+package io.openliberty.tools.eclipse.ui.dashboard;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -64,7 +64,7 @@ public class DashboardEntryLabelProvider extends LabelProvider implements ITable
         Image img = null;
         if (element != null && element instanceof String) {
             projectName = (String) element;
-            Project project = devModeOps.getDashboardProject(projectName);
+            Project project = devModeOps.getSupportedProject(projectName);
 
             if (project != null) {
                 if (project.getBuildType() == Project.BuildType.GRADLE) {
