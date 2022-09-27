@@ -17,7 +17,6 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.lang.reflect.Field;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.file.Files;
@@ -27,10 +26,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
 import org.junit.jupiter.api.Assertions;
+import org.osgi.service.prefs.Preferences;
 
 /**
  * Tests Open Liberty Eclipse plugin functions.
@@ -80,24 +81,24 @@ public class LibertyPluginTestUtils {
                         con.disconnect();
                         continue;
                     }
-                    
-				} else {
-					if (status == HttpURLConnection.HTTP_OK) {
-						Thread.sleep(reryIntervalSecs * 1000);
-						con.disconnect();
-						continue;
-					} else {
-						// Giving the server a few secs to start if it is starting.
-						int counter = 0;
-						if (counter <= 5) {
-							counter++;
-							Thread.sleep(reryIntervalSecs * 1000);
-						}
-						con.disconnect();
-						continue;
-					}
-				}   
-                
+
+                } else {
+                    if (status == HttpURLConnection.HTTP_OK) {
+                        Thread.sleep(reryIntervalSecs * 1000);
+                        con.disconnect();
+                        continue;
+                    } else {
+                        // Giving the server a few secs to start if it is starting.
+                        int counter = 0;
+                        if (counter <= 5) {
+                            counter++;
+                            Thread.sleep(reryIntervalSecs * 1000);
+                        }
+                        con.disconnect();
+                        continue;
+                    }
+                }
+
                 return;
             } catch (Exception e) {
                 if (expectSuccess) {
@@ -118,15 +119,15 @@ public class LibertyPluginTestUtils {
         // If we are here, the expected outcome was not found.
         System.out.println("--------------------------- messages.log ----------------------------");
         try (BufferedReader br = new BufferedReader(new FileReader(testAppPath + "/wlp/usr/servers/defaultServer/logs/messages.log"))) {
-    	   String line;
-    	   while ((line = br.readLine()) != null) {
-    	       System.out.println(line);
-    	   }
-    	} catch (Exception e) {
-			e.printStackTrace();
-		}
+            String line;
+            while ((line = br.readLine()) != null) {
+                System.out.println(line);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
         System.out.println("---------------------------------------------------------------------");
-        
+
         Assertions.fail("Timed out while waiting for application under URL: " + appUrl + " to become available.");
     }
 
@@ -163,43 +164,20 @@ public class LibertyPluginTestUtils {
 
     /**
      * Returns true or false depending on if the input text is found in the target file
-     * @throws IOException 
+     * 
+     * @throws IOException
      */
     public static boolean isTextInFile(String filePath, String text) throws IOException {
-    	
-    	List<String> lines = Files.readAllLines(Paths.get(filePath));
-        for(String line : lines) {
-        	if (line.contains(text)) {
-        		return true;
-        	}
-        }
-    	return false;
-    }
 
-    /**
-     * Returns true if the Eclipse instance supports internal browsers. False, otherwise.
-     *
-     * @return True if the Eclipse instance supports internal browsers. False, otherwise.
-     */
-    public static boolean isInternalBrowserSupportAvailable() {
-        final String availableKey = "available";
-        final Map<String, Boolean> results = new HashMap<String, Boolean>();
-
-        Display.getDefault().syncExec(new Runnable() {
-            @Override
-            public void run() {
-                IWorkbenchBrowserSupport bSupport = PlatformUI.getWorkbench().getBrowserSupport();
-                if (bSupport.isInternalWebBrowserAvailable()) {
-                    results.put(availableKey, Boolean.TRUE);
-                } else {
-                    results.put(availableKey, Boolean.FALSE);
-                }
+        List<String> lines = Files.readAllLines(Paths.get(filePath));
+        for (String line : lines) {
+            if (line.contains(text)) {
+                return true;
             }
-        });
-
-        return results.get(availableKey);
+        }
+        return false;
     }
-    
+
     /**
      * Returns true if the current process is running on a windows environment. False, otherwise.
      *
@@ -249,7 +227,7 @@ public class LibertyPluginTestUtils {
      *
      * @param filePath The directory path.
      *
-     * @return
+     * @return Returns true if the directory identified by the input path was deleted. False, otherwise.
      */
     private static boolean deleteDirectory(File file) {
         File[] files = file.listFiles();
@@ -259,5 +237,62 @@ public class LibertyPluginTestUtils {
             }
         }
         return file.delete();
+    }
+
+    /**
+     * Updates browser configuration preferences.
+     * 
+     * @param useInternal Determines whether an internal or external browser setting is set. If true, the internal browser setting is
+     *        set. If false the external browser setting is set.
+     * 
+     * @return True if the browser settings were updated successfully or if it already contains the desired value. False, otherwise.
+     */
+    public static boolean updateBrowserPreferences(boolean useInternal) {
+        boolean success = false;
+        // Preferences are stored in .metadata/.plugins/org.eclipse.core.runtime/.settings/<nodePath>.prefs.
+        // By default, the <nodePath> is the Bundle-SymbolicName of the plug-in. In this case, the qualifier
+        // needed to finding the browser preference is the nodePath: org.eclipse.ui.browser.
+        Preferences preferences = InstanceScope.INSTANCE.getNode("org.eclipse.ui.browser");
+
+        try {
+            // Update the internal/external browser option.
+            int inputChoice = (useInternal) ? 0 : 1;
+            int cfgBrowserChoice = preferences.getInt("browser-choice", 1);
+
+            if (cfgBrowserChoice != inputChoice) {
+                preferences.putInt("browser-choice", inputChoice);
+                preferences.flush();
+            }
+
+            success = true;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return success;
+    }
+
+    /**
+     * Returns true if the Eclipse instance supports internal browsers. False, otherwise.
+     *
+     * @return True if the Eclipse instance supports internal browsers. False, otherwise.
+     */
+    public static boolean isInternalBrowserSupportAvailable() {
+        final String availableKey = "available";
+        final Map<String, Boolean> results = new HashMap<String, Boolean>();
+
+        Display.getDefault().syncExec(new Runnable() {
+            @Override
+            public void run() {
+                IWorkbenchBrowserSupport bSupport = PlatformUI.getWorkbench().getBrowserSupport();
+                if (bSupport.isInternalWebBrowserAvailable()) {
+                    results.put(availableKey, Boolean.TRUE);
+                } else {
+                    results.put(availableKey, Boolean.FALSE);
+                }
+            }
+        });
+
+        return results.get(availableKey);
     }
 }

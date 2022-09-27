@@ -36,6 +36,29 @@
           <providerHint>junit5</providerHint>
         </configuration>
       </plugin>
+       <plugin>
+		   <groupId>org.eclipse.tycho</groupId>
+		   <artifactId>target-platform-configuration</artifactId>
+		   <version>${tycho.version}</version>
+		   <configuration>
+		      <!-- dependency versions should be consistent with the versions in target-platform.target -->
+		      <dependency-resolution>
+		         <extraRequirements>
+		            <!-- Required for Run As configuration launcher. -->
+                    <requirement>
+                       <type>p2-installable-unit</type>
+                       <id>org.eclipse.platform.sdk</id>
+                       <versionRange>4.25.0.I20220831-1800</versionRange>
+                    </requirement>
+                    <requirement>
+                       <type>p2-installable-unit</type>
+                       <id>org.eclipse.jdt.feature.group</id>
+                       <versionRange>3.18.1300.v20220831-1800</versionRange>
+                    </requirement>
+		         </extraRequirements>
+		      </dependency-resolution>
+		   </configuration>
+	  </plugin>
     </plugins>
   </build>
 

@@ -10,8 +10,11 @@ Require-Bundle: junit-jupiter-api;bundle-version="[5.8.0,6.0.0)",
  org.hamcrest.library;bundle-version="[1.3.0,2.2)"
 Import-Package: io.openliberty.tools.eclipse,
  io.openliberty.tools.eclipse.ui.dashboard,
+ io.openliberty.tools.eclipse.ui.launch,
+ org.eclipse.buildship.core,
  org.eclipse.core.resources,
  org.eclipse.core.runtime,
+ org.eclipse.core.runtime.preferences,
  org.eclipse.m2e.core,
  org.eclipse.m2e.core.embedder,
  org.eclipse.m2e.core.project,
@@ -23,4 +26,5 @@ Import-Package: io.openliberty.tools.eclipse,
  org.eclipse.swtbot.swt.finder.matchers,
  org.eclipse.swtbot.swt.finder.utils,
  org.eclipse.swtbot.swt.finder.waits,
- org.eclipse.swtbot.swt.finder.widgets
+ org.eclipse.swtbot.swt.finder.widgets,
+ org.osgi.service.prefs
