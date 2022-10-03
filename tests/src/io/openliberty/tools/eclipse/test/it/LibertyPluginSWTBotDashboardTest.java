@@ -18,7 +18,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import io.openliberty.tools.eclipse.test.it.utils.SWTPluginOperations;
+import io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations;
 
 /**
  * Tests Open Liberty Eclipse plugin functions.
@@ -34,14 +34,14 @@ public class LibertyPluginSWTBotDashboardTest {
      * Dashboard instance.
      */
     static SWTBotView dashboard;
-    
+
     /**
      * Setup.
      */
     @BeforeAll
     public static void setup() {
         bot = new SWTWorkbenchBot();
-        SWTPluginOperations.closeWelcomePage(bot);
+        SWTBotPluginOperations.closeWelcomePage(bot);
     }
 
     /**
@@ -60,6 +60,6 @@ public class LibertyPluginSWTBotDashboardTest {
     @Test
     public void testOpenDashboardWithToolbarIcon() {
         // Open the dashboard view.
-        SWTPluginOperations.openDashboardUsingToolbar(bot);
+        SWTBotPluginOperations.openDashboardUsingToolbar(bot);
     }
 }

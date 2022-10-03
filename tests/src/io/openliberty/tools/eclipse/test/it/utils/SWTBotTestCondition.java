@@ -19,11 +19,12 @@ import org.eclipse.swtbot.swt.finder.SWTBot;
 import org.eclipse.swtbot.swt.finder.waits.ICondition;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotShell;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotText;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotTree;
 
 /**
  * Provides a predefined set conditions to wait for.
  */
-public class SWTTestCondition {
+public class SWTBotTestCondition {
 
     /**
      * Returns true if the view is active. False, otherwise.
@@ -72,6 +73,30 @@ public class SWTTestCondition {
     }
 
     /**
+     * Returns true if the input tree structure is active and contains a particular item. False, otherwise.
+     * 
+     * @param tree The tree widget
+     * @param item The name of the desired item in the tree structure.
+     * 
+     * @return True If the input tree structure is active and contains a particular item. False, otherwise.
+     */
+    public static ICondition isTreeWidgetActive(SWTWorkbenchBot bot, String item) {
+        return new CustomCondition() {
+
+            @Override
+            public boolean test() throws Exception {
+                SWTBotTree tree = bot.tree();
+                return (tree != null) && (tree.isActive() && tree.getTreeItem(item) != null);
+            }
+
+            @Override
+            public String getFailureMessage() {
+                return "Tree is not active.";
+            }
+        };
+    }
+
+    /**
      * Returns true if the dialog is active. False, otherwise.
      * 
      * @param dialog The dialog to check.
@@ -106,7 +131,7 @@ public class SWTTestCondition {
 
             @Override
             public boolean test() throws Exception {
-                SWTBotEditor editor = SWTPluginOperations.searchForEditor(wbbot, fileName);
+                SWTBotEditor editor = SWTBotPluginOperations.searchForEditor(wbbot, fileName);
 
                 if (editor == null) {
                     return false;

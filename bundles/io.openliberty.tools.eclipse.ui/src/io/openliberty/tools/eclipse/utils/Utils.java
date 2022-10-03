@@ -86,7 +86,10 @@ public class Utils {
         if (part != null && part instanceof IEditorPart) {
             IEditorPart editorPart = (IEditorPart) part;
             IEditorInput input = editorPart.getEditorInput();
-            iProject = ((IResource) input.getAdapter(IResource.class)).getProject();
+            IResource resource = (IResource) input.getAdapter(IResource.class);
+            if (resource != null) {
+                iProject = resource.getProject();
+            }
         }
 
         return iProject;
@@ -120,8 +123,8 @@ public class Utils {
     /**
      * Returns the project instance associated with the currently selected view or editor.
      *
-     * @return The project instance associated with the currently selected view or editor. If the project is not found, null
-     *     is returned.
+     * @return The project instance associated with the currently selected view or editor. If the project is not found, null is
+     *         returned.
      */
     public static IProject getActiveProject() {
         IProject iProject = null;

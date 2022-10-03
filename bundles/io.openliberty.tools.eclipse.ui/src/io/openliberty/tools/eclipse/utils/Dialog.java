@@ -29,7 +29,7 @@ import io.openliberty.tools.eclipse.LibertyDevPlugin;
 
 public class Dialog {
 
-    public static String dTitle = "Liberty Dev Mode";
+    public static String dTitle = "Liberty Tools";
 
     /**
      * Displays an error message dialog with details.
@@ -69,21 +69,22 @@ public class Dialog {
         MessageDialog dialog = new MessageDialog(shell, dTitle, null, message, MessageDialog.WARNING, new String[] { "OK" }, 0);
         dialog.open();
     }
-    
+
     /**
      * Converts a throwable to a string.
      *
      * @param t The throwable.
+     * 
      * @return A throwable to a string
      */
     public static String throwableToString(Throwable t) {
         if (t != null) {
-    	    StringWriter sw = new StringWriter();
-    	    PrintWriter pw = new PrintWriter(sw);
-    	    t.printStackTrace(pw);
+            StringWriter sw = new StringWriter();
+            PrintWriter pw = new PrintWriter(sw);
+            t.printStackTrace(pw);
             return sw.toString();
         }
 
-    	return "";	
+        return "";
     }
 }
