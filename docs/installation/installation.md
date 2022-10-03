@@ -1,5 +1,7 @@
 # Installation
 
+> NOTE: Starting with the [0.3 early release](https://github.com/OpenLiberty/liberty-tools-eclipse/releases/tag/liberty-tools-0.3.0), Eclipse version 2022-09 and Java 17 are required. If using Eclipse version 2022-03 or 2022-06, you must use [Liberty Tools version 0.2 ](https://github.com/OpenLiberty/liberty-tools-eclipse/releases/tag/liberty-tools-0.2.0.202209201734).
+
 The Liberty tools plugin can be installed as new software by using the artifacts provided in the form of an update site or through an archive.
 
 1. Go to menu: `Help`->`Install New Software`.
@@ -8,7 +10,7 @@ The Liberty tools plugin can be installed as new software by using the artifacts
 
 2. Add the location containing the plugin's installation artifacts. This can be done in two ways:
 
-- Using an update site. The update site (`update-site-<version>`) is provided as a [branch on Open Liberty Tools for eclipse git repository](https://github.com/OpenLiberty/liberty-tools-eclipse/branches). Select the version you would like to install and copy a link to the branch. For example, for the 0.2 early release, use the following URL: https://raw.githubusercontent.com/OpenLiberty/liberty-tools-eclipse/update-site-0.2.
+- Using an update site. The update site (`update-site-<version>`) is provided as a [branch on Open Liberty Tools for eclipse git repository](https://github.com/OpenLiberty/liberty-tools-eclipse/branches). Select the version you would like to install and copy a link to the branch. For example, for the 0.3 early release, use the following URL: https://raw.githubusercontent.com/OpenLiberty/liberty-tools-eclipse/update-site-0.3.
 
 Click on the `Add...` button to open the `Add Repository` view. Specify a name, paste the copied link as the location, and click on the `Add` button. 
 
