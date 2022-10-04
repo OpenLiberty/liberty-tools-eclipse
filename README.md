@@ -1,5 +1,8 @@
 # Welcome to the Liberty Tools (for Eclipse) project
 
+> NOTE: Starting with the [0.3 early release](https://github.com/OpenLiberty/liberty-tools-eclipse/releases/tag/liberty-tools-0.3.0), Eclipse version 2022-09 and Java 17 are required. If using Eclipse version 2022-03 or 2022-06, you must use [Liberty Tools version 0.2 ](https://github.com/OpenLiberty/liberty-tools-eclipse/releases/tag/liberty-tools-0.2.0.202209201734).
+
+
 [![License](https://img.shields.io/badge/License-EPL%202.0-red.svg?label=license&logo=eclipse)](https://www.eclipse.org/legal/epl-2.0/)
 
 An [Open Liberty](https://openliberty.io/) plugin for Eclipse. The plugin will detect your Liberty Maven or

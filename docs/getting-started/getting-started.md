@@ -4,10 +4,10 @@
 
 ### Software requirements
 
-- Eclipse IDE. Minimum Eclipse IDE version: 2022-03. Tested with Eclipse IDE for Enterprise Java and Web Developers packages.
-- Java runtime. Eclipse interaction with the plugin was tested using versions: 11 and 17.
+- **Eclipse IDE:** Starting with the Liberty Tools 0.3 early release, Eclipse version 2022-09 is required. Tested with Eclipse IDE for Enterprise Java and Web Developers packages.
+- **Java runtime:** Starting with the Liberty Tools 0.3 early release, Java 17 is required to run the plugin in Eclipse. 
 
-  WARNING: When using Java 17 to run your applications using Liberty dev mode, you may encounter problems. The Liberty Maven and Gradle plugins currently do not support Java 17.
+  >WARNING: When using Java 17 to run your applications using Liberty dev mode, you may encounter problems. The Liberty Maven and Gradle plugins currently do not support Java 17.
 
 - [Liberty Tools feature](../installation/installation.md).
 
