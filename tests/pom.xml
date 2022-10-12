@@ -11,57 +11,84 @@
   Contributors:
       IBM Corporation - initial implementation
 -->
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-  <modelVersion>4.0.0</modelVersion>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
 
-  <parent>
-    <groupId>io.openliberty.tools.eclipse</groupId>
-    <artifactId>parent</artifactId>
-    <version>0.4.0-SNAPSHOT</version>
-  </parent>
+    <parent>
+        <groupId>io.openliberty.tools.eclipse</groupId>
+        <artifactId>parent</artifactId>
+        <version>0.4.0-SNAPSHOT</version>
+    </parent>
 
-  <artifactId>tests</artifactId>
-  <packaging>eclipse-test-plugin</packaging>
+    <artifactId>tests</artifactId>
+    <packaging>eclipse-test-plugin</packaging>
 
-  <build>
-    <plugins>
-      <plugin>
-        <groupId>org.eclipse.tycho</groupId>
-        <artifactId>tycho-surefire-plugin</artifactId>
-        <version>${tycho.version}</version>
-        <configuration>
-          <useUIHarness>true</useUIHarness>
-          <useUIThread>false</useUIThread>
-          <providerHint>junit5</providerHint>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
-
-  <profiles>
-    <profile>
-      <id>osx</id>
-      <activation>
-        <os>
-          <family>mac</family>
-        </os>
-      </activation>
-      <build>
-        <pluginManagement>
-          <plugins>
+    <build>
+        <plugins>
             <plugin>
-              <groupId>org.eclipse.tycho</groupId>
-              <artifactId>tycho-surefire-plugin</artifactId>
-              <version>${tycho-version}</version>
-              <configuration>
-                <argLine>-XstartOnFirstThread</argLine>
-              </configuration>
+                <groupId>org.eclipse.tycho</groupId>
+                <artifactId>tycho-surefire-plugin</artifactId>
+                <version>${tycho.version}</version>
+                <configuration>
+                    <useUIHarness>true</useUIHarness>
+                    <useUIThread>false</useUIThread>
+                    <providerHint>junit5</providerHint>
+                </configuration>
             </plugin>
-          </plugins>
-        </pluginManagement>
-      </build>
-    </profile>
-  </profiles>
+            <plugin>
+                <groupId>org.eclipse.tycho</groupId>
+                <artifactId>target-platform-configuration</artifactId>
+                <version>${tycho.version}</version>
+                <configuration>
+                    <!-- The following dependencies are required for test processing when initiated through the command  -->
+                    <!-- line (i.e. mvn install).                                                                        -->
+                    <!-- When the tests are processed through the command line, a basic Eclipse instance is created      -->
+                    <!-- to run them. This instance does not have the higher level Eclipse functions that the features   -->
+                    <!-- being tested require.                                                                           -->
+                    <dependency-resolution>
+                        <!-- Dependency versions should be consistent with the versions in target-platform.target        -->
+                        <extraRequirements>
+                            <!-- Required for Run As configuration launcher.                                             -->
+                            <requirement>
+                                <type>p2-installable-unit</type>
+                                <id>org.eclipse.platform.sdk</id>
+                                <versionRange>4.25.0.I20220831-1800</versionRange>
+                            </requirement>
+                            <requirement>
+                                <type>p2-installable-unit</type>
+                                <id>org.eclipse.jdt.feature.group</id>
+                                <versionRange>3.18.1300.v20220831-1800</versionRange>
+                            </requirement>
+                        </extraRequirements>
+                    </dependency-resolution>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>osx</id>
+            <activation>
+                <os>
+                    <family>mac</family>
+                </os>
+            </activation>
+            <build>
+                <pluginManagement>
+                    <plugins>
+                        <plugin>
+                            <groupId>org.eclipse.tycho</groupId>
+                            <artifactId>tycho-surefire-plugin</artifactId>
+                            <version>${tycho-version}</version>
+                            <configuration>
+                                <argLine>-XstartOnFirstThread</argLine>
+                            </configuration>
+                        </plugin>
+                    </plugins>
+                </pluginManagement>
+            </build>
+        </profile>
+    </profiles>
 
 </project>

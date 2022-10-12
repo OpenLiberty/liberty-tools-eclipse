@@ -27,22 +27,24 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Stream;
 
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IProjectDescription;
-import org.eclipse.core.resources.IResource;
-import org.eclipse.core.resources.IWorkspace;
-import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.buildship.core.BuildConfiguration;
+import org.eclipse.buildship.core.GradleBuild;
+import org.eclipse.buildship.core.GradleCore;
+import org.eclipse.buildship.core.GradleWorkspace;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotView;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotMenu;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -53,8 +55,10 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
+import io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils;
 import io.openliberty.tools.eclipse.test.it.utils.SWTPluginOperations;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
+import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher;
 
 /**
  * Tests Open Liberty Eclipse plugin functions.
@@ -86,14 +90,32 @@ public class LibertyPluginSWTBotGradleTest {
             DashboardView.APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT };
 
     /**
+     * Run As configuration menu items.
+     */
+    static String[] runAsShortcuts = new String[] { LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START,
+            LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONTAINER, LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_STOP,
+            LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_RUN_TESTS,
+            LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_GRADLE_VIEW_TEST_REPORT };
+
+    /**
      * Setup.
      */
     @BeforeAll
     public static void setup() {
         bot = new SWTWorkbenchBot();
         SWTPluginOperations.closeWelcomePage(bot);
+
+        // Import the required applications into the Eclipse workspace.
         importGradleApplications();
-        initialize();
+
+        // Update browser preferences.
+        if (isInternalBrowserSupportAvailable()) {
+            boolean success = LibertyPluginTestUtils.updateBrowserPreferences(true);
+            Assertions.assertTrue(success, () -> "Unable to update browser preferences.");
+        }
+
+        // Check basic plugin artifacts are functioning before running tests.
+        checkBasics();
     }
 
     /**
@@ -117,13 +139,18 @@ public class LibertyPluginSWTBotGradleTest {
     }
 
     /**
-     * Makes sure that some basics elements can be accessed or are present before running the tests. The following are
-     * checked:
-     * 1. The dashboard can be opened and its content retrieved.
-     * 2. The dashboard contains the expected applications.
-     * 3. The menu for the expected application contains the required actions.
+     * Makes sure that some basics actions can be performed before running the tests:
+     * 
+     * <pre>
+     * 1. The dashboard can be opened and its content retrieved. 
+     * 2. The dashboard contains the expected applications. 
+     * 3. The dashboard menu associated with a selected application contains the required actions. 
+     * 4. The Run As menu for the respective application contains the required shortcut actions. 
+     * 5. The Run As configuration view contains the Liberty Tools entry for creating a configuration.
+     * 6. The Debug As configuration view contains the Liberty Tools entry for creating a configuration.
+     * </pre>
      */
-    public static final void initialize() {
+    public static final void checkBasics() {
 
         Path projPath = Paths.get("resources", "applications", "gradle", GRADLE_APP_NAME);
         File projectFile = projPath.toFile();
@@ -149,6 +176,38 @@ public class LibertyPluginSWTBotGradleTest {
                 + " does not contain the expected number of menu items: " + gradleMenuItems.length);
         Assertions.assertTrue(menuItems.containsAll(Arrays.asList(gradleMenuItems)),
                 () -> "Gradle application " + GRADLE_APP_NAME + " does not contain the expected menu items: " + gradleMenuItems);
+
+        // Check that the Run As menu contains the expected shortcut
+        SWTBotMenu runAsMenu = SWTPluginOperations.getAppRunAsMenu(bot, GRADLE_APP_NAME);
+        Assertions.assertTrue(runAsMenu != null, "The runAs menu associated with project: " + GRADLE_APP_NAME + " is null.");
+        List<String> runAsMenuItems = runAsMenu.menuItems();
+        Assertions.assertTrue(runAsMenuItems != null && !runAsMenuItems.isEmpty(),
+                "The runAs menu associated with project: " + GRADLE_APP_NAME + " is null or empty.");
+        int foundItems = 0;
+
+        for (String expectedItem : runAsShortcuts) {
+            for (String item : runAsMenuItems) {
+                if (item.contains(expectedItem)) {
+                    foundItems++;
+                    break;
+                }
+            }
+        }
+
+        Assertions.assertTrue(foundItems == runAsShortcuts.length,
+                "The runAs menu associated with project: " + GRADLE_APP_NAME
+                        + " does not contain one or more expected entries. Expected number of entries: " + runAsShortcuts.length
+                        + "Found entry count: " + foundItems + ". Found menu entries: " + runAsMenuItems);
+
+        // Check that the Run As -> Run Configurations ... contains the Liberty tools entry in the menu.
+        SWTBotTreeItem runAslibertyToolsEntry = SWTPluginOperations.getLibertyToolsConfigMenuEntry(bot, GRADLE_APP_NAME, "run");
+        Assertions.assertTrue(runAslibertyToolsEntry != null, "Liberty Tools entry in Run Configurations view was not found.");
+        bot.button("Close").click();
+
+        // Check that the Debug As -> Debug Configurations... contains the Liberty tools entry in the menu.
+        SWTBotTreeItem debugAslibertyToolsEntry = SWTPluginOperations.getLibertyToolsConfigMenuEntry(bot, GRADLE_APP_NAME, "debug");
+        Assertions.assertTrue(debugAslibertyToolsEntry != null, "Liberty Tools entry in Debug Configurations view was not found.");
+        bot.button("Close").click();
     }
 
     /**
@@ -248,8 +307,9 @@ public class LibertyPluginSWTBotGradleTest {
 
     /**
      * Tests the refresh action on the dashboard's toolbar.
-     * @throws IOException 
-     * @throws InterruptedException 
+     * 
+     * @throws IOException
+     * @throws InterruptedException
      */
     @Disabled("Issue 58")
     @Test
@@ -331,6 +391,174 @@ public class LibertyPluginSWTBotGradleTest {
     }
 
     /**
+     * Tests the start run as config launch action.
+     */
+    @Test
+    public void testRunAsConfigStart() {
+        // Delete any previously created configs.
+        SWTPluginOperations.deleteLibertyToolsConfigEntries(bot, GRADLE_APP_NAME, "run");
+
+        // Start dev mode.
+        SWTPluginOperations.launchAppConfigStart(bot, GRADLE_APP_NAME, "run");
+        SWTBotView terminal = bot.viewByTitle("Terminal");
+        terminal.show();
+
+        // Validate application is up and running.
+        validateApplicationOutcome(GRADLE_APP_NAME, true, testAppPath + "/build");
+
+        // Stop dev mode.
+        SWTPluginOperations.launchAppConfigShortcutStop(bot, GRADLE_APP_NAME, "run");
+        terminal.show();
+
+        // Validate application stopped.
+        validateApplicationOutcome(GRADLE_APP_NAME, false, testAppPath + "/build");
+
+        // Close the terminal.
+        terminal.close();
+    }
+
+    /**
+     * Tests the start with parameters run as config launch action.
+     */
+    @Test
+    public void testRunAsConfigStartWithParms() {
+        // Delete any previously created configs.
+        SWTPluginOperations.deleteLibertyToolsConfigEntries(bot, GRADLE_APP_NAME, "run");
+
+        // Delete the test report files before we start this test.
+        Path projectPath = Paths.get("resources", "applications", "gradle", "liberty-gradle-test-app");
+        Path pathToTestReport = DevModeOperations.getGradleTestReportPath(projectPath.toString());
+        boolean testReportDeleted = deleteFile(pathToTestReport.toFile());
+        Assertions.assertTrue(testReportDeleted, () -> "File: " + pathToTestReport + " was not deleted.");
+
+        // Start dev mode with parms.
+        SWTPluginOperations.launchAppConfigStartWithParms(bot, GRADLE_APP_NAME, "run", "--hotTests");
+        SWTBotView terminal = bot.viewByTitle("Terminal");
+        terminal.show();
+
+        // Validate application is up and running.
+        validateApplicationOutcome(GRADLE_APP_NAME, true, testAppPath + "/build");
+
+        // Validate that the test reports were generated.
+        validateTestReportExists(pathToTestReport);
+
+        // Stop dev mode.
+        SWTPluginOperations.launchAppConfigShortcutStop(bot, GRADLE_APP_NAME, "run");
+        terminal.show();
+
+        // Validate application stopped.
+        validateApplicationOutcome(GRADLE_APP_NAME, false, testAppPath + "/build");
+
+        // Close the terminal.
+        terminal.close();
+    }
+
+    /**
+     * Tests the start, run tests, view test report, and stop run as shortcut actions.
+     */
+    @Test
+    public void testRunAsRunTestsShortcut() {
+        // Delete any previously created configs.
+        SWTPluginOperations.deleteLibertyToolsConfigEntries(bot, GRADLE_APP_NAME, "run");
+
+        // Delete the test report files before we start this test.
+        Path projectPath = Paths.get("resources", "applications", "gradle", "liberty-gradle-test-app");
+        Path pathToTestReport = DevModeOperations.getGradleTestReportPath(projectPath.toString());
+        boolean testReportDeleted = deleteFile(pathToTestReport.toFile());
+        Assertions.assertTrue(testReportDeleted, () -> "Test report file: " + pathToTestReport + " was not be deleted.");
+
+        // Start dev mode.
+        SWTPluginOperations.launchAppConfigShortcutStart(bot, GRADLE_APP_NAME, "run");
+        SWTBotView terminal = bot.viewByTitle("Terminal");
+        terminal.show();
+
+        // Validate application is up and running.
+        validateApplicationOutcome(GRADLE_APP_NAME, true, testAppPath + "/build");
+
+        // Run Tests.
+        SWTPluginOperations.launchAppRunAsShortcutRunTests(bot, GRADLE_APP_NAME, "run");
+
+        // Validate that the reports were generated and the the browser editor was launched.
+        validateTestReportExists(pathToTestReport);
+        if (isInternalBrowserSupportAvailable()) {
+            SWTPluginOperations.launchAppRunAsShortcutViewGradleTestReport(bot, GRADLE_APP_NAME);
+        }
+
+        // Stop dev mode.
+        SWTPluginOperations.launchAppConfigShortcutStop(bot, GRADLE_APP_NAME, "run");
+        terminal.show();
+
+        // Validate application stopped.
+        validateApplicationOutcome(GRADLE_APP_NAME, false, testAppPath + "/build");
+
+        // Close the terminal.
+        terminal.close();
+    }
+
+    /**
+     * Tests the start with parameters debug as config launch action.
+     */
+    @Test
+    public void testDebugAsConfigStartWithParms() {
+        // Delete any previously created configs.
+        SWTPluginOperations.deleteLibertyToolsConfigEntries(bot, GRADLE_APP_NAME, "debug");
+
+        // Delete the test report files before we start this test.
+        Path projectPath = Paths.get("resources", "applications", "gradle", "liberty-gradle-test-app");
+        Path pathToTestReport = DevModeOperations.getGradleTestReportPath(projectPath.toString());
+        boolean testReportDeleted = deleteFile(pathToTestReport.toFile());
+        Assertions.assertTrue(testReportDeleted, () -> "File: " + pathToTestReport + " was not deleted.");
+
+        // Start dev mode with parms.
+        SWTPluginOperations.launchAppConfigStartWithParms(bot, GRADLE_APP_NAME, "debug", "--hotTests");
+        SWTBotView terminal = bot.viewByTitle("Terminal");
+        terminal.show();
+
+        // Validate application is up and running.
+        validateApplicationOutcome(GRADLE_APP_NAME, true, testAppPath + "/build");
+
+        // Validate that the test reports were generated.
+        validateTestReportExists(pathToTestReport);
+
+        // Stop dev mode.
+        SWTPluginOperations.launchAppConfigShortcutStop(bot, GRADLE_APP_NAME, "debug");
+        terminal.show();
+
+        // Validate application stopped.
+        validateApplicationOutcome(GRADLE_APP_NAME, false, testAppPath + "/build");
+
+        // Close the terminal.
+        terminal.close();
+    }
+
+    /**
+     * Tests the start/stop debug as shortcut actions.
+     */
+    @Test
+    public void testDebugAsStartShortcut() {
+        // Delete any previously created configs.
+        SWTPluginOperations.deleteLibertyToolsConfigEntries(bot, GRADLE_APP_NAME, "debug");
+
+        // Start dev mode.
+        SWTPluginOperations.launchAppConfigShortcutStart(bot, GRADLE_APP_NAME, "debug");
+        SWTBotView terminal = bot.viewByTitle("Terminal");
+        terminal.show();
+
+        // Validate application is up and running.
+        validateApplicationOutcome(GRADLE_APP_NAME, true, testAppPath + "/build");
+
+        // Stop dev mode.
+        SWTPluginOperations.launchAppConfigShortcutStop(bot, GRADLE_APP_NAME, "debug");
+        terminal.show();
+
+        // Validate application stopped.
+        validateApplicationOutcome(GRADLE_APP_NAME, false, testAppPath + "/build");
+
+        // Close the terminal.
+        terminal.close();
+    }
+
+    /**
      * Imports existing Gradle application projects into the workspace.
      */
     public static void importGradleApplications() {
@@ -338,12 +566,11 @@ public class LibertyPluginSWTBotGradleTest {
 
             @Override
             public void run() {
-
-                Path projPath = Paths.get("resources", "applications", "gradle", GRADLE_APP_NAME);
-                File project = projPath.toFile();
-
+                ArrayList<File> projectsToInstall = new ArrayList<File>();
+                File mainProject = Paths.get("resources", "applications", "gradle", GRADLE_APP_NAME).toFile();
+                projectsToInstall.add(mainProject);
                 try {
-                    importProjects(project);
+                    importProjects(projectsToInstall);
                 } catch (Exception e) {
                     e.printStackTrace();
                     Assertions.fail();
@@ -355,24 +582,21 @@ public class LibertyPluginSWTBotGradleTest {
     /**
      * Imports the specified list of projects.
      *
-     * @param workspaceRoot The workspace root location.
-     * @param folders The list of folders containing the projects to install.
+     * @param projectsToInstall The list of File objects representing the location of the projects to install.
      *
      * @throws InterruptedException
      * @throws CoreException
      */
-    public static void importProjects(File projectFile) throws InterruptedException, CoreException {
-        IPath projectLocation = org.eclipse.core.runtime.Path.fromOSString(Paths.get(projectFile.getPath()).toAbsolutePath().toString());
+    public static void importProjects(ArrayList<File> projectsToInstall) throws InterruptedException, CoreException {
+        for (File projectFile : projectsToInstall) {
+            IPath projectLocation = org.eclipse.core.runtime.Path
+                    .fromOSString(Paths.get(projectFile.getPath()).toAbsolutePath().toString());
 
-        // get an IProject instance and create the project
-        IWorkspace workspace = ResourcesPlugin.getWorkspace();
-        IProjectDescription projectDescription = workspace.newProjectDescription(GRADLE_APP_NAME);
-        projectDescription.setLocation(projectLocation);
-        IProject project = workspace.getRoot().getProject(GRADLE_APP_NAME);
-        project.create(projectDescription, new NullProgressMonitor());
-
-        // open the project
-        project.open(IResource.NONE, new NullProgressMonitor());
+            BuildConfiguration configuration = BuildConfiguration.forRootProjectDirectory(projectLocation.toFile()).build();
+            GradleWorkspace workspace = GradleCore.getWorkspace();
+            GradleBuild newBuild = workspace.createBuild(configuration);
+            newBuild.synchronize(new NullProgressMonitor());
+        }
     }
 
     /**
