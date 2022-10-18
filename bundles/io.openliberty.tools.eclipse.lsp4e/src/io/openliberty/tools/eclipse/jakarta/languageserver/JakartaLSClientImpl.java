@@ -89,7 +89,7 @@ public class JakartaLSClientImpl extends LanguageClientImpl implements JakartaLa
         });
     }
 
-    public CompletableFuture<List<CodeAction>> getCodeAction(CodeActionParams params) {
+    public CompletableFuture<List<CodeAction>> getCodeAction(JakartaJavaCodeActionParams params) {
         JDTUtils utils = new JDTUtils();
 
         return CompletableFutures.computeAsync((cancelChecker) -> {

@@ -10,7 +10,7 @@
 * Contributors:
 *     IBM Corporation - initial implementation
 *******************************************************************************/
-package io.openliberty.tools.eclipse.mpls;
+package io.openliberty.tools.eclipse.ls.plugin;
 
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -21,18 +21,18 @@ import org.osgi.framework.BundleContext;
 /**
  * The activator class controls the plug-in life cycle
  */
-public class LibertyMPLSPlugin extends AbstractUIPlugin {
+public class LibertyToolsLSPlugin extends AbstractUIPlugin {
 
 	// The plug-in ID
 	public static final String PLUGIN_ID = "io.openliberty.tools.eclipse.lsp4e"; //$NON-NLS-1$
 
 	// The shared instance
-	private static LibertyMPLSPlugin plugin;
+	private static LibertyToolsLSPlugin plugin;
 
 	/**
 	 * The constructor
 	 */
-	public LibertyMPLSPlugin() {
+	public LibertyToolsLSPlugin() {
 	}
 
 	@Override
@@ -52,7 +52,7 @@ public class LibertyMPLSPlugin extends AbstractUIPlugin {
 	 *
 	 * @return the shared instance
 	 */
-	public static LibertyMPLSPlugin getDefault() {
+	public static LibertyToolsLSPlugin getDefault() {
 		return plugin;
 	}
 
@@ -62,7 +62,7 @@ public class LibertyMPLSPlugin extends AbstractUIPlugin {
 	}
 
 	public static String getPluginId() {
-		return LibertyMPLSPlugin.PLUGIN_ID;
+		return LibertyToolsLSPlugin.PLUGIN_ID;
 	}
 
 	public static void log(IStatus status) {
