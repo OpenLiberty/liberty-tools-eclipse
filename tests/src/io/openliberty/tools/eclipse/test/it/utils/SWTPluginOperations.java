@@ -106,7 +106,7 @@ public class SWTPluginOperations {
      */
     public static List<String> getDashboardContent(SWTWorkbenchBot bot, SWTBotView dashboard) {
         if (dashboard == null) {
-            SWTPluginOperations.openDashboardUsingMenu(bot);
+            SWTPluginOperations.openDashboardUsingToolbar(bot);
         } else {
             dashboard.show();
         }
@@ -131,12 +131,11 @@ public class SWTPluginOperations {
      */
     public static List<String> getDashboardItemMenuActions(SWTWorkbenchBot bot, SWTBotView dashboard, String item) {
         if (dashboard == null) {
-            SWTPluginOperations.openDashboardUsingMenu(bot);
+            SWTPluginOperations.openDashboardUsingToolbar(bot);
         } else {
             dashboard.show();
         }
 
-        SWTPluginOperations.openDashboardUsingMenu(bot);
         SWTBotTable dashboardTable = bot.table();
         dashboardTable.select(item);
         SWTBotRootMenu appCtxMenu = dashboardTable.contextMenu();
@@ -637,7 +636,7 @@ public class SWTPluginOperations {
      */
     public static SWTBotRootMenu getAppContextMenu(SWTWorkbenchBot bot, SWTBotView dashboard, String item) {
         if (dashboard == null) {
-            SWTPluginOperations.openDashboardUsingMenu(bot);
+            SWTPluginOperations.openDashboardUsingToolbar(bot);
         } else {
             dashboard.show();
             dashboard.setFocus();
@@ -646,21 +645,6 @@ public class SWTPluginOperations {
         SWTBotTable dashboardTable = bot.table();
         dashboardTable.select(item);
         return dashboardTable.contextMenu();
-    }
-
-    /**
-     * Returns the Open Liberty dashboard view obtained by using Liberty menu.
-     *
-     * @param bot The SWTWorkbenchBot instance.
-     *
-     * @return The Open Liberty dashboard view obtained by using Liberty menu.
-     */
-    public static SWTBotView openDashboardUsingMenu(SWTWorkbenchBot bot) {
-        bot.menu(MENU_NAME).menu(MENU_OPEN_DASHBOARD_ACTION).click();
-        SWTBotView dashboard = bot.viewByTitle(DASHBOARD_VIEW_TITLE);
-        bot.waitUntil(SWTTestCondition.isViewActive(dashboard, DASHBOARD_VIEW_TITLE), 5000);
-        dashboard.show();
-        return dashboard;
     }
 
     /**
