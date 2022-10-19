@@ -34,6 +34,14 @@ import org.eclipse.ui.part.ViewPart;
 import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.Project;
 import io.openliberty.tools.eclipse.logging.Trace;
+import io.openliberty.tools.eclipse.ui.launch.shortcuts.OpenGradleTestReportAction;
+import io.openliberty.tools.eclipse.ui.launch.shortcuts.OpenMavenITestReportAction;
+import io.openliberty.tools.eclipse.ui.launch.shortcuts.OpenMavenUTestReportAction;
+import io.openliberty.tools.eclipse.ui.launch.shortcuts.RunTestsAction;
+import io.openliberty.tools.eclipse.ui.launch.shortcuts.StartAction;
+import io.openliberty.tools.eclipse.ui.launch.shortcuts.StartInContainerAction;
+import io.openliberty.tools.eclipse.ui.launch.shortcuts.StartConfigurationDialogAction;
+import io.openliberty.tools.eclipse.ui.launch.shortcuts.StopAction;
 import io.openliberty.tools.eclipse.utils.Dialog;
 
 /**
@@ -50,7 +58,7 @@ public class DashboardView extends ViewPart {
      * Menu Constants.
      */
     public static final String APP_MENU_ACTION_START = "Start";
-    public static final String APP_MENU_ACTION_START_PARMS = "Start...";
+    public static final String APP_MENU_ACTION_START_CONFIG = "Start...";
     public static final String APP_MENU_ACTION_START_IN_CONTAINER = "Start in container";
     public static final String APP_MENU_ACTION_STOP = "Stop";
     public static final String APP_MENU_ACTION_RUN_TESTS = "Run tests";
@@ -63,7 +71,7 @@ public class DashboardView extends ViewPart {
      * view actions.
      */
     private Action startAction;
-    private Action startWithParmAction;
+    private Action startConfigDialogAction;
     private Action startInContainerAction;
     private Action stopAction;
     private Action runTestAction;
@@ -163,7 +171,7 @@ public class DashboardView extends ViewPart {
 
         if (project != null) {
             mgr.add(startAction);
-            mgr.add(startWithParmAction);
+            mgr.add(startConfigDialogAction);
             mgr.add(startInContainerAction);
             mgr.add(stopAction);
             mgr.add(runTestAction);
@@ -205,9 +213,19 @@ public class DashboardView extends ViewPart {
         startAction = new Action(APP_MENU_ACTION_START) {
             @Override
             public void run() {
-                devModeOps.start();
+                IProject iproject = devModeOps.getSelectedDashboardProject();
+                try {
+                    StartAction.run(iproject, null, "run");
+                } catch (Exception e) {
+                    String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_START + " action.";
+                    if (Trace.isEnabled()) {
+                        Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
+                    }
+                    Dialog.displayErrorMessageWithDetails(msg, e);
+                }
             }
         };
+
         startAction.setImageDescriptor(ActionImg);
         startAction.setActionDefinitionId("io.openliberty.tools.eclipse.project.start.command");
         IHandlerService handlerService = getSite().getService(IHandlerService.class);
@@ -215,22 +233,32 @@ public class DashboardView extends ViewPart {
         handlerService.activateHandler(startAction.getActionDefinitionId(), startHandler);
 
         // Menu: Start with parameters.
-        startWithParmAction = new Action(APP_MENU_ACTION_START_PARMS) {
+        startConfigDialogAction = new Action(APP_MENU_ACTION_START_CONFIG) {
             @Override
             public void run() {
-                devModeOps.startWithParms();
+                StartConfigurationDialogAction.openLaunchConfigurationsDialog();
             }
         };
-        startWithParmAction.setImageDescriptor(ActionImg);
-        startWithParmAction.setActionDefinitionId("io.openliberty.tools.eclipse.project.startWithParms.command");
-        ActionHandler startWithParmsHandler = new ActionHandler(startWithParmAction);
-        handlerService.activateHandler(startWithParmAction.getActionDefinitionId(), startWithParmsHandler);
+        startConfigDialogAction.setImageDescriptor(ActionImg);
+        startConfigDialogAction.setActionDefinitionId("io.openliberty.tools.eclipse.project.startConfigDialog.command");
+        ActionHandler startConfigDialogHandler = new ActionHandler(startConfigDialogAction);
+        handlerService.activateHandler(startConfigDialogAction.getActionDefinitionId(), startConfigDialogHandler);
 
         // Menu: Start in container.
         startInContainerAction = new Action(APP_MENU_ACTION_START_IN_CONTAINER) {
             @Override
             public void run() {
-                devModeOps.startInContainer();
+                IProject iproject = devModeOps.getSelectedDashboardProject();
+                try {
+                    StartInContainerAction.run(iproject, null, "run");
+                } catch (Exception e) {
+                    String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_START_IN_CONTAINER
+                            + " action.";
+                    if (Trace.isEnabled()) {
+                        Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
+                    }
+                    Dialog.displayErrorMessageWithDetails(msg, e);
+                }
             }
         };
         startInContainerAction.setImageDescriptor(ActionImg);
@@ -242,7 +270,16 @@ public class DashboardView extends ViewPart {
         stopAction = new Action(APP_MENU_ACTION_STOP) {
             @Override
             public void run() {
-                devModeOps.stop();
+                IProject iproject = devModeOps.getSelectedDashboardProject();
+                try {
+                    StopAction.run(iproject);
+                } catch (Exception e) {
+                    String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_STOP + " action.";
+                    if (Trace.isEnabled()) {
+                        Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
+                    }
+                    Dialog.displayErrorMessageWithDetails(msg, e);
+                }
             }
         };
         stopAction.setImageDescriptor(ActionImg);
@@ -254,7 +291,16 @@ public class DashboardView extends ViewPart {
         runTestAction = new Action(APP_MENU_ACTION_RUN_TESTS) {
             @Override
             public void run() {
-                devModeOps.runTests();
+                IProject iproject = devModeOps.getSelectedDashboardProject();
+                try {
+                    RunTestsAction.run(iproject);
+                } catch (Exception e) {
+                    String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_RUN_TESTS + " action.";
+                    if (Trace.isEnabled()) {
+                        Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
+                    }
+                    Dialog.displayErrorMessageWithDetails(msg, e);
+                }
             }
         };
         runTestAction.setImageDescriptor(ActionImg);
@@ -266,7 +312,17 @@ public class DashboardView extends ViewPart {
         viewMavenITestReportsAction = new Action(APP_MENU_ACTION_VIEW_MVN_IT_REPORT) {
             @Override
             public void run() {
-                devModeOps.openMavenIntegrationTestReport();
+                IProject iproject = devModeOps.getSelectedDashboardProject();
+                try {
+                    OpenMavenITestReportAction.run(iproject);
+                } catch (Exception e) {
+                    String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_VIEW_MVN_IT_REPORT
+                            + " action.";
+                    if (Trace.isEnabled()) {
+                        Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
+                    }
+                    Dialog.displayErrorMessageWithDetails(msg, e);
+                }
             }
         };
         viewMavenITestReportsAction.setImageDescriptor(ActionImg);
@@ -278,7 +334,17 @@ public class DashboardView extends ViewPart {
         viewMavenUTestReportsAction = new Action(APP_MENU_ACTION_VIEW_MVN_UT_REPORT) {
             @Override
             public void run() {
-                devModeOps.openMavenUnitTestReport();
+                IProject iproject = devModeOps.getSelectedDashboardProject();
+                try {
+                    OpenMavenUTestReportAction.run(iproject);
+                } catch (Exception e) {
+                    String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_VIEW_MVN_UT_REPORT
+                            + " action.";
+                    if (Trace.isEnabled()) {
+                        Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
+                    }
+                    Dialog.displayErrorMessageWithDetails(msg, e);
+                }
             }
         };
         viewMavenUTestReportsAction.setImageDescriptor(ActionImg);
@@ -290,7 +356,17 @@ public class DashboardView extends ViewPart {
         viewGradleTestReportsAction = new Action(APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT) {
             @Override
             public void run() {
-                devModeOps.openGradleTestReport();
+                IProject iproject = devModeOps.getSelectedDashboardProject();
+                try {
+                    OpenGradleTestReportAction.run(iproject);
+                } catch (Exception e) {
+                    String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT
+                            + " action.";
+                    if (Trace.isEnabled()) {
+                        Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
+                    }
+                    Dialog.displayErrorMessageWithDetails(msg, e);
+                }
             }
         };
         viewGradleTestReportsAction.setImageDescriptor(ActionImg);
@@ -306,7 +382,6 @@ public class DashboardView extends ViewPart {
                     viewer.setInput(devModeOps.getSupportedProjects());
                 } catch (Exception e) {
                     Dialog.displayErrorMessageWithDetails("An error was detected while retrieving Liberty projects.", e);
-                    return;
                 }
             }
         };

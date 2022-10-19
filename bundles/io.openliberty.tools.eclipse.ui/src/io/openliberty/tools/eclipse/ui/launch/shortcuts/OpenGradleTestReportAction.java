@@ -24,40 +24,27 @@ import io.openliberty.tools.eclipse.utils.Dialog;
 import io.openliberty.tools.eclipse.utils.Utils;
 
 /**
- * Liberty Tools view Gradle test report action shortcut.
+ * Liberty view Gradle test report action shortcut.
  */
 public class OpenGradleTestReportAction implements ILaunchShortcut {
-
-    /**
-     * DevModeOperations instance.
-     */
-    private DevModeOperations devModeOps = DevModeOperations.getInstance();
 
     /**
      * {@inheritDoc}
      */
     @Override
     public void launch(ISelection selection, String mode) {
-        IProject iProject = null;
-
         try {
-            iProject = Utils.getProjectFromSelection(selection);
-            if (iProject == null) {
-                throw new Exception("Unable to find the selected project.");
-            }
-
-            devModeOps.verifyProjectSupport(iProject);
+            IProject iProject = Utils.getProjectFromSelection(selection);
+            run(iProject);
         } catch (Exception e) {
-            String msg = "An error was detected during \"" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_GRADLE_VIEW_TEST_REPORT
-                    + "\" launch shortcut processing.";
+            String msg = "An error was detected while processing the \""
+                    + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_GRADLE_VIEW_TEST_REPORT + "\" launch shortcut.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }
             Dialog.displayErrorMessageWithDetails(msg, e);
             return;
         }
-
-        devModeOps.openGradleTestReport(iProject);
     }
 
     /**
@@ -65,25 +52,37 @@ public class OpenGradleTestReportAction implements ILaunchShortcut {
      */
     @Override
     public void launch(IEditorPart part, String mode) {
-        IProject iProject = null;
-
         try {
-            iProject = Utils.getProjectFromPart(part);
-            if (iProject == null) {
-                throw new Exception("Unable to find the selected project.");
-            }
-
-            devModeOps.verifyProjectSupport(iProject);
+            IProject iProject = Utils.getProjectFromPart(part);
+            run(iProject);
         } catch (Exception e) {
-            String msg = "An error was detected during \"" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_GRADLE_VIEW_TEST_REPORT
-                    + "\" launch shortcut processing.";
+            String msg = "An error was detected while processing the \""
+                    + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_GRADLE_VIEW_TEST_REPORT + "\" launch shortcut.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }
             Dialog.displayErrorMessageWithDetails(msg, e);
             return;
         }
+    }
 
+    /**
+     * Processes the view test report shortcut action.
+     * 
+     * @param iProject The project to process.
+     * 
+     * @throws Exception
+     */
+    public static void run(IProject iProject) throws Exception {
+        if (iProject == null) {
+            throw new Exception("Invalid project. Be sure to select a project first.");
+        }
+
+        // Validate that the project is supported.
+        DevModeOperations devModeOps = DevModeOperations.getInstance();
+        devModeOps.verifyProjectSupport(iProject);
+
+        // Process the actions.
         devModeOps.openGradleTestReport(iProject);
     }
 }

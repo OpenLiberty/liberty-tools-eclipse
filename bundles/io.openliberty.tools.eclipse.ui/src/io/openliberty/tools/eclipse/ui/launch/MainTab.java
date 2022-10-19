@@ -22,7 +22,10 @@ import org.eclipse.jface.layout.GridLayoutFactory;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
@@ -38,13 +41,25 @@ import io.openliberty.tools.eclipse.utils.Utils;
 public class MainTab extends AbstractLaunchConfigurationTab {
 
     /** Configuration map key with a value representing the dev mode start parameter. */
-    public static final String START_PARM = "io.openliberty.tools.eclipse.launch.start.parm";
+    public static final String PROJECT_START_PARM = "io.openliberty.tools.eclipse.launch.start.parm";
 
     /** Configuration map key with a value representing the last project name associated with the configuration. */
     public static final String PROJECT_NAME = "io.openliberty.tools.eclipse.launch.project.name";
 
+    /** Configuration map key with a value representing the time when the associated project was last run. */
+    public static final String PROJECT_RUN_TIME = "io.openliberty.tools.eclipse.launch.project.time.run";
+
+    /** Configuration map key with a value stating whether or not the associated project ran in a container. */
+    public static final String PROJECT_RUN_IN_CONTAINER = "io.openliberty.tools.eclipse.launch.project.container.run";
+
+    /** Currently active project. */
+    IProject activeProject;
+
     /** Holds the start parameter text configuration. */
     private Text startParmText;
+
+    /** Holds the run in container check box. */
+    private Button runInContainerCheckBox;
 
     /**
      * {@inheritDoc}
@@ -57,12 +72,35 @@ public class MainTab extends AbstractLaunchConfigurationTab {
         // Create a page layout.
         GridLayoutFactory.swtDefaults().numColumns(2).applyTo(composite);
 
-        // Add a text box label.
-        Label label = new Label(composite, SWT.NONE);
-        label.setText("Start parameter:");
-        GridDataFactory.swtDefaults().applyTo(label);
+        // Add the check box.
+        runInContainerCheckBox = new Button(composite, SWT.CHECK);
+        runInContainerCheckBox.setText("Run in Container");
+        runInContainerCheckBox.setSelection(false);
+        runInContainerCheckBox.addSelectionListener(new SelectionAdapter() {
 
-        // Add a text box.
+            /**
+             * {@inheritDoc}
+             */
+            @Override
+            public void widgetSelected(SelectionEvent event) {
+                setDirty(true);
+                updateLaunchConfigurationDialog();
+            }
+        });
+        GridDataFactory.swtDefaults().applyTo(runInContainerCheckBox);
+        Label emptyLabel = new Label(composite, SWT.NONE);
+        GridDataFactory.swtDefaults().applyTo(emptyLabel);
+
+        // Add an empty line.
+        Label emptyLine = new Label(composite, SWT.NONE);
+        GridDataFactory.swtDefaults().span(2, 1).applyTo(emptyLine);
+
+        // Add the input parameter text box label.
+        Label inputParmLabel = new Label(composite, SWT.NONE);
+        inputParmLabel.setText("Start parameters:");
+        GridDataFactory.swtDefaults().indent(20, 0).applyTo(inputParmLabel);
+
+        // Add the input parameter text box.
         startParmText = new Text(composite, SWT.BORDER);
         startParmText.setMessage("Example: -DhotTests=true");
         startParmText.addModifyListener(new ModifyListener() {
@@ -94,8 +132,15 @@ public class MainTab extends AbstractLaunchConfigurationTab {
     public void initializeFrom(ILaunchConfiguration configuration) {
         // Initialize the configuration view with previously saved values.
         try {
-            String consoleText = configuration.getAttribute(START_PARM, "");
+            activeProject = Utils.getActiveProject();
+
+            String consoleText = configuration.getAttribute(PROJECT_START_PARM, "");
             startParmText.setText(consoleText);
+
+            boolean runInContainer = configuration.getAttribute(PROJECT_RUN_IN_CONTAINER, false);
+            runInContainerCheckBox.setSelection(runInContainer);
+
+            setDirty(false);
         } catch (CoreException ce) {
             // Trace and ignore.
             String msg = "An error was detected during Run Configuration initialization.";
@@ -110,13 +155,14 @@ public class MainTab extends AbstractLaunchConfigurationTab {
      */
     @Override
     public void performApply(ILaunchConfigurationWorkingCopy configuration) {
-        // Capture the entries typed on the currently active launch configuration.
-        configuration.setAttribute(START_PARM, startParmText.getText());
-
-        IProject project = Utils.getActiveProject();
-        if (project != null) {
-            configuration.setAttribute(PROJECT_NAME, project.getName());
+        // Save the active project's name in the configuration.
+        if (activeProject != null) {
+            configuration.setAttribute(PROJECT_NAME, activeProject.getName());
         }
+
+        // Capture the entries typed on the currently active launch configuration.
+        configuration.setAttribute(PROJECT_START_PARM, startParmText.getText());
+        configuration.setAttribute(PROJECT_RUN_IN_CONTAINER, runInContainerCheckBox.getSelection());
     }
 
     /**

@@ -25,6 +25,7 @@ import org.eclipse.ui.PlatformUI;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.logging.Trace;
+import io.openliberty.tools.eclipse.ui.launch.shortcuts.StartAction;
 import io.openliberty.tools.eclipse.utils.Dialog;
 import io.openliberty.tools.eclipse.utils.Utils;
 
@@ -34,7 +35,7 @@ import io.openliberty.tools.eclipse.utils.Utils;
 public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDelegate {
 
     /** Launch configuration type ID as specified in plugin.xml. */
-    public static final String LAUNCH_CONFIG_TYPE_ID = "io.openliberty.tools.eclipse.launch.config.type";
+    public static final String LAUNCH_CONFIG_TYPE_ID = "io.openliberty.tools.eclipse.launch.type";
 
     /** DevModeOperations instance. */
     DevModeOperations devModeOps = DevModeOperations.getInstance();
@@ -44,6 +45,7 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
 
     /** Launch shortcuts */
     public static final String LAUNCH_SHORTCUT_START = "Liberty Start";
+    public static final String LAUNCH_SHORTCUT_START_CONFIG = "Liberty Start...";
     public static final String LAUNCH_SHORTCUT_STOP = "Liberty Stop";
     public static final String LAUNCH_SHORTCUT_START_CONTAINER = "Liberty Start in Container";
     public static final String LAUNCH_SHORTCUT_RUN_TESTS = "Liberty Run Tests";
@@ -56,23 +58,19 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
      */
     @Override
     public void launch(ILaunchConfiguration configuration, String mode, ILaunch launch, IProgressMonitor monitor) throws CoreException {
+        // Processing paths:
+        // - Explorer-> Run As-> Run Configurations
+        // - Dashboard-> project -> Start...
         IWorkbench workbench = PlatformUI.getWorkbench();
         Display display = workbench.getDisplay();
         display.syncExec(new Runnable() {
             public void run() {
-                IProject iProject = null;
-                String startParms = null;
-
                 try {
-                    iProject = Utils.getActiveProject();
+                    IProject iProject = Utils.getActiveProject();
                     if (iProject == null) {
-                        throw new Exception(
-                                "Unable to find the selected project. Be sure to select a project prior to launching a configuration.");
+                        iProject = devModeOps.getSelectedDashboardProject();
                     }
-
-                    devModeOps.verifyProjectSupport(iProject);
-
-                    startParms = configuration.getAttribute(MainTab.START_PARM, (String) null);
+                    StartAction.run(iProject, configuration, mode);
                 } catch (Exception e) {
                     String msg = "An error was detected while launching configuration " + configuration.getName() + ".";
                     if (Trace.isEnabled()) {
@@ -80,12 +78,6 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
                     }
                     Dialog.displayErrorMessageWithDetails(msg, e);
                     return;
-                }
-
-                if (startParms == null || startParms.isEmpty()) {
-                    devModeOps.start(iProject);
-                } else {
-                    devModeOps.startWithParms(iProject, startParms);
                 }
             }
         });

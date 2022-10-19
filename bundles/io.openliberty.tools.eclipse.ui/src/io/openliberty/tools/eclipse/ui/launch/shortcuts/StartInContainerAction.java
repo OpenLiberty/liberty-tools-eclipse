@@ -13,6 +13,7 @@
 package io.openliberty.tools.eclipse.ui.launch.shortcuts;
 
 import org.eclipse.core.resources.IProject;
+import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.ui.ILaunchShortcut;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.IEditorPart;
@@ -20,44 +21,32 @@ import org.eclipse.ui.IEditorPart;
 import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher;
+import io.openliberty.tools.eclipse.ui.launch.MainTab;
 import io.openliberty.tools.eclipse.utils.Dialog;
 import io.openliberty.tools.eclipse.utils.Utils;
 
 /**
- * Liberty Tools start in container action shortcut.
+ * Liberty start in container action shortcut.
  */
 public class StartInContainerAction implements ILaunchShortcut {
-
-    /**
-     * DevModeOperations instance.
-     */
-    private DevModeOperations devModeOps = DevModeOperations.getInstance();
 
     /**
      * {@inheritDoc}
      */
     @Override
     public void launch(ISelection selection, String mode) {
-        IProject iProject = null;
-
         try {
-            iProject = Utils.getProjectFromSelection(selection);
-            if (iProject == null) {
-                throw new Exception("Unable to find the selected project.");
-            }
-
-            devModeOps.verifyProjectSupport(iProject);
+            IProject iProject = Utils.getProjectFromSelection(selection);
+            run(iProject, null, mode);
         } catch (Exception e) {
-            String msg = "An error was detected during \"" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONTAINER
-                    + "\" launch shortcut processing.";
+            String msg = "An error was detected while processing the \""
+                    + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONTAINER + "\" launch shortcut.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }
             Dialog.displayErrorMessageWithDetails(msg, e);
             return;
         }
-
-        devModeOps.startInContainer(iProject);
     }
 
     /**
@@ -65,25 +54,47 @@ public class StartInContainerAction implements ILaunchShortcut {
      */
     @Override
     public void launch(IEditorPart part, String mode) {
-        IProject iProject = null;
-
         try {
-            iProject = Utils.getProjectFromPart(part);
-            if (iProject == null) {
-                throw new Exception("Unable to find the selected project.");
-            }
-
-            devModeOps.verifyProjectSupport(iProject);
+            IProject iProject = Utils.getProjectFromPart(part);
+            run(iProject, null, mode);
         } catch (Exception e) {
-            String msg = "An error was detected during \"" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONTAINER
-                    + "\" launch shortcut processing.";
+            String msg = "An error was detected while processing the \""
+                    + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONTAINER + "\" launch shortcut.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }
             Dialog.displayErrorMessageWithDetails(msg, e);
             return;
         }
+    }
 
-        devModeOps.startInContainer(iProject);
+    /**
+     * Processes the start in container shortcut action.
+     * 
+     * @param iProject The project to process.
+     * @param iConfiguration The configuration associated with the project.
+     * @param mode The configuration mode.
+     * 
+     * @throws Exception
+     */
+    public static void run(IProject iProject, ILaunchConfiguration iConfiguration, String mode) throws Exception {
+        if (iProject == null) {
+            throw new Exception("Invalid project. Be sure to select a project first.");
+        }
+
+        // Validate that the project is supported.
+        DevModeOperations devModeOps = DevModeOperations.getInstance();
+        devModeOps.verifyProjectSupport(iProject);
+
+        // If the configuration was not provided by the caller, determine what configuration to use.
+        ILaunchConfiguration configuration = (iConfiguration != null) ? iConfiguration
+                : StartAction.getLaunchConfiguration(iProject, mode, true);
+
+        // Save the time when this configuration was processed.
+        StartAction.saveConfigProcessingTime(configuration);
+
+        // Process the action.
+        String startParms = configuration.getAttribute(MainTab.PROJECT_START_PARM, (String) null);
+        devModeOps.startInContainer(iProject, startParms);
     }
 }
