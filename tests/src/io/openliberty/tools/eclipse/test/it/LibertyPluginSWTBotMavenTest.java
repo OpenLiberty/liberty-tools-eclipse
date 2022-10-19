@@ -171,7 +171,7 @@ public class LibertyPluginSWTBotMavenTest {
      */
     public static final void checkBasics() {
 
-        dashboard = SWTPluginOperations.openDashboardUsingMenu(bot);
+        dashboard = SWTPluginOperations.openDashboardUsingToolbar(bot);
 
         // Check that the dashboard can be opened and its content retrieved.
         List<String> projetList = SWTPluginOperations.getDashboardContent(bot, dashboard);

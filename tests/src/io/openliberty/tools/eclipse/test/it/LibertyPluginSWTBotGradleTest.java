@@ -155,7 +155,7 @@ public class LibertyPluginSWTBotGradleTest {
         Path projPath = Paths.get("resources", "applications", "gradle", GRADLE_APP_NAME);
         File projectFile = projPath.toFile();
         testAppPath = Paths.get(projectFile.getPath()).toAbsolutePath().toString();
-        dashboard = SWTPluginOperations.openDashboardUsingMenu(bot);
+        dashboard = SWTPluginOperations.openDashboardUsingToolbar(bot);
 
         // Check that the dashboard can be opened and its content retrieved.
         List<String> projectList = SWTPluginOperations.getDashboardContent(bot, dashboard);

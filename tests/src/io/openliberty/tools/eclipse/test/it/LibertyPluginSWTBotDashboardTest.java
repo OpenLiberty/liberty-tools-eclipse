@@ -62,13 +62,4 @@ public class LibertyPluginSWTBotDashboardTest {
         // Open the dashboard view.
         SWTPluginOperations.openDashboardUsingToolbar(bot);
     }
-
-    /**
-     * Tests opening the dashboard using the Liberty menu.
-     */
-    @Test
-    public void testOpenDashboardUsingMenu() {
-        // Open the dashboard view.
-        SWTPluginOperations.openDashboardUsingMenu(bot);
-    }
 }

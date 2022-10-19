@@ -234,17 +234,7 @@
    </extension>
 
    <!-- Menu/Toolbar -->
-   <extension
-         point="org.eclipse.ui.menus">
-      <menuContribution locationURI="menu:org.eclipse.ui.main.menu?after=additions">
-         <menu id="io.openliberty.tools.eclipse.liberty.menu"
-               label="Liberty">
-            <command
-                  commandId="io.openliberty.tools.eclipse.open.dashboard.command"
-                  id="io.openliberty.tools.eclipse.menu.command">
-            </command>
-         </menu>
-      </menuContribution>
+   <extension point="org.eclipse.ui.menus">
       <menuContribution locationURI="toolbar:org.eclipse.ui.main.toolbar?after=additions">
          <toolbar
                id="io.openliberty.tools.eclipse.dashboard.toolbar">
