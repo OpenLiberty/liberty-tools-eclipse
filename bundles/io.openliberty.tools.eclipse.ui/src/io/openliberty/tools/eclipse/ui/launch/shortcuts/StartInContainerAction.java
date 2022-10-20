@@ -21,6 +21,7 @@ import org.eclipse.ui.IEditorPart;
 import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher;
+import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher.RuntimeEnv;
 import io.openliberty.tools.eclipse.ui.launch.MainTab;
 import io.openliberty.tools.eclipse.utils.Dialog;
 import io.openliberty.tools.eclipse.utils.Utils;
@@ -88,10 +89,10 @@ public class StartInContainerAction implements ILaunchShortcut {
 
         // If the configuration was not provided by the caller, determine what configuration to use.
         ILaunchConfiguration configuration = (iConfiguration != null) ? iConfiguration
-                : StartAction.getLaunchConfiguration(iProject, mode, true);
+                : LaunchConfigurationDelegateLauncher.getLaunchConfiguration(iProject, mode, RuntimeEnv.CONTAINER);
 
         // Save the time when this configuration was processed.
-        StartAction.saveConfigProcessingTime(configuration);
+        LaunchConfigurationDelegateLauncher.saveConfigProcessingTime(configuration);
 
         // Process the action.
         String startParms = configuration.getAttribute(MainTab.PROJECT_START_PARM, (String) null);

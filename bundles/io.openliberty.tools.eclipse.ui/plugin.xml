@@ -266,7 +266,7 @@
       <launchConfigurationType
           name="Liberty"
           delegate="io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher"
-          modes="run, debug"
+          modes="run"
           id="io.openliberty.tools.eclipse.launch.type">
       </launchConfigurationType>
   </extension>
@@ -290,7 +290,7 @@
           icon="icons/openLibertyLogo.png"
           id="io.openliberty.tools.eclipse.launch.start.shortcut"
           label="Liberty Start"
-          modes="run, debug"
+          modes="run"
           path="io.openliberty.tools.eclipse.launch.shortcuts.group1"
           description="Launches the associated project on Liberty using dev mode">
           <contextualLaunch>
@@ -312,7 +312,7 @@
           icon="icons/openLibertyLogo.png"
           id="io.openliberty.tools.eclipse.launch.start.config.shortcut"
           label="Liberty Start..."
-          modes="run, debug"
+          modes="run"
           path="io.openliberty.tools.eclipse.launch.shortcuts.group1"
           description="Launches the configuration dialog to run the associated project on Liberty using dev mode">
           <contextualLaunch>
@@ -334,7 +334,7 @@
           icon="icons/openLibertyLogo.png"
           id="io.openliberty.tools.eclipse.launch.start.container.shortcut"
           label="Liberty Start in Container"
-          modes="run, debug"
+          modes="run"
           path="io.openliberty.tools.eclipse.launch.shortcuts.group1"
           description="Launches the associated project in a container on Liberty using dev mode">
           <contextualLaunch>
@@ -357,7 +357,7 @@
           id="io.openliberty.tools.eclipse.launch.stop.shortcut"
           label="Liberty Stop"
           path="io.openliberty.tools.eclipse.launch.shortcuts.group1"
-          modes="run, debug"
+          modes="run"
           description="Launches a request to stop the associated project">
           <contextualLaunch>
               <enablement>
@@ -378,7 +378,7 @@
           icon="icons/openLibertyLogo.png"
           id="io.openliberty.tools.eclipse.launch.run.tests.shortcut"
           label="Liberty Run Tests"
-          modes="run, debug"
+          modes="run"
           path="io.openliberty.tools.eclipse.launch.shortcuts.group2"
           description="Launches a request to run the tests provided by the associated project">
           <contextualLaunch>
@@ -400,7 +400,7 @@
           icon="icons/openLibertyLogo.png"
           id="io.openliberty.tools.eclipse.launch.maven.itest.report.shortcut"
           label="Liberty View Integration Test Report"
-          modes="run,debug"
+          modes="run"
           path="io.openliberty.tools.eclipse.launch.shortcuts.group2"
           description="Launches a request to display the integration test reports for the associated project">
           <contextualLaunch>
@@ -423,7 +423,7 @@
           icon="icons/openLibertyLogo.png"
           id="io.openliberty.tools.eclipse.launch.maven.utest.report.shortcut"
           label="Liberty View Unit Test Report"
-          modes="run,debug"
+          modes="run"
           path="io.openliberty.tools.eclipse.launch.shortcuts.group2"
           description="Launches a request to display the unit test reports for the associated project">
           <contextualLaunch>
@@ -446,7 +446,7 @@
           icon="icons/openLibertyLogo.png"
           id="io.openliberty.tools.eclipse.launch.gradle.test.report.shortcut"
           label="Liberty View Test Report"
-          modes="run,debug"
+          modes="run"
           path="io.openliberty.tools.eclipse.launch.shortcuts.group2"
           description="Launches a request to display the test reports for the associated project">
           <contextualLaunch>

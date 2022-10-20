@@ -15,6 +15,7 @@ package io.openliberty.tools.eclipse.ui.dashboard;
 import java.net.URL;
 
 import org.eclipse.core.resources.IProject;
+import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
@@ -39,8 +40,8 @@ import io.openliberty.tools.eclipse.ui.launch.shortcuts.OpenMavenITestReportActi
 import io.openliberty.tools.eclipse.ui.launch.shortcuts.OpenMavenUTestReportAction;
 import io.openliberty.tools.eclipse.ui.launch.shortcuts.RunTestsAction;
 import io.openliberty.tools.eclipse.ui.launch.shortcuts.StartAction;
-import io.openliberty.tools.eclipse.ui.launch.shortcuts.StartInContainerAction;
 import io.openliberty.tools.eclipse.ui.launch.shortcuts.StartConfigurationDialogAction;
+import io.openliberty.tools.eclipse.ui.launch.shortcuts.StartInContainerAction;
 import io.openliberty.tools.eclipse.ui.launch.shortcuts.StopAction;
 import io.openliberty.tools.eclipse.utils.Dialog;
 
@@ -213,9 +214,9 @@ public class DashboardView extends ViewPart {
         startAction = new Action(APP_MENU_ACTION_START) {
             @Override
             public void run() {
-                IProject iproject = devModeOps.getSelectedDashboardProject();
+                IProject iProject = devModeOps.getSelectedDashboardProject();
                 try {
-                    StartAction.run(iproject, null, "run");
+                    StartAction.run(iProject, null, ILaunchManager.RUN_MODE);
                 } catch (Exception e) {
                     String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_START + " action.";
                     if (Trace.isEnabled()) {
@@ -236,7 +237,16 @@ public class DashboardView extends ViewPart {
         startConfigDialogAction = new Action(APP_MENU_ACTION_START_CONFIG) {
             @Override
             public void run() {
-                StartConfigurationDialogAction.openLaunchConfigurationsDialog();
+                IProject iProject = devModeOps.getSelectedDashboardProject();
+                try {
+                    StartConfigurationDialogAction.run(iProject, ILaunchManager.RUN_MODE);
+                } catch (Exception e) {
+                    String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_START_CONFIG + " action.";
+                    if (Trace.isEnabled()) {
+                        Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
+                    }
+                    Dialog.displayErrorMessageWithDetails(msg, e);
+                }
             }
         };
         startConfigDialogAction.setImageDescriptor(ActionImg);
@@ -248,9 +258,9 @@ public class DashboardView extends ViewPart {
         startInContainerAction = new Action(APP_MENU_ACTION_START_IN_CONTAINER) {
             @Override
             public void run() {
-                IProject iproject = devModeOps.getSelectedDashboardProject();
+                IProject iProject = devModeOps.getSelectedDashboardProject();
                 try {
-                    StartInContainerAction.run(iproject, null, "run");
+                    StartInContainerAction.run(iProject, null, ILaunchManager.RUN_MODE);
                 } catch (Exception e) {
                     String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_START_IN_CONTAINER
                             + " action.";
@@ -270,9 +280,9 @@ public class DashboardView extends ViewPart {
         stopAction = new Action(APP_MENU_ACTION_STOP) {
             @Override
             public void run() {
-                IProject iproject = devModeOps.getSelectedDashboardProject();
+                IProject iProject = devModeOps.getSelectedDashboardProject();
                 try {
-                    StopAction.run(iproject);
+                    StopAction.run(iProject);
                 } catch (Exception e) {
                     String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_STOP + " action.";
                     if (Trace.isEnabled()) {
@@ -291,9 +301,9 @@ public class DashboardView extends ViewPart {
         runTestAction = new Action(APP_MENU_ACTION_RUN_TESTS) {
             @Override
             public void run() {
-                IProject iproject = devModeOps.getSelectedDashboardProject();
+                IProject iProject = devModeOps.getSelectedDashboardProject();
                 try {
-                    RunTestsAction.run(iproject);
+                    RunTestsAction.run(iProject);
                 } catch (Exception e) {
                     String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_RUN_TESTS + " action.";
                     if (Trace.isEnabled()) {
@@ -312,9 +322,9 @@ public class DashboardView extends ViewPart {
         viewMavenITestReportsAction = new Action(APP_MENU_ACTION_VIEW_MVN_IT_REPORT) {
             @Override
             public void run() {
-                IProject iproject = devModeOps.getSelectedDashboardProject();
+                IProject iProject = devModeOps.getSelectedDashboardProject();
                 try {
-                    OpenMavenITestReportAction.run(iproject);
+                    OpenMavenITestReportAction.run(iProject);
                 } catch (Exception e) {
                     String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_VIEW_MVN_IT_REPORT
                             + " action.";
@@ -334,9 +344,9 @@ public class DashboardView extends ViewPart {
         viewMavenUTestReportsAction = new Action(APP_MENU_ACTION_VIEW_MVN_UT_REPORT) {
             @Override
             public void run() {
-                IProject iproject = devModeOps.getSelectedDashboardProject();
+                IProject iProject = devModeOps.getSelectedDashboardProject();
                 try {
-                    OpenMavenUTestReportAction.run(iproject);
+                    OpenMavenUTestReportAction.run(iProject);
                 } catch (Exception e) {
                     String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_VIEW_MVN_UT_REPORT
                             + " action.";
@@ -356,9 +366,9 @@ public class DashboardView extends ViewPart {
         viewGradleTestReportsAction = new Action(APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT) {
             @Override
             public void run() {
-                IProject iproject = devModeOps.getSelectedDashboardProject();
+                IProject iProject = devModeOps.getSelectedDashboardProject();
                 try {
-                    OpenGradleTestReportAction.run(iproject);
+                    OpenGradleTestReportAction.run(iProject);
                 } catch (Exception e) {
                     String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT
                             + " action.";

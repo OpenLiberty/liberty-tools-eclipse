@@ -205,11 +205,12 @@ public class LibertyPluginSWTBotGradleTest {
         Assertions.assertTrue(runAslibertyToolsEntry != null, "Liberty entry in Run Configurations view was not found.");
         bot.button("Close").click();
 
+        // Commented out pending design discussions.
         // Check that the Debug As -> Debug Configurations... contains the Liberty entry in the menu.
-        SWTBotPluginOperations.launchRunConfigurationsDialog(bot, GRADLE_APP_NAME, "debug");
-        SWTBotTreeItem debugAslibertyToolsEntry = SWTBotPluginOperations.getLibertyToolsConfigMenuItem(bot);
-        Assertions.assertTrue(debugAslibertyToolsEntry != null, "Liberty entry in Debug Configurations view was not found.");
-        bot.button("Close").click();
+        // SWTBotPluginOperations.launchRunConfigurationsDialog(bot, GRADLE_APP_NAME, "debug");
+        // SWTBotTreeItem debugAslibertyToolsEntry = SWTBotPluginOperations.getLibertyToolsConfigMenuItem(bot);
+        // Assertions.assertTrue(debugAslibertyToolsEntry != null, "Liberty entry in Debug Configurations view was not found.");
+        // bot.button("Close").click();
     }
 
     /**
@@ -513,6 +514,7 @@ public class LibertyPluginSWTBotGradleTest {
      * Tests the start action initiated through: project -> Debug As -> Debug Configurations -> Liberty -> New configuration
      * (customized) -> Run.
      */
+    @Disabled("Disabled pending design discussions")
     @Test
     public void tesStartWithCustomDebugAsConfig() {
         // Delete any previously created configs.
@@ -549,6 +551,7 @@ public class LibertyPluginSWTBotGradleTest {
     /**
      * Tests the start/stop debug as shortcut actions.
      */
+    @Disabled("Disabled pending design discussions")
     @Test
     public void testStartWithDebugAsShortcut() {
         // Delete any previously created configs.
