@@ -18,8 +18,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
+import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher;
+import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher.RuntimeEnv;
 import io.openliberty.tools.eclipse.ui.launch.MainTab;
-import io.openliberty.tools.eclipse.ui.launch.shortcuts.StartAction;
 
 public class LibertyPluginUnitTest {
 
@@ -49,8 +50,8 @@ public class LibertyPluginUnitTest {
         List<ILaunchConfiguration> rawCfgList = getDefaultConfigurationList();
 
         // Test 1. Normal run.
-        List<ILaunchConfiguration> filteredListDev = StartAction
-                .filterLaunchConfigurations(rawCfgList.toArray(new ILaunchConfiguration[rawCfgList.size()]), "project1", false);
+        List<ILaunchConfiguration> filteredListDev = LaunchConfigurationDelegateLauncher
+                .filterLaunchConfigurations(rawCfgList.toArray(new ILaunchConfiguration[rawCfgList.size()]), "project1", RuntimeEnv.LOCAL);
         Assertions.assertTrue(filteredListDev.size() == 3,
                 "The resulting list should have contained 3 entries. List size: " + filteredListDev.size());
         Assertions.assertTrue(filteredListDev.get(0).getAttribute(MainTab.PROJECT_RUN_IN_CONTAINER, true) == false,
@@ -61,8 +62,8 @@ public class LibertyPluginUnitTest {
                 "The run in container value associated with config entry[2] was not false.");
 
         // test 2. Container run.
-        List<ILaunchConfiguration> filteredListDevc = StartAction
-                .filterLaunchConfigurations(rawCfgList.toArray(new ILaunchConfiguration[rawCfgList.size()]), "project1", true);
+        List<ILaunchConfiguration> filteredListDevc = LaunchConfigurationDelegateLauncher.filterLaunchConfigurations(
+                rawCfgList.toArray(new ILaunchConfiguration[rawCfgList.size()]), "project1", RuntimeEnv.CONTAINER);
         Assertions.assertTrue(filteredListDevc.size() == 3,
                 "The resulting list should have contained 3 entries. Found: " + filteredListDevc.size() + ". List: " + filteredListDevc);
         Assertions.assertTrue(filteredListDevc.get(0).getAttribute(MainTab.PROJECT_RUN_IN_CONTAINER, false) == true,
@@ -81,13 +82,13 @@ public class LibertyPluginUnitTest {
     @Test
     public void testRetrieveLastRunConfig() throws Exception {
         List<ILaunchConfiguration> rawCfgList = getDefaultConfigurationList();
-        List<ILaunchConfiguration> filteredListDev = StartAction
-                .filterLaunchConfigurations(rawCfgList.toArray(new ILaunchConfiguration[rawCfgList.size()]), "project1", false);
+        List<ILaunchConfiguration> filteredListDev = LaunchConfigurationDelegateLauncher
+                .filterLaunchConfigurations(rawCfgList.toArray(new ILaunchConfiguration[rawCfgList.size()]), "project1", RuntimeEnv.LOCAL);
         Assertions.assertTrue(filteredListDev.size() == 3,
                 "The resulting list should have contained 3 entries. List size: " + filteredListDev.size());
 
         // Test 1. Normal run.
-        ILaunchConfiguration lastRunConfigDev = StartAction.getLastRunConfiguration(filteredListDev);
+        ILaunchConfiguration lastRunConfigDev = LaunchConfigurationDelegateLauncher.getLastRunConfiguration(filteredListDev);
 
         String cfgNameFoundDev = lastRunConfigDev.getName();
         String expectedCfgNameDev = "test2";
@@ -100,12 +101,12 @@ public class LibertyPluginUnitTest {
                 "The configuration found does not contain the expected value of " + expectedTimeDev + ". Time found: " + timeFoundDev);
 
         // Test 2. Container run.
-        List<ILaunchConfiguration> filteredListDevc = StartAction
-                .filterLaunchConfigurations(rawCfgList.toArray(new ILaunchConfiguration[rawCfgList.size()]), "project1", true);
+        List<ILaunchConfiguration> filteredListDevc = LaunchConfigurationDelegateLauncher.filterLaunchConfigurations(
+                rawCfgList.toArray(new ILaunchConfiguration[rawCfgList.size()]), "project1", RuntimeEnv.CONTAINER);
         Assertions.assertTrue(filteredListDevc.size() == 3,
                 "The resulting list should have contained 3 entries. List size: " + filteredListDevc.size());
 
-        ILaunchConfiguration lastRunConfigDevc = StartAction.getLastRunConfiguration(filteredListDevc);
+        ILaunchConfiguration lastRunConfigDevc = LaunchConfigurationDelegateLauncher.getLastRunConfiguration(filteredListDevc);
 
         String cfgNameFoundDevc = lastRunConfigDevc.getName();
         String expectedCfgNameDevc = "test6";
@@ -118,12 +119,12 @@ public class LibertyPluginUnitTest {
                 "The configuration found does not contain the expected value of " + expectedTimeDevc + ". Time found: " + timeFoundDevc);
 
         // Test 3: Normal run. Configurations with equal minimum time. Configuration with max time expected.
-        List<ILaunchConfiguration> filteredListT3Dev = StartAction
-                .filterLaunchConfigurations(rawCfgList.toArray(new ILaunchConfiguration[rawCfgList.size()]), "project2", false);
+        List<ILaunchConfiguration> filteredListT3Dev = LaunchConfigurationDelegateLauncher
+                .filterLaunchConfigurations(rawCfgList.toArray(new ILaunchConfiguration[rawCfgList.size()]), "project2", RuntimeEnv.LOCAL);
         Assertions.assertTrue(filteredListT3Dev.size() == 3,
                 "The resulting list should have contained 3 entries. List size: " + filteredListT3Dev.size());
 
-        ILaunchConfiguration lastRunConfigT3Dev = StartAction.getLastRunConfiguration(filteredListT3Dev);
+        ILaunchConfiguration lastRunConfigT3Dev = LaunchConfigurationDelegateLauncher.getLastRunConfiguration(filteredListT3Dev);
 
         String cfgNameFoundT3Dev = lastRunConfigT3Dev.getName();
         String expectedCfgNameT3Dev = "test11";
@@ -132,18 +133,31 @@ public class LibertyPluginUnitTest {
 
         // Test 4: Container run. Configurations with equal max time. One of the max times is returned.
         // In this particular case, is the second entry after the entries are sorted.
-        List<ILaunchConfiguration> filteredListT4Devc = StartAction
-                .filterLaunchConfigurations(rawCfgList.toArray(new ILaunchConfiguration[rawCfgList.size()]), "project3", true);
+        List<ILaunchConfiguration> filteredListT4Devc = LaunchConfigurationDelegateLauncher.filterLaunchConfigurations(
+                rawCfgList.toArray(new ILaunchConfiguration[rawCfgList.size()]), "project3", RuntimeEnv.CONTAINER);
         Assertions.assertTrue(filteredListT4Devc.size() == 3,
                 "The resulting list should have contained 3 entries. List size: " + filteredListT4Devc.size());
 
-        ILaunchConfiguration lastRunConfigT4Devc = StartAction.getLastRunConfiguration(filteredListT4Devc);
+        ILaunchConfiguration lastRunConfigT4Devc = LaunchConfigurationDelegateLauncher.getLastRunConfiguration(filteredListT4Devc);
 
         String cfgNameFoundT4Devc = lastRunConfigT4Devc.getName();
         String expectedCfgNameT4Devc = "test16";
         Assertions.assertTrue(expectedCfgNameT4Devc.equals(cfgNameFoundT4Devc), "The expected configuration of " + expectedCfgNameT4Devc
                 + " was not returned. Configuration returned:: " + cfgNameFoundT4Devc);
 
+        // Test 5: This is the start... case where we do not really know the runtime environment to be used to run dev mode.
+        // In this case, it is expected that the configuration that ran last irrespective of runtime environment should be returned.
+        List<ILaunchConfiguration> filteredListT5Dev = LaunchConfigurationDelegateLauncher.filterLaunchConfigurations(
+                rawCfgList.toArray(new ILaunchConfiguration[rawCfgList.size()]), "project1", RuntimeEnv.UNKNOWN);
+        Assertions.assertTrue(filteredListT5Dev.size() == 6,
+                "The resulting list should have contained 6 entries. List size: " + filteredListT5Dev.size());
+
+        ILaunchConfiguration lastRunConfigT5Dev = LaunchConfigurationDelegateLauncher.getLastRunConfiguration(filteredListT5Dev);
+
+        String cfgNameFoundT5Dev = lastRunConfigT5Dev.getName();
+        String expectedCfgNameT5Dev = "test6";
+        Assertions.assertTrue(expectedCfgNameT5Dev.equals(cfgNameFoundT5Dev), "The expected configuration of " + expectedCfgNameT5Dev
+                + " was not returned. Configuration returned:: " + cfgNameFoundT5Dev);
     }
 
     private List<ILaunchConfiguration> getDefaultConfigurationList() throws CoreException {

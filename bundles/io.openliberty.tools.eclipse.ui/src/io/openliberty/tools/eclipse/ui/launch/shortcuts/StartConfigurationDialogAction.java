@@ -1,18 +1,21 @@
 package io.openliberty.tools.eclipse.ui.launch.shortcuts;
 
+import org.eclipse.core.resources.IProject;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.ui.DebugUITools;
 import org.eclipse.debug.ui.ILaunchShortcut;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.PlatformUI;
 
+import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher;
+import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher.RuntimeEnv;
 import io.openliberty.tools.eclipse.utils.Dialog;
+import io.openliberty.tools.eclipse.utils.Utils;
 
 /**
  * Liberty start configuration dialog action shortcut.
@@ -27,7 +30,8 @@ public class StartConfigurationDialogAction implements ILaunchShortcut {
     @Override
     public void launch(ISelection selection, String mode) {
         try {
-            openLaunchConfigurationsDialog();
+            IProject iProject = Utils.getProjectFromSelection(selection);
+            run(iProject, mode);
         } catch (Exception e) {
             String msg = "An error was detected while processing the \"" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONFIG
                     + "\" launch shortcut.";
@@ -45,7 +49,8 @@ public class StartConfigurationDialogAction implements ILaunchShortcut {
     @Override
     public void launch(IEditorPart part, String mode) {
         try {
-            openLaunchConfigurationsDialog();
+            IProject iProject = Utils.getProjectFromPart(part);
+            run(iProject, mode);
         } catch (Exception e) {
             String msg = "An error was detected while processing the \"" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONFIG
                     + "\" launch shortcut.";
@@ -58,12 +63,27 @@ public class StartConfigurationDialogAction implements ILaunchShortcut {
     }
 
     /**
-     * Open the launch configurations dialog.
+     * Processes the start... shortcut action.
+     * 
+     * @param iProject The project to process.
+     * @param mode The operation mode type. Run or debug.
+     * 
+     * @throws Exception
      */
-    public static void openLaunchConfigurationsDialog() {
-        ILaunchConfiguration latest = DebugUITools.getLastLaunch(LAUNCH_GROUP_RUN_ID);
-        IStructuredSelection selection = (latest != null) ? new StructuredSelection(latest) : new StructuredSelection();
+    public static void run(IProject iProject, String mode) throws Exception {
+        if (iProject == null) {
+            throw new Exception("Invalid project. Be sure to select a project first.");
+        }
+
+        // Validate that the project is supported.
+        DevModeOperations devModeOps = DevModeOperations.getInstance();
+        devModeOps.verifyProjectSupport(iProject);
+
+        // Determine what configuration to use.
+        ILaunchConfiguration configuration = LaunchConfigurationDelegateLauncher.getLaunchConfiguration(iProject, mode, RuntimeEnv.UNKNOWN);
+
+        // Open the configuration in a configuration dialog.
         Shell shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
-        DebugUITools.openLaunchConfigurationDialogOnGroup(shell, selection, LAUNCH_GROUP_RUN_ID);
+        DebugUITools.openLaunchConfigurationDialogOnGroup(shell, new StructuredSelection(configuration), LAUNCH_GROUP_RUN_ID);
     }
 }
