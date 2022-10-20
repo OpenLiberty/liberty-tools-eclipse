@@ -256,7 +256,7 @@ public class LibertyPluginSWTBotGradleTest {
         // Start dev mode with parms.
         SWTBotPluginOperations.launchStartConfigDialogWithDashboardAction(bot, dashboard, GRADLE_APP_NAME);
         SWTBotPluginOperations.createNewLibertyConfiguration(bot);
-        SWTBotPluginOperations.setLibertyConfigParms(bot, "--hotTests");
+        SWTBotPluginOperations.updateLibertyConfigParms(bot, "--hotTests");
         SWTBotPluginOperations.runLibertyConfiguration(bot, mode);
 
         SWTBotView terminal = bot.viewByTitle("Terminal");

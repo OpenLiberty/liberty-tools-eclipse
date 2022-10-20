@@ -167,12 +167,12 @@ public class DevModeOperations {
             }
 
             // Prepare the Liberty plugin dev mode command.
-            String userParms = (parms == null) ? "" : parms;
+            String configParms = (parms == null) ? "" : parms;
             String cmd = "";
             if (project.getBuildType() == Project.BuildType.MAVEN) {
-                cmd = getMavenCommand(projectPath, "io.openliberty.tools:liberty-maven-plugin:dev " + userParms + " -f " + projectPath);
+                cmd = getMavenCommand(projectPath, "io.openliberty.tools:liberty-maven-plugin:dev " + configParms);
             } else if (project.getBuildType() == Project.BuildType.GRADLE) {
-                cmd = getGradleCommand(projectPath, "libertyDev " + userParms + " -p=" + projectPath);
+                cmd = getGradleCommand(projectPath, "libertyDev " + configParms);
             } else {
                 throw new Exception("Project" + projectName + "is not a Gradle or Maven project.");
             }
@@ -256,12 +256,12 @@ public class DevModeOperations {
             }
 
             // Prepare the Liberty plugin container dev mode command.
-            String userParms = (parms == null) ? "" : parms;
+            String configParms = (parms == null) ? "" : parms;
             String cmd = "";
             if (project.getBuildType() == Project.BuildType.MAVEN) {
-                cmd = getMavenCommand(projectPath, "io.openliberty.tools:liberty-maven-plugin:devc " + userParms + " -f " + projectPath);
+                cmd = getMavenCommand(projectPath, "io.openliberty.tools:liberty-maven-plugin:devc " + configParms);
             } else if (project.getBuildType() == Project.BuildType.GRADLE) {
-                cmd = getGradleCommand(projectPath, "libertyDevc " + userParms + " -p=" + projectPath);
+                cmd = getGradleCommand(projectPath, "libertyDevc " + configParms);
             } else {
                 throw new Exception("Project" + projectName + "is not a Gradle or Maven project.");
             }
@@ -683,6 +683,46 @@ public class DevModeOperations {
         }
 
         browser.openURL(url);
+    }
+
+    /**
+     * Returns the default start parameters or null if the input project is null.
+     * 
+     * @param project The project being processed.
+     * 
+     * @return The default start parameters or null if the input project is null.
+     * 
+     * @throws Exception
+     */
+    public String getDefaultStartParameters(IProject iProject) throws Exception {
+        if (iProject == null) {
+            return null;
+        }
+
+        String projectName = iProject.getName();
+        Project project = dashboard.getProject(projectName);
+        if (project == null) {
+            String msg = "Unable to find internal instance of project " + projectName;
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, msg);
+            }
+            throw new Exception(msg);
+        }
+
+        StringBuffer parms = null;
+        if (project.getBuildType() == Project.BuildType.MAVEN) {
+            parms = new StringBuffer("-f ").append("pom.xml");
+        } else if (project.getBuildType() == Project.BuildType.GRADLE) {
+            parms = new StringBuffer("--project-dir=.");
+        } else {
+            String msg = "Error retrieving default command. Project" + projectName + "is not a Gradle or Maven project.";
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, msg);
+            }
+            throw new Exception(msg);
+        }
+
+        return parms.toString();
     }
 
     /**

@@ -403,7 +403,7 @@ public class SWTBotPluginOperations {
      * @param bot The SWTWorkbenchBot instance.
      * @param item The application name.
      * @param mode The operating mode. It can be either \"run\" or \"debug\".
-     * @param parms The parameter(s) to pass to the dev mode start action.
+     * @param parms The parameter(s) to pass to the dev mode start action. It must not be null.
      */
     public static void launchStartWithCustomConfig(SWTWorkbenchBot bot, String item, String mode, String parms) {
         Assertions.assertTrue(("run".equals(mode) || "debug".equals(mode)),
@@ -412,7 +412,7 @@ public class SWTBotPluginOperations {
         SWTBotPluginOperations.launchRunConfigurationsDialog(bot, item, mode);
         createNewLibertyConfiguration(bot);
 
-        setLibertyConfigParms(bot, parms);
+        updateLibertyConfigParms(bot, parms);
 
         runLibertyConfiguration(bot, mode);
     }
@@ -433,12 +433,14 @@ public class SWTBotPluginOperations {
      * dialog must be the active view when this method is called.
      * 
      * @param bot The SWTWorkbenchBot instance.
-     * @param parms The parameter(s) to pass to the dev mode start action.
+     * @param parms The parameter(s) to pass to the dev mode start action. It must not be null.
      */
-    public static void setLibertyConfigParms(SWTWorkbenchBot bot, String parms) {
+    public static void updateLibertyConfigParms(SWTWorkbenchBot bot, String parms) {
         SWTBotText parmTextBox = bot.textWithLabel("Start parameters:");
         parmTextBox.setFocus();
-        parmTextBox.setText(parms);
+        StringBuffer inputText = new StringBuffer(parmTextBox.getText());
+        inputText.append(" ").append(parms);
+        parmTextBox.setText(inputText.toString());
         bot.waitUntil(SWTBotTestCondition.isTextPresent(parmTextBox, parms), 5000);
     }
 

@@ -326,7 +326,7 @@ public class LibertyPluginSWTBotMavenTest {
         // Start dev mode with parms.
         SWTBotPluginOperations.launchStartConfigDialogWithDashboardAction(bot, dashboard, MVN_APP_NAME);
         SWTBotPluginOperations.createNewLibertyConfiguration(bot);
-        SWTBotPluginOperations.setLibertyConfigParms(bot, "-DhotTests=true");
+        SWTBotPluginOperations.updateLibertyConfigParms(bot, "-DhotTests=true");
         SWTBotPluginOperations.runLibertyConfiguration(bot, mode);
         SWTBotView terminal = bot.viewByTitle("Terminal");
         terminal.show();
