@@ -78,26 +78,6 @@
                             </configuration>
                         </execution>
                         <execution>
-                            <id>copy-liberty-xml-ls-extn</id>
-                            <goals>
-                              <goal>copy</goal>
-                            </goals>
-                            <configuration>
-                               <artifactItems>
-                                <artifactItem>
-                                  <groupId>io.openliberty.tools</groupId>
-                                  <artifactId>liberty-langserver-lemminx</artifactId>
-                                  <version>1.0-SNAPSHOT</version>
-                                  <classifier>jar-with-dependencies</classifier>
-                                  <type>jar</type>
-                                  <overWrite>true</overWrite>
-                                  <destFileName>liberty-langserver-lemminx-1.0-SNAPSHOT-jar-with-dependencies.jar</destFileName>
-                                </artifactItem>
-                               </artifactItems> 
-                              <outputDirectory>${project.basedir}/server/liberty-lemminx-extn</outputDirectory>
-                            </configuration>
-                        </execution>    
-                        <execution>
                             <id>copy-libertyls</id>
                             <goals>
                               <goal>copy</goal>
@@ -145,6 +125,7 @@
                                      <resources>
                                          <resource>META-INF/LICENSE.md</resource>
                                          <resource>META-INF/NOTICE.md</resource>
+                                         <resource>META-INF/NOTICE</resource>
                                          <resource>META-INF/LICENSE.txt</resource>
                                          <resource>META-INF/NOTICE.txt</resource>
                                      </resources>
