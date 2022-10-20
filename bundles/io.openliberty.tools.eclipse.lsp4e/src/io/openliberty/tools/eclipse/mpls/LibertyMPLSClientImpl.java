@@ -57,6 +57,8 @@ import org.eclipse.lsp4mp.jdt.internal.core.ls.JDTUtilsLSImpl;
 import org.eclipse.lsp4mp.ls.api.MicroProfileLanguageClientAPI;
 import org.eclipse.lsp4mp.ls.api.MicroProfileLanguageServerAPI;
 
+import io.openliberty.tools.eclipse.ls.plugin.LibertyToolsLSPlugin;
+
 /**
  * Liberty Devex MicroProfile language client.
  * 
@@ -121,7 +123,7 @@ public class LibertyMPLSClientImpl extends LanguageClientImpl implements MicroPr
 			try {
 				return PropertiesManagerForJava.getInstance().codeLens(javaParams, JDTUtilsLSImpl.getInstance(), monitor);
 			} catch (JavaModelException e) {
-				LibertyMPLSPlugin.logException(e.getLocalizedMessage(), e);
+				LibertyToolsLSPlugin.logException(e.getLocalizedMessage(), e);
 				return Collections.emptyList();
 			}
 		});
@@ -136,7 +138,7 @@ public class LibertyMPLSClientImpl extends LanguageClientImpl implements MicroPr
 				return PropertiesManagerForJava.getInstance().diagnostics(javaParams, JDTUtilsLSImpl.getInstance(),
 						monitor);
 			} catch (JavaModelException e) {
-				LibertyMPLSPlugin.logException(e.getLocalizedMessage(), e);
+				LibertyToolsLSPlugin.logException(e.getLocalizedMessage(), e);
 				return Collections.emptyList();
 			}
 		});
@@ -150,7 +152,7 @@ public class LibertyMPLSClientImpl extends LanguageClientImpl implements MicroPr
 				return (List<CodeAction>) PropertiesManagerForJava.getInstance().codeAction(javaParams,
 						JDTUtilsLSImpl.getInstance(), monitor);
 			} catch (JavaModelException e) {
-				LibertyMPLSPlugin.logException(e.getLocalizedMessage(), e);
+				LibertyToolsLSPlugin.logException(e.getLocalizedMessage(), e);
 				return Collections.emptyList();
 			}
 		});
@@ -182,7 +184,7 @@ public class LibertyMPLSClientImpl extends LanguageClientImpl implements MicroPr
 			try {
 				return PropertiesManagerForJava.getInstance().definition(javaParams, JDTUtilsLSImpl.getInstance(), monitor);
 			} catch (JavaModelException e) {
-				LibertyMPLSPlugin.logException(e.getLocalizedMessage(), e);
+				LibertyToolsLSPlugin.logException(e.getLocalizedMessage(), e);
 				return null;
 			}
 		});
@@ -195,7 +197,7 @@ public class LibertyMPLSClientImpl extends LanguageClientImpl implements MicroPr
 			try {
 				return PropertiesManagerForJava.getInstance().completion(javaParams, JDTUtilsLSImpl.getInstance(), monitor);
 			} catch (JavaModelException e) {
-				LibertyMPLSPlugin.logException(e.getLocalizedMessage(), e);
+				LibertyToolsLSPlugin.logException(e.getLocalizedMessage(), e);
 				return null;
 			}
 		});
@@ -208,7 +210,7 @@ public class LibertyMPLSClientImpl extends LanguageClientImpl implements MicroPr
 			try {
 				return PropertiesManagerForJava.getInstance().hover(javaParams, JDTUtilsLSImpl.getInstance(), monitor);
 			} catch (JavaModelException e) {
-				LibertyMPLSPlugin.logException(e.getLocalizedMessage(), e);
+				LibertyToolsLSPlugin.logException(e.getLocalizedMessage(), e);
 				return null;
 			}	
 		});

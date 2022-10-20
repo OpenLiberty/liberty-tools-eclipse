@@ -37,6 +37,8 @@ import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.lsp4e.server.ProcessStreamConnectionProvider;
 
+import io.openliberty.tools.eclipse.ls.plugin.LibertyToolsLSPlugin;
+
 public class LibertyLSConnection extends ProcessStreamConnectionProvider {
 
 	public LibertyLSConnection() {
@@ -53,8 +55,8 @@ public class LibertyLSConnection extends ProcessStreamConnectionProvider {
 			setCommands(commands);
 			setWorkingDirectory(System.getProperty("user.dir"));			
 		} catch (IOException e) {
-			LibertyLSPlugin.getDefault().getLog().log(new Status(IStatus.ERROR,
-					LibertyLSPlugin.getDefault().getBundle().getSymbolicName(), e.getMessage(), e));
+			LibertyToolsLSPlugin.getDefault().getLog().log(new Status(IStatus.ERROR,
+					LibertyToolsLSPlugin.getDefault().getBundle().getSymbolicName(), e.getMessage(), e));
 		}
 	}
 

@@ -1,3 +1,5 @@
-server/*
 lib/*
+server/liberty-langserver/*.jar
+server/mp-langserver/*.jar
+server/liberty-lemminx-extn/*.jar
 dependency-reduced-pom.xml

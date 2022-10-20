@@ -91,7 +91,6 @@
             editorId="org.eclipse.ui.genericeditor.GenericEditor">
       </editorContentTypeBinding>
    </extension> 
-   
       <extension point="org.eclipse.ui.editors">
       <editorContentTypeBinding
             contentTypeId="io.openliberty.tools.eclipse.org.liberty.tools.config.server-env"
@@ -105,9 +104,10 @@
             editorId="org.eclipse.ui.genericeditor.GenericEditor">
       </editorContentTypeBinding>
    </extension>   
-   
+
    <extension
          point="org.eclipse.lsp4e.languageServer">
+      <!-- MicroProfile LS config -->
       <server
             class="io.openliberty.tools.eclipse.mpls.LibertyMPLSConnection"
             clientImpl="io.openliberty.tools.eclipse.mpls.LibertyMPLSClientImpl"
@@ -123,11 +123,9 @@
       <contentTypeMapping
             contentType="org.eclipse.jdt.core.javaSource"
             id="io.openliberty.tools.eclipse.org.microprofile.mpserver">
-      </contentTypeMapping>  
-   </extension>
-   
-      <extension
-         point="org.eclipse.lsp4e.languageServer">
+      </contentTypeMapping>
+      
+      <!-- Liberty Config LS config -->
       <server
             class="io.openliberty.tools.eclipse.liberty.languageserver.LibertyLSConnection"
             id="io.openliberty.tools.eclipse.org.liberty.languageserver"
@@ -140,7 +138,18 @@
       <contentTypeMapping
             contentType="io.openliberty.tools.eclipse.org.liberty.tools.config.server-env"
             id="io.openliberty.tools.eclipse.org.liberty.languageserver">
+      </contentTypeMapping>
+      
+      <!-- Jakarta LS config -->
+      <server
+            class="io.openliberty.tools.eclipse.jakarta.languageserver.JakartaLSConnection"
+            id="io.openliberty.tools.eclipse.org.liberty.jakartalangserver"
+            label="Liberty Tools Jakarta Language Server"
+            clientImpl="io.openliberty.tools.eclipse.jakarta.languageserver.JakartaLSClientImpl">
+      </server>
+      <contentTypeMapping
+            contentType="org.eclipse.jdt.core.javaSource"
+            id="io.openliberty.tools.eclipse.org.liberty.jakartalangserver">
       </contentTypeMapping>  
    </extension>
-      
 </plugin>

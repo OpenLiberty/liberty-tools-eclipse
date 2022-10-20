@@ -46,7 +46,7 @@ public class LibertyPluginTestUtils {
     public static void validateApplicationOutcome(String appName, boolean expectSuccess, String testAppPath) {
         String expectedMvnAppResp = "Hello! How are you today?";
         String appUrl = "http://localhost:9080/" + appName + "/servlet";
-        int retryCountLimit = 40;
+        int retryCountLimit = 50;
         int reryIntervalSecs = 3;
         int retryCount = 0;
 
