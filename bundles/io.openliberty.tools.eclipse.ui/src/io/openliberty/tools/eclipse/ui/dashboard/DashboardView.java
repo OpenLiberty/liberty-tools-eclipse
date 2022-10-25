@@ -43,7 +43,7 @@ import io.openliberty.tools.eclipse.ui.launch.shortcuts.StartAction;
 import io.openliberty.tools.eclipse.ui.launch.shortcuts.StartConfigurationDialogAction;
 import io.openliberty.tools.eclipse.ui.launch.shortcuts.StartInContainerAction;
 import io.openliberty.tools.eclipse.ui.launch.shortcuts.StopAction;
-import io.openliberty.tools.eclipse.utils.Dialog;
+import io.openliberty.tools.eclipse.utils.ErrorHandler;
 
 /**
  * View of Liberty application projects and dev mode actions to be processed on the selected projects.
@@ -114,7 +114,7 @@ public class DashboardView extends ViewPart {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }
-            Dialog.displayErrorMessageWithDetails(msg, e);
+            ErrorHandler.processErrorMessage(msg, e, true);
             return;
         }
 
@@ -183,7 +183,11 @@ public class DashboardView extends ViewPart {
             } else if (project.getBuildType() == Project.BuildType.GRADLE) {
                 mgr.add(viewGradleTestReportsAction);
             } else {
-                Dialog.displayErrorMessage("Project" + projectName + "is not a Gradle or Maven project.");
+                String msg = "Project" + projectName + "is not a Gradle or Maven project.";
+                if (Trace.isEnabled()) {
+                    Trace.getTracer().trace(Trace.TRACE_UI, msg);
+                }
+                ErrorHandler.processErrorMessage(msg, true);
                 return;
             }
         }
@@ -203,7 +207,11 @@ public class DashboardView extends ViewPart {
                     .createFromURL(new URL("platform:/plugin/org.eclipse.jdt.debug.ui/icons/full/elcl16/thread_view.gif"));
             refreshImg = ImageDescriptor.createFromURL(new URL("platform:/plugin/org.eclipse.ui.browser/icons/clcl16/nav_refresh.png"));
         } catch (Exception e) {
-            Dialog.displayErrorMessageWithDetails("An error was detected while retrieving Imade descriptions.", e);
+            String msg = "An error was detected while retrieving image descriptions.";
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
+            }
+            ErrorHandler.processWarningMessage(msg, e, true);
         }
 
         // Activate the Liberty tools context.
@@ -222,7 +230,7 @@ public class DashboardView extends ViewPart {
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
                     }
-                    Dialog.displayErrorMessageWithDetails(msg, e);
+                    ErrorHandler.processErrorMessage(msg, e, true);
                 }
             }
         };
@@ -245,7 +253,7 @@ public class DashboardView extends ViewPart {
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
                     }
-                    Dialog.displayErrorMessageWithDetails(msg, e);
+                    ErrorHandler.processErrorMessage(msg, e, true);
                 }
             }
         };
@@ -267,7 +275,7 @@ public class DashboardView extends ViewPart {
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
                     }
-                    Dialog.displayErrorMessageWithDetails(msg, e);
+                    ErrorHandler.processErrorMessage(msg, e, true);
                 }
             }
         };
@@ -288,7 +296,7 @@ public class DashboardView extends ViewPart {
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
                     }
-                    Dialog.displayErrorMessageWithDetails(msg, e);
+                    ErrorHandler.processErrorMessage(msg, e, true);
                 }
             }
         };
@@ -309,7 +317,7 @@ public class DashboardView extends ViewPart {
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
                     }
-                    Dialog.displayErrorMessageWithDetails(msg, e);
+                    ErrorHandler.processErrorMessage(msg, e, true);
                 }
             }
         };
@@ -331,7 +339,7 @@ public class DashboardView extends ViewPart {
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
                     }
-                    Dialog.displayErrorMessageWithDetails(msg, e);
+                    ErrorHandler.processErrorMessage(msg, e, true);
                 }
             }
         };
@@ -353,7 +361,7 @@ public class DashboardView extends ViewPart {
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
                     }
-                    Dialog.displayErrorMessageWithDetails(msg, e);
+                    ErrorHandler.processErrorMessage(msg, e, true);
                 }
             }
         };
@@ -375,7 +383,7 @@ public class DashboardView extends ViewPart {
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
                     }
-                    Dialog.displayErrorMessageWithDetails(msg, e);
+                    ErrorHandler.processErrorMessage(msg, e, true);
                 }
             }
         };
@@ -391,7 +399,11 @@ public class DashboardView extends ViewPart {
                 try {
                     viewer.setInput(devModeOps.getSupportedProjects());
                 } catch (Exception e) {
-                    Dialog.displayErrorMessageWithDetails("An error was detected while retrieving Liberty projects.", e);
+                    String msg = "An error was detected while retrieving Liberty projects.";
+                    if (Trace.isEnabled()) {
+                        Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
+                    }
+                    ErrorHandler.processErrorMessage(msg, e, true);
                 }
             }
         };
