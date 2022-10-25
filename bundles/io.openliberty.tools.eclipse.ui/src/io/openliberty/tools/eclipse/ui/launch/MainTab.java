@@ -32,7 +32,9 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.PlatformUI;
 
+import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.logging.Trace;
+import io.openliberty.tools.eclipse.utils.ErrorHandler;
 import io.openliberty.tools.eclipse.utils.Utils;
 
 /**
@@ -63,6 +65,9 @@ public class MainTab extends AbstractLaunchConfigurationTab {
 
     /** Holds the run in container check box. */
     private Button runInContainerCheckBox;
+
+    /** DevModeOperations instance. */
+    private DevModeOperations devModeOps = DevModeOperations.getInstance();
 
     /**
      * Constructor.
@@ -140,15 +145,14 @@ public class MainTab extends AbstractLaunchConfigurationTab {
      */
     @Override
     public void initializeFrom(ILaunchConfiguration configuration) {
-        activeProject = Utils.getActiveProject();
-
-        if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_UI, new Object[] { activeProject, configuration });
-        }
-
         // Initialize the configuration view with previously saved values.
         try {
-            String consoleText = configuration.getAttribute(PROJECT_START_PARM, "");
+            activeProject = Utils.getActiveProject();
+            if (activeProject == null) {
+                activeProject = devModeOps.getSelectedDashboardProject();
+            }
+
+            String consoleText = configuration.getAttribute(PROJECT_START_PARM, getDefaultStartCommand());
             startParmText.setText(consoleText);
 
             boolean runInContainer = configuration.getAttribute(PROJECT_RUN_IN_CONTAINER, false);
@@ -161,10 +165,6 @@ public class MainTab extends AbstractLaunchConfigurationTab {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, ce);
             }
-        }
-
-        if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_UI, configuration);
         }
     }
 
@@ -191,6 +191,8 @@ public class MainTab extends AbstractLaunchConfigurationTab {
         return "Main";
     }
 
+    private Image libertyImage;
+
     /**
      * {@inheritDoc}
      */
@@ -207,5 +209,32 @@ public class MainTab extends AbstractLaunchConfigurationTab {
         if (image != null) {
             image.dispose();
         }
+    }
+    
+
+    /**
+     * Returns the default start parameters.
+     * 
+     * @return The default start parameters.
+     */
+    private String getDefaultStartCommand() {
+        String parms = "";
+        try {
+            if (activeProject != null) {
+                // Verify that the existing projects are projects are read and classified. This maybe the first time
+                // this plugin's function is being used.
+                devModeOps.verifyProjectSupport(activeProject);
+                parms = devModeOps.getDashboard().getDefaultStartParameters(activeProject);
+            }
+        } catch (Exception e) {
+            // Report the issue and continue without a initial start command.
+            String msg = "An error was detected while retrieving the default start parameters.";
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
+            }
+            ErrorHandler.processErrorMessage(msg, e, true);
+        }
+
+        return parms;
     }
 }

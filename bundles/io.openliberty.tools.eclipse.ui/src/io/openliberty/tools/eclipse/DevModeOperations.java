@@ -17,7 +17,6 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.core.resources.IProject;
@@ -40,9 +39,6 @@ import io.openliberty.tools.eclipse.utils.ErrorHandler;
  * Provides the implementation of all supported dev mode operations.
  */
 public class DevModeOperations {
-
-    // TODO: Dashboard display: Handle the case where the project is configured to be built/run by both
-    // Gradle and Maven at the same time.
 
     /**
      * Constants.
@@ -74,12 +70,21 @@ public class DevModeOperations {
     private static DevModeOperations instance;
 
     /**
+     * DashboardView
+     */
+    private DashboardView dashboardView;
+
+    /**
      * Constructor.
      */
     public DevModeOperations() {
         projectTabController = ProjectTabController.getInstance();
         dashboard = new Dashboard();
         pathEnv = System.getenv("PATH");
+    }
+
+    public Dashboard getDashboard() {
+        return dashboard;
     }
 
     /**
@@ -155,7 +160,7 @@ public class DevModeOperations {
         Project project = null;
 
         try {
-            project = dashboard.getProject(projectName);
+            project = dashboard.getLibertyServerProject(projectName);
             if (project == null) {
                 throw new Exception("Unable to find internal instance of project " + projectName);
             }
@@ -244,7 +249,7 @@ public class DevModeOperations {
         Project project = null;
 
         try {
-            project = dashboard.getProject(projectName);
+            project = dashboard.getLibertyServerProject(projectName);
             if (project == null) {
                 throw new Exception("Unable to find internal instance of project " + projectName);
             }
@@ -476,7 +481,7 @@ public class DevModeOperations {
         Project project = null;
 
         try {
-            project = dashboard.getProject(projectName);
+            project = dashboard.getLibertyServerProject(projectName);
             if (project == null) {
                 throw new Exception("Unable to find internal instance of project " + projectName);
             }
@@ -548,7 +553,7 @@ public class DevModeOperations {
         Project project = null;
 
         try {
-            project = dashboard.getProject(projectName);
+            project = dashboard.getLibertyServerProject(projectName);
             if (project == null) {
                 throw new Exception("Unable to find internal instance of project " + projectName);
             }
@@ -619,7 +624,7 @@ public class DevModeOperations {
         Project project = null;
 
         try {
-            project = dashboard.getProject(projectName);
+            project = dashboard.getLibertyServerProject(projectName);
             if (project == null) {
                 throw new Exception("Unable to find internal instance of project " + projectName);
             }
@@ -871,7 +876,7 @@ public class DevModeOperations {
                 IStructuredSelection structuredSelection = (IStructuredSelection) selection;
                 Object firstElement = structuredSelection.getFirstElement();
                 if (firstElement instanceof String) {
-                    Project project = dashboard.getProject((String) firstElement);
+                    Project project = dashboard.getLibertyServerProject((String) firstElement);
                     if (project != null) {
                         iProject = project.getIProject();
                     }
@@ -884,37 +889,6 @@ public class DevModeOperations {
     }
 
     /**
-     * Returns a sorted list of projects that are configured to run on Liberty.
-     *
-     * @return A sorted list of projects that are configured to run on Liberty.
-     *
-     * @throws Exception
-     */
-    public List<String> getSupportedProjects() throws Exception {
-        dashboard.retrieveSupportedProjects();
-        List<String> mvnProjs = dashboard.getMavenProjectNames();
-        Collections.sort(mvnProjs);
-        List<String> gradleProjs = dashboard.getGradleProjectNames();
-        Collections.sort(gradleProjs);
-
-        ArrayList<String> sortedProjects = new ArrayList<String>();
-        sortedProjects.addAll(mvnProjs);
-        sortedProjects.addAll(gradleProjs);
-        return sortedProjects;
-    }
-
-    /**
-     * Returns the project associated with the input name.
-     * 
-     * @param name The name of the project.
-     * 
-     * @return The project associated with the input name.
-     */
-    public Project getSupportedProject(String name) {
-        return dashboard.getProject(name);
-    }
-
-    /**
      * Verifies that the input project is known to the plugin and that it is a supported project.
      * 
      * @param iProject The project to validate. If null, this operation is a no-op.
@@ -924,15 +898,18 @@ public class DevModeOperations {
     public void verifyProjectSupport(IProject iProject) throws Exception {
         if (iProject != null) {
             String projectName = iProject.getName();
-            Project project = getSupportedProject(projectName);
+            Project project = dashboard.getLibertyServerProject(projectName);
             if (project == null) {
-                getSupportedProjects();
-                project = getSupportedProject(iProject.getName());
-                if (project == null) {
-                    throw new Exception(
-                            "Project " + projectName + " is not a supported project. Make sure the project is a Liberty project.");
-                }
+                throw new Exception("Project " + projectName + " is not a supported project. Make sure the project is a Liberty project.");
             }
         }
+    }
+
+    public DashboardView getDashboardView() {
+        return dashboardView;
+    }
+
+    public void setDashboardView(DashboardView dashboardView) {
+        this.dashboardView = dashboardView;
     }
 }

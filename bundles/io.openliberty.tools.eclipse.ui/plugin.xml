@@ -14,6 +14,10 @@
 <?eclipse version="3.4"?>
 <plugin>
 
+   <extension point="org.eclipse.ui.startup">
+      <startup class="io.openliberty.tools.eclipse.ui.dashboard.ImportListener"/>
+   </extension>
+
    <!-- Contexts -->
    <extension point="org.eclipse.ui.contexts">
       <context

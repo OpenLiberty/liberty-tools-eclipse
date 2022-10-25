@@ -28,7 +28,6 @@ import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.core.model.LaunchConfigurationDelegate;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IWorkbench;
-import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
@@ -44,12 +43,6 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
 
     /** Launch configuration type ID as specified in plugin.xml. */
     public static final String LAUNCH_CONFIG_TYPE_ID = "io.openliberty.tools.eclipse.launch.type";
-
-    /** DevModeOperations instance. */
-    DevModeOperations devModeOps = DevModeOperations.getInstance();
-
-    /** Currently active workbench window. */
-    IWorkbenchWindow activeWindow;
 
     /** Launch shortcuts */
     public static final String LAUNCH_SHORTCUT_START = "Liberty Start";
@@ -71,11 +64,10 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
      */
     @Override
     public void launch(ILaunchConfiguration configuration, String mode, ILaunch launch, IProgressMonitor monitor) throws CoreException {
-        // Processing paths: Explorer-> Run As-> Run Configurations, and Dashboard-> project -> Start...
-        if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_UI, new Object[] { configuration, mode, launch, monitor });
-        }
-
+        // Processing paths:
+        // - Explorer-> Run As-> Run Configurations
+        // - Dashboard-> project -> Start...
+        DevModeOperations devModeOps = DevModeOperations.getInstance();
         IWorkbench workbench = PlatformUI.getWorkbench();
         Display display = workbench.getDisplay();
         display.syncExec(new Runnable() {
@@ -96,10 +88,6 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
                 }
             }
         });
-
-        if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_UI);
-        }
     }
 
     /**
@@ -116,6 +104,7 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
      * @throws Exception
      */
     public static ILaunchConfiguration getLaunchConfiguration(IProject iProject, String mode, RuntimeEnv runtimeEnv) throws Exception {
+        DevModeOperations devModeOps = DevModeOperations.getInstance();
         ILaunchConfiguration configuration = null;
         ILaunchManager iLaunchMgr = DebugPlugin.getDefault().getLaunchManager();
         ILaunchConfigurationType iLaunchConfigType = iLaunchMgr
@@ -133,7 +122,7 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
                 String newName = iLaunchMgr.generateLaunchConfigurationName(iProject.getName());
                 ILaunchConfigurationWorkingCopy workingCopy = iLaunchConfigType.newInstance(null, newName);
                 workingCopy.setAttribute(MainTab.PROJECT_NAME, iProject.getName());
-                workingCopy.setAttribute(MainTab.PROJECT_START_PARM, "");
+                workingCopy.setAttribute(MainTab.PROJECT_START_PARM, devModeOps.getDashboard().getDefaultStartParameters(iProject));
                 workingCopy.setAttribute(MainTab.PROJECT_RUN_IN_CONTAINER, false);
                 configuration = workingCopy.doSave();
                 break;

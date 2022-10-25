@@ -14,6 +14,9 @@ package io.openliberty.tools.eclipse;
 
 import java.util.Hashtable;
 
+import org.eclipse.core.resources.IResourceChangeEvent;
+import org.eclipse.core.resources.IResourceChangeListener;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.osgi.service.debug.DebugOptions;
 import org.eclipse.osgi.service.debug.DebugOptionsListener;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
@@ -33,6 +36,7 @@ public class LibertyDevPlugin extends AbstractUIPlugin {
     
     // The shared instance
     private static LibertyDevPlugin plugin;
+    private static IResourceChangeListener resourceChangeListener;
 
     /**
      * Constructor.
@@ -49,12 +53,15 @@ public class LibertyDevPlugin extends AbstractUIPlugin {
         Hashtable<String, String> props = new Hashtable<String, String>();
         props.put(DebugOptions.LISTENER_SYMBOLICNAME, LibertyDevPlugin.DEBUG_OPTIONS_ID);
         context.registerService(DebugOptionsListener.class.getName(), new Trace(), props);
+        resourceChangeListener = new MultiModUpdater();
+        ResourcesPlugin.getWorkspace().addResourceChangeListener(resourceChangeListener);
     }
 
     @Override
     public void stop(BundleContext context) throws Exception {
         plugin = null;
         super.stop(context);
+        ResourcesPlugin.getWorkspace().removeResourceChangeListener(resourceChangeListener);
     }
 
     /**

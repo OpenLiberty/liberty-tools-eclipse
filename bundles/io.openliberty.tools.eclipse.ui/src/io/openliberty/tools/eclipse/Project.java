@@ -13,17 +13,19 @@
 package io.openliberty.tools.eclipse;
 
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 import org.eclipse.core.resources.IFile;
-import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
-import org.eclipse.core.resources.IResource;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 
 import io.openliberty.tools.eclipse.logging.Trace;
+import io.openliberty.tools.eclipse.utils.ErrorHandler;
 
 /**
  * Represents a project in the Liberty tools dashboard.
@@ -60,7 +62,12 @@ public class Project {
     /**
      * Build type associated with this project.
      */
-    BuildType type;
+    private BuildType type;
+
+    private Project parentDirProject = null;
+    private Set<Project> childDirProjects = new HashSet<Project>();
+
+    private boolean libertyServerModule = false;
 
     /**
      * Constructor.
@@ -69,11 +76,29 @@ public class Project {
      */
     public Project(IProject project) {
         this.iProject = project;
-        type = findBuildType();
+        this.type = findBuildType();
+        this.libertyServerModule = isLibertyNature();
+    }
+
+    private boolean isLibertyNature() {
+        try {
+            if (iProject.getDescription().hasNature(LibertyNature.NATURE_ID)) {
+                return true;
+            } else {
+                return false;
+            }
+        } catch (Exception e) {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UTILS,
+                        "An error occurred while attempting to find the nature of project " + iProject.getName(), e);
+            }
+            return false;
+        }
     }
 
     /**
      * Returns the build type associated with this project.
+     * 
      * @return The build type associated with this project.
      */
     public BuildType getBuildType() {
@@ -81,8 +106,8 @@ public class Project {
     }
 
     /**
-     * Finds the build type to be associated with this project. If a project can be built
-     * as a Maven or Gradle project, the Maven build type takes precedence.
+     * Finds the build type to be associated with this project. If a project can be built as a Maven or Gradle project, the Maven
+     * build type takes precedence.
      */
     private BuildType findBuildType() {
 
@@ -155,62 +180,28 @@ public class Project {
     }
 
     /**
-     * Returns true if the input project is configured to run in Liberty and it uses a supported build mechanism. False,
-     * otherwise. If it is determined that the project is a supported type, the outcome is persisted by associating the project
-     * with a Liberty type/nature.
-     *
-     * @param iProject The project to check.
-     *
-     * @return True if the input project is configured to run in Liberty's dev mode. False, otherwise.
-     *
-     * @throws Exception
+     * If it is determined that the project is a supported type, the outcome is persisted by associating the project with a Liberty
+     * type/nature.
      */
-    public boolean isSupported() throws Exception {
-        // Note: Currently, we do not cleanup the nature from the project's metadata. Even if it is
-        // determined that the input project is not a supported Liberty project, but it is marked as being
-        // one. The reason for it is that we currently allow users to add the liberty nature to
-        // those projects that do not fit the generic structure the code checks for. Once the checks are
-        // are improved to handle customized projects, Liberty natures should be cleaned up automatically.
-
-        // Check if the input project is already marked as being a supported liberty project.
-        if (iProject.getDescription().hasNature(LibertyNature.NATURE_ID)) {
-            return true;
-        }
-
-        // If we are here, the project is not marked as being able to run on Liberty
-        boolean supported = false;
-
-        // Check if the project has a server.xml config file in a specific location.
-        // Gradle built multi-module projects are excluded. Dev mode currently does not support
-        // that type of project.
-        if (isMultiModule() && (type != BuildType.GRADLE)) {
-            for (IResource resource : iProject.members()) {
-                if (resource.getType() == IResource.FOLDER) {
-                    IFolder folder = ((IFolder) resource);
-                    Path path = new Path("src/main/liberty/config/server.xml");
-                    if (path != null) {
-                        IFile serverxml = folder.getFile(path);
-                        if (serverxml.exists()) {
-                            supported = true;
-                            break;
-                        }
-                    }
-                }
+    public void classify() {
+        try {
+            if (iProject.getDescription().hasNature(LibertyNature.NATURE_ID)) {
+                libertyServerModule = true;
+                return;
             }
-        } else {
             IFile serverxml = iProject.getFile(new Path("src/main/liberty/config/server.xml"));
-            if (serverxml.exists()) {
-                supported = true;
+            IFile bootstrapProps = iProject.getFile(new Path("src/main/liberty/config/bootstrap.properties"));
+            IFile serverenv = iProject.getFile(new Path("src/main/liberty/config/server.env"));
+            if (serverxml.exists() || bootstrapProps.exists() || serverenv.exists()) {
+                addLibertyNature(iProject);
+                libertyServerModule = true;
+            } else {
+                libertyServerModule = false;
             }
+        } catch (Exception e) {
+            String msg = "Error querying and adding Liberty nature";
+            ErrorHandler.processWarningMessage(msg, e, false);
         }
-
-        // If it is determined that the input project can run on Liberty, persist the outcome (if not
-        // done so already) by adding a Liberty type/nature marker to the project's metadata.
-        if (supported) {
-            addLibertyNature(iProject);
-        }
-
-        return supported;
     }
 
     /**
@@ -221,11 +212,14 @@ public class Project {
      * @throws Exception
      */
     public void addLibertyNature(IProject project) throws Exception {
+
         if (Trace.isEnabled()) {
             Trace.getTracer().traceEntry(Trace.TRACE_UTILS, project);
         }
 
-        IProjectDescription projectDesc = project.getDescription();
+        IPath projectPath = project.getLocation().addTrailingSeparator().append(".project");
+
+        IProjectDescription projectDesc = ResourcesPlugin.getWorkspace().loadProjectDescription(projectPath);
         String[] currentNatures = projectDesc.getNatureIds();
         String[] newNatures = new String[currentNatures.length + 1];
         System.arraycopy(currentNatures, 0, newNatures, 0, currentNatures.length);
@@ -271,7 +265,28 @@ public class Project {
 
     @Override
     public String toString() {
-        return "IProject: " + iProject.toString() + ". BuildType: " + type + ". Muti-module: " + multiModule;
+        return "IProject: " + iProject.toString() + ". BuildType: " + type + ". Liberty Server Module: " + isLibertyNature()
+                + ". parentDirProj: " + parentDirProject + ". childDirProjects: " + childDirProjects;
+    }
+
+    public boolean isLibertyServerModule() {
+        return libertyServerModule;
+    }
+
+    public void setParentDirProject(Project parent) {
+        this.parentDirProject = parent;
+    }
+
+    public void addChildDirProject(Project child) {
+        this.childDirProjects.add(child);
+    }
+
+    public String getName() {
+        return iProject.getName();
+    }
+
+    public boolean isAggregated() {
+        return parentDirProject != null;
     }
 
 }
