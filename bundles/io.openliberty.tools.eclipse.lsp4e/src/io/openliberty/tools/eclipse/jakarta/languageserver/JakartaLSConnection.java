@@ -79,15 +79,9 @@ public class JakartaLSConnection extends ProcessStreamConnectionProvider {
     }
 
     private String computeJavaPath() {
-        String javaPath = "java";
-        boolean existsInPath = Stream.of(System.getenv("PATH").split(Pattern.quote(File.pathSeparator))).map(Paths::get)
-                .anyMatch(path -> Files.exists(path.resolve("java")));
-        if (!existsInPath) {
-            File f = new File(System.getProperty("java.home"),
-                    "bin/java" + (Platform.getOS().equals(Platform.OS_WIN32) ? ".exe" : ""));
-            javaPath = f.getAbsolutePath();
-        }
-        return javaPath;
+        File f = new File(System.getProperty("java.home"),
+                "bin/java" + (Platform.getOS().equals(Platform.OS_WIN32) ? ".exe" : ""));
+        return f.getAbsolutePath();
     }
 
     @Override
