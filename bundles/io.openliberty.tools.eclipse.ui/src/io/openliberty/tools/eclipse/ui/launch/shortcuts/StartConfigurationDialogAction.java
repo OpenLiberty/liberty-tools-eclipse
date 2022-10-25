@@ -14,7 +14,7 @@ import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher.RuntimeEnv;
-import io.openliberty.tools.eclipse.utils.Dialog;
+import io.openliberty.tools.eclipse.utils.ErrorHandler;
 import io.openliberty.tools.eclipse.utils.Utils;
 
 /**
@@ -29,8 +29,13 @@ public class StartConfigurationDialogAction implements ILaunchShortcut {
      */
     @Override
     public void launch(ISelection selection, String mode) {
+        IProject iProject = Utils.getProjectFromSelection(selection);
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_UI, new Object[] { iProject, selection, mode });
+        }
+
         try {
-            IProject iProject = Utils.getProjectFromSelection(selection);
             run(iProject, mode);
         } catch (Exception e) {
             String msg = "An error was detected while processing the \"" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONFIG
@@ -38,8 +43,12 @@ public class StartConfigurationDialogAction implements ILaunchShortcut {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }
-            Dialog.displayErrorMessageWithDetails(msg, e);
+
             return;
+        }
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_UI, iProject);
         }
     }
 
@@ -48,8 +57,13 @@ public class StartConfigurationDialogAction implements ILaunchShortcut {
      */
     @Override
     public void launch(IEditorPart part, String mode) {
+        IProject iProject = Utils.getProjectFromPart(part);
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_UI, new Object[] { iProject, part, mode });
+        }
+
         try {
-            IProject iProject = Utils.getProjectFromPart(part);
             run(iProject, mode);
         } catch (Exception e) {
             String msg = "An error was detected while processing the \"" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONFIG
@@ -57,8 +71,12 @@ public class StartConfigurationDialogAction implements ILaunchShortcut {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }
-            Dialog.displayErrorMessageWithDetails(msg, e);
+            ErrorHandler.processErrorMessage(msg, e, true);
             return;
+        }
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_UI, iProject);
         }
     }
 

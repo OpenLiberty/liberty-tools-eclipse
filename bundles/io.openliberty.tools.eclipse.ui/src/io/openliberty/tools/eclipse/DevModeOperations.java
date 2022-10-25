@@ -34,7 +34,7 @@ import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
 import io.openliberty.tools.eclipse.ui.terminal.ProjectTab;
 import io.openliberty.tools.eclipse.ui.terminal.ProjectTab.State;
 import io.openliberty.tools.eclipse.ui.terminal.ProjectTabController;
-import io.openliberty.tools.eclipse.utils.Dialog;
+import io.openliberty.tools.eclipse.utils.ErrorHandler;
 
 /**
  * Provides the implementation of all supported dev mode operations.
@@ -119,7 +119,7 @@ public class DevModeOperations {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op.");
             }
-            Dialog.displayErrorMessage(msg);
+            ErrorHandler.processErrorMessage(msg, true);
             return;
         }
 
@@ -146,8 +146,8 @@ public class DevModeOperations {
                     Trace.getTracer().trace(Trace.TRACE_TOOLS, "The start request was already issued on project " + projectName
                             + ". No-op. ProjectTabController: " + projectTabController);
                 }
-                Dialog.displayWarningMessage("The start request was already issued on project " + projectName
-                        + ". Use the stop action prior to selecting the start action.");
+                ErrorHandler.processErrorMessage("The start request was already issued on project " + projectName
+                        + ". Use the stop action prior to selecting the start action.", true);
                 return;
             }
         }
@@ -157,7 +157,7 @@ public class DevModeOperations {
         try {
             project = dashboard.getProject(projectName);
             if (project == null) {
-                throw new Exception("Unable to find internal instance of project with name: " + projectName);
+                throw new Exception("Unable to find internal instance of project " + projectName);
             }
 
             // Get the absolute path to the application project.
@@ -184,7 +184,7 @@ public class DevModeOperations {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
             }
-            Dialog.displayErrorMessageWithDetails(msg, e);
+            ErrorHandler.processErrorMessage(msg, e, true);
             return;
         }
 
@@ -208,7 +208,7 @@ public class DevModeOperations {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op.");
             }
-            Dialog.displayErrorMessage(msg);
+            ErrorHandler.processErrorMessage(msg, true);
             return;
         }
 
@@ -235,8 +235,8 @@ public class DevModeOperations {
                     Trace.getTracer().trace(Trace.TRACE_TOOLS, "The start in container request was already issued on project " + projectName
                             + ". No-op. ProjectTabController: " + projectTabController);
                 }
-                Dialog.displayWarningMessage("The start in container request was already issued on project " + projectName
-                        + ". Use the stop action prior to selecting the start action.");
+                ErrorHandler.processErrorMessage("The start in container request was already issued on project " + projectName
+                        + ". Use the stop action prior to selecting the start action.", true);
                 return;
             }
         }
@@ -246,7 +246,7 @@ public class DevModeOperations {
         try {
             project = dashboard.getProject(projectName);
             if (project == null) {
-                throw new Exception("Unable to find internal instance of project with name: " + projectName);
+                throw new Exception("Unable to find internal instance of project " + projectName);
             }
 
             // Get the absolute path to the application project.
@@ -273,7 +273,7 @@ public class DevModeOperations {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
             }
-            Dialog.displayErrorMessageWithDetails(msg, e);
+            ErrorHandler.processErrorMessage(msg, e, true);
             return;
         }
 
@@ -304,7 +304,7 @@ public class DevModeOperations {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op.");
             }
-            Dialog.displayErrorMessage(msg);
+            ErrorHandler.processErrorMessage(msg, true);
             return;
         }
 
@@ -317,7 +317,7 @@ public class DevModeOperations {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op. ProjectTabController: " + projectTabController);
             }
-            Dialog.displayWarningMessage(msg);
+            ErrorHandler.processErrorMessage(msg, true);
             return;
         }
 
@@ -333,7 +333,7 @@ public class DevModeOperations {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op. ProjectTabController: " + projectTabController);
             }
-            Dialog.displayWarningMessage(msg);
+            ErrorHandler.processErrorMessage(msg, true);
             return;
         }
 
@@ -362,7 +362,7 @@ public class DevModeOperations {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
             }
-            Dialog.displayErrorMessageWithDetails(msg, e);
+            ErrorHandler.processErrorMessage(msg, e, true);
             return;
         }
 
@@ -393,7 +393,7 @@ public class DevModeOperations {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op.");
             }
-            Dialog.displayErrorMessage(msg);
+            ErrorHandler.processErrorMessage(msg, true);
             return;
         }
 
@@ -406,7 +406,7 @@ public class DevModeOperations {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op. ProjectTabController: " + projectTabController);
             }
-            Dialog.displayWarningMessage(msg);
+            ErrorHandler.processErrorMessage(msg, true);
             return;
         }
 
@@ -422,7 +422,7 @@ public class DevModeOperations {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op. ProjectTabController: " + projectTabController);
             }
-            Dialog.displayWarningMessage(msg);
+            ErrorHandler.processErrorMessage(msg, true);
             return;
         }
 
@@ -433,11 +433,11 @@ public class DevModeOperations {
             // Issue the command on the terminal.
             projectTabController.writeTerminalStream(projectName, cmd.getBytes());
         } catch (Exception e) {
-            String msg = "An error was detected while processing the run tests request on project \" " + projectName + ".";
+            String msg = "An error was detected while processing the run tests request on project " + projectName + ".";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
             }
-            Dialog.displayErrorMessageWithDetails(msg, e);
+            ErrorHandler.processErrorMessage(msg, e, true);
             return;
         }
 
@@ -468,7 +468,7 @@ public class DevModeOperations {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op.");
             }
-            Dialog.displayErrorMessage(msg);
+            ErrorHandler.processErrorMessage(msg, true);
             return;
         }
 
@@ -478,7 +478,7 @@ public class DevModeOperations {
         try {
             project = dashboard.getProject(projectName);
             if (project == null) {
-                throw new Exception("Unable to find internal instance of project with name: " + projectName);
+                throw new Exception("Unable to find internal instance of project " + projectName);
             }
 
             // Get the absolute path to the application project.
@@ -496,7 +496,7 @@ public class DevModeOperations {
                 if (Trace.isEnabled()) {
                     Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op. Path: " + path);
                 }
-                Dialog.displayWarningMessage(msg);
+                ErrorHandler.processErrorMessage(msg, true);
                 return;
             }
 
@@ -508,7 +508,7 @@ public class DevModeOperations {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
             }
-            Dialog.displayErrorMessageWithDetails(msg, e);
+            ErrorHandler.processErrorMessage(msg, e, true);
             return;
         }
 
@@ -541,7 +541,7 @@ public class DevModeOperations {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op.");
             }
-            Dialog.displayErrorMessage(msg);
+            ErrorHandler.processErrorMessage(msg, true);
         }
 
         String projectName = iProject.getName();
@@ -550,7 +550,7 @@ public class DevModeOperations {
         try {
             project = dashboard.getProject(projectName);
             if (project == null) {
-                throw new Exception("Unable to find internal instance of project with name: " + projectName);
+                throw new Exception("Unable to find internal instance of project " + projectName);
             }
 
             // Get the absolute path to the application project.
@@ -568,7 +568,7 @@ public class DevModeOperations {
                 if (Trace.isEnabled()) {
                     Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op. Path: " + path);
                 }
-                Dialog.displayWarningMessage(msg);
+                ErrorHandler.processErrorMessage(msg, true);
                 return;
             }
 
@@ -576,11 +576,11 @@ public class DevModeOperations {
             String browserTabTitle = projectName + " " + BROWSER_MVN_UT_REPORT_NAME_SUFFIX;
             openTestReport(projectName, path, path.toString(), browserTabTitle, browserTabTitle);
         } catch (Exception e) {
-            String msg = "An error was detected while processing the view unit test report request on project \" " + projectName + ".";
+            String msg = "An error was detected while processing the view unit test report request on project " + projectName + ".";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
             }
-            Dialog.displayErrorMessageWithDetails(msg, e);
+            ErrorHandler.processErrorMessage(msg, e, true);
             return;
         }
 
@@ -611,7 +611,7 @@ public class DevModeOperations {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op.");
             }
-            Dialog.displayErrorMessage(msg);
+            ErrorHandler.processErrorMessage(msg, true);
             return;
         }
 
@@ -621,7 +621,7 @@ public class DevModeOperations {
         try {
             project = dashboard.getProject(projectName);
             if (project == null) {
-                throw new Exception("Unable to find internal instance of project with name: " + projectName);
+                throw new Exception("Unable to find internal instance of project " + projectName);
             }
 
             // Get the absolute path to the application project.
@@ -639,7 +639,7 @@ public class DevModeOperations {
                 if (Trace.isEnabled()) {
                     Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op. Path: " + path);
                 }
-                Dialog.displayWarningMessage(msg);
+                ErrorHandler.processErrorMessage(msg, true);
                 return;
             }
 
@@ -651,7 +651,7 @@ public class DevModeOperations {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
             }
-            Dialog.displayErrorMessageWithDetails(msg, e);
+            ErrorHandler.processErrorMessage(msg, e, true);
             return;
         }
 

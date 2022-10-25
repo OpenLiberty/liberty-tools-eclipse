@@ -130,10 +130,14 @@ public class MainTab extends AbstractLaunchConfigurationTab {
      */
     @Override
     public void initializeFrom(ILaunchConfiguration configuration) {
+        activeProject = Utils.getActiveProject();
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_UI, new Object[] { activeProject, configuration });
+        }
+
         // Initialize the configuration view with previously saved values.
         try {
-            activeProject = Utils.getActiveProject();
-
             String consoleText = configuration.getAttribute(PROJECT_START_PARM, "");
             startParmText.setText(consoleText);
 
@@ -147,6 +151,10 @@ public class MainTab extends AbstractLaunchConfigurationTab {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, ce);
             }
+        }
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_UI, configuration);
         }
     }
 

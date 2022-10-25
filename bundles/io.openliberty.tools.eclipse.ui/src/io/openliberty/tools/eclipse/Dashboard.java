@@ -25,6 +25,7 @@ import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 
 import io.openliberty.tools.eclipse.logging.Trace;
+import io.openliberty.tools.eclipse.utils.ErrorHandler;
 
 /**
  * Represents the Liberty tools dashboard.
@@ -88,10 +89,11 @@ public class Dashboard {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            String msg = "An error occurred while searching for top level projects in the workspace.";
             if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_UTILS, "Error while retrieving eclipse projects: ", e);
+                Trace.getTracer().trace(Trace.TRACE_UTILS, msg + " Workspace projects: " + iProjects, e);
             }
+            ErrorHandler.processWarningMessage(msg, e, false);
         }
 
         if (Trace.isEnabled()) {
