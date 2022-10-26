@@ -41,10 +41,6 @@ Click on the Open Liberty icon on the toolbar.
 
 ![Dashboard context menu for Maven Project](images/openLibertyIconOnToolbar.png)
 
-Alternatively, click on the `Open Dashboard` option in the `Liberty` menu. 
-
-![Dashboard context menu for Maven Project](images/openLibertyToolMenuDashboardView.png)
-
 If the dashboard is opened and there are application projects that already properly configured to run on Liberty and use Liberty dev mode, those projects are automatically added to the dashboard when it opens.
 
 If you add new projects or make changes, and you need the dashboard to be refreshed, use the refresh icon in the dashboard toolbar.
@@ -67,13 +63,17 @@ If you want to start your application project in dev mode, right click on the pr
 
 ![Start action started](images/maven-devModeStarted.png)
 
-### Start with parameters
+### Start with Configuration
 
-If you want to start your application project in dev mode with custom parameters such as -DhotTests=true, right click on the project name listed in the dashboard, and click on the  `Start...` action. 
+If you want to start your application project in dev mode with customizations, right click on the project name listed in the dashboard, and click on the  `Start...` action.
 
-A popup view will appear prompting you for custom parameters. Add the needed parameters and click `OK`. 
+A configuration dialog will appear where you can specify custom parameters such as -DhotTests=true and whether or not you want your application project to run in a container.
+ 
+The configuration shown in the dialog is created and displayed if one is not already associated with the project. If a single configuration is already associated with the project, that configuration is displayed. If multiple configurations are already associated with the project, the last configuration that ran is displayed. 
 
-![Start with parameters popup](images/maven-startWithParmsPopupView.png)
+Once you are done customizing the configuration, click `Run`. 
+
+![Start with configuration dialog](images/maven-runConfigurationsDialog.png)
 
 A new terminal tab will open to run the application in dev mode. 
 
