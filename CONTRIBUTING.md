@@ -43,4 +43,4 @@ Please note:
 
 ### Plugin development
 
-To learn how to setup, run, and test your development environment, follow the provided [plugin developmemnt instructions](https://github.com/OpenLiberty/liberty-tools-eclipse/wiki/Plugin-Development).
+To learn how to setup, run, and test your development environment, follow the provided [plugin development instructions](https://github.com/OpenLiberty/liberty-tools-eclipse/wiki/Plugin-Development).
