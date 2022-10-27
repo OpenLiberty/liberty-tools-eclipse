@@ -18,6 +18,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -39,8 +40,6 @@ public class Dashboard {
      * Constructor.
      */
     public Dashboard() {
-        projectsByLocation = new ConcurrentHashMap<String, Project>();
-        projectsByName = new ConcurrentHashMap<String, Project>();
     }
 
     private void createProjectModels(List<IProject> projects, boolean classify) {
@@ -60,17 +59,43 @@ public class Dashboard {
     }
 
     /**
-     * Build model
+     * 
+     */
+    public void buildCompleteWorkspaceModelWithClassify() {
+        buildCompleteWorkspaceModel(true);
+    }
+
+    /**
+     * 
+     */
+    public void buildCompleteWorkspaceModelWithoutClassify() {
+        buildCompleteWorkspaceModel(false);
+    }
+
+    /**
+     * Discard previous model and build new model from open projects
      * 
      * @param whether to classify or not
      */
-    public void buildCompleteWorkspaceModel(boolean classify) {
+    private void buildCompleteWorkspaceModel(boolean classify) {
+
         IWorkspaceRoot workspaceRoot = ResourcesPlugin.getWorkspace().getRoot();
         IProject[] iProjects = workspaceRoot.getProjects();
-        buildMultiProjectModel(Arrays.asList(iProjects), classify);
+
+        List<IProject> openProjects = Arrays.stream(iProjects).filter(project -> project.isOpen()).collect(Collectors.toList());
+
+        // Start over. Throw away existing model
+        projectsByLocation = new ConcurrentHashMap<String, Project>();
+        projectsByName = new ConcurrentHashMap<String, Project>();
+
+        buildMultiProjectModel(openProjects, classify);
     }
 
-    public void buildMultiProjectModel(List<IProject> projectsToScan, boolean classify) {
+    /**
+     * @param projectsToScan Projects to include in model update
+     * @param classify Whether to classify
+     */
+    private void buildMultiProjectModel(List<IProject> projectsToScan, boolean classify) {
 
         createProjectModels(projectsToScan, classify);
 

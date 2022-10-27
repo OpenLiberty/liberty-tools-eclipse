@@ -118,7 +118,7 @@ public class DashboardView extends ViewPart {
 
         try {
             Dashboard dashboard = devModeOps.getDashboard();
-            dashboard.buildCompleteWorkspaceModel(false);
+            dashboard.buildCompleteWorkspaceModelWithClassify();
             viewer.setInput(dashboard.getSortedDashboardProjectList());
         } catch (Exception e) {
             String msg = "An error was detected while retrieving Liberty projects.";
@@ -420,7 +420,7 @@ public class DashboardView extends ViewPart {
             public void run() {
                 try {
                     Dashboard dashboard = devModeOps.getDashboard();
-                    dashboard.buildCompleteWorkspaceModel(true);
+                    dashboard.buildCompleteWorkspaceModelWithClassify();
                     viewer.setInput(dashboard.getSortedDashboardProjectList());
                 } catch (Exception e) {
                     String msg = "An error was detected while retrieving Liberty projects.";

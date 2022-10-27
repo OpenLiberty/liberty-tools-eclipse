@@ -265,7 +265,7 @@ public class Project {
 
     @Override
     public String toString() {
-        return "IProject: " + iProject.toString() + ". BuildType: " + type + ". Liberty Server Module: " + isLibertyNature()
+        return "IProject: " + iProject.toString() + ". BuildType: " + type + ". Liberty Server Module: " + libertyServerModule
                 + ". parentDirProj: " + parentDirProject + ". childDirProjects: " + childDirProjects;
     }
 

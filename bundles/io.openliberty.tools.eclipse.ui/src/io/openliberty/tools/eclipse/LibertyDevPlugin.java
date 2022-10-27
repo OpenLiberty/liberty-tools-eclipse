@@ -33,7 +33,7 @@ public class LibertyDevPlugin extends AbstractUIPlugin {
     public static final String PLUGIN_ID = "io.openliberty.tools.eclipse.ui";
 
     public static final String DEBUG_OPTIONS_ID = "io.openliberty.tools.eclipse";
-    
+
     // The shared instance
     private static LibertyDevPlugin plugin;
     private static IResourceChangeListener resourceChangeListener;
@@ -54,7 +54,7 @@ public class LibertyDevPlugin extends AbstractUIPlugin {
         props.put(DebugOptions.LISTENER_SYMBOLICNAME, LibertyDevPlugin.DEBUG_OPTIONS_ID);
         context.registerService(DebugOptionsListener.class.getName(), new Trace(), props);
         resourceChangeListener = new MultiModUpdater();
-        ResourcesPlugin.getWorkspace().addResourceChangeListener(resourceChangeListener);
+        ResourcesPlugin.getWorkspace().addResourceChangeListener(resourceChangeListener, IResourceChangeEvent.PRE_BUILD);
     }
 
     @Override
