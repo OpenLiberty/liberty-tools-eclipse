@@ -52,6 +52,9 @@ public class MainTab extends AbstractLaunchConfigurationTab {
     /** Configuration map key with a value stating whether or not the associated project ran in a container. */
     public static final String PROJECT_RUN_IN_CONTAINER = "io.openliberty.tools.eclipse.launch.project.container.run";
 
+    /** Tab image */
+    Image image;
+
     /** Currently active project. */
     IProject activeProject;
 
@@ -60,6 +63,13 @@ public class MainTab extends AbstractLaunchConfigurationTab {
 
     /** Holds the run in container check box. */
     private Button runInContainerCheckBox;
+
+    /**
+     * Constructor.
+     */
+    public MainTab() {
+        image = Utils.getLibertyImage(PlatformUI.getWorkbench().getDisplay());
+    }
 
     /**
      * {@inheritDoc}
@@ -186,6 +196,16 @@ public class MainTab extends AbstractLaunchConfigurationTab {
      */
     @Override
     public Image getImage() {
-        return Utils.getLibertyImage(PlatformUI.getWorkbench().getDisplay());
+        return image;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void dispose() {
+        if (image != null) {
+            image.dispose();
+        }
     }
 }
