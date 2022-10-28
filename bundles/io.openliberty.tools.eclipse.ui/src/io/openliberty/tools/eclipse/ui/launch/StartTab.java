@@ -40,7 +40,7 @@ import io.openliberty.tools.eclipse.utils.Utils;
 /**
  * Main configuration tab.
  */
-public class MainTab extends AbstractLaunchConfigurationTab {
+public class StartTab extends AbstractLaunchConfigurationTab {
 
     /** Configuration map key with a value representing the dev mode start parameter. */
     public static final String PROJECT_START_PARM = "io.openliberty.tools.eclipse.launch.start.parm";
@@ -56,6 +56,11 @@ public class MainTab extends AbstractLaunchConfigurationTab {
 
     /** Tab image */
     Image image;
+    
+    /** Configuration map key with a value stating whether or not the associated project ran in a container. */
+    public static final String START_TAB_NAME = "Start";
+
+    private static final String EXAMPLE_START_PARMS = "Example: -DhotTests=true";
 
     /** Currently active project. */
     IProject activeProject;
@@ -117,7 +122,7 @@ public class MainTab extends AbstractLaunchConfigurationTab {
 
         // Add the input parameter text box.
         startParmText = new Text(composite, SWT.BORDER);
-        startParmText.setMessage("Example: -DhotTests=true");
+        startParmText.setMessage(EXAMPLE_START_PARMS);
         startParmText.addModifyListener(new ModifyListener() {
 
             /**
@@ -188,7 +193,7 @@ public class MainTab extends AbstractLaunchConfigurationTab {
      */
     @Override
     public String getName() {
-        return "Main";
+        return START_TAB_NAME;
     }
 
     private Image libertyImage;

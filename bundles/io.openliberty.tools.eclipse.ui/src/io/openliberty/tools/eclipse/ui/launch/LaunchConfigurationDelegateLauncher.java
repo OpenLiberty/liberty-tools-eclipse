@@ -121,9 +121,9 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
                 // Create a new configuration.
                 String newName = iLaunchMgr.generateLaunchConfigurationName(iProject.getName());
                 ILaunchConfigurationWorkingCopy workingCopy = iLaunchConfigType.newInstance(null, newName);
-                workingCopy.setAttribute(MainTab.PROJECT_NAME, iProject.getName());
-                workingCopy.setAttribute(MainTab.PROJECT_START_PARM, devModeOps.getDashboard().getDefaultStartParameters(iProject));
-                workingCopy.setAttribute(MainTab.PROJECT_RUN_IN_CONTAINER, false);
+                workingCopy.setAttribute(StartTab.PROJECT_NAME, iProject.getName());
+                workingCopy.setAttribute(StartTab.PROJECT_START_PARM, devModeOps.getDashboard().getDefaultStartParameters(iProject));
+                workingCopy.setAttribute(StartTab.PROJECT_RUN_IN_CONTAINER, false);
                 configuration = workingCopy.doSave();
                 break;
 
@@ -155,13 +155,13 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
             RuntimeEnv runtimeEnv) throws Exception {
         ArrayList<ILaunchConfiguration> matchingConfigList = new ArrayList<>();
         for (ILaunchConfiguration existingConfig : rawConfigList) {
-            String configProjName = existingConfig.getAttribute(MainTab.PROJECT_NAME, "");
+            String configProjName = existingConfig.getAttribute(StartTab.PROJECT_NAME, "");
             if (configProjName.isEmpty()) {
                 continue;
             }
 
             if (projectName.equals(configProjName)) {
-                boolean configRanInContainer = existingConfig.getAttribute(MainTab.PROJECT_RUN_IN_CONTAINER, false);
+                boolean configRanInContainer = existingConfig.getAttribute(StartTab.PROJECT_RUN_IN_CONTAINER, false);
                 if (runtimeEnv == RuntimeEnv.CONTAINER) {
                     if (configRanInContainer) {
                         matchingConfigList.add(existingConfig);
@@ -204,8 +204,8 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
             public int compare(ILaunchConfiguration lc1, ILaunchConfiguration lc2) {
                 int rc = 0;
                 try {
-                    long time1 = Long.valueOf(lc1.getAttribute(MainTab.PROJECT_RUN_TIME, "0"));
-                    long time2 = Long.valueOf(lc2.getAttribute(MainTab.PROJECT_RUN_TIME, "0"));
+                    long time1 = Long.valueOf(lc1.getAttribute(StartTab.PROJECT_RUN_TIME, "0"));
+                    long time2 = Long.valueOf(lc2.getAttribute(StartTab.PROJECT_RUN_TIME, "0"));
                     rc = (time2 > time1) ? 1 : -1;
                 } catch (Exception e) {
                     String msg = "An error occurred while trying to determine which configuration ran last. Configuration list: "
@@ -230,7 +230,7 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
     public static void saveConfigProcessingTime(ILaunchConfiguration configuration) {
         try {
             ILaunchConfigurationWorkingCopy configWorkingCopy = configuration.getWorkingCopy();
-            configWorkingCopy.setAttribute(MainTab.PROJECT_RUN_TIME, String.valueOf(System.currentTimeMillis()));
+            configWorkingCopy.setAttribute(StartTab.PROJECT_RUN_TIME, String.valueOf(System.currentTimeMillis()));
             configWorkingCopy.doSave();
         } catch (Exception e) {
             // Log it and move on.

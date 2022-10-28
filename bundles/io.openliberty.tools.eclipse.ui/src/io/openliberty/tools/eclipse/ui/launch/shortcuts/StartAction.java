@@ -22,7 +22,7 @@ import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher.RuntimeEnv;
-import io.openliberty.tools.eclipse.ui.launch.MainTab;
+import io.openliberty.tools.eclipse.ui.launch.StartTab;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
 import io.openliberty.tools.eclipse.utils.Utils;
 
@@ -110,8 +110,8 @@ public class StartAction implements ILaunchShortcut {
         LaunchConfigurationDelegateLauncher.saveConfigProcessingTime(configuration);
 
         // Retrieve configuration data.
-        boolean runInContainer = configuration.getAttribute(MainTab.PROJECT_RUN_IN_CONTAINER, false);
-        String startParms = configuration.getAttribute(MainTab.PROJECT_START_PARM, (String) null);
+        boolean runInContainer = configuration.getAttribute(StartTab.PROJECT_RUN_IN_CONTAINER, false);
+        String startParms = configuration.getAttribute(StartTab.PROJECT_START_PARM, (String) null);
 
         // Process the action.
         if (runInContainer) {

@@ -20,7 +20,7 @@ import org.junit.jupiter.api.TestInfo;
 
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher.RuntimeEnv;
-import io.openliberty.tools.eclipse.ui.launch.MainTab;
+import io.openliberty.tools.eclipse.ui.launch.StartTab;
 
 public class LibertyPluginUnitTest {
 
@@ -54,11 +54,11 @@ public class LibertyPluginUnitTest {
                 .filterLaunchConfigurations(rawCfgList.toArray(new ILaunchConfiguration[rawCfgList.size()]), "project1", RuntimeEnv.LOCAL);
         Assertions.assertTrue(filteredListDev.size() == 3,
                 "The resulting list should have contained 3 entries. List size: " + filteredListDev.size());
-        Assertions.assertTrue(filteredListDev.get(0).getAttribute(MainTab.PROJECT_RUN_IN_CONTAINER, true) == false,
+        Assertions.assertTrue(filteredListDev.get(0).getAttribute(StartTab.PROJECT_RUN_IN_CONTAINER, true) == false,
                 "The run in container value associated with config entry[0] was not false.");
-        Assertions.assertTrue(filteredListDev.get(1).getAttribute(MainTab.PROJECT_RUN_IN_CONTAINER, true) == false,
+        Assertions.assertTrue(filteredListDev.get(1).getAttribute(StartTab.PROJECT_RUN_IN_CONTAINER, true) == false,
                 "The run in container value associated with config entry[1] was not false.");
-        Assertions.assertTrue(filteredListDev.get(2).getAttribute(MainTab.PROJECT_RUN_IN_CONTAINER, true) == false,
+        Assertions.assertTrue(filteredListDev.get(2).getAttribute(StartTab.PROJECT_RUN_IN_CONTAINER, true) == false,
                 "The run in container value associated with config entry[2] was not false.");
 
         // test 2. Container run.
@@ -66,11 +66,11 @@ public class LibertyPluginUnitTest {
                 rawCfgList.toArray(new ILaunchConfiguration[rawCfgList.size()]), "project1", RuntimeEnv.CONTAINER);
         Assertions.assertTrue(filteredListDevc.size() == 3,
                 "The resulting list should have contained 3 entries. Found: " + filteredListDevc.size() + ". List: " + filteredListDevc);
-        Assertions.assertTrue(filteredListDevc.get(0).getAttribute(MainTab.PROJECT_RUN_IN_CONTAINER, false) == true,
+        Assertions.assertTrue(filteredListDevc.get(0).getAttribute(StartTab.PROJECT_RUN_IN_CONTAINER, false) == true,
                 "The run in container value associated with config entry[0] was not true.");
-        Assertions.assertTrue(filteredListDevc.get(1).getAttribute(MainTab.PROJECT_RUN_IN_CONTAINER, false) == true,
+        Assertions.assertTrue(filteredListDevc.get(1).getAttribute(StartTab.PROJECT_RUN_IN_CONTAINER, false) == true,
                 "The run in container value associated with config entry[1] was not true.");
-        Assertions.assertTrue(filteredListDevc.get(2).getAttribute(MainTab.PROJECT_RUN_IN_CONTAINER, false) == true,
+        Assertions.assertTrue(filteredListDevc.get(2).getAttribute(StartTab.PROJECT_RUN_IN_CONTAINER, false) == true,
                 "The run in container value associated with config entry[2] was not true.");
     }
 
@@ -96,7 +96,7 @@ public class LibertyPluginUnitTest {
                 "The expected configuration of " + expectedCfgNameDev + " was not returned. Configuration returned:: " + cfgNameFoundDev);
 
         long expectedTimeDev = 1000000000003L;
-        long timeFoundDev = Long.valueOf(lastRunConfigDev.getAttribute(MainTab.PROJECT_RUN_TIME, "0"));
+        long timeFoundDev = Long.valueOf(lastRunConfigDev.getAttribute(StartTab.PROJECT_RUN_TIME, "0"));
         Assertions.assertTrue(timeFoundDev == expectedTimeDev,
                 "The configuration found does not contain the expected value of " + expectedTimeDev + ". Time found: " + timeFoundDev);
 
@@ -114,7 +114,7 @@ public class LibertyPluginUnitTest {
                 "The expected configuration of " + expectedCfgNameDevc + " was not returned. Configuration returned:: " + cfgNameFoundDevc);
 
         long expectedTimeDevc = 1000000000006L;
-        long timeFoundDevc = Long.valueOf(lastRunConfigDevc.getAttribute(MainTab.PROJECT_RUN_TIME, "0"));
+        long timeFoundDevc = Long.valueOf(lastRunConfigDevc.getAttribute(StartTab.PROJECT_RUN_TIME, "0"));
         Assertions.assertTrue(timeFoundDevc == expectedTimeDevc,
                 "The configuration found does not contain the expected value of " + expectedTimeDevc + ". Time found: " + timeFoundDevc);
 
@@ -162,32 +162,32 @@ public class LibertyPluginUnitTest {
 
     private List<ILaunchConfiguration> getDefaultConfigurationList() throws CoreException {
         ArrayList<ILaunchConfiguration> configList = new ArrayList<ILaunchConfiguration>();
-        configList.add(mockLaunchConfiguration(Map.of("name", "test1", MainTab.PROJECT_NAME, "project1", MainTab.PROJECT_RUN_TIME,
-                "1000000000001", MainTab.PROJECT_RUN_IN_CONTAINER, false)));
-        configList.add(mockLaunchConfiguration(Map.of("name", "test2", MainTab.PROJECT_NAME, "project1", MainTab.PROJECT_RUN_TIME,
-                "1000000000003", MainTab.PROJECT_RUN_IN_CONTAINER, false)));
-        configList.add(mockLaunchConfiguration(Map.of("name", "test3", MainTab.PROJECT_NAME, "project1", MainTab.PROJECT_RUN_TIME,
-                "1000000000002", MainTab.PROJECT_RUN_IN_CONTAINER, false)));
-        configList.add(mockLaunchConfiguration(Map.of("name", "test4", MainTab.PROJECT_NAME, "project1", MainTab.PROJECT_RUN_TIME,
-                "1000000000004", MainTab.PROJECT_RUN_IN_CONTAINER, true)));
-        configList.add(mockLaunchConfiguration(Map.of("name", "test5", MainTab.PROJECT_NAME, "project1", MainTab.PROJECT_RUN_TIME,
-                "1000000000005", MainTab.PROJECT_RUN_IN_CONTAINER, true)));
-        configList.add(mockLaunchConfiguration(Map.of("name", "test6", MainTab.PROJECT_NAME, "project1", MainTab.PROJECT_RUN_TIME,
-                "1000000000006", MainTab.PROJECT_RUN_IN_CONTAINER, true)));
+        configList.add(mockLaunchConfiguration(Map.of("name", "test1", StartTab.PROJECT_NAME, "project1", StartTab.PROJECT_RUN_TIME,
+                "1000000000001", StartTab.PROJECT_RUN_IN_CONTAINER, false)));
+        configList.add(mockLaunchConfiguration(Map.of("name", "test2", StartTab.PROJECT_NAME, "project1", StartTab.PROJECT_RUN_TIME,
+                "1000000000003", StartTab.PROJECT_RUN_IN_CONTAINER, false)));
+        configList.add(mockLaunchConfiguration(Map.of("name", "test3", StartTab.PROJECT_NAME, "project1", StartTab.PROJECT_RUN_TIME,
+                "1000000000002", StartTab.PROJECT_RUN_IN_CONTAINER, false)));
+        configList.add(mockLaunchConfiguration(Map.of("name", "test4", StartTab.PROJECT_NAME, "project1", StartTab.PROJECT_RUN_TIME,
+                "1000000000004", StartTab.PROJECT_RUN_IN_CONTAINER, true)));
+        configList.add(mockLaunchConfiguration(Map.of("name", "test5", StartTab.PROJECT_NAME, "project1", StartTab.PROJECT_RUN_TIME,
+                "1000000000005", StartTab.PROJECT_RUN_IN_CONTAINER, true)));
+        configList.add(mockLaunchConfiguration(Map.of("name", "test6", StartTab.PROJECT_NAME, "project1", StartTab.PROJECT_RUN_TIME,
+                "1000000000006", StartTab.PROJECT_RUN_IN_CONTAINER, true)));
 
-        configList.add(mockLaunchConfiguration(Map.of("name", "test10", MainTab.PROJECT_NAME, "project2", MainTab.PROJECT_RUN_TIME,
-                "1000000000010", MainTab.PROJECT_RUN_IN_CONTAINER, false)));
-        configList.add(mockLaunchConfiguration(Map.of("name", "test11", MainTab.PROJECT_NAME, "project2", MainTab.PROJECT_RUN_TIME,
-                "1000000000011", MainTab.PROJECT_RUN_IN_CONTAINER, false)));
-        configList.add(mockLaunchConfiguration(Map.of("name", "test12", MainTab.PROJECT_NAME, "project2", MainTab.PROJECT_RUN_TIME,
-                "1000000000010", MainTab.PROJECT_RUN_IN_CONTAINER, false)));
+        configList.add(mockLaunchConfiguration(Map.of("name", "test10", StartTab.PROJECT_NAME, "project2", StartTab.PROJECT_RUN_TIME,
+                "1000000000010", StartTab.PROJECT_RUN_IN_CONTAINER, false)));
+        configList.add(mockLaunchConfiguration(Map.of("name", "test11", StartTab.PROJECT_NAME, "project2", StartTab.PROJECT_RUN_TIME,
+                "1000000000011", StartTab.PROJECT_RUN_IN_CONTAINER, false)));
+        configList.add(mockLaunchConfiguration(Map.of("name", "test12", StartTab.PROJECT_NAME, "project2", StartTab.PROJECT_RUN_TIME,
+                "1000000000010", StartTab.PROJECT_RUN_IN_CONTAINER, false)));
 
-        configList.add(mockLaunchConfiguration(Map.of("name", "test15", MainTab.PROJECT_NAME, "project3", MainTab.PROJECT_RUN_TIME,
-                "1000000000011", MainTab.PROJECT_RUN_IN_CONTAINER, true)));
-        configList.add(mockLaunchConfiguration(Map.of("name", "test16", MainTab.PROJECT_NAME, "project3", MainTab.PROJECT_RUN_TIME,
-                "1000000000011", MainTab.PROJECT_RUN_IN_CONTAINER, true)));
-        configList.add(mockLaunchConfiguration(Map.of("name", "test17", MainTab.PROJECT_NAME, "project3", MainTab.PROJECT_RUN_TIME,
-                "1000000000010", MainTab.PROJECT_RUN_IN_CONTAINER, true)));
+        configList.add(mockLaunchConfiguration(Map.of("name", "test15", StartTab.PROJECT_NAME, "project3", StartTab.PROJECT_RUN_TIME,
+                "1000000000011", StartTab.PROJECT_RUN_IN_CONTAINER, true)));
+        configList.add(mockLaunchConfiguration(Map.of("name", "test16", StartTab.PROJECT_NAME, "project3", StartTab.PROJECT_RUN_TIME,
+                "1000000000011", StartTab.PROJECT_RUN_IN_CONTAINER, true)));
+        configList.add(mockLaunchConfiguration(Map.of("name", "test17", StartTab.PROJECT_NAME, "project3", StartTab.PROJECT_RUN_TIME,
+                "1000000000010", StartTab.PROJECT_RUN_IN_CONTAINER, true)));
 
         return configList;
     }
@@ -195,11 +195,11 @@ public class LibertyPluginUnitTest {
     public static ILaunchConfiguration mockLaunchConfiguration(Map<String, Object> attributes) throws CoreException {
         ILaunchConfiguration config = mock(ILaunchConfiguration.class);
         when(config.getName()).thenReturn((String) attributes.get("name"));
-        when(config.getAttribute(eq(MainTab.PROJECT_NAME), anyString())).thenReturn(((String) attributes.get(MainTab.PROJECT_NAME)));
-        when(config.getAttribute(eq(MainTab.PROJECT_RUN_TIME), anyString()))
-                .thenReturn(((String) attributes.get(MainTab.PROJECT_RUN_TIME)));
-        when(config.getAttribute(eq(MainTab.PROJECT_RUN_IN_CONTAINER), anyBoolean()))
-                .thenReturn(((Boolean) attributes.get(MainTab.PROJECT_RUN_IN_CONTAINER)).booleanValue());
+        when(config.getAttribute(eq(StartTab.PROJECT_NAME), anyString())).thenReturn(((String) attributes.get(StartTab.PROJECT_NAME)));
+        when(config.getAttribute(eq(StartTab.PROJECT_RUN_TIME), anyString()))
+                .thenReturn(((String) attributes.get(StartTab.PROJECT_RUN_TIME)));
+        when(config.getAttribute(eq(StartTab.PROJECT_RUN_IN_CONTAINER), anyBoolean()))
+                .thenReturn(((Boolean) attributes.get(StartTab.PROJECT_RUN_IN_CONTAINER)).booleanValue());
 
         return config;
     }
