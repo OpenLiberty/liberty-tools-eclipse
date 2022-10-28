@@ -34,7 +34,7 @@ import org.eclipse.ui.contexts.IContextService;
 import org.eclipse.ui.handlers.IHandlerService;
 import org.eclipse.ui.part.ViewPart;
 
-import io.openliberty.tools.eclipse.Dashboard;
+import io.openliberty.tools.eclipse.WorkspaceProjectsModel;
 import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.Project;
 import io.openliberty.tools.eclipse.logging.Trace;
@@ -117,8 +117,8 @@ public class DashboardView extends ViewPart {
         viewer.setLabelProvider(new DashboardEntryLabelProvider(devModeOps));
 
         try {
-            Dashboard dashboard = devModeOps.getDashboard();
-            dashboard.buildCompleteWorkspaceModelWithClassify();
+            WorkspaceProjectsModel dashboard = devModeOps.getProjectModel();
+            dashboard.createNewCompleteWorkspaceModelWithClassify();
             viewer.setInput(dashboard.getSortedDashboardProjectList());
         } catch (Exception e) {
             String msg = "An error was detected while retrieving Liberty projects.";
@@ -190,7 +190,7 @@ public class DashboardView extends ViewPart {
     private void addActionsToContextMenu(IMenuManager mgr) {
         IProject iProject = devModeOps.getSelectedDashboardProject();
         String projectName = iProject.getName();
-        Project project = devModeOps.getDashboard().getLibertyServerProject(projectName);
+        Project project = devModeOps.getProjectModel().getLibertyServerProject(projectName);
 
         if (project != null) {
             mgr.add(startAction);
@@ -419,8 +419,8 @@ public class DashboardView extends ViewPart {
             @Override
             public void run() {
                 try {
-                    Dashboard dashboard = devModeOps.getDashboard();
-                    dashboard.buildCompleteWorkspaceModelWithClassify();
+                    WorkspaceProjectsModel dashboard = devModeOps.getProjectModel();
+                    dashboard.createNewCompleteWorkspaceModelWithClassify();
                     viewer.setInput(dashboard.getSortedDashboardProjectList());
                 } catch (Exception e) {
                     String msg = "An error was detected while retrieving Liberty projects.";

@@ -229,7 +229,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
                 // Verify that the existing projects are projects are read and classified. This maybe the first time
                 // this plugin's function is being used.
                 devModeOps.verifyProjectSupport(activeProject);
-                parms = devModeOps.getDashboard().getDefaultStartParameters(activeProject);
+                parms = devModeOps.getProjectModel().getDefaultStartParameters(activeProject);
             }
         } catch (Exception e) {
             // Report the issue and continue without a initial start command.

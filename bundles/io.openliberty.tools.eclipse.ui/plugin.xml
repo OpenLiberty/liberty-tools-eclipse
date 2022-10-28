@@ -15,7 +15,7 @@
 <plugin>
 
    <extension point="org.eclipse.ui.startup">
-      <startup class="io.openliberty.tools.eclipse.ui.dashboard.ImportListener"/>
+      <startup class="io.openliberty.tools.eclipse.EarlyStartupRegistration"/>
    </extension>
 
    <!-- Contexts -->

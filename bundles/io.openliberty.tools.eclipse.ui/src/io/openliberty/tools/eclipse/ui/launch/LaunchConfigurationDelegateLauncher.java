@@ -122,7 +122,7 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
                 String newName = iLaunchMgr.generateLaunchConfigurationName(iProject.getName());
                 ILaunchConfigurationWorkingCopy workingCopy = iLaunchConfigType.newInstance(null, newName);
                 workingCopy.setAttribute(StartTab.PROJECT_NAME, iProject.getName());
-                workingCopy.setAttribute(StartTab.PROJECT_START_PARM, devModeOps.getDashboard().getDefaultStartParameters(iProject));
+                workingCopy.setAttribute(StartTab.PROJECT_START_PARM, devModeOps.getProjectModel().getDefaultStartParameters(iProject));
                 workingCopy.setAttribute(StartTab.PROJECT_RUN_IN_CONTAINER, false);
                 configuration = workingCopy.doSave();
                 break;

@@ -29,9 +29,9 @@ import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
 
 /**
- * Represents the Liberty tools dashboard and the project model behind it.
+ * Represents the project model informing the Liberty tools dashboard and the Run Configurations
  */
-public class Dashboard {
+public class WorkspaceProjectsModel {
 
     private Map<String, Project> projectsByLocation;
     private Map<String, Project> projectsByName;
@@ -39,7 +39,7 @@ public class Dashboard {
     /**
      * Constructor.
      */
-    public Dashboard() {
+    public WorkspaceProjectsModel() {
     }
 
     private void createProjectModels(List<IProject> projects, boolean classify) {
@@ -59,17 +59,11 @@ public class Dashboard {
     }
 
     /**
-     * 
+     * Build complete workspace project model. Do classify projects (add Liberty nature if conditions warrant) Should only be called
+     * on UI thread
      */
-    public void buildCompleteWorkspaceModelWithClassify() {
-        buildCompleteWorkspaceModel(true);
-    }
-
-    /**
-     * 
-     */
-    public void buildCompleteWorkspaceModelWithoutClassify() {
-        buildCompleteWorkspaceModel(false);
+    public void createNewCompleteWorkspaceModelWithClassify() {
+        createNewCompleteWorkspaceModel(true);
     }
 
     /**
@@ -77,7 +71,7 @@ public class Dashboard {
      * 
      * @param whether to classify or not
      */
-    private void buildCompleteWorkspaceModel(boolean classify) {
+    private void createNewCompleteWorkspaceModel(boolean classify) {
 
         IWorkspaceRoot workspaceRoot = ResourcesPlugin.getWorkspace().getRoot();
         IProject[] iProjects = workspaceRoot.getProjects();
@@ -88,6 +82,7 @@ public class Dashboard {
         projectsByLocation = new ConcurrentHashMap<String, Project>();
         projectsByName = new ConcurrentHashMap<String, Project>();
 
+        createProjectModels(openProjects, classify);
         buildMultiProjectModel(openProjects, classify);
     }
 
@@ -96,8 +91,6 @@ public class Dashboard {
      * @param classify Whether to classify
      */
     private void buildMultiProjectModel(List<IProject> projectsToScan, boolean classify) {
-
-        createProjectModels(projectsToScan, classify);
 
         try {
             for (IProject iProject : projectsToScan) {
@@ -142,6 +135,13 @@ public class Dashboard {
         return null;
     }
 
+    /**
+     * Returns Liberty server modules grouped into two groups: Maven, then Gradle. Within each of the two groups, modules of that
+     * group will be sorted in alphabetic order by project name. So you will get the sorted list of Maven Liberty server project names
+     * followed by the sorted list of Gradle Liberty server project names
+     * 
+     * @return Liberty server project names sorted and grouped.
+     */
     public List<String> getSortedDashboardProjectList() {
 
         List<String> mavenDashboardProjects = new ArrayList<String>();
@@ -171,6 +171,12 @@ public class Dashboard {
 
     }
 
+    /**
+     * @param iProject
+     * 
+     * @return start parameters to serve as default populating something like a Run Configuration, depending on whether this looks
+     *         like there is a multi-module relationship or not
+     */
     public String getDefaultStartParameters(IProject iProject) {
         Project proj = projectsByName.get(iProject.getName());
         if (proj.isAggregated()) {
@@ -180,7 +186,7 @@ public class Dashboard {
         }
     }
 
-    public String getModuleNameSegment(IProject iProject) {
+    private String getModuleNameSegment(IProject iProject) {
         return iProject.getRawLocation().lastSegment();
     }
 

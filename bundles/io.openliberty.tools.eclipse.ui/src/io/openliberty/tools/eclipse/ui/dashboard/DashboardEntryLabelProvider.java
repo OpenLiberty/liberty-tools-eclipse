@@ -64,7 +64,7 @@ public class DashboardEntryLabelProvider extends LabelProvider implements ITable
         Image img = null;
         if (element != null && element instanceof String) {
             projectName = (String) element;
-            Project project = devModeOps.getDashboard().getLibertyServerProject(projectName);
+            Project project = devModeOps.getProjectModel().getLibertyServerProject(projectName);
 
             if (project != null) {
                 if (project.getBuildType() == Project.BuildType.GRADLE) {

@@ -1,3 +1,15 @@
+/*******************************************************************************
+ * Copyright (c) 2022 IBM Corporation and others.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License v. 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0.
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *     IBM Corporation - initial implementation
+ *******************************************************************************/
 package io.openliberty.tools.eclipse;
 
 import java.util.ArrayList;
@@ -14,7 +26,7 @@ import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
 
-public class MultiModUpdater implements IResourceChangeListener {
+public class LibertyResourceChangeListener implements IResourceChangeListener {
 
     /**
      * {@inheritDoc}
@@ -26,7 +38,7 @@ public class MultiModUpdater implements IResourceChangeListener {
             @Override
             public void run() {
 
-                Dashboard db = DevModeOperations.getInstance().getDashboard();
+                WorkspaceProjectsModel db = DevModeOperations.getInstance().getProjectModel();
                 IResourceDelta delta = event.getDelta();
                 if (delta == null) {
                     return;
@@ -88,7 +100,7 @@ public class MultiModUpdater implements IResourceChangeListener {
                         // We leave this commented out as a marker of the idea that maybe one day we'll only
                         // build the "delta" model instead of the whole workspace model
                         // db.buildMultiProjectModel(projectsChanged, true);
-                        db.buildCompleteWorkspaceModelWithClassify();
+                        db.createNewCompleteWorkspaceModelWithClassify();
 
                         DashboardView dashboardView = DevModeOperations.getInstance().getDashboardView();
                         // Won't be set if dashboard view hasn't been initialized yet

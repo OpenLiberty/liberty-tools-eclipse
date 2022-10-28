@@ -57,7 +57,7 @@ public class DevModeOperations {
     /**
      * Dashboard object reference.
      */
-    private Dashboard dashboard;
+    private WorkspaceProjectsModel projectModel;
 
     /**
      * PATH environment variable.
@@ -79,12 +79,17 @@ public class DevModeOperations {
      */
     public DevModeOperations() {
         projectTabController = ProjectTabController.getInstance();
-        dashboard = new Dashboard();
+        projectModel = new WorkspaceProjectsModel();
         pathEnv = System.getenv("PATH");
     }
 
-    public Dashboard getDashboard() {
-        return dashboard;
+    /**
+     * Because the current class is used as a singleton this effectively provides a singleton for the model object returned
+     * 
+     * @return a complete model of the projects in the workspace
+     */
+    public WorkspaceProjectsModel getProjectModel() {
+        return projectModel;
     }
 
     /**
@@ -160,7 +165,7 @@ public class DevModeOperations {
         Project project = null;
 
         try {
-            project = dashboard.getLibertyServerProject(projectName);
+            project = projectModel.getLibertyServerProject(projectName);
             if (project == null) {
                 throw new Exception("Unable to find internal instance of project " + projectName);
             }
@@ -249,7 +254,7 @@ public class DevModeOperations {
         Project project = null;
 
         try {
-            project = dashboard.getLibertyServerProject(projectName);
+            project = projectModel.getLibertyServerProject(projectName);
             if (project == null) {
                 throw new Exception("Unable to find internal instance of project " + projectName);
             }
@@ -481,7 +486,7 @@ public class DevModeOperations {
         Project project = null;
 
         try {
-            project = dashboard.getLibertyServerProject(projectName);
+            project = projectModel.getLibertyServerProject(projectName);
             if (project == null) {
                 throw new Exception("Unable to find internal instance of project " + projectName);
             }
@@ -553,7 +558,7 @@ public class DevModeOperations {
         Project project = null;
 
         try {
-            project = dashboard.getLibertyServerProject(projectName);
+            project = projectModel.getLibertyServerProject(projectName);
             if (project == null) {
                 throw new Exception("Unable to find internal instance of project " + projectName);
             }
@@ -624,7 +629,7 @@ public class DevModeOperations {
         Project project = null;
 
         try {
-            project = dashboard.getLibertyServerProject(projectName);
+            project = projectModel.getLibertyServerProject(projectName);
             if (project == null) {
                 throw new Exception("Unable to find internal instance of project " + projectName);
             }
@@ -876,7 +881,7 @@ public class DevModeOperations {
                 IStructuredSelection structuredSelection = (IStructuredSelection) selection;
                 Object firstElement = structuredSelection.getFirstElement();
                 if (firstElement instanceof String) {
-                    Project project = dashboard.getLibertyServerProject((String) firstElement);
+                    Project project = projectModel.getLibertyServerProject((String) firstElement);
                     if (project != null) {
                         iProject = project.getIProject();
                     }
@@ -898,7 +903,7 @@ public class DevModeOperations {
     public void verifyProjectSupport(IProject iProject) throws Exception {
         if (iProject != null) {
             String projectName = iProject.getName();
-            Project project = dashboard.getLibertyServerProject(projectName);
+            Project project = projectModel.getLibertyServerProject(projectName);
             if (project == null) {
                 throw new Exception("Project " + projectName + " is not a supported project. Make sure the project is a Liberty project.");
             }
