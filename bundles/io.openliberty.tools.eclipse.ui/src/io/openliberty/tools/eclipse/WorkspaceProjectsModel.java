@@ -40,6 +40,7 @@ public class WorkspaceProjectsModel {
      * Constructor.
      */
     public WorkspaceProjectsModel() {
+        initProjectModels();
     }
 
     private void createProjectModels(List<IProject> projects, boolean classify) {
@@ -78,12 +79,15 @@ public class WorkspaceProjectsModel {
 
         List<IProject> openProjects = Arrays.stream(iProjects).filter(project -> project.isOpen()).collect(Collectors.toList());
 
+        initProjectModels();
+        createProjectModels(openProjects, classify);
+        buildMultiProjectModel(openProjects, classify);
+    }
+
+    private void initProjectModels() {
         // Start over. Throw away existing model
         projectsByLocation = new ConcurrentHashMap<String, Project>();
         projectsByName = new ConcurrentHashMap<String, Project>();
-
-        createProjectModels(openProjects, classify);
-        buildMultiProjectModel(openProjects, classify);
     }
 
     /**

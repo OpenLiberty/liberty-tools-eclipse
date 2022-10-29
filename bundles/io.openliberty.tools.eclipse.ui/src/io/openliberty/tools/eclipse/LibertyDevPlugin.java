@@ -54,6 +54,9 @@ public class LibertyDevPlugin extends AbstractUIPlugin {
         Hashtable<String, String> props = new Hashtable<String, String>();
         props.put(DebugOptions.LISTENER_SYMBOLICNAME, LibertyDevPlugin.DEBUG_OPTIONS_ID);
         context.registerService(DebugOptionsListener.class.getName(), new Trace(), props);
+
+        DevModeOperations.getInstance().getProjectModel().createNewCompleteWorkspaceModelWithClassify();
+
         resourceChangeListener = new LibertyResourceChangeListener();
         ResourcesPlugin.getWorkspace().addResourceChangeListener(resourceChangeListener, IResourceChangeEvent.PRE_BUILD);
     }

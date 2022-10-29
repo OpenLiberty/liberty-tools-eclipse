@@ -885,7 +885,6 @@ public class DevModeOperations {
                     if (project != null) {
                         iProject = project.getIProject();
                     }
-
                 }
             }
         }
