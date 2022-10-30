@@ -56,7 +56,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
 
     /** Tab image */
     Image image;
-    
+
     /** Configuration map key with a value stating whether or not the associated project ran in a container. */
     public static final String START_TAB_NAME = "Start";
 
@@ -77,7 +77,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
     /**
      * Constructor.
      */
-    public MainTab() {
+    public StartTab() {
         image = Utils.getLibertyImage(PlatformUI.getWorkbench().getDisplay());
     }
 
@@ -167,6 +167,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
         } catch (CoreException ce) {
             // Trace and ignore.
             String msg = "An error was detected during Run Configuration initialization.";
+            ErrorHandler.processErrorMessage(msg, ce, true);
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, ce);
             }
@@ -196,8 +197,6 @@ public class StartTab extends AbstractLaunchConfigurationTab {
         return START_TAB_NAME;
     }
 
-    private Image libertyImage;
-
     /**
      * {@inheritDoc}
      */
@@ -215,7 +214,6 @@ public class StartTab extends AbstractLaunchConfigurationTab {
             image.dispose();
         }
     }
-    
 
     /**
      * Returns the default start parameters.
