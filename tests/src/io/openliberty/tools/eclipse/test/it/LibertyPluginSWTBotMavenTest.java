@@ -37,27 +37,13 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.m2e.core.MavenPlugin;
-import org.eclipse.m2e.core.embedder.MavenModelManager;
-import org.eclipse.m2e.core.project.IProjectConfigurationManager;
-import org.eclipse.m2e.core.project.LocalProjectScanner;
-import org.eclipse.m2e.core.project.MavenProjectInfo;
-import org.eclipse.m2e.core.project.ProjectImportConfiguration;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotView;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotMenu;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInfo;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils;
@@ -68,17 +54,7 @@ import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLaunche
 /**
  * Tests Open Liberty Eclipse plugin functions.
  */
-public class LibertyPluginSWTBotMavenTest {
-
-    /**
-     * Wokbench bot instance.
-     */
-    static SWTWorkbenchBot bot;
-
-    /**
-     * Dashboard instance.
-     */
-    static SWTBotView dashboard;
+public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTest {
 
     /**
      * Application name.
@@ -121,40 +97,17 @@ public class LibertyPluginSWTBotMavenTest {
      */
     @BeforeAll
     public static void setup() {
-        bot = new SWTWorkbenchBot();
-        SWTBotPluginOperations.closeWelcomePage(bot);
 
-        // Import the required applications into the Eclipse workspace.
-        importMavenApplications();
+        commonSetup();
 
-        // Update browser preferences.
-        if (isInternalBrowserSupportAvailable()) {
-            boolean success = LibertyPluginTestUtils.updateBrowserPreferences(true);
-            Assertions.assertTrue(success, () -> "Unable to update browser preferences.");
-        }
+        File workspaceRoot = ResourcesPlugin.getWorkspace().getRoot().getLocation().toFile();
+        ArrayList<String> projectPaths = new ArrayList<String>();
+        projectPaths.add(projectPath.toString());
+        projectPaths.add(wrapperProjectPath.toString());
+        importMavenProjects(workspaceRoot, projectPaths);
 
         // Check basic plugin artifacts are functioning before running tests.
-        checkBasics();
-    }
-
-    /**
-     * Cleanup.
-     */
-    @AfterAll
-    public static void cleanup() {
-        bot.closeAllEditors();
-        bot.closeAllShells();
-        bot.resetWorkbench();
-    }
-
-    @BeforeEach
-    public void beforeEach(TestInfo info) {
-        System.out.println("INFO: Test " + info.getDisplayName() + " entry: " + java.time.LocalDateTime.now());
-    }
-
-    @AfterEach
-    public void afterEach(TestInfo info) {
-        System.out.println("INFO: Test " + info.getDisplayName() + " exit: " + java.time.LocalDateTime.now());
+        validateBeforeTestRun();
     }
 
     /**
@@ -169,15 +122,15 @@ public class LibertyPluginSWTBotMavenTest {
      * 6. The Debug As configuration view contains the Liberty entry for creating a configuration.
      * </pre>
      */
-    public static final void checkBasics() {
+    public static final void validateBeforeTestRun() {
         dashboard = SWTBotPluginOperations.openDashboardUsingToolbar(bot);
 
         // Check that the dashboard can be opened and its content retrieved.
-        List<String> projetList = SWTBotPluginOperations.getDashboardContent(bot, dashboard);
+        List<String> projectList = SWTBotPluginOperations.getDashboardContent(bot, dashboard);
 
         // Check that dashboard contains the expected applications.
         boolean foundApp = false;
-        for (String project : projetList) {
+        for (String project : projectList) {
             if (MVN_APP_NAME.equals(project)) {
                 foundApp = true;
                 break;
@@ -485,7 +438,7 @@ public class LibertyPluginSWTBotMavenTest {
      * Run.
      */
     @Test
-    public void tesStartWithDefaultRunAsConfig() {
+    public void testStartWithDefaultRunAsConfig() {
         // Delete any previously created configs.
         SWTBotPluginOperations.deleteLibertyToolsConfigEntries(bot, MVN_APP_NAME, "run");
 
@@ -513,7 +466,7 @@ public class LibertyPluginSWTBotMavenTest {
      * -> Run.
      */
     @Test
-    public void tesStartWithCustomRunAsConfig() {
+    public void testStartWithCustomRunAsConfig() {
         // Delete any previously created configs.
         SWTBotPluginOperations.deleteLibertyToolsConfigEntries(bot, MVN_APP_NAME, "run");
 
@@ -600,7 +553,7 @@ public class LibertyPluginSWTBotMavenTest {
      */
     @Disabled("Disabled pending design discussions")
     @Test
-    public void tesStartWithCustomDebugAsConfig() {
+    public void testStartWithCustomDebugAsConfig() {
         // Delete any previously created configs.
         SWTBotPluginOperations.deleteLibertyToolsConfigEntries(bot, MVN_APP_NAME, "debug");
 
@@ -660,53 +613,9 @@ public class LibertyPluginSWTBotMavenTest {
     }
 
     /**
-     * Imports existing Maven application projects into the workspace.
-     */
-    public static void importMavenApplications() {
-        Display.getDefault().syncExec(new Runnable() {
-
-            @Override
-            public void run() {
-                File workspaceRoot = ResourcesPlugin.getWorkspace().getRoot().getLocation().toFile();
-                ArrayList<String> projectPaths = new ArrayList<String>();
-                projectPaths.add(projectPath.toString());
-                projectPaths.add(wrapperProjectPath.toString());
-
-                try {
-                    importProjects(workspaceRoot, projectPaths);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-    }
-
-    /**
-     * Imports the specified list of projects.
-     *
-     * @param workspaceRoot The workspace root location.
-     * @param folders The list of folders containing the projects to install.
-     *
-     * @throws InterruptedException
-     * @throws CoreException
-     */
-    public static void importProjects(File workspaceRoot, List<String> folders) throws InterruptedException, CoreException {
-        // Get the list of projects to install.
-        MavenModelManager modelManager = MavenPlugin.getMavenModelManager();
-        LocalProjectScanner lps = new LocalProjectScanner(folders, false, modelManager);
-        lps.run(new NullProgressMonitor());
-        List<MavenProjectInfo> projects = lps.getProjects();
-
-        // Import the projects.
-        ProjectImportConfiguration projectImportConfig = new ProjectImportConfiguration();
-        IProjectConfigurationManager projectConfigurationManager = MavenPlugin.getProjectConfigurationManager();
-        projectConfigurationManager.importProjects(projects, projectImportConfig, new NullProgressMonitor());
-    }
-
-    /**
      * Copies maven build wrapper artifacts to the project.
      */
-    public void copyWrapperArtifactsToProject() {
+    private void copyWrapperArtifactsToProject() {
         Path sourceDirPath = Paths.get(Paths.get("").toAbsolutePath().toString(), "resources", "files", "apps", "maven",
                 "liberty-maven-test-app", "wrapper");
         try {
@@ -730,7 +639,7 @@ public class LibertyPluginSWTBotMavenTest {
     /**
      * Removes all wrapper related artifacts.
      */
-    public void removeWrapperArtifactsFromProject() {
+    private void removeWrapperArtifactsFromProject() {
         Path mvnw = Paths.get(projectPath.toString(), "mvnw");
         boolean mvnwDeleted = deleteFile(mvnw.toFile());
         Assertions.assertTrue(mvnwDeleted, () -> "File: " + mvnw + " was not be deleted.");

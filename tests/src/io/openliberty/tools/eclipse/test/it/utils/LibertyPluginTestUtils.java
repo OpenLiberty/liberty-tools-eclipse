@@ -137,7 +137,7 @@ public class LibertyPluginTestUtils {
      * @param pathToTestReport The path to the report.
      */
     public static void validateTestReportExists(Path pathToTestReport) {
-        int retryCountLimit = 50;
+        int retryCountLimit = 100;
         int reryIntervalSecs = 1;
         int retryCount = 0;
 
