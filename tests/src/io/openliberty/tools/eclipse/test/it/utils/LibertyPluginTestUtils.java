@@ -39,13 +39,24 @@ import org.osgi.service.prefs.Preferences;
 public class LibertyPluginTestUtils {
 
     /**
+     * This is the format we started with.
+     * 
+     * @param ctxRoot
+     * @param expectSuccess
+     * @param testAppPath
+     */
+    public static void validateApplicationOutcome(String ctxRoot, boolean expectSuccess, String testAppPath) {
+        String expectedResponse = "Hello! How are you today?";
+        String appUrl = "http://localhost:9080/" + ctxRoot + "/servlet";
+        validateApplicationOutcomeCustom(appUrl, expectSuccess, expectedResponse, testAppPath);
+    }
+
+    /**
      * Validates that the deployed application is active.
      *
      * @param expectSuccess True if the validation is expected to be successful. False, otherwise.
      */
-    public static void validateApplicationOutcome(String appName, boolean expectSuccess, String testAppPath) {
-        String expectedMvnAppResp = "Hello! How are you today?";
-        String appUrl = "http://localhost:9080/" + appName + "/servlet";
+    public static void validateApplicationOutcomeCustom(String appUrl, boolean expectSuccess, String expectedResponse, String testAppPath) {
         int retryCountLimit = 50;
         int reryIntervalSecs = 3;
         int retryCount = 0;
@@ -76,7 +87,7 @@ public class LibertyPluginTestUtils {
                         content.append(responseLine).append(System.lineSeparator());
                     }
 
-                    if (!(content.toString().contains(expectedMvnAppResp))) {
+                    if (!(content.toString().contains(expectedResponse))) {
                         Thread.sleep(reryIntervalSecs * 1000);
                         con.disconnect();
                         continue;

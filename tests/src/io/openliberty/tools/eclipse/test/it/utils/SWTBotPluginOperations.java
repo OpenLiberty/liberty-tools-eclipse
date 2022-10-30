@@ -106,7 +106,7 @@ public class SWTBotPluginOperations {
      */
     public static List<String> getDashboardContent(SWTWorkbenchBot bot, SWTBotView dashboard) {
         if (dashboard == null) {
-        	SWTBotPluginOperations.openDashboardUsingToolbar(bot);
+            SWTBotPluginOperations.openDashboardUsingToolbar(bot);
         } else {
             dashboard.show();
         }
@@ -258,11 +258,12 @@ public class SWTBotPluginOperations {
      * @return The object representing the active project matching the input project name.
      */
     public static SWTBotTreeItem getInstalledProjectItem(SWTWorkbenchBot bot, String item) {
-        SWTBotView peView = bot.viewByTitle("Project Explorer");
+        openJavaPerspective();
+        SWTBotView peView = bot.viewByTitle("Package Explorer");
         peView.show();
-        SWTBotTree projectExplorerContent = peView.bot().tree();
+        SWTBotTree packageExplorerContent = peView.bot().tree();
         SWTBotTreeItem project = null;
-        for (SWTBotTreeItem projectFromTree : projectExplorerContent.getAllItems()) {
+        for (SWTBotTreeItem projectFromTree : packageExplorerContent.getAllItems()) {
             if (projectFromTree.getText().contains(item)) {
                 project = projectFromTree;
                 break;
@@ -672,7 +673,7 @@ public class SWTBotPluginOperations {
      */
     public static SWTBotRootMenu getAppContextMenu(SWTWorkbenchBot bot, SWTBotView dashboard, String item) {
         if (dashboard == null) {
-        	SWTBotPluginOperations.openDashboardUsingToolbar(bot);
+            SWTBotPluginOperations.openDashboardUsingToolbar(bot);
         } else {
             dashboard.show();
             dashboard.setFocus();
