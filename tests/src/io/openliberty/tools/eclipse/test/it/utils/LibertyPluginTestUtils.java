@@ -57,7 +57,7 @@ public class LibertyPluginTestUtils {
      * @param expectSuccess True if the validation is expected to be successful. False, otherwise.
      */
     public static void validateApplicationOutcomeCustom(String appUrl, boolean expectSuccess, String expectedResponse, String testAppPath) {
-        int retryCountLimit = 50;
+        int retryCountLimit = 180;
         int reryIntervalSecs = 3;
         int retryCount = 0;
 
