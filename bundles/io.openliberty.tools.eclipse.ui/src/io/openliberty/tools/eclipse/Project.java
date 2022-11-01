@@ -263,11 +263,25 @@ public class Project {
         }
     }
 
+    private String formatChildProjectToString() {
+        if (childDirProjects.isEmpty()) {
+            return "<empty>";
+        } else {
+            StringBuilder sb = new StringBuilder();
+            sb.append("[");
+            for (Project p : childDirProjects) {
+                sb.append(p.getName()).append(",");
+            }
+            sb.append("]");
+            return sb.toString();
+        }
+    }
+
     @Override
     public String toString() {
         return "IProject: " + iProject.toString() + ". BuildType: " + type + ". Liberty Server Module: " + libertyServerModule
                 + ". parentDirProj: " + (parentDirProject != null ? parentDirProject.getName() : "<null> ") + ". childDirProjects: "
-                + childDirProjects.stream().map(e -> e.toString()).reduce(",", String::concat);
+                + formatChildProjectToString() + ";";
     }
 
     public boolean isLibertyServerModule() {

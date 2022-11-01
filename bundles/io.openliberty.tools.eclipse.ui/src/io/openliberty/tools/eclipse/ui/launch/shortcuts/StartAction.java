@@ -94,6 +94,11 @@ public class StartAction implements ILaunchShortcut {
      * @throws Exception
      */
     public static void run(IProject iProject, ILaunchConfiguration iConfiguration, String mode) throws Exception {
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_UI, new Object[] { iProject, iConfiguration, mode });
+        }
+
         if (iProject == null) {
             throw new Exception("Invalid project. Be sure to select a project first.");
         }
@@ -118,6 +123,10 @@ public class StartAction implements ILaunchShortcut {
             devModeOps.startInContainer(iProject, startParms);
         } else {
             devModeOps.start(iProject, startParms);
+        }
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_UI);
         }
     }
 }

@@ -322,7 +322,7 @@ public class SWTBotPluginOperations {
      */
     public static void launchRunConfigurationsDialog(SWTWorkbenchBot bot, String item, String mode) {
         Assertions.assertTrue(("run".equals(mode) || "debug".equals(mode)),
-                () -> "Invalid configration mode: " + mode + ". Accepted values: run, debug.");
+                () -> "Invalid configuration mode: " + mode + ". Accepted values: run, debug.");
 
         SWTBotMenu modeAsMenu = ("run".equals(mode)) ? getAppRunAsMenu(bot, item) : getAppDebugAsMenu(bot, item);
         String configMenuText = ("run".equals(mode)) ? "Run Configurations..." : "Debug Configurations...";

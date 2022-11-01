@@ -1,18 +1,19 @@
 /*******************************************************************************
-* Copyright (c) 2022 IBM Corporation and others.
-*
-* This program and the accompanying materials are made available under the
-* terms of the Eclipse Public License v. 2.0 which is available at
-* http://www.eclipse.org/legal/epl-2.0.
-*
-* SPDX-License-Identifier: EPL-2.0
-*
-* Contributors:
-*     IBM Corporation - initial implementation
-*******************************************************************************/
+ * Copyright (c) 2022 IBM Corporation and others.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License v. 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0.
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *     IBM Corporation - initial implementation
+ *******************************************************************************/
 package io.openliberty.tools.eclipse.ui.launch;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
@@ -64,6 +65,11 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
      */
     @Override
     public void launch(ILaunchConfiguration configuration, String mode, ILaunch launch, IProgressMonitor monitor) throws CoreException {
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_UI, new Object[] { configuration, mode, launch, monitor });
+        }
+
         // Processing paths:
         // - Explorer-> Run As-> Run Configurations
         // - Dashboard-> project -> Start...
@@ -88,6 +94,9 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
                 }
             }
         });
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_UI);
+        }
     }
 
     /**
@@ -104,6 +113,11 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
      * @throws Exception
      */
     public static ILaunchConfiguration getLaunchConfiguration(IProject iProject, String mode, RuntimeEnv runtimeEnv) throws Exception {
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_UI, new Object[] { iProject, mode, runtimeEnv });
+        }
+
         DevModeOperations devModeOps = DevModeOperations.getInstance();
         ILaunchConfiguration configuration = null;
         ILaunchManager iLaunchMgr = DebugPlugin.getDefault().getLaunchManager();
@@ -117,24 +131,33 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
                 iProject.getName(), runtimeEnv);
 
         switch (matchingConfigList.size()) {
-            case 0:
-                // Create a new configuration.
-                String newName = iLaunchMgr.generateLaunchConfigurationName(iProject.getName());
-                ILaunchConfigurationWorkingCopy workingCopy = iLaunchConfigType.newInstance(null, newName);
-                workingCopy.setAttribute(StartTab.PROJECT_NAME, iProject.getName());
-                workingCopy.setAttribute(StartTab.PROJECT_START_PARM, devModeOps.getProjectModel().getDefaultStartParameters(iProject));
-                workingCopy.setAttribute(StartTab.PROJECT_RUN_IN_CONTAINER, false);
-                configuration = workingCopy.doSave();
-                break;
+        case 0:
+            // Create a new configuration.
+            String newName = iLaunchMgr.generateLaunchConfigurationName(iProject.getName());
+            ILaunchConfigurationWorkingCopy workingCopy = iLaunchConfigType.newInstance(null, newName);
+            workingCopy.setAttribute(StartTab.PROJECT_NAME, iProject.getName());
+            String startParms = devModeOps.getProjectModel().getDefaultStartParameters(iProject);
+            workingCopy.setAttribute(StartTab.PROJECT_START_PARM, startParms);
+            workingCopy.setAttribute(StartTab.PROJECT_RUN_IN_CONTAINER, false);
+            configuration = workingCopy.doSave();
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UI,
+                        "Created new local (non-container) configuration for project: " + newName + ", with startParms = " + startParms);
+            }
+            break;
 
-            case 1:
-                // Return the found configuration.
-                configuration = matchingConfigList.get(0);
-                break;
-            default:
-                // Return the configuration that was run last.
-                configuration = LaunchConfigurationDelegateLauncher.getLastRunConfiguration(matchingConfigList);
-                break;
+        case 1:
+            // Return the found configuration.
+            configuration = matchingConfigList.get(0);
+            break;
+        default:
+            // Return the configuration that was run last.
+            configuration = LaunchConfigurationDelegateLauncher.getLastRunConfiguration(matchingConfigList);
+            break;
+        }
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_UI, configuration);
         }
 
         return configuration;
@@ -153,6 +176,11 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
      */
     public static List<ILaunchConfiguration> filterLaunchConfigurations(ILaunchConfiguration[] rawConfigList, String projectName,
             RuntimeEnv runtimeEnv) throws Exception {
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_UI, new Object[] { Arrays.asList(rawConfigList), projectName, runtimeEnv });
+        }
+
         ArrayList<ILaunchConfiguration> matchingConfigList = new ArrayList<>();
         for (ILaunchConfiguration existingConfig : rawConfigList) {
             String configProjName = existingConfig.getAttribute(StartTab.PROJECT_NAME, "");
@@ -180,6 +208,10 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
                     throw new Exception(msg);
                 }
             }
+        }
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_UI, matchingConfigList);
         }
 
         return matchingConfigList;

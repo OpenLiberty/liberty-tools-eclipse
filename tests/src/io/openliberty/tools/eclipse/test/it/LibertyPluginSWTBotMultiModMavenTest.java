@@ -105,20 +105,20 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
      * </pre>
      */
     public static final void validateBeforeTestRun() {
-        // dashboard = SWTBotPluginOperations.openDashboardUsingToolbar(bot);
+        dashboard = SWTBotPluginOperations.openDashboardUsingToolbar(bot);
 
         // Check that the dashboard can be opened and its content retrieved.
-        // List<String> projectList = SWTBotPluginOperations.getDashboardContent(bot, dashboard);
+        List<String> projectList = SWTBotPluginOperations.getDashboardContent(bot, dashboard);
 
         // Check that dashboard contains the expected applications.
-        // boolean foundApp = false;
-        // for (String project : projectList) {
-        // if (MVN_APP_NAME.equals(project)) {
-        // foundApp = true;
-        // break;
-        // }
-        // }
-        // Assertions.assertTrue(foundApp, () -> "The dashboard does not contain expected application: " + MVN_APP_NAME);
+        boolean foundApp = false;
+        for (String project : projectList) {
+            if (MVN_APP_NAME.equals(project)) {
+                foundApp = true;
+                break;
+            }
+        }
+        Assertions.assertTrue(foundApp, () -> "The dashboard does not contain expected application: " + MVN_APP_NAME);
 
         // Check that the menu that the application in the dashboard contains the required actions.
         List<String> menuItems = SWTBotPluginOperations.getDashboardItemMenuActions(bot, dashboard, MVN_APP_NAME);

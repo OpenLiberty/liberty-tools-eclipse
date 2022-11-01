@@ -44,8 +44,7 @@ public class ProjectTab {
     private String projectName;
 
     /**
-     * Terminal connector instance set by the LocalDevModeLauncherDelegate when the connector is created during initial
-     * connection.
+     * Terminal connector instance set by the LocalDevModeLauncherDelegate when the connector is created during initial connection.
      */
     private ITerminalConnector connector;
 
@@ -112,7 +111,7 @@ public class ProjectTab {
      */
     public void runCommand(String projectPath, String command, List<String> envs) {
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_UI, new Object[] { command, envs });
+            Trace.getTracer().traceEntry(Trace.TRACE_UI, new Object[] { projectPath, command, envs });
         }
 
         ITerminalService.Done done = new ITerminalService.Done() {

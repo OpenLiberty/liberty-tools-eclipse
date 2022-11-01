@@ -74,6 +74,10 @@ public class WorkspaceProjectsModel {
      */
     private void createNewCompleteWorkspaceModel(boolean classify) {
 
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_UTILS, new Object[] { classify });
+        }
+
         IWorkspaceRoot workspaceRoot = ResourcesPlugin.getWorkspace().getRoot();
         IProject[] iProjects = workspaceRoot.getProjects();
 
@@ -82,6 +86,10 @@ public class WorkspaceProjectsModel {
         initProjectModels();
         createProjectModels(openProjects, classify);
         buildMultiProjectModel(openProjects, classify);
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_UTILS);
+        }
     }
 
     private void initProjectModels() {
@@ -132,11 +140,23 @@ public class WorkspaceProjectsModel {
      *         not a server project).
      */
     public Project getLibertyServerProject(String name) {
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_UTILS, name);
+        }
+
+        Project retVal = null;
+
         Project proj = projectsByName.get(name);
         if (proj != null && proj.isLibertyServerModule()) {
-            return proj;
+            retVal = proj;
         }
-        return null;
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_UTILS, retVal);
+        }
+
+        return retVal;
     }
 
     /**
@@ -147,6 +167,10 @@ public class WorkspaceProjectsModel {
      * @return Liberty server project names sorted and grouped.
      */
     public List<String> getSortedDashboardProjectList() {
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_UTILS);
+        }
 
         List<String> mavenDashboardProjects = new ArrayList<String>();
         List<String> gradleDashboardProjects = new ArrayList<String>();
@@ -171,6 +195,11 @@ public class WorkspaceProjectsModel {
 
         retVal.addAll(mavenDashboardProjects);
         retVal.addAll(gradleDashboardProjects);
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_UTILS, retVal);
+        }
+
         return retVal;
 
     }
@@ -182,12 +211,25 @@ public class WorkspaceProjectsModel {
      *         like there is a multi-module relationship or not
      */
     public String getDefaultStartParameters(IProject iProject) {
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_UTILS, new Object[] { iProject });
+        }
+
+        String retVal = null;
+
         Project proj = projectsByName.get(iProject.getName());
         if (proj.isAggregated()) {
-            return "-f ../pom.xml -am -pl " + getModuleNameSegment(iProject);
+            retVal = "-f ../pom.xml -am -pl " + getModuleNameSegment(iProject);
         } else {
-            return "";
+            retVal = "";
         }
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_UTILS, retVal);
+        }
+
+        return retVal;
     }
 
     private String getModuleNameSegment(IProject iProject) {

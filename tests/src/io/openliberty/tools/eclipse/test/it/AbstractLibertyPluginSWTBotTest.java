@@ -83,12 +83,14 @@ public abstract class AbstractLibertyPluginSWTBotTest {
 
     @BeforeEach
     public void beforeEach(TestInfo info) {
-        System.out.println("INFO: Test " + info.getDisplayName() + " entry: " + java.time.LocalDateTime.now());
+        System.out.println(
+                "INFO: Test " + this.getClass().getSimpleName() + "#" + info.getDisplayName() + " entry: " + java.time.LocalDateTime.now());
     }
 
     @AfterEach
     public void afterEach(TestInfo info) {
-        System.out.println("INFO: Test " + info.getDisplayName() + " exit: " + java.time.LocalDateTime.now());
+        System.out.println(
+                "INFO: Test " + this.getClass().getSimpleName() + "#" + info.getDisplayName() + " exit: " + java.time.LocalDateTime.now());
     }
 
     /**

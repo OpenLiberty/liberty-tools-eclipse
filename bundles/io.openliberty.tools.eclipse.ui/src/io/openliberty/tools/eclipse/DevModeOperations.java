@@ -121,7 +121,7 @@ public class DevModeOperations {
      */
     public void start(IProject iProject, String parms) {
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, iProject);
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { iProject, parms });
         }
 
         if (iProject == null) {
@@ -870,6 +870,11 @@ public class DevModeOperations {
      * @return The project currently selected or null if one was not found.
      */
     public IProject getSelectedDashboardProject() {
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS);
+        }
+
         IProject iProject = null;
         IWorkbenchWindow w = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
 
@@ -887,6 +892,10 @@ public class DevModeOperations {
                     }
                 }
             }
+        }
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, iProject);
         }
 
         return iProject;

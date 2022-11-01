@@ -150,9 +150,17 @@ public class StartTab extends AbstractLaunchConfigurationTab {
      */
     @Override
     public void initializeFrom(ILaunchConfiguration configuration) {
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_UI, new Object[] { configuration });
+        }
+
         // Initialize the configuration view with previously saved values.
         try {
             activeProject = Utils.getActiveProject();
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UI, "Active project = " + activeProject);
+            }
             if (activeProject == null) {
                 activeProject = devModeOps.getSelectedDashboardProject();
             }
@@ -172,6 +180,10 @@ public class StartTab extends AbstractLaunchConfigurationTab {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, ce);
             }
         }
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_UI);
+        }
     }
 
     /**
@@ -179,6 +191,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
      */
     @Override
     public void performApply(ILaunchConfigurationWorkingCopy configuration) {
+
         // Save the active project's name in the configuration.
         if (activeProject != null) {
             configuration.setAttribute(PROJECT_NAME, activeProject.getName());
@@ -187,6 +200,12 @@ public class StartTab extends AbstractLaunchConfigurationTab {
         // Capture the entries typed on the currently active launch configuration.
         configuration.setAttribute(PROJECT_START_PARM, startParmText.getText());
         configuration.setAttribute(PROJECT_RUN_IN_CONTAINER, runInContainerCheckBox.getSelection());
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().trace(Trace.TRACE_UI, "In performApply with activeProject = " + activeProject + ", startParm text = "
+                    + startParmText.getText() + ", runInContainer = " + runInContainerCheckBox.getSelection());
+        }
+
     }
 
     /**
