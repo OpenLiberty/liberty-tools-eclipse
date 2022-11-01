@@ -34,9 +34,9 @@ import org.eclipse.ui.contexts.IContextService;
 import org.eclipse.ui.handlers.IHandlerService;
 import org.eclipse.ui.part.ViewPart;
 
-import io.openliberty.tools.eclipse.WorkspaceProjectsModel;
 import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.Project;
+import io.openliberty.tools.eclipse.WorkspaceProjectsModel;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.ui.launch.shortcuts.OpenGradleTestReportAction;
 import io.openliberty.tools.eclipse.ui.launch.shortcuts.OpenMavenITestReportAction;
@@ -149,9 +149,8 @@ public class DashboardView extends ViewPart {
     @Override
     public void dispose() {
         super.dispose();
-        if (viewer == null) {
-            return;
-        }
+        // null out viewer so we don't try to update upon a resource change listener notification
+        viewer = null;
     }
 
     /**
@@ -435,7 +434,8 @@ public class DashboardView extends ViewPart {
     }
 
     public void setInput(List<String> sortedDashboardProjectList) {
-        viewer.setInput(sortedDashboardProjectList);
+        if (viewer != null) {
+            viewer.setInput(sortedDashboardProjectList);
+        }
     }
-
 }
