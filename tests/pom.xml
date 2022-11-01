@@ -59,6 +59,16 @@
                                 <id>org.eclipse.jdt.feature.group</id>
                                 <versionRange>3.18.1300.v20220831-1800</versionRange>
                             </requirement>
+                            <requirement>
+                                <type>p2-installable-unit</type>
+                                <id>org.eclipse.buildship.ui</id>
+                                <versionRange>3.1.6.v20220511-1359</versionRange>
+                            </requirement>
+                            <requirement>
+                                <type>p2-installable-unit</type>
+                                <id>org.eclipse.m2e.core.ui</id>
+                                <versionRange>2.0.0.20220726-0935</versionRange>
+                            </requirement>
                         </extraRequirements>
                     </dependency-resolution>
                 </configuration>
