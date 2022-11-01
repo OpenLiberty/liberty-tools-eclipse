@@ -782,7 +782,7 @@ public class DevModeOperations {
      */
     public String getMavenCommand(String projectPath, String cmdArgs) {
         String cmd = null;
-
+        
         // Check if there is wrapper defined.
         Path p2mw = (isWindows()) ? Paths.get(projectPath, "mvnw.cmd") : Paths.get(projectPath, "mvnw");
         Path p2mwJar = Paths.get(projectPath, ".mvn", "wrapper", "maven-wrapper.jar");
@@ -791,7 +791,7 @@ public class DevModeOperations {
         if (p2mw.toFile().exists() && p2mwJar.toFile().exists() && p2mwProps.toFile().exists()) {
             cmd = p2mw.toString();
         } else {
-            cmd = getCmdFromPath(isWindows() ? "mvn.cmd" : "mvn");
+            cmd = getCmdFromPathPrefs(isWindows() ? "mvn.cmd" : "mvn");
         }
 
         return getCommandFromArgs(cmd, cmdArgs);
@@ -817,7 +817,7 @@ public class DevModeOperations {
         if (p2gw.toFile().exists() && p2gwJar.toFile().exists() && p2gwProps.toFile().exists()) {
             cmd = p2gw.toString();
         } else {
-            cmd = getCmdFromPath(isWindows() ? "gradle.bat" : "gradle");
+            cmd = getCmdFromPathPrefs(isWindows() ? "gradle.bat" : "gradle");
         }
 
         return getCommandFromArgs(cmd, cmdArgs);
@@ -836,23 +836,28 @@ public class DevModeOperations {
 
         return sb.toString();
     }
-
-    private String getCmdFromPath(String cmd) throws IllegalStateException {
+    
+    private String getCmdFromPathPrefs(String cmd) throws IllegalStateException {
 
         String foundCmd = null;
 
-        String[] pathMembers = pathEnv.split(File.pathSeparator);
-        for (int s = 0; s < pathMembers.length; s++) {
-            File tempFile = new File(pathMembers[s] + File.separator + cmd);
-
-            if (tempFile.exists()) {
-                foundCmd = tempFile.getPath();
-                break;
-            }
+        File tempMvnFile = new File(LibertyDevPlugin.getDefault().getPreferenceStore().getString("MVNPATH") + File.separator + cmd);
+        File tempGradleFile = new File(LibertyDevPlugin.getDefault().getPreferenceStore().getString("GRADLEPATH") + File.separator + cmd);
+        
+        if (tempMvnFile.exists()) {
+            foundCmd = tempMvnFile.getPath();
+        }
+        else if (tempGradleFile.exists()) {
+            foundCmd = tempGradleFile.getPath();
         }
 
         if (foundCmd == null) {
-            throw new IllegalStateException("Couldn't find command: " + cmd + " on PATH env var");
+            throw new IllegalStateException("Couldn't find command: \"" + cmd + "\" using a wrapper or via the Liberty Tools Preferences Page");
+        }
+        
+        if (Trace.isEnabled()) {
+            Trace.getTracer().trace(Trace.TRACE_UTILS,
+                    "AJM: in devmodeOperations, the found maven command = " + foundCmd);
         }
 
         return foundCmd;

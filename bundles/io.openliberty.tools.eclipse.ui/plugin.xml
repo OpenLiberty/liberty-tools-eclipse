@@ -511,4 +511,14 @@
          </bundle>
       </component>
   </extension>
+  
+  <!-- Preferences -->
+     <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            class="io.openliberty.tools.eclipse.ui.preferences.LibertyToolsPrefPage"
+            id="io.openliberty.tools.eclipse.ui.preferences.page"
+            name="Liberty Tools">
+      </page>
+   </extension>
 </plugin>
