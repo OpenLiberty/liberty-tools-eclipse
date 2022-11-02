@@ -32,7 +32,7 @@ public class StartConfigurationDialogAction implements ILaunchShortcut {
         IProject iProject = Utils.getProjectFromSelection(selection);
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_UI, new Object[] { iProject, selection, mode });
+            Trace.getTracer().traceEntry(Trace.TRACE_UI, new Object[] { iProject, mode });
         }
 
         try {
