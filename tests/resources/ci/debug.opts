@@ -1,0 +1,5 @@
+io.openliberty.tools.eclipse/trace/utils=true
+io.openliberty.tools.eclipse/debug=true
+io.openliberty.tools.eclipse/trace/tools=true
+io.openliberty.tools.eclipse/trace/handlers=true
+io.openliberty.tools.eclipse/trace/ui=true
