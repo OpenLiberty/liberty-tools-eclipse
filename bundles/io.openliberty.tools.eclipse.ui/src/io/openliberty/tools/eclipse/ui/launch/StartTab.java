@@ -32,13 +32,15 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.PlatformUI;
 
+import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.logging.Trace;
+import io.openliberty.tools.eclipse.utils.ErrorHandler;
 import io.openliberty.tools.eclipse.utils.Utils;
 
 /**
  * Main configuration tab.
  */
-public class MainTab extends AbstractLaunchConfigurationTab {
+public class StartTab extends AbstractLaunchConfigurationTab {
 
     /** Configuration map key with a value representing the dev mode start parameter. */
     public static final String PROJECT_START_PARM = "io.openliberty.tools.eclipse.launch.start.parm";
@@ -55,8 +57,10 @@ public class MainTab extends AbstractLaunchConfigurationTab {
     /** Tab image */
     Image image;
 
-    /** Currently active project. */
-    IProject activeProject;
+    /** Configuration map key with a value stating whether or not the associated project ran in a container. */
+    public static final String START_TAB_NAME = "Start";
+
+    private static final String EXAMPLE_START_PARMS = "Example: -DhotTests=true";
 
     /** Holds the start parameter text configuration. */
     private Text startParmText;
@@ -64,10 +68,13 @@ public class MainTab extends AbstractLaunchConfigurationTab {
     /** Holds the run in container check box. */
     private Button runInContainerCheckBox;
 
+    /** DevModeOperations instance. */
+    private DevModeOperations devModeOps = DevModeOperations.getInstance();
+
     /**
      * Constructor.
      */
-    public MainTab() {
+    public StartTab() {
         image = Utils.getLibertyImage(PlatformUI.getWorkbench().getDisplay());
     }
 
@@ -112,7 +119,7 @@ public class MainTab extends AbstractLaunchConfigurationTab {
 
         // Add the input parameter text box.
         startParmText = new Text(composite, SWT.BORDER);
-        startParmText.setMessage("Example: -DhotTests=true");
+        startParmText.setMessage(EXAMPLE_START_PARMS);
         startParmText.addModifyListener(new ModifyListener() {
 
             /**
@@ -133,6 +140,27 @@ public class MainTab extends AbstractLaunchConfigurationTab {
      */
     @Override
     public void setDefaults(ILaunchConfigurationWorkingCopy configuration) {
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_UI, new Object[] { configuration });
+        }
+
+        IProject activeProject = Utils.getActiveProject();
+        if (activeProject == null) {
+            activeProject = devModeOps.getSelectedDashboardProject();
+        }
+        // Save the active project's name in the configuration.
+        if (activeProject != null) {
+            configuration.setAttribute(PROJECT_NAME, activeProject.getName());
+        }
+
+        configuration.setAttribute(PROJECT_START_PARM, getDefaultStartCommand(activeProject));
+
+        configuration.setAttribute(PROJECT_RUN_IN_CONTAINER, false);
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_UI);
+        }
     }
 
     /**
@@ -140,15 +168,15 @@ public class MainTab extends AbstractLaunchConfigurationTab {
      */
     @Override
     public void initializeFrom(ILaunchConfiguration configuration) {
-        activeProject = Utils.getActiveProject();
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_UI, new Object[] { activeProject, configuration });
+            Trace.getTracer().traceEntry(Trace.TRACE_UI, new Object[] { configuration });
         }
 
         // Initialize the configuration view with previously saved values.
         try {
-            String consoleText = configuration.getAttribute(PROJECT_START_PARM, "");
+
+            String consoleText = configuration.getAttribute(PROJECT_START_PARM, (String) null);
             startParmText.setText(consoleText);
 
             boolean runInContainer = configuration.getAttribute(PROJECT_RUN_IN_CONTAINER, false);
@@ -158,13 +186,14 @@ public class MainTab extends AbstractLaunchConfigurationTab {
         } catch (CoreException ce) {
             // Trace and ignore.
             String msg = "An error was detected during Run Configuration initialization.";
+            ErrorHandler.processErrorMessage(msg, ce, true);
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, ce);
             }
         }
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_UI, configuration);
+            Trace.getTracer().traceExit(Trace.TRACE_UI);
         }
     }
 
@@ -173,14 +202,18 @@ public class MainTab extends AbstractLaunchConfigurationTab {
      */
     @Override
     public void performApply(ILaunchConfigurationWorkingCopy configuration) {
-        // Save the active project's name in the configuration.
-        if (activeProject != null) {
-            configuration.setAttribute(PROJECT_NAME, activeProject.getName());
-        }
 
-        // Capture the entries typed on the currently active launch configuration.
-        configuration.setAttribute(PROJECT_START_PARM, startParmText.getText());
-        configuration.setAttribute(PROJECT_RUN_IN_CONTAINER, runInContainerCheckBox.getSelection());
+        String startParamStr = startParmText.getText();
+        boolean runInContainerBool = runInContainerCheckBox.getSelection();
+
+        // Capture the entries typed on the active run configuration.
+        configuration.setAttribute(PROJECT_START_PARM, startParamStr);
+        configuration.setAttribute(PROJECT_RUN_IN_CONTAINER, runInContainerBool);
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().trace(Trace.TRACE_UI,
+                    "In performApply with startParm text = " + startParamStr + ", runInContainer = " + runInContainerBool);
+        }
     }
 
     /**
@@ -188,7 +221,7 @@ public class MainTab extends AbstractLaunchConfigurationTab {
      */
     @Override
     public String getName() {
-        return "Main";
+        return START_TAB_NAME;
     }
 
     /**
@@ -207,5 +240,33 @@ public class MainTab extends AbstractLaunchConfigurationTab {
         if (image != null) {
             image.dispose();
         }
+    }
+
+    /**
+     * Returns the default start parameters.
+     * 
+     * @param Active project (may be null if there isn't one)
+     * 
+     * @return The default start parameters
+     */
+    private String getDefaultStartCommand(IProject activeProject) {
+        String parms = "";
+        try {
+            if (activeProject != null) {
+                // Verify that the existing projects are projects are read and classified. This maybe the first time
+                // this plugin's function is being used.
+                devModeOps.verifyProjectSupport(activeProject);
+                parms = devModeOps.getProjectModel().getDefaultStartParameters(activeProject);
+            }
+        } catch (Exception e) {
+            // Report the issue and continue without a initial start command.
+            String msg = "An error was detected while retrieving the default start parameters.";
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
+            }
+            ErrorHandler.processErrorMessage(msg, e, true);
+        }
+
+        return parms;
     }
 }

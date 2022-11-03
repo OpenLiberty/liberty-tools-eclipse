@@ -17,7 +17,6 @@ import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import org.eclipse.core.resources.IProject;
@@ -41,9 +40,6 @@ import io.openliberty.tools.eclipse.utils.ErrorHandler;
  */
 public class DevModeOperations {
 
-    // TODO: Dashboard display: Handle the case where the project is configured to be built/run by both
-    // Gradle and Maven at the same time.
-
     /**
      * Constants.
      */
@@ -61,7 +57,7 @@ public class DevModeOperations {
     /**
      * Dashboard object reference.
      */
-    private Dashboard dashboard;
+    private WorkspaceProjectsModel projectModel;
 
     /**
      * PATH environment variable.
@@ -74,12 +70,26 @@ public class DevModeOperations {
     private static DevModeOperations instance;
 
     /**
+     * DashboardView
+     */
+    private DashboardView dashboardView;
+
+    /**
      * Constructor.
      */
     public DevModeOperations() {
         projectTabController = ProjectTabController.getInstance();
-        dashboard = new Dashboard();
+        projectModel = new WorkspaceProjectsModel();
         pathEnv = System.getenv("PATH");
+    }
+
+    /**
+     * Because the current class is used as a singleton this effectively provides a singleton for the model object returned
+     * 
+     * @return a complete model of the projects in the workspace
+     */
+    public WorkspaceProjectsModel getProjectModel() {
+        return projectModel;
     }
 
     /**
@@ -111,7 +121,7 @@ public class DevModeOperations {
      */
     public void start(IProject iProject, String parms) {
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, iProject);
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { iProject, parms });
         }
 
         if (iProject == null) {
@@ -155,7 +165,7 @@ public class DevModeOperations {
         Project project = null;
 
         try {
-            project = dashboard.getProject(projectName);
+            project = projectModel.getLibertyServerProject(projectName);
             if (project == null) {
                 throw new Exception("Unable to find internal instance of project " + projectName);
             }
@@ -244,7 +254,7 @@ public class DevModeOperations {
         Project project = null;
 
         try {
-            project = dashboard.getProject(projectName);
+            project = projectModel.getLibertyServerProject(projectName);
             if (project == null) {
                 throw new Exception("Unable to find internal instance of project " + projectName);
             }
@@ -476,7 +486,7 @@ public class DevModeOperations {
         Project project = null;
 
         try {
-            project = dashboard.getProject(projectName);
+            project = projectModel.getLibertyServerProject(projectName);
             if (project == null) {
                 throw new Exception("Unable to find internal instance of project " + projectName);
             }
@@ -548,7 +558,7 @@ public class DevModeOperations {
         Project project = null;
 
         try {
-            project = dashboard.getProject(projectName);
+            project = projectModel.getLibertyServerProject(projectName);
             if (project == null) {
                 throw new Exception("Unable to find internal instance of project " + projectName);
             }
@@ -619,7 +629,7 @@ public class DevModeOperations {
         Project project = null;
 
         try {
-            project = dashboard.getProject(projectName);
+            project = projectModel.getLibertyServerProject(projectName);
             if (project == null) {
                 throw new Exception("Unable to find internal instance of project " + projectName);
             }
@@ -860,6 +870,11 @@ public class DevModeOperations {
      * @return The project currently selected or null if one was not found.
      */
     public IProject getSelectedDashboardProject() {
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS);
+        }
+
         IProject iProject = null;
         IWorkbenchWindow w = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
 
@@ -871,47 +886,19 @@ public class DevModeOperations {
                 IStructuredSelection structuredSelection = (IStructuredSelection) selection;
                 Object firstElement = structuredSelection.getFirstElement();
                 if (firstElement instanceof String) {
-                    Project project = dashboard.getProject((String) firstElement);
+                    Project project = projectModel.getLibertyServerProject((String) firstElement);
                     if (project != null) {
                         iProject = project.getIProject();
                     }
-
                 }
             }
         }
 
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, iProject);
+        }
+
         return iProject;
-    }
-
-    /**
-     * Returns a sorted list of projects that are configured to run on Liberty.
-     *
-     * @return A sorted list of projects that are configured to run on Liberty.
-     *
-     * @throws Exception
-     */
-    public List<String> getSupportedProjects() throws Exception {
-        dashboard.retrieveSupportedProjects();
-        List<String> mvnProjs = dashboard.getMavenProjectNames();
-        Collections.sort(mvnProjs);
-        List<String> gradleProjs = dashboard.getGradleProjectNames();
-        Collections.sort(gradleProjs);
-
-        ArrayList<String> sortedProjects = new ArrayList<String>();
-        sortedProjects.addAll(mvnProjs);
-        sortedProjects.addAll(gradleProjs);
-        return sortedProjects;
-    }
-
-    /**
-     * Returns the project associated with the input name.
-     * 
-     * @param name The name of the project.
-     * 
-     * @return The project associated with the input name.
-     */
-    public Project getSupportedProject(String name) {
-        return dashboard.getProject(name);
     }
 
     /**
@@ -924,15 +911,18 @@ public class DevModeOperations {
     public void verifyProjectSupport(IProject iProject) throws Exception {
         if (iProject != null) {
             String projectName = iProject.getName();
-            Project project = getSupportedProject(projectName);
+            Project project = projectModel.getLibertyServerProject(projectName);
             if (project == null) {
-                getSupportedProjects();
-                project = getSupportedProject(iProject.getName());
-                if (project == null) {
-                    throw new Exception(
-                            "Project " + projectName + " is not a supported project. Make sure the project is a Liberty project.");
-                }
+                throw new Exception("Project " + projectName + " is not a supported project. Make sure the project is a Liberty project.");
             }
         }
+    }
+
+    public DashboardView getDashboardView() {
+        return dashboardView;
+    }
+
+    public void setDashboardView(DashboardView dashboardView) {
+        this.dashboardView = dashboardView;
     }
 }

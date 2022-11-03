@@ -33,29 +33,16 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Stream;
 
-import org.eclipse.buildship.core.BuildConfiguration;
-import org.eclipse.buildship.core.GradleBuild;
-import org.eclipse.buildship.core.GradleCore;
-import org.eclipse.buildship.core.GradleWorkspace;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.core.runtime.IPath;
-import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.swt.widgets.Display;
-import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotView;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotMenu;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.TestInfo;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
-import io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils;
 import io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher;
@@ -63,12 +50,7 @@ import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLaunche
 /**
  * Tests Open Liberty Eclipse plugin functions.
  */
-public class LibertyPluginSWTBotGradleTest {
-
-    /**
-     * Wokbench bot instance.
-     */
-    static SWTWorkbenchBot bot;
+public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTest {
 
     /**
      * Dashboard instance.
@@ -99,43 +81,22 @@ public class LibertyPluginSWTBotGradleTest {
 
     /**
      * Setup.
+     * 
+     * @throws CoreException
+     * @throws InterruptedException
      */
     @BeforeAll
     public static void setup() {
-        bot = new SWTWorkbenchBot();
-        SWTBotPluginOperations.closeWelcomePage(bot);
 
-        // Import the required applications into the Eclipse workspace.
-        importGradleApplications();
+        commonSetup();
 
-        // Update browser preferences.
-        if (isInternalBrowserSupportAvailable()) {
-            boolean success = LibertyPluginTestUtils.updateBrowserPreferences(true);
-            Assertions.assertTrue(success, () -> "Unable to update browser preferences.");
-        }
+        ArrayList<File> projectsToInstall = new ArrayList<File>();
+        File mainProject = Paths.get("resources", "applications", "gradle", GRADLE_APP_NAME).toFile();
+        projectsToInstall.add(mainProject);
+        importGradleApplications(projectsToInstall);
 
         // Check basic plugin artifacts are functioning before running tests.
-        checkBasics();
-    }
-
-    /**
-     * Cleanup.
-     */
-    @AfterAll
-    public static void cleanup() {
-        bot.closeAllEditors();
-        bot.closeAllShells();
-        bot.resetWorkbench();
-    }
-
-    @BeforeEach
-    public void beforeEach(TestInfo info) {
-        System.out.println("INFO: Test " + info.getDisplayName() + " entry: " + java.time.LocalDateTime.now());
-    }
-
-    @AfterEach
-    public void afterEach(TestInfo info) {
-        System.out.println("INFO: Test " + info.getDisplayName() + " exit: " + java.time.LocalDateTime.now());
+        validateBeforeTestRun();
     }
 
     /**
@@ -150,7 +111,7 @@ public class LibertyPluginSWTBotGradleTest {
      * 6. The Debug As configuration view contains the Liberty entry for creating a configuration.
      * </pre>
      */
-    public static final void checkBasics() {
+    public static final void validateBeforeTestRun() {
 
         Path projPath = Paths.get("resources", "applications", "gradle", GRADLE_APP_NAME);
         File projectFile = projPath.toFile();
@@ -408,7 +369,7 @@ public class LibertyPluginSWTBotGradleTest {
      * Run.
      */
     @Test
-    public void tesStartWithDefaultRunAsConfig() {
+    public void testStartWithDefaultRunAsConfig() {
         // Delete any previously created configs.
         SWTBotPluginOperations.deleteLibertyToolsConfigEntries(bot, GRADLE_APP_NAME, "run");
 
@@ -436,7 +397,7 @@ public class LibertyPluginSWTBotGradleTest {
      * -> Run.
      */
     @Test
-    public void tesStartWithCustomRunAsConfig() {
+    public void testStartWithCustomRunAsConfig() {
         // Delete any previously created configs.
         SWTBotPluginOperations.deleteLibertyToolsConfigEntries(bot, GRADLE_APP_NAME, "run");
 
@@ -516,7 +477,7 @@ public class LibertyPluginSWTBotGradleTest {
      */
     @Disabled("Disabled pending design discussions")
     @Test
-    public void tesStartWithCustomDebugAsConfig() {
+    public void testStartWithCustomDebugAsConfig() {
         // Delete any previously created configs.
         SWTBotPluginOperations.deleteLibertyToolsConfigEntries(bot, GRADLE_APP_NAME, "debug");
 
@@ -577,50 +538,9 @@ public class LibertyPluginSWTBotGradleTest {
     }
 
     /**
-     * Imports existing Gradle application projects into the workspace.
-     */
-    public static void importGradleApplications() {
-        Display.getDefault().syncExec(new Runnable() {
-
-            @Override
-            public void run() {
-                ArrayList<File> projectsToInstall = new ArrayList<File>();
-                File mainProject = Paths.get("resources", "applications", "gradle", GRADLE_APP_NAME).toFile();
-                projectsToInstall.add(mainProject);
-                try {
-                    importProjects(projectsToInstall);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                    Assertions.fail();
-                }
-            }
-        });
-    }
-
-    /**
-     * Imports the specified list of projects.
-     *
-     * @param projectsToInstall The list of File objects representing the location of the projects to install.
-     *
-     * @throws InterruptedException
-     * @throws CoreException
-     */
-    public static void importProjects(ArrayList<File> projectsToInstall) throws InterruptedException, CoreException {
-        for (File projectFile : projectsToInstall) {
-            IPath projectLocation = org.eclipse.core.runtime.Path
-                    .fromOSString(Paths.get(projectFile.getPath()).toAbsolutePath().toString());
-
-            BuildConfiguration configuration = BuildConfiguration.forRootProjectDirectory(projectLocation.toFile()).build();
-            GradleWorkspace workspace = GradleCore.getWorkspace();
-            GradleBuild newBuild = workspace.createBuild(configuration);
-            newBuild.synchronize(new NullProgressMonitor());
-        }
-    }
-
-    /**
      * Copies gradle build wrapper artifacts to the project.
      */
-    public void copyWrapperArtifactsToProject() {
+    private void copyWrapperArtifactsToProject() {
         Path sourceDirPath = Paths.get(Paths.get("").toAbsolutePath().toString(), "resources", "files", "apps", "gradle",
                 "liberty-gradle-test-app", "wrapper");
 
@@ -647,7 +567,7 @@ public class LibertyPluginSWTBotGradleTest {
     /**
      * Removes all wrapper related artifacts.
      */
-    public void removeWrapperArtifactsFromProject() {
+    private void removeWrapperArtifactsFromProject() {
         Path projectPath = Paths.get(Paths.get("").toAbsolutePath().toString(), "resources", "applications", "gradle",
                 "liberty-gradle-test-app", "wrapper");
 

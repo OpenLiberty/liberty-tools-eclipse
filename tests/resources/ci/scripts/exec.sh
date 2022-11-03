@@ -36,7 +36,7 @@ main() {
     fi
     
     # Run the plugin's install goal.
-    mvn clean install 
+    mvn clean install -Dosgi.debug=./tests/resources/ci/debug.opts -Dtycho.showEclipseLog
 
     # If there were any errors, gather some debug data before exiting.
     rc=$?

@@ -1,20 +1,22 @@
 /*******************************************************************************
-* Copyright (c) 2022 IBM Corporation and others.
-*
-* This program and the accompanying materials are made available under the
-* terms of the Eclipse Public License v. 2.0 which is available at
-* http://www.eclipse.org/legal/epl-2.0.
-*
-* SPDX-License-Identifier: EPL-2.0
-*
-* Contributors:
-*     IBM Corporation - initial implementation
-*******************************************************************************/
+ * Copyright (c) 2022 IBM Corporation and others.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License v. 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0.
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *     IBM Corporation - initial implementation
+ *******************************************************************************/
 package io.openliberty.tools.eclipse.ui.dashboard;
 
 import java.net.URL;
+import java.util.List;
 
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuListener;
@@ -34,6 +36,7 @@ import org.eclipse.ui.part.ViewPart;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.Project;
+import io.openliberty.tools.eclipse.WorkspaceProjectsModel;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.ui.launch.shortcuts.OpenGradleTestReportAction;
 import io.openliberty.tools.eclipse.ui.launch.shortcuts.OpenMavenITestReportAction;
@@ -82,20 +85,26 @@ public class DashboardView extends ViewPart {
     private Action refreshAction;
 
     /**
-     * Table viewer instance.
+     * Table viewer that holds the entries in the dashboard.
      */
-    private TableViewer viewer;
+    TableViewer viewer;
+
+    /**
+     * Listener object that updates the dashboard content as actions take place on the projects it contains.
+     */
+    private IResourceChangeListener projectStateListener;
 
     /**
      * DevModeOperations reference.
      */
-    private DevModeOperations devModeOps;
+    DevModeOperations devModeOps;
 
     /**
      * Constructor.
      */
     public DashboardView() {
         devModeOps = DevModeOperations.getInstance();
+        devModeOps.setDashboardView(this);
     }
 
     /**
@@ -108,7 +117,9 @@ public class DashboardView extends ViewPart {
         viewer.setLabelProvider(new DashboardEntryLabelProvider(devModeOps));
 
         try {
-            viewer.setInput(devModeOps.getSupportedProjects());
+            WorkspaceProjectsModel dashboard = devModeOps.getProjectModel();
+            dashboard.createNewCompleteWorkspaceModelWithClassify();
+            viewer.setInput(dashboard.getSortedDashboardProjectList());
         } catch (Exception e) {
             String msg = "An error was detected while retrieving Liberty projects.";
             if (Trace.isEnabled()) {
@@ -130,6 +141,16 @@ public class DashboardView extends ViewPart {
     @Override
     public void setFocus() {
         viewer.getControl().setFocus();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void dispose() {
+        super.dispose();
+        // null out viewer so we don't try to update upon a resource change listener notification
+        viewer = null;
     }
 
     /**
@@ -168,7 +189,7 @@ public class DashboardView extends ViewPart {
     private void addActionsToContextMenu(IMenuManager mgr) {
         IProject iProject = devModeOps.getSelectedDashboardProject();
         String projectName = iProject.getName();
-        Project project = devModeOps.getSupportedProject(projectName);
+        Project project = devModeOps.getProjectModel().getLibertyServerProject(projectName);
 
         if (project != null) {
             mgr.add(startAction);
@@ -397,7 +418,9 @@ public class DashboardView extends ViewPart {
             @Override
             public void run() {
                 try {
-                    viewer.setInput(devModeOps.getSupportedProjects());
+                    WorkspaceProjectsModel dashboard = devModeOps.getProjectModel();
+                    dashboard.createNewCompleteWorkspaceModelWithClassify();
+                    viewer.setInput(dashboard.getSortedDashboardProjectList());
                 } catch (Exception e) {
                     String msg = "An error was detected while retrieving Liberty projects.";
                     if (Trace.isEnabled()) {
@@ -408,5 +431,11 @@ public class DashboardView extends ViewPart {
             }
         };
         refreshAction.setImageDescriptor(refreshImg);
+    }
+
+    public void setInput(List<String> sortedDashboardProjectList) {
+        if (viewer != null) {
+            viewer.setInput(sortedDashboardProjectList);
+        }
     }
 }

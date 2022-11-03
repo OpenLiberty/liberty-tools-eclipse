@@ -1,18 +1,19 @@
 /*******************************************************************************
-* Copyright (c) 2022 IBM Corporation and others.
-*
-* This program and the accompanying materials are made available under the
-* terms of the Eclipse Public License v. 2.0 which is available at
-* http://www.eclipse.org/legal/epl-2.0.
-*
-* SPDX-License-Identifier: EPL-2.0
-*
-* Contributors:
-*     IBM Corporation - initial implementation
-*******************************************************************************/
+ * Copyright (c) 2022 IBM Corporation and others.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License v. 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0.
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *     IBM Corporation - initial implementation
+ *******************************************************************************/
 package io.openliberty.tools.eclipse.ui.launch;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
@@ -28,7 +29,6 @@ import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.core.model.LaunchConfigurationDelegate;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IWorkbench;
-import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
@@ -44,12 +44,6 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
 
     /** Launch configuration type ID as specified in plugin.xml. */
     public static final String LAUNCH_CONFIG_TYPE_ID = "io.openliberty.tools.eclipse.launch.type";
-
-    /** DevModeOperations instance. */
-    DevModeOperations devModeOps = DevModeOperations.getInstance();
-
-    /** Currently active workbench window. */
-    IWorkbenchWindow activeWindow;
 
     /** Launch shortcuts */
     public static final String LAUNCH_SHORTCUT_START = "Liberty Start";
@@ -71,11 +65,15 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
      */
     @Override
     public void launch(ILaunchConfiguration configuration, String mode, ILaunch launch, IProgressMonitor monitor) throws CoreException {
-        // Processing paths: Explorer-> Run As-> Run Configurations, and Dashboard-> project -> Start...
+
         if (Trace.isEnabled()) {
             Trace.getTracer().traceEntry(Trace.TRACE_UI, new Object[] { configuration, mode, launch, monitor });
         }
 
+        // Processing paths:
+        // - Explorer-> Run As-> Run Configurations
+        // - Dashboard-> project -> Start...
+        DevModeOperations devModeOps = DevModeOperations.getInstance();
         IWorkbench workbench = PlatformUI.getWorkbench();
         Display display = workbench.getDisplay();
         display.syncExec(new Runnable() {
@@ -96,7 +94,6 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
                 }
             }
         });
-
         if (Trace.isEnabled()) {
             Trace.getTracer().traceExit(Trace.TRACE_UI);
         }
@@ -116,6 +113,12 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
      * @throws Exception
      */
     public static ILaunchConfiguration getLaunchConfiguration(IProject iProject, String mode, RuntimeEnv runtimeEnv) throws Exception {
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_UI, new Object[] { iProject, mode, runtimeEnv });
+        }
+
+        DevModeOperations devModeOps = DevModeOperations.getInstance();
         ILaunchConfiguration configuration = null;
         ILaunchManager iLaunchMgr = DebugPlugin.getDefault().getLaunchManager();
         ILaunchConfigurationType iLaunchConfigType = iLaunchMgr
@@ -128,24 +131,34 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
                 iProject.getName(), runtimeEnv);
 
         switch (matchingConfigList.size()) {
-            case 0:
-                // Create a new configuration.
-                String newName = iLaunchMgr.generateLaunchConfigurationName(iProject.getName());
-                ILaunchConfigurationWorkingCopy workingCopy = iLaunchConfigType.newInstance(null, newName);
-                workingCopy.setAttribute(MainTab.PROJECT_NAME, iProject.getName());
-                workingCopy.setAttribute(MainTab.PROJECT_START_PARM, "");
-                workingCopy.setAttribute(MainTab.PROJECT_RUN_IN_CONTAINER, false);
-                configuration = workingCopy.doSave();
-                break;
+        case 0:
+            // Create a new configuration.
+            String newName = iLaunchMgr.generateLaunchConfigurationName(iProject.getName());
+            ILaunchConfigurationWorkingCopy workingCopy = iLaunchConfigType.newInstance(null, newName);
+            workingCopy.setAttribute(StartTab.PROJECT_NAME, iProject.getName());
+            String startParms = devModeOps.getProjectModel().getDefaultStartParameters(iProject);
+            workingCopy.setAttribute(StartTab.PROJECT_START_PARM, startParms);
+            boolean runInContainerBool = runtimeEnv.equals(RuntimeEnv.CONTAINER);
+            workingCopy.setAttribute(StartTab.PROJECT_RUN_IN_CONTAINER, runInContainerBool);
+            configuration = workingCopy.doSave();
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UI,
+                        "Created new local (non-container) configuration for project: " + newName + ", with startParms = " + startParms);
+            }
+            break;
 
-            case 1:
-                // Return the found configuration.
-                configuration = matchingConfigList.get(0);
-                break;
-            default:
-                // Return the configuration that was run last.
-                configuration = LaunchConfigurationDelegateLauncher.getLastRunConfiguration(matchingConfigList);
-                break;
+        case 1:
+            // Return the found configuration.
+            configuration = matchingConfigList.get(0);
+            break;
+        default:
+            // Return the configuration that was run last.
+            configuration = LaunchConfigurationDelegateLauncher.getLastRunConfiguration(matchingConfigList);
+            break;
+        }
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_UI, configuration);
         }
 
         return configuration;
@@ -164,15 +177,20 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
      */
     public static List<ILaunchConfiguration> filterLaunchConfigurations(ILaunchConfiguration[] rawConfigList, String projectName,
             RuntimeEnv runtimeEnv) throws Exception {
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_UI, new Object[] { Arrays.asList(rawConfigList), projectName, runtimeEnv });
+        }
+
         ArrayList<ILaunchConfiguration> matchingConfigList = new ArrayList<>();
         for (ILaunchConfiguration existingConfig : rawConfigList) {
-            String configProjName = existingConfig.getAttribute(MainTab.PROJECT_NAME, "");
+            String configProjName = existingConfig.getAttribute(StartTab.PROJECT_NAME, "");
             if (configProjName.isEmpty()) {
                 continue;
             }
 
             if (projectName.equals(configProjName)) {
-                boolean configRanInContainer = existingConfig.getAttribute(MainTab.PROJECT_RUN_IN_CONTAINER, false);
+                boolean configRanInContainer = existingConfig.getAttribute(StartTab.PROJECT_RUN_IN_CONTAINER, false);
                 if (runtimeEnv == RuntimeEnv.CONTAINER) {
                     if (configRanInContainer) {
                         matchingConfigList.add(existingConfig);
@@ -191,6 +209,10 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
                     throw new Exception(msg);
                 }
             }
+        }
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_UI, matchingConfigList);
         }
 
         return matchingConfigList;
@@ -215,8 +237,8 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
             public int compare(ILaunchConfiguration lc1, ILaunchConfiguration lc2) {
                 int rc = 0;
                 try {
-                    long time1 = Long.valueOf(lc1.getAttribute(MainTab.PROJECT_RUN_TIME, "0"));
-                    long time2 = Long.valueOf(lc2.getAttribute(MainTab.PROJECT_RUN_TIME, "0"));
+                    long time1 = Long.valueOf(lc1.getAttribute(StartTab.PROJECT_RUN_TIME, "0"));
+                    long time2 = Long.valueOf(lc2.getAttribute(StartTab.PROJECT_RUN_TIME, "0"));
                     rc = (time2 > time1) ? 1 : -1;
                 } catch (Exception e) {
                     String msg = "An error occurred while trying to determine which configuration ran last. Configuration list: "
@@ -241,7 +263,7 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
     public static void saveConfigProcessingTime(ILaunchConfiguration configuration) {
         try {
             ILaunchConfigurationWorkingCopy configWorkingCopy = configuration.getWorkingCopy();
-            configWorkingCopy.setAttribute(MainTab.PROJECT_RUN_TIME, String.valueOf(System.currentTimeMillis()));
+            configWorkingCopy.setAttribute(StartTab.PROJECT_RUN_TIME, String.valueOf(System.currentTimeMillis()));
             configWorkingCopy.doSave();
         } catch (Exception e) {
             // Log it and move on.

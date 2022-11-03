@@ -64,7 +64,7 @@ public class DashboardEntryLabelProvider extends LabelProvider implements ITable
         Image img = null;
         if (element != null && element instanceof String) {
             projectName = (String) element;
-            Project project = devModeOps.getSupportedProject(projectName);
+            Project project = devModeOps.getProjectModel().getLibertyServerProject(projectName);
 
             if (project != null) {
                 if (project.getBuildType() == Project.BuildType.GRADLE) {
@@ -93,4 +93,15 @@ public class DashboardEntryLabelProvider extends LabelProvider implements ITable
 
         return columnText;
     }
+
+    @Override
+    public void dispose() {
+        if (gradleImg != null) {
+            gradleImg.dispose();
+        }
+        if (mavenImg != null) {
+            mavenImg.dispose();
+        }
+    }
+
 }
