@@ -138,7 +138,8 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
             workingCopy.setAttribute(StartTab.PROJECT_NAME, iProject.getName());
             String startParms = devModeOps.getProjectModel().getDefaultStartParameters(iProject);
             workingCopy.setAttribute(StartTab.PROJECT_START_PARM, startParms);
-            workingCopy.setAttribute(StartTab.PROJECT_RUN_IN_CONTAINER, false);
+            boolean runInContainerBool = runtimeEnv.equals(RuntimeEnv.CONTAINER);
+            workingCopy.setAttribute(StartTab.PROJECT_RUN_IN_CONTAINER, runInContainerBool);
             configuration = workingCopy.doSave();
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI,

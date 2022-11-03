@@ -62,9 +62,6 @@ public class StartTab extends AbstractLaunchConfigurationTab {
 
     private static final String EXAMPLE_START_PARMS = "Example: -DhotTests=true";
 
-    /** Currently active project. */
-    IProject activeProject;
-
     /** Holds the start parameter text configuration. */
     private Text startParmText;
 
@@ -143,6 +140,27 @@ public class StartTab extends AbstractLaunchConfigurationTab {
      */
     @Override
     public void setDefaults(ILaunchConfigurationWorkingCopy configuration) {
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_UI, new Object[] { configuration });
+        }
+
+        IProject activeProject = Utils.getActiveProject();
+        if (activeProject == null) {
+            activeProject = devModeOps.getSelectedDashboardProject();
+        }
+        // Save the active project's name in the configuration.
+        if (activeProject != null) {
+            configuration.setAttribute(PROJECT_NAME, activeProject.getName());
+        }
+
+        configuration.setAttribute(PROJECT_START_PARM, getDefaultStartCommand(activeProject));
+
+        configuration.setAttribute(PROJECT_RUN_IN_CONTAINER, false);
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_UI);
+        }
     }
 
     /**
@@ -157,15 +175,8 @@ public class StartTab extends AbstractLaunchConfigurationTab {
 
         // Initialize the configuration view with previously saved values.
         try {
-            activeProject = Utils.getActiveProject();
-            if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_UI, "Active project = " + activeProject);
-            }
-            if (activeProject == null) {
-                activeProject = devModeOps.getSelectedDashboardProject();
-            }
 
-            String consoleText = configuration.getAttribute(PROJECT_START_PARM, getDefaultStartCommand());
+            String consoleText = configuration.getAttribute(PROJECT_START_PARM, (String) null);
             startParmText.setText(consoleText);
 
             boolean runInContainer = configuration.getAttribute(PROJECT_RUN_IN_CONTAINER, false);
@@ -192,20 +203,17 @@ public class StartTab extends AbstractLaunchConfigurationTab {
     @Override
     public void performApply(ILaunchConfigurationWorkingCopy configuration) {
 
-        // Save the active project's name in the configuration.
-        if (activeProject != null) {
-            configuration.setAttribute(PROJECT_NAME, activeProject.getName());
-        }
+        String startParamStr = startParmText.getText();
+        boolean runInContainerBool = runInContainerCheckBox.getSelection();
 
-        // Capture the entries typed on the currently active launch configuration.
-        configuration.setAttribute(PROJECT_START_PARM, startParmText.getText());
-        configuration.setAttribute(PROJECT_RUN_IN_CONTAINER, runInContainerCheckBox.getSelection());
+        // Capture the entries typed on the active run configuration.
+        configuration.setAttribute(PROJECT_START_PARM, startParamStr);
+        configuration.setAttribute(PROJECT_RUN_IN_CONTAINER, runInContainerBool);
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().trace(Trace.TRACE_UI, "In performApply with activeProject = " + activeProject + ", startParm text = "
-                    + startParmText.getText() + ", runInContainer = " + runInContainerCheckBox.getSelection());
+            Trace.getTracer().trace(Trace.TRACE_UI,
+                    "In performApply with startParm text = " + startParamStr + ", runInContainer = " + runInContainerBool);
         }
-
     }
 
     /**
@@ -237,9 +245,11 @@ public class StartTab extends AbstractLaunchConfigurationTab {
     /**
      * Returns the default start parameters.
      * 
-     * @return The default start parameters.
+     * @param Active project (may be null if there isn't one)
+     * 
+     * @return The default start parameters
      */
-    private String getDefaultStartCommand() {
+    private String getDefaultStartCommand(IProject activeProject) {
         String parms = "";
         try {
             if (activeProject != null) {
