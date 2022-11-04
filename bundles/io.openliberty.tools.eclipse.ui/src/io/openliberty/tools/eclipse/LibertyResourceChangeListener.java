@@ -55,7 +55,7 @@ public class LibertyResourceChangeListener implements IResourceChangeListener {
                     }
                     IProject iProject = (IProject) iResource;
                     projectsChanged.add(iProject);
-                    Project project = db.getLibertyServerProject(iProject.getName());
+                    Project project = db.getProject(iProject.getName());
 
                     int updateFlag = resourceChanged.getFlags();
 

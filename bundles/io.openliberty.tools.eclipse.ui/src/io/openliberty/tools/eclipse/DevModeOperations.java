@@ -164,7 +164,7 @@ public class DevModeOperations {
         Project project = null;
 
         try {
-            project = projectModel.getLibertyServerProject(projectName);
+            project = projectModel.getProject(projectName);
             if (project == null) {
                 throw new Exception("Unable to find internal instance of project " + projectName);
             }
@@ -274,7 +274,7 @@ public class DevModeOperations {
         Project project = null;
 
         try {
-            project = projectModel.getLibertyServerProject(projectName);
+            project = projectModel.getProject(projectName);
             if (project == null) {
                 throw new Exception("Unable to find internal instance of project " + projectName);
             }
@@ -523,7 +523,7 @@ public class DevModeOperations {
         Project project = null;
 
         try {
-            project = projectModel.getLibertyServerProject(projectName);
+            project = projectModel.getProject(projectName);
             if (project == null) {
                 throw new Exception("Unable to find internal instance of project " + projectName);
             }
@@ -595,7 +595,7 @@ public class DevModeOperations {
         Project project = null;
 
         try {
-            project = projectModel.getLibertyServerProject(projectName);
+            project = projectModel.getProject(projectName);
             if (project == null) {
                 throw new Exception("Unable to find internal instance of project " + projectName);
             }
@@ -666,7 +666,7 @@ public class DevModeOperations {
         Project project = null;
 
         try {
-            project = projectModel.getLibertyServerProject(projectName);
+            project = projectModel.getProject(projectName);
             if (project == null) {
                 throw new Exception("Unable to find internal instance of project " + projectName);
             }
@@ -979,7 +979,7 @@ public class DevModeOperations {
                 IStructuredSelection structuredSelection = (IStructuredSelection) selection;
                 Object firstElement = structuredSelection.getFirstElement();
                 if (firstElement instanceof String) {
-                    Project project = projectModel.getLibertyServerProject((String) firstElement);
+                    Project project = projectModel.getProject((String) firstElement);
                     if (project != null) {
                         iProject = project.getIProject();
                     }
@@ -1004,7 +1004,7 @@ public class DevModeOperations {
     public void verifyProjectSupport(IProject iProject) throws Exception {
         if (iProject != null) {
             String projectName = iProject.getName();
-            Project project = projectModel.getLibertyServerProject(projectName);
+            Project project = projectModel.getProject(projectName);
             if (project == null) {
                 throw new Exception("Project " + projectName + " is not a supported project. Make sure the project is a Liberty project.");
             }

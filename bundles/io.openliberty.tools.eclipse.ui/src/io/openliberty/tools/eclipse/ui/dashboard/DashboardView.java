@@ -172,7 +172,7 @@ public class DashboardView extends ViewPart {
     private void addActionsToContextMenu(IMenuManager mgr) {
         IProject iProject = devModeOps.getSelectedDashboardProject();
         String projectName = iProject.getName();
-        Project project = devModeOps.getProjectModel().getLibertyServerProject(projectName);
+        Project project = devModeOps.getProjectModel().getProject(projectName);
 
         if (project != null) {
             mgr.add(startAction);

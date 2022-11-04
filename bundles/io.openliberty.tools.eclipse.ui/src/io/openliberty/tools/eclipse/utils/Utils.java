@@ -125,7 +125,7 @@ public class Utils {
     public static IProject getProjectFromSelection(ISelection selection) {
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { selection });
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { "Selection of type: " + selection.getClass() });
         }
 
         IProject iProject = null;

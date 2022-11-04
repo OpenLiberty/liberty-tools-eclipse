@@ -43,22 +43,6 @@ public class WorkspaceProjectsModel {
         initProjectModels();
     }
 
-    private void createProjectModels(List<IProject> projects, boolean classify) {
-        for (IProject iProject : new ArrayList<IProject>(projects)) {
-            if (iProject.isOpen()) {
-                Project projModel = projectsByLocation.get(iProject.getLocation().toOSString());
-                if (projModel == null) {
-                    projModel = new Project(iProject);
-                    projectsByLocation.put(iProject.getLocation().toOSString(), projModel);
-                    projectsByName.put(iProject.getName(), projModel);
-                }
-                if (classify) {
-                    projModel.classify();
-                }
-            }
-        }
-    }
-
     /**
      * Build complete workspace project model. Do classify projects (add Liberty nature if conditions warrant) Should only be called
      * on UI thread
@@ -84,7 +68,6 @@ public class WorkspaceProjectsModel {
         List<IProject> openProjects = Arrays.stream(iProjects).filter(project -> project.isOpen()).collect(Collectors.toList());
 
         initProjectModels();
-        createProjectModels(openProjects, classify);
         buildMultiProjectModel(openProjects, classify);
 
         if (Trace.isEnabled()) {
@@ -104,7 +87,23 @@ public class WorkspaceProjectsModel {
      */
     private void buildMultiProjectModel(List<IProject> projectsToScan, boolean classify) {
 
+        // First pass classify as server module
+        for (IProject iProject : new ArrayList<IProject>(projectsToScan)) {
+            if (iProject.isOpen()) {
+                Project projModel = projectsByLocation.get(iProject.getLocation().toOSString());
+                if (projModel == null) {
+                    projModel = new Project(iProject);
+                    projectsByLocation.put(iProject.getLocation().toOSString(), projModel);
+                    projectsByName.put(iProject.getName(), projModel);
+                }
+                if (classify) {
+                    projModel.classifyAsServerModule();
+                }
+            }
+        }
+
         try {
+            // Second pass - establish parent/child relationships (i.e. containing dir / contained subdir relationship)
             for (IProject iProject : projectsToScan) {
                 for (IResource res : iProject.members()) {
                     if (res.getType() == IResource.FOLDER) {
@@ -118,6 +117,16 @@ public class WorkspaceProjectsModel {
                     }
                 }
             }
+
+            // Third pass classify with Liberty nature
+            if (classify) {
+                for (IProject iProject : projectsToScan) {
+                    if (iProject.isOpen()) {
+                        projectsByName.get(iProject.getName()).classifyAsLibertyNature();
+                    }
+                }
+            }
+
         } catch (Exception e) {
             String msg = "An error occurred while analyzing projects in the workspace.";
             if (Trace.isEnabled()) {
@@ -139,18 +148,13 @@ public class WorkspaceProjectsModel {
      * @return The project associated with the input name or null if none is found. (Note that 'null' may be returned because this is
      *         not a server project).
      */
-    public Project getLibertyServerProject(String name) {
+    public Project getProject(String name) {
 
         if (Trace.isEnabled()) {
             Trace.getTracer().traceEntry(Trace.TRACE_UTILS, name);
         }
 
-        Project retVal = null;
-
-        Project proj = projectsByName.get(name);
-        if (proj != null && proj.isLibertyServerModule()) {
-            retVal = proj;
-        }
+        Project retVal = projectsByName.get(name);
 
         if (Trace.isEnabled()) {
             Trace.getTracer().traceExit(Trace.TRACE_UTILS, retVal);
@@ -177,7 +181,7 @@ public class WorkspaceProjectsModel {
         List<String> retVal = new ArrayList<String>();
 
         for (Project p : projectsByName.values()) {
-            if (p.isLibertyServerModule()) {
+            if (p.isLibertyServerModule() || p.isParentOfServerModule() || p.hasLibertyNature()) {
                 if (p.getBuildType() == Project.BuildType.MAVEN) {
                     mavenDashboardProjects.add(p.getName());
                 } else if (p.getBuildType() == Project.BuildType.GRADLE) {
