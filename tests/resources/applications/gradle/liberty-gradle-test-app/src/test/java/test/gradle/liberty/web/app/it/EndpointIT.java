@@ -10,7 +10,7 @@
 * Contributors:
 *     IBM Corporation - initial implementation
 *******************************************************************************/
-package test.maven.liberty.web.app.it;
+package test.gradle.liberty.web.app.it;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;

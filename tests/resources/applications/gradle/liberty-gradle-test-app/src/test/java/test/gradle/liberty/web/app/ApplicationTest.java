@@ -10,7 +10,7 @@
 * Contributors:
 *     IBM Corporation - initial implementation
 *******************************************************************************/
-package test.maven.liberty.web.app;
+package test.gradle.liberty.web.app;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
