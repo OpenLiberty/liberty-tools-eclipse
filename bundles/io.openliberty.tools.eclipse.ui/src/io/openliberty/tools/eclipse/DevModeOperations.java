@@ -115,7 +115,7 @@ public class DevModeOperations {
      *
      * @return True if the underlying OS is windows. False, otherwise.
      */
-    public boolean isWindows() {
+    public static boolean isWindows() {
         return System.getProperty("os.name").contains("Windows");
     }
 
@@ -782,6 +782,7 @@ public class DevModeOperations {
      */
     public String getMavenCommand(String projectPath, String cmdArgs) {
         String cmd = null;
+        boolean isMvn = true;
         
         // Check if there is wrapper defined.
         Path p2mw = (isWindows()) ? Paths.get(projectPath, "mvnw.cmd") : Paths.get(projectPath, "mvnw");
@@ -791,7 +792,7 @@ public class DevModeOperations {
         if (p2mw.toFile().exists() && p2mwJar.toFile().exists() && p2mwProps.toFile().exists()) {
             cmd = p2mw.toString();
         } else {
-            cmd = getCmdFromPathPrefs(isWindows() ? "mvn.cmd" : "mvn");
+            cmd = getCmdFromPrefsOrPath(isMvn);
         }
 
         return getCommandFromArgs(cmd, cmdArgs);
@@ -808,6 +809,7 @@ public class DevModeOperations {
     public String getGradleCommand(String projectPath, String cmdArgs) {
 
         String cmd = null;
+        boolean isMvn = false;
 
         // Check if there is wrapper defined.
         Path p2gw = (isWindows()) ? Paths.get(projectPath, "gradlew.bat") : Paths.get(projectPath, "gradlew");
@@ -817,7 +819,7 @@ public class DevModeOperations {
         if (p2gw.toFile().exists() && p2gwJar.toFile().exists() && p2gwProps.toFile().exists()) {
             cmd = p2gw.toString();
         } else {
-            cmd = getCmdFromPathPrefs(isWindows() ? "gradle.bat" : "gradle");
+            cmd = getCmdFromPrefsOrPath(isMvn);
         }
 
         return getCommandFromArgs(cmd, cmdArgs);
@@ -837,27 +839,90 @@ public class DevModeOperations {
         return sb.toString();
     }
     
-    private String getCmdFromPathPrefs(String cmd) throws IllegalStateException {
+    private String getCmdFromPrefsOrPath(boolean isMaven) throws IllegalStateException {
 
         String foundCmd = null;
-
-        File tempMvnFile = new File(LibertyDevPlugin.getDefault().getPreferenceStore().getString("MVNPATH") + File.separator + cmd);
-        File tempGradleFile = new File(LibertyDevPlugin.getDefault().getPreferenceStore().getString("GRADLEPATH") + File.separator + cmd);
+        File tempCmdFile= null;
+        boolean foundInPrefs = false;
         
-        if (tempMvnFile.exists()) {
-            foundCmd = tempMvnFile.getPath();
+        if (isWindows()) {
+            // running on Windows
+            if (isMaven) {
+                // maven
+                tempCmdFile = new File(LibertyDevPlugin.getDefault().getPreferenceStore().getString("MVNPATH") + File.separator + "mvn.cmd");
+            } else {
+                // gradle
+                tempCmdFile = new File(LibertyDevPlugin.getDefault().getPreferenceStore().getString("GRADLEPATH") + File.separator + "gradle.bat");
+            }
+        } else {
+            // running linux or macos
+            if (isMaven) {
+                // maven
+                tempCmdFile = new File(LibertyDevPlugin.getDefault().getPreferenceStore().getString("MVNPATH") + File.separator + "mvn");
+            } else {
+                // gradle
+                tempCmdFile = new File(LibertyDevPlugin.getDefault().getPreferenceStore().getString("GRADLEPATH") + File.separator + "gradle");
+            }
+            
         }
-        else if (tempGradleFile.exists()) {
-            foundCmd = tempGradleFile.getPath();
+        
+        if (tempCmdFile.exists()) {
+            foundCmd = tempCmdFile.getPath();
+            foundInPrefs = true;
+        } else {
+            // no mvn or gradle set in prefs - check the path before displaying corrective error dialog
+            if (isWindows()) {
+                // running on Windows
+                if (isMaven) {
+                    // maven
+                    foundCmd = getCmdFromPath("mvn.cmd");
+                } else {
+                    // gradle
+                    foundCmd = getCmdFromPath("gradle.bat");
+                }
+            } else {
+                // running on linux or macos
+                if (isMaven) {
+                    // maven
+                    foundCmd = getCmdFromPath("mvn");
+                } else {
+                    // gradle
+                    foundCmd = getCmdFromPath("gradle");
+                }
+            }
+            
         }
-
+        
+        // error handling that will open an error dialog box
         if (foundCmd == null) {
-            throw new IllegalStateException("Couldn't find command: \"" + cmd + "\" using a wrapper or via the Liberty Tools Preferences Page");
+            throw new IllegalStateException("Couldn't find command a maven or gradle command using a wrapper or via the Liberty Tools Preferences Page or on the PATH. Please generate a maven or gradle wrapper into th eapplication, set a path to the executable using the Liberty Tools Preferences page or install either maven or gradle onto the system PATH.");
         }
         
         if (Trace.isEnabled()) {
             Trace.getTracer().trace(Trace.TRACE_UTILS,
-                    "AJM: in devmodeOperations, the found maven command = " + foundCmd);
+                    foundInPrefs ? "In devmodeOperations, found via the set Preference, the build command = " + foundCmd 
+                                 : "In devmodeOperations, found via the System PATH, the build command = " + foundCmd);
+        }
+
+        return foundCmd;
+    }
+    
+    private String getCmdFromPath(String cmd) throws IllegalStateException {
+
+        String foundCmd = null;
+
+        String[] pathMembers = pathEnv.split(File.pathSeparator);
+        for (int s = 0; s < pathMembers.length; s++) {
+            File tempFile = new File(pathMembers[s] + File.separator + cmd);
+
+            if (tempFile.exists()) {
+                foundCmd = tempFile.getPath();
+                break;
+            }
+        }
+
+        if (foundCmd == null) {
+            throw new IllegalStateException("Couldn't find command: " + cmd + " on PATH env var");
         }
 
         return foundCmd;

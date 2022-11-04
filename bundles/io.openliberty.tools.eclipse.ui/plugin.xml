@@ -516,9 +516,9 @@
      <extension
          point="org.eclipse.ui.preferencePages">
       <page
-            class="io.openliberty.tools.eclipse.ui.preferences.LibertyToolsPrefPage"
+            class="io.openliberty.tools.eclipse.ui.preferences.LibertyToolsPreferencePage"
             id="io.openliberty.tools.eclipse.ui.preferences.page"
-            name="Liberty Tools">
+            name="Liberty">
       </page>
    </extension>
 </plugin>

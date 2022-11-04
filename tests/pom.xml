@@ -33,6 +33,10 @@
                     <useUIHarness>true</useUIHarness>
                     <useUIThread>false</useUIThread>
                     <providerHint>junit5</providerHint>
+                    <systemProperties>
+                        <io.liberty.tools.eclipse.tests.mvnexecutable.path>${mvnPath}</io.liberty.tools.eclipse.tests.mvnexecutable.path>
+                        <io.liberty.tools.eclipse.tests.gradleexecutable.path>${gradlePath}</io.liberty.tools.eclipse.tests.gradleexecutable.path>
+                    </systemProperties>
                 </configuration>
             </plugin>
             <plugin>

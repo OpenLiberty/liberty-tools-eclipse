@@ -36,7 +36,7 @@ main() {
     fi
     
     # Run the plugin's install goal.
-    mvn clean install -Dosgi.debug=./tests/resources/ci/debug.opts -Dtycho.showEclipseLog
+    mvn clean install -Dosgi.debug=./tests/resources/ci/debug.opts -Dtycho.showEclipseLog -DmvnPath="${PWD}/test-tools/liberty-dev-tools/apache-maven-3.8.6/bin" -DgradlePath="${PWD}/test-tools/liberty-dev-tools/gradle-7.4.2/bin"
 
     # If there were any errors, gather some debug data before exiting.
     rc=$?
