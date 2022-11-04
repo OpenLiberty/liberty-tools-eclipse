@@ -1,15 +1,15 @@
 /*******************************************************************************
-* Copyright (c) 2022 IBM Corporation and others.
-*
-* This program and the accompanying materials are made available under the
-* terms of the Eclipse Public License v. 2.0 which is available at
-* http://www.eclipse.org/legal/epl-2.0.
-*
-* SPDX-License-Identifier: EPL-2.0
-*
-* Contributors:
-*     IBM Corporation - initial implementation
-*******************************************************************************/
+ * Copyright (c) 2022 IBM Corporation and others.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License v. 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0.
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *     IBM Corporation - initial implementation
+ *******************************************************************************/
 package io.openliberty.tools.eclipse.ui.launch;
 
 import org.eclipse.core.resources.IProject;
@@ -65,6 +65,8 @@ public class StartTab extends AbstractLaunchConfigurationTab {
     /** Holds the start parameter text configuration. */
     private Text startParmText;
 
+    private Label projectNameLabel;
+
     /** Holds the run in container check box. */
     private Button runInContainerCheckBox;
 
@@ -78,6 +80,8 @@ public class StartTab extends AbstractLaunchConfigurationTab {
         image = Utils.getLibertyImage(PlatformUI.getWorkbench().getDisplay());
     }
 
+    private boolean isValid = true;
+
     /**
      * {@inheritDoc}
      */
@@ -89,24 +93,14 @@ public class StartTab extends AbstractLaunchConfigurationTab {
         // Create a page layout.
         GridLayoutFactory.swtDefaults().numColumns(2).applyTo(composite);
 
-        // Add the check box.
-        runInContainerCheckBox = new Button(composite, SWT.CHECK);
-        runInContainerCheckBox.setText("Run in Container");
-        runInContainerCheckBox.setSelection(false);
-        runInContainerCheckBox.addSelectionListener(new SelectionAdapter() {
+        // Project name
+        Label projectLabel = new Label(composite, SWT.NONE);
+        projectLabel.setText("Project");
+        GridDataFactory.swtDefaults().indent(20, 0).applyTo(projectLabel);
 
-            /**
-             * {@inheritDoc}
-             */
-            @Override
-            public void widgetSelected(SelectionEvent event) {
-                setDirty(true);
-                updateLaunchConfigurationDialog();
-            }
-        });
-        GridDataFactory.swtDefaults().applyTo(runInContainerCheckBox);
-        Label emptyLabel = new Label(composite, SWT.NONE);
-        GridDataFactory.swtDefaults().applyTo(emptyLabel);
+        projectNameLabel = new Label(composite, SWT.NONE);
+        projectNameLabel.setText("<need to select project first before creating run config>");
+        GridDataFactory.swtDefaults().indent(20, 0).applyTo(projectNameLabel);
 
         // Add an empty line.
         Label emptyLine = new Label(composite, SWT.NONE);
@@ -127,12 +121,38 @@ public class StartTab extends AbstractLaunchConfigurationTab {
              */
             @Override
             public void modifyText(ModifyEvent e) {
+                checkForIncorrectTerms();
+                setDirty(true);
+                updateLaunchConfigurationDialog();
+            }
+
+        });
+
+        GridDataFactory.fillDefaults().grab(true, false).applyTo(startParmText);
+
+        // Add another empty line.
+        Label emptyLine2 = new Label(composite, SWT.NONE);
+        GridDataFactory.swtDefaults().span(2, 1).applyTo(emptyLine2);
+
+        // Add the check box.
+        runInContainerCheckBox = new Button(composite, SWT.CHECK);
+        runInContainerCheckBox.setText("Run in Container");
+        runInContainerCheckBox.setSelection(false);
+        runInContainerCheckBox.addSelectionListener(new SelectionAdapter() {
+
+            /**
+             * {@inheritDoc}
+             */
+            @Override
+            public void widgetSelected(SelectionEvent event) {
                 setDirty(true);
                 updateLaunchConfigurationDialog();
             }
         });
+        GridDataFactory.swtDefaults().applyTo(runInContainerCheckBox);
+        Label emptyLabel = new Label(composite, SWT.NONE);
+        GridDataFactory.swtDefaults().applyTo(emptyLabel);
 
-        GridDataFactory.fillDefaults().grab(true, false).applyTo(startParmText);
     }
 
     /**
@@ -145,10 +165,8 @@ public class StartTab extends AbstractLaunchConfigurationTab {
             Trace.getTracer().traceEntry(Trace.TRACE_UI, new Object[] { configuration });
         }
 
-        IProject activeProject = Utils.getActiveProject();
-        if (activeProject == null) {
-            activeProject = devModeOps.getSelectedDashboardProject();
-        }
+        IProject activeProject = getActiveProject();
+
         // Save the active project's name in the configuration.
         if (activeProject != null) {
             configuration.setAttribute(PROJECT_NAME, activeProject.getName());
@@ -161,6 +179,14 @@ public class StartTab extends AbstractLaunchConfigurationTab {
         if (Trace.isEnabled()) {
             Trace.getTracer().traceExit(Trace.TRACE_UI);
         }
+    }
+
+    private IProject getActiveProject() {
+        IProject activeProject = Utils.getActiveProject();
+        if (activeProject == null) {
+            activeProject = devModeOps.getSelectedDashboardProject();
+        }
+        return activeProject;
     }
 
     /**
@@ -182,19 +208,59 @@ public class StartTab extends AbstractLaunchConfigurationTab {
             boolean runInContainer = configuration.getAttribute(PROJECT_RUN_IN_CONTAINER, false);
             runInContainerCheckBox.setSelection(runInContainer);
 
-            setDirty(false);
-        } catch (CoreException ce) {
-            // Trace and ignore.
-            String msg = "An error was detected during Run Configuration initialization.";
-            ErrorHandler.processErrorMessage(msg, ce, true);
-            if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_UI, msg, ce);
+            String projectName = configuration.getAttribute(PROJECT_NAME, (String) null);
+            if (projectName == null) {
+                super.setErrorMessage(
+                        "A project must be selected in order to provide a context to associate the run configuration with.  Either use a tree view like Package Explorer or have an editor window.");
+                isValid = false;
+            } else {
+                projectNameLabel.setText(projectName);
             }
+
+            setDirty(false);
+
+        } catch (CoreException ce) {
+            traceError(ce, "An error was detected during Run Configuration initialization.");
         }
 
         if (Trace.isEnabled()) {
             Trace.getTracer().traceExit(Trace.TRACE_UI);
         }
+    }
+
+    private void traceError(CoreException ce, String msg) {
+        ErrorHandler.processErrorMessage(msg, ce, true);
+        if (Trace.isEnabled()) {
+            Trace.getTracer().trace(Trace.TRACE_UI, msg, ce);
+        }
+    }
+
+    private boolean checkForIncorrectTerms() {
+        boolean valid = true;
+        String startParamStr = startParmText.getText();
+
+        if (startParamStr.startsWith("mvn") || startParamStr.startsWith("gradle")) {
+            super.setErrorMessage("Don't include mvn or gradle executables, just the parameters");
+            valid = false;
+        }
+        if (startParamStr.contains("liberty:dev") || startParamStr.contains("libertyDev")) {
+            super.setErrorMessage("Dev mode detected");
+            valid = false;
+        }
+        return valid;
+    }
+
+    @Override
+    public boolean isValid(ILaunchConfiguration config) {
+        try {
+            String projectName = config.getAttribute(PROJECT_NAME, (String) null);
+            if (projectName == null) {
+                return false;
+            }
+        } catch (CoreException e) {
+            traceError(e, "Error getting project name");
+        }
+        return checkForIncorrectTerms();
     }
 
     /**
@@ -204,15 +270,22 @@ public class StartTab extends AbstractLaunchConfigurationTab {
     public void performApply(ILaunchConfigurationWorkingCopy configuration) {
 
         String startParamStr = startParmText.getText();
+
         boolean runInContainerBool = runInContainerCheckBox.getSelection();
 
-        // Capture the entries typed on the active run configuration.
-        configuration.setAttribute(PROJECT_START_PARM, startParamStr);
         configuration.setAttribute(PROJECT_RUN_IN_CONTAINER, runInContainerBool);
 
+        configuration.setAttribute(PROJECT_START_PARM, startParamStr);
+        //
+        // try {
+        // configuration.doSave();
+        // } catch (CoreException e) {
+        // traceError(e, "Error saving Run Configuration.");
+        // }
+
         if (Trace.isEnabled()) {
-            Trace.getTracer().trace(Trace.TRACE_UI,
-                    "In performApply with startParm text = " + startParamStr + ", runInContainer = " + runInContainerBool);
+            Trace.getTracer().trace(Trace.TRACE_UI, "In performApply with project name = " + projectNameLabel.getText() + ", text = "
+                    + startParamStr + ", runInContainer = " + runInContainerBool);
         }
     }
 
@@ -249,14 +322,14 @@ public class StartTab extends AbstractLaunchConfigurationTab {
      * 
      * @return The default start parameters
      */
-    private String getDefaultStartCommand(IProject activeProject) {
+    private String getDefaultStartCommand(IProject iProject) {
         String parms = "";
         try {
-            if (activeProject != null) {
+            if (iProject != null) {
                 // Verify that the existing projects are projects are read and classified. This maybe the first time
                 // this plugin's function is being used.
-                devModeOps.verifyProjectSupport(activeProject);
-                parms = devModeOps.getProjectModel().getDefaultStartParameters(activeProject);
+                devModeOps.verifyProjectSupport(iProject);
+                parms = devModeOps.getProjectModel().getDefaultStartParameters(iProject);
             }
         } catch (Exception e) {
             // Report the issue and continue without a initial start command.
@@ -269,4 +342,5 @@ public class StartTab extends AbstractLaunchConfigurationTab {
 
         return parms;
     }
+
 }

@@ -200,7 +200,7 @@ public class DevModeOperations {
 
             // If there is a debugPort, start the job to attach the debugger to the Liberty server JVM.
             if (debugPort != null) {
-                debugModeHandler.startDebbugAttacher(project, debugPort);
+                debugModeHandler.startDebugAttacher(project, debugPort);
             }
 
             // Start a terminal and run the application in dev mode.
@@ -310,7 +310,7 @@ public class DevModeOperations {
 
             // If there is a debugPort, start the job to attach the debugger to the Liberty server JVM.
             if (debugPort != null) {
-                debugModeHandler.startDebbugAttacher(project, debugPort);
+                debugModeHandler.startDebugAttacher(project, debugPort);
             }
 
             // Start a terminal and run the application in dev mode.
