@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.eclipse.core.resources.IProject;
+import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.ISelectionService;
@@ -28,11 +29,13 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.browser.IWebBrowser;
 import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
 
+import io.openliberty.tools.eclipse.Project.BuildType;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
 import io.openliberty.tools.eclipse.ui.terminal.ProjectTab;
 import io.openliberty.tools.eclipse.ui.terminal.ProjectTab.State;
 import io.openliberty.tools.eclipse.ui.terminal.ProjectTabController;
+import io.openliberty.tools.eclipse.ui.terminal.TerminalListener;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
 
 /**
@@ -64,6 +67,7 @@ public class DevModeOperations {
      */
     private String pathEnv;
 
+    private DebugModeHandler debugModeHandler;
     /**
      * The instance of this class.
      */
@@ -81,6 +85,7 @@ public class DevModeOperations {
         projectTabController = ProjectTabController.getInstance();
         projectModel = new WorkspaceProjectsModel();
         pathEnv = System.getenv("PATH");
+        debugModeHandler = new DebugModeHandler(this);
     }
 
     /**
@@ -119,7 +124,7 @@ public class DevModeOperations {
      * 
      * @param inputProject The project instance to associate with this action.
      */
-    public void start(IProject iProject, String parms) {
+    public void start(IProject iProject, String parms, String mode) {
         if (Trace.isEnabled()) {
             Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { iProject, parms });
         }
@@ -176,15 +181,32 @@ public class DevModeOperations {
                 throw new Exception("Unable to find the path to selected project " + projectName);
             }
 
-            // Prepare the Liberty plugin dev mode command.
-            String userParms = (parms == null) ? "" : parms;
-            String cmd = "";
-            if (project.getBuildType() == Project.BuildType.MAVEN) {
-                cmd = getMavenCommand(projectPath, "io.openliberty.tools:liberty-maven-plugin:dev " + userParms + " -f " + projectPath);
-            } else if (project.getBuildType() == Project.BuildType.GRADLE) {
-                cmd = getGradleCommand(projectPath, "libertyDev " + userParms + " -p=" + projectPath);
+            // If in debug mode, adjust the start parameters.
+            String userParms = (parms == null) ? "" : parms.trim();
+            String startParms = null;
+            String debugPort = null;
+            if (ILaunchManager.DEBUG_MODE.equals(mode)) {
+                debugPort = debugModeHandler.calculateDebugPort(project, userParms);
+                startParms = debugModeHandler.addDebugDataToStartParms(project, debugPort, userParms);
             } else {
-                throw new Exception("Project" + projectName + "is not a Gradle or Maven project.");
+                startParms = userParms;
+            }
+
+            // Prepare the Liberty plugin container dev mode command.
+            String cmd = "";
+            BuildType buildType = project.getBuildType();
+            if (buildType == Project.BuildType.MAVEN) {
+                cmd = getMavenCommand(projectPath, "io.openliberty.tools:liberty-maven-plugin:dev " + startParms + " -f " + projectPath);
+            } else if (buildType == Project.BuildType.GRADLE) {
+                cmd = getGradleCommand(projectPath, "libertyDev " + startParms + " -p=" + projectPath);
+            } else {
+                throw new Exception("Unexpected project build type: " + buildType + ". Project" + projectName
+                        + "does not appear to be a Maven or Gradle built project.");
+            }
+
+            // If there is a debugPort, start the job to attach the debugger to the Liberty server JVM.
+            if (debugPort != null) {
+                debugModeHandler.startDebbugAttacher(project, debugPort);
             }
 
             // Start a terminal and run the application in dev mode.
@@ -208,7 +230,7 @@ public class DevModeOperations {
      * 
      * @param inputProject The project instance to associate with this action.
      */
-    public void startInContainer(IProject iProject, String parms) {
+    public void startInContainer(IProject iProject, String parms, String mode) {
         if (Trace.isEnabled()) {
             Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, iProject);
         }
@@ -265,15 +287,32 @@ public class DevModeOperations {
                 throw new Exception("Unable to find the path to selected project " + projectName);
             }
 
-            // Prepare the Liberty plugin container dev mode command.
-            String userParms = (parms == null) ? "" : parms;
-            String cmd = "";
-            if (project.getBuildType() == Project.BuildType.MAVEN) {
-                cmd = getMavenCommand(projectPath, "io.openliberty.tools:liberty-maven-plugin:devc " + userParms + " -f " + projectPath);
-            } else if (project.getBuildType() == Project.BuildType.GRADLE) {
-                cmd = getGradleCommand(projectPath, "libertyDevc " + userParms + " -p=" + projectPath);
+            // If in debug mode, adjust the start parameters.
+            String userParms = (parms == null) ? "" : parms.trim();
+            String startParms = null;
+            String debugPort = null;
+            if (ILaunchManager.DEBUG_MODE.equals(mode)) {
+                debugPort = debugModeHandler.calculateDebugPort(project, userParms);
+                startParms = debugModeHandler.addDebugDataToStartParms(project, debugPort, userParms);
             } else {
-                throw new Exception("Project" + projectName + "is not a Gradle or Maven project.");
+                startParms = userParms;
+            }
+
+            // Prepare the Liberty plugin container dev mode command.
+            String cmd = "";
+            BuildType buildType = project.getBuildType();
+            if (buildType == Project.BuildType.MAVEN) {
+                cmd = getMavenCommand(projectPath, "io.openliberty.tools:liberty-maven-plugin:devc " + startParms + " -f " + projectPath);
+            } else if (buildType == Project.BuildType.GRADLE) {
+                cmd = getGradleCommand(projectPath, "libertyDevc " + startParms + " -p=" + projectPath);
+            } else {
+                throw new Exception("Unexpected project build type: " + buildType + ". Project" + projectName
+                        + "does not appear to be a Maven or Gradle built project.");
+            }
+
+            // If there is a debugPort, start the job to attach the debugger to the Liberty server JVM.
+            if (debugPort != null) {
+                debugModeHandler.startDebbugAttacher(project, debugPort);
             }
 
             // Start a terminal and run the application in dev mode.
@@ -924,5 +963,36 @@ public class DevModeOperations {
 
     public void setDashboardView(DashboardView dashboardView) {
         this.dashboardView = dashboardView;
+    }
+
+    /**
+     * Returns true if the terminal tab associated with the input project was marked closed. False, otherwise.
+     * 
+     * @param projectName The name of the project.
+     * 
+     * @return true if the terminal tab associated with the input project was marked closed. False, otherwise.
+     */
+    public boolean isProjectTerminalTabMarkedClosed(String projectName) {
+        return projectTabController.isProjectTabMarkedClosed(projectName);
+    }
+
+    /**
+     * Registers the input terminal listener.
+     * 
+     * @param projectName The name of the project for which the listener is registered.
+     * @param listener The listener implementation.
+     */
+    public void registerTerminalListener(String projectName, TerminalListener listener) {
+        projectTabController.registerTerminalListener(projectName, listener);
+    }
+
+    /**
+     * Deregisters the input terminal listener.
+     * 
+     * @param projectName The name of the project the input listener is registered for.
+     * @param listener The listener implementation.
+     */
+    public void deregisterTerminalListener(String projectName, TerminalListener listener) {
+        projectTabController.deregisterTerminalListener(projectName, listener);
     }
 }

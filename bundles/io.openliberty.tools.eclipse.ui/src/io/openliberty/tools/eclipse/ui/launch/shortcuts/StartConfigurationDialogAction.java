@@ -2,6 +2,7 @@ package io.openliberty.tools.eclipse.ui.launch.shortcuts;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.debug.core.ILaunchConfiguration;
+import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.ui.DebugUITools;
 import org.eclipse.debug.ui.ILaunchShortcut;
 import org.eclipse.jface.viewers.ISelection;
@@ -14,6 +15,7 @@ import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher.RuntimeEnv;
+import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationHelper;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
 import io.openliberty.tools.eclipse.utils.Utils;
 
@@ -22,7 +24,11 @@ import io.openliberty.tools.eclipse.utils.Utils;
  */
 public class StartConfigurationDialogAction implements ILaunchShortcut {
 
+    /** Run Configuration group dialod ID. */
     public static final String LAUNCH_GROUP_RUN_ID = "org.eclipse.debug.ui.launchGroup.run";
+
+    /** Debug Configuration group dialod ID. */
+    public static final String LAUNCH_GROUP_DEBUG_ID = "org.eclipse.debug.ui.launchGroup.debug";
 
     /**
      * {@inheritDoc}
@@ -98,10 +104,16 @@ public class StartConfigurationDialogAction implements ILaunchShortcut {
         devModeOps.verifyProjectSupport(iProject);
 
         // Determine what configuration to use.
-        ILaunchConfiguration configuration = LaunchConfigurationDelegateLauncher.getLaunchConfiguration(iProject, mode, RuntimeEnv.UNKNOWN);
+        LaunchConfigurationHelper launchConfigHelper = LaunchConfigurationHelper.getInstance();
+        ILaunchConfiguration configuration = launchConfigHelper.getLaunchConfiguration(iProject, mode, RuntimeEnv.UNKNOWN);
 
         // Open the configuration in a configuration dialog.
         Shell shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
-        DebugUITools.openLaunchConfigurationDialogOnGroup(shell, new StructuredSelection(configuration), LAUNCH_GROUP_RUN_ID);
+
+        if (ILaunchManager.RUN_MODE.equals(mode)) {
+            DebugUITools.openLaunchConfigurationDialogOnGroup(shell, new StructuredSelection(configuration), LAUNCH_GROUP_RUN_ID);
+        } else if (ILaunchManager.DEBUG_MODE.equals(mode)) {
+            DebugUITools.openLaunchConfigurationDialogOnGroup(shell, new StructuredSelection(configuration), LAUNCH_GROUP_DEBUG_ID);
+        }
     }
 }
