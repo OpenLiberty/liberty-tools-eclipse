@@ -20,9 +20,6 @@ import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.core.runtime.Platform;
-import org.eclipse.jface.bindings.keys.IKeyLookup;
-import org.eclipse.jface.bindings.keys.KeyStroke;
-import org.eclipse.jface.bindings.keys.ParseException;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Item;
@@ -35,7 +32,6 @@ import org.eclipse.swtbot.swt.finder.utils.SWTUtils;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotButton;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotMenu;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotRootMenu;
-import org.eclipse.swtbot.swt.finder.widgets.SWTBotShell;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotStyledText;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTable;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotText;
@@ -70,6 +66,7 @@ public class SWTBotPluginOperations {
     public static final String DASHBOARD_VIEW_TITLE = "Liberty Dashboard";
     public static final String LAUNCH_CONFIG_LIBERTY_MENU_NAME = "Liberty";
     public static final String LAUNCH_CONFIG_REMOTE_JAVA_APP = "Remote Java Application";
+    public static final String EXPLORER_CONFIGURE_MENU_ENABLE_LIBERTY_TOOLS = "Enable Liberty Tools";
 
     /**
      * Close the welcome page if active.
@@ -154,8 +151,26 @@ public class SWTBotPluginOperations {
      * @param bot
      */
     public static void refreshDashboard(SWTWorkbenchBot bot) {
-        openDashboardUsingToolbar(bot);
-        bot.toolbarButtonWithTooltip(DASHBOARD_TOOLBAR_REFRESH_TIP).click();
+        SWTBotView dashboardView = openDashboardUsingToolbar(bot);
+        dashboardView.setFocus();
+        SWTBotToolbarButton refreshButton = bot.toolbarButtonWithTooltip(DASHBOARD_TOOLBAR_REFRESH_TIP);
+        refreshButton.setFocus();
+        refreshButton.click();
+    }
+
+    /**
+     * Refreshes the application project through the explorer view (explorer-> right click on project -> refresh).
+     * 
+     * @param bot The SWTWorkbenchBot instance.
+     * @param item The application name to select.
+     */
+    public static void refreshProjectUsingExplorerView(SWTWorkbenchBot bot, String item) {
+        SWTBotTreeItem explorerProj = SWTBotPluginOperations.getInstalledProjectItem(bot, item);
+        Assertions.assertTrue(explorerProj != null, () -> "Could not find project " + item + " in the explorer view.");
+        explorerProj.select();
+        SWTBotMenu refresh = explorerProj.contextMenu("Refresh");
+        refresh.setFocus();
+        refresh.click();
     }
 
     /**
@@ -318,65 +333,58 @@ public class SWTBotPluginOperations {
     }
 
     /**
-<<<<<<< HEAD
-     * Returns the object representing the Run/Debug As -> Run/Debug Configuration... - > Liberty menu entry.
-=======
-     * Sets the absolute path to the maven and gradle executables that should be used for 
-     * build into the Liberty Tools Plugin Preferences page
+     * Sets the absolute path to the maven and gradle executables that should be used for build into the Liberty Tools Plugin
+     * Preferences page
      * 
      * @param bot The SWTWorkbenchBot instance.
      * @param buildTool the build tool to be used (Maven or Gradle)
      */
     public static void setBuildCmdPathInPreferences(SWTWorkbenchBot bot, String buildTool) {
-        
+
         /* Preferences are accessed from a different menu on macOS than on Windows and Linux */
         /* Currently not possible to access the Preferences dialog panel on macOS so we */
         /* will return and just use an app configured with a wrapper */
         if (Platform.getOS().equals(Platform.OS_MACOSX)) {
             return;
         }
-        
+
         String finalMvnExecutableLoc = null;
         String finalGradleExecutableLoc = null;
-        
+
         finalMvnExecutableLoc = System.getProperty("io.liberty.tools.eclipse.tests.mvnexecutable.path");
         finalGradleExecutableLoc = System.getProperty("io.liberty.tools.eclipse.tests.gradleexecutable.path");
-        
+
         bot.menu("Window").menu("Preferences").click();
         bot.tree().getTreeItem("Liberty").select();
         if (buildTool == "Maven") {
             bot.textWithLabel("&Maven Install Location:").setText(finalMvnExecutableLoc);
-        }
-        else if (buildTool == "Gradle") {
+        } else if (buildTool == "Gradle") {
             bot.textWithLabel("&Gradle Install Location:").setText(finalGradleExecutableLoc);
         }
         bot.button("Apply and Close").click();
     }
-    
+
     public static void unsetBuildCmdPathInPreferences(SWTWorkbenchBot bot, String buildTool) {
-        
+
         /* Preferences are accessed from a different menu on macOS than on Windows and Linux */
         /* Currently not possible to access the Preferences dialog panel on macOS so we */
         /* will return and just use an app configured with a wrapper */
         if (Platform.getOS().equals(Platform.OS_MACOSX)) {
             return;
         }
-        
+
         bot.menu("Window").menu("Preferences").click();
         bot.tree().getTreeItem("Liberty").select();
         bot.button("Restore Defaults").click();
         bot.button("Apply and Close").click();
     }
-    
+
     /**
-     * Returns the object representing the Run/Debug As->Run/Debug Configuration...->Liberty menu entry.
->>>>>>> Liberty ToolsPreference PAge tests
+     * Launches the Run/Debug configuration dialog.
      * 
      * @param bot The SWTWorkbenchBot instance.
      * @param item The application name.
      * @param mode The operating mode. It can be either \"run\" or \"debug\".
-     * 
-     * @return The object representing the Run/Debug As->Run/Debug Configuration... menu entry.
      */
     public static void launchConfigurationsDialog(SWTWorkbenchBot bot, String item, String mode) {
         Assertions.assertTrue(("run".equals(mode) || "debug".equals(mode)),
@@ -660,6 +668,38 @@ public class SWTBotPluginOperations {
         stopShortcut.click();
 
         bot.waitUntil(SWTBotTestCondition.isEditorActive(bot, item + " " + DevModeOperations.BROWSER_GRADLE_TEST_REPORT_NAME_SUFFIX), 5000);
+    }
+
+    /**
+     * Returns the object representing the explorer->project->right-click->Configure.
+     * 
+     * @param bot The SWTWorkbenchBot instance.
+     * @param item The application name.
+     * 
+     * @return The object representing the explorer->project->right-click->Configure.
+     */
+    public static SWTBotMenu getExplorerConfigurationMenu(SWTWorkbenchBot bot, String item) {
+        SWTBotMenu configurationMenu = null;
+        SWTBotTreeItem project = getInstalledProjectItem(bot, item);
+        Assertions.assertTrue(project != null, () -> "Could not find active project.");
+
+        project.setFocus();
+        configurationMenu = project.contextMenu("Configure").click();
+
+        return configurationMenu;
+    }
+
+    /**
+     * Enables Liberty tools on the input project by clicking on explorer->project->right-click->Configure->Enable Liberty Tools.
+     * 
+     * @param bot The SWTWorkbenchBot instance.
+     * @param item The application name.
+     */
+    public static void enableLibertyTools(SWTWorkbenchBot bot, String item) {
+        SWTBotMenu configureMenu = getExplorerConfigurationMenu(bot, item);
+        SWTBotMenu runConfigMenu = configureMenu.menu(EXPLORER_CONFIGURE_MENU_ENABLE_LIBERTY_TOOLS);
+        runConfigMenu.setFocus();
+        runConfigMenu.click();
     }
 
     /**
