@@ -16,7 +16,6 @@ import java.net.URL;
 import java.util.List;
 
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuListener;
@@ -90,11 +89,6 @@ public class DashboardView extends ViewPart {
     TableViewer viewer;
 
     /**
-     * Listener object that updates the dashboard content as actions take place on the projects it contains.
-     */
-    private IResourceChangeListener projectStateListener;
-
-    /**
      * DevModeOperations reference.
      */
     DevModeOperations devModeOps;
@@ -116,18 +110,7 @@ public class DashboardView extends ViewPart {
         viewer.setContentProvider(ArrayContentProvider.getInstance());
         viewer.setLabelProvider(new DashboardEntryLabelProvider(devModeOps));
 
-        try {
-            WorkspaceProjectsModel dashboard = devModeOps.getProjectModel();
-            dashboard.createNewCompleteWorkspaceModelWithClassify();
-            viewer.setInput(dashboard.getSortedDashboardProjectList());
-        } catch (Exception e) {
-            String msg = "An error was detected while retrieving Liberty projects.";
-            if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
-            }
-            ErrorHandler.processErrorMessage(msg, e, true);
-            return;
-        }
+        devModeOps.refreshDashboardView(true);
 
         createActions();
         createContextMenu();
@@ -417,17 +400,7 @@ public class DashboardView extends ViewPart {
         refreshAction = new Action(DASHBORD_TOOLBAR_ACTION_REFRESH) {
             @Override
             public void run() {
-                try {
-                    WorkspaceProjectsModel dashboard = devModeOps.getProjectModel();
-                    dashboard.createNewCompleteWorkspaceModelWithClassify();
-                    viewer.setInput(dashboard.getSortedDashboardProjectList());
-                } catch (Exception e) {
-                    String msg = "An error was detected while retrieving Liberty projects.";
-                    if (Trace.isEnabled()) {
-                        Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
-                    }
-                    ErrorHandler.processErrorMessage(msg, e, true);
-                }
+                devModeOps.refreshDashboardView(true);
             }
         };
         refreshAction.setImageDescriptor(refreshImg);
@@ -436,6 +409,23 @@ public class DashboardView extends ViewPart {
     public void setInput(List<String> sortedDashboardProjectList) {
         if (viewer != null) {
             viewer.setInput(sortedDashboardProjectList);
+        }
+    }
+
+    /**
+     * Refreshes the dashboard view.
+     */
+    public void refreshDashboardView(WorkspaceProjectsModel projectModel, boolean reportError) {
+        try {
+            projectModel.createNewCompleteWorkspaceModelWithClassify();
+            setInput(projectModel.getSortedDashboardProjectList());
+        } catch (Exception e) {
+            String msg = "An error was detected while refreshing the Liberty dashboard content.";
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
+            }
+            ErrorHandler.processErrorMessage(msg, e, reportError);
+            return;
         }
     }
 }

@@ -36,6 +36,10 @@
             id="io.openliberty.tools.eclipse.command.category"
             name="Liberty Tools">
       </category>
+      <category
+            id="io.openliberty.tools.eclipse.explorer.menu.category"
+            name="Explorer Menu">
+      </category>
       <command
             id="io.openliberty.tools.eclipse.open.dashboard.command"
             name="Open Dashboard"
@@ -82,7 +86,7 @@
             categoryId="io.openliberty.tools.eclipse.command.category">
       </command>
 
-      <!-- Run Configuration -->
+      <!-- Run configuration -->
       <command
             id="io.openliberty.tools.eclipse.launch.start.shortcut.run"
             name="Liberty Start"
@@ -130,6 +134,14 @@
             name="Liberty View Gradle Test Report"
             description="Launches a request to display the test reports for the associated project"
             categoryId="org.eclipse.debug.ui.category.run">
+      </command>
+      
+      <!-- Explorer view configuration pop-up menu -->
+      <command
+            id="io.openliberty.tools.eclipse.explorer.configuration.add.nature.command"
+            categoryId="io.openliberty.tools.eclipse.explorer.menu.category"
+            name="Enable Liberty Tools"
+            description="Add the Liberty nature to the project">
       </command>
    </extension>
 
@@ -243,19 +255,25 @@
 
    <!-- Command handlers -->
    <extension point="org.eclipse.ui.handlers">
+      <!-- Dashboard -->
       <handler
             class="io.openliberty.tools.eclipse.handlers.DashboardHandler"
             commandId="io.openliberty.tools.eclipse.open.dashboard.command">
       </handler>
+      
+      <!-- Explorer view pop-up menu: Add nature -->
+      <handler
+            class="io.openliberty.tools.eclipse.handlers.ExplorerMenuHandler"
+            commandId="io.openliberty.tools.eclipse.explorer.configuration.add.nature.command">
+      </handler>
    </extension>
 
-   <!-- Menu/Toolbar -->
+   <!-- Menus -->
    <extension point="org.eclipse.ui.menus">
+      <!-- Eclipse main toolbar -->
       <menuContribution locationURI="toolbar:org.eclipse.ui.main.toolbar?after=additions">
-         <toolbar
-               id="io.openliberty.tools.eclipse.dashboard.toolbar">
-            <command
-                  id="io.openliberty.tools.eclipse.dashboard.toolbar.command"
+         <toolbar id="io.openliberty.tools.eclipse.dashboard.toolbar">
+            <command id="io.openliberty.tools.eclipse.dashboard.toolbar.command"
                   commandId="io.openliberty.tools.eclipse.open.dashboard.command"
                   icon="icons/openLibertyLogo.png"
                   tooltip="Open Liberty Dashboard View"
@@ -263,6 +281,28 @@
             </command>
          </toolbar>
       </menuContribution>
+      
+        <!-- Explorer view configuration pop-up menu -->
+        <menuContribution
+            locationURI="popup:org.eclipse.ui.projectConfigure?after=additions">
+            <command
+                id="io.openliberty.tools.eclipse.explorer.configuration.command"
+                commandId="io.openliberty.tools.eclipse.explorer.configuration.add.nature.command"
+                icon="icons/openLibertyLogo.png"
+                tooltip="Adds a Liberty nature to the project" style="push">
+                <visibleWhen>
+                    <iterate operator="or" ifEmpty="false">
+                          <and>
+                              <instanceof value="org.eclipse.core.runtime.IAdaptable"/>
+                              <not>
+                                  <test forcePluginActivation="true" property="org.eclipse.debug.ui.projectNature" value="io.openliberty.tools.eclipse.ui.libertyNature"/>
+                              </not>
+                          </and>
+
+                    </iterate>
+                </visibleWhen>
+            </command>
+        </menuContribution>
    </extension>
 
   <!-- Launch configuration -->
@@ -304,7 +344,7 @@
                       <iterate>
                           <and>
                               <instanceof value="org.eclipse.core.runtime.IAdaptable"/>
-                              <test property="org.eclipse.debug.ui.projectNature" value="io.openliberty.tools.eclipse.ui.libertyNature"/>
+                              <test forcePluginActivation="true" property="org.eclipse.debug.ui.projectNature" value="io.openliberty.tools.eclipse.ui.libertyNature"/>
                           </and>
                       </iterate>
                   </with>
@@ -326,7 +366,7 @@
                       <iterate>
                           <and>
                               <instanceof value="org.eclipse.core.runtime.IAdaptable"/>
-                              <test property="org.eclipse.debug.ui.projectNature" value="io.openliberty.tools.eclipse.ui.libertyNature"/>
+                              <test forcePluginActivation="true" property="org.eclipse.debug.ui.projectNature" value="io.openliberty.tools.eclipse.ui.libertyNature"/>
                           </and>
                       </iterate>
                   </with>
@@ -348,7 +388,7 @@
                       <iterate>
                           <and>
                               <instanceof value="org.eclipse.core.runtime.IAdaptable"/>
-                              <test property="org.eclipse.debug.ui.projectNature" value="io.openliberty.tools.eclipse.ui.libertyNature"/>
+                              <test forcePluginActivation="true" property="org.eclipse.debug.ui.projectNature" value="io.openliberty.tools.eclipse.ui.libertyNature"/>
                           </and>
                       </iterate>
                   </with>
@@ -370,7 +410,7 @@
                       <iterate>
                           <and>
                               <instanceof value="org.eclipse.core.runtime.IAdaptable"/>
-                              <test property="org.eclipse.debug.ui.projectNature" value="io.openliberty.tools.eclipse.ui.libertyNature"/>
+                              <test forcePluginActivation="true" property="org.eclipse.debug.ui.projectNature" value="io.openliberty.tools.eclipse.ui.libertyNature"/>
                           </and>
                       </iterate>
                   </with>
@@ -392,7 +432,7 @@
                       <iterate>
                           <and>
                               <instanceof value="org.eclipse.core.runtime.IAdaptable"/>
-                              <test property="org.eclipse.debug.ui.projectNature" value="io.openliberty.tools.eclipse.ui.libertyNature"/>
+                              <test forcePluginActivation="true" property="org.eclipse.debug.ui.projectNature" value="io.openliberty.tools.eclipse.ui.libertyNature"/>
                           </and>
                       </iterate>
                   </with>
@@ -414,8 +454,8 @@
                       <iterate>
                           <and>
                               <instanceof value="org.eclipse.core.runtime.IAdaptable"/>
-                              <test property="org.eclipse.debug.ui.projectNature" value="io.openliberty.tools.eclipse.ui.libertyNature"/>
-                              <test property="org.eclipse.debug.ui.projectNature" value="org.eclipse.m2e.core.maven2Nature"/>
+                              <test forcePluginActivation="true" property="org.eclipse.debug.ui.projectNature" value="io.openliberty.tools.eclipse.ui.libertyNature"/>
+                              <test forcePluginActivation="true" property="org.eclipse.debug.ui.projectNature" value="org.eclipse.m2e.core.maven2Nature"/>
                           </and>
                       </iterate>
                   </with>
@@ -437,8 +477,8 @@
                       <iterate>
                           <and>
                               <instanceof value="org.eclipse.core.runtime.IAdaptable"/>
-                              <test property="org.eclipse.debug.ui.projectNature" value="io.openliberty.tools.eclipse.ui.libertyNature"/>
-                              <test property="org.eclipse.debug.ui.projectNature" value="org.eclipse.m2e.core.maven2Nature"/>
+                              <test forcePluginActivation="true" property="org.eclipse.debug.ui.projectNature" value="io.openliberty.tools.eclipse.ui.libertyNature"/>
+                              <test forcePluginActivation="true" property="org.eclipse.debug.ui.projectNature" value="org.eclipse.m2e.core.maven2Nature"/>
                           </and>
                       </iterate>
                   </with>
@@ -460,8 +500,8 @@
                       <iterate>
                           <and>
                               <instanceof value="org.eclipse.core.runtime.IAdaptable"/>
-                              <test property="org.eclipse.debug.ui.projectNature" value="io.openliberty.tools.eclipse.ui.libertyNature"/>
-                              <test property="org.eclipse.debug.ui.projectNature" value="org.eclipse.buildship.core.gradleprojectnature"/>
+                              <test forcePluginActivation="true" property="org.eclipse.debug.ui.projectNature" value="io.openliberty.tools.eclipse.ui.libertyNature"/>
+                              <test forcePluginActivation="true" property="org.eclipse.debug.ui.projectNature" value="org.eclipse.buildship.core.gradleprojectnature"/>
                           </and>
                       </iterate>
                   </with>
