@@ -19,10 +19,8 @@ import java.net.ConnectException;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.PathMatcher;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -242,6 +240,7 @@ public class DebugModeHandler {
      */
     private Path getServerEnvPath(Project project) throws Exception {
         String projectPath = project.getPath();
+        String projectName = project.getName();
         Path basePath = null;
         BuildType buildType = project.getBuildType();
         if (buildType == Project.BuildType.MAVEN) {
@@ -249,7 +248,7 @@ public class DebugModeHandler {
         } else if (buildType == Project.BuildType.GRADLE) {
             basePath = Paths.get(projectPath, "build", "wlp", "usr", "servers");
         } else {
-            throw new Exception("Unexpected project build type: " + buildType + ". Project" + project.getIProject().getName()
+            throw new Exception("Unexpected project build type: " + buildType + ". Project" + projectName
                     + "does not appear to be a Maven or Gradle built project.");
         }
 
@@ -259,30 +258,25 @@ public class DebugModeHandler {
             return null;
         }
 
-        // Search for a server.env and return it's path.
-        Path filePattern = Paths.get(basePath.toString(), "*", "server.env");
-        PathMatcher pathMatcher = FileSystems.getDefault().getPathMatcher("glob:" + filePattern);
         try (Stream<Path> matchedStream = Files.find(basePath, 2, (path, basicFileAttribute) -> {
             if (basicFileAttribute.isRegularFile()) {
-                return pathMatcher.matches(path);
+                return path.getFileName().toString().equalsIgnoreCase("server.env");
             }
             return false;
         });) {
             List<Path> matchedPaths = matchedStream.collect(Collectors.toList());
-
             int numberOfFilesFound = matchedPaths.size();
+
             if (numberOfFilesFound != 1) {
                 if (numberOfFilesFound == 0) {
-                    String msg = "Unable to find the server.env file for project " + project.getIProject().getName() + ". Path: "
-                            + filePattern.toString();
-                    System.out.println("server.xml not found!: msg: " + msg);
+                    String msg = "Unable to find the server.env file for project " + projectName + ".";
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg);
                     }
                     return null;
                 } else {
-                    String msg = "More than one serve.env files were found for project " + project.getIProject().getName()
-                            + ". Unable to determine the server.env file to use. " + ". Path: " + filePattern.toString();
+                    String msg = "More than one server.env files were found for project " + projectName
+                            + ". Unable to determine the server.env file to use.";
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg);
                     }
@@ -402,7 +396,6 @@ public class DebugModeHandler {
         Path serverEnvPath = getServerEnvPath(project);
 
         for (int retryCount = 0; retryCount < retryLimit; retryCount++) {
-
             // Check if the job was cancelled.
             if (monitor.isCanceled()) {
                 return null;
@@ -429,7 +422,6 @@ public class DebugModeHandler {
             if (serverEnvPath == null) {
                 serverEnvPath = getServerEnvPath(project);
                 TimeUnit.SECONDS.sleep(1);
-                System.out.println("server.xml not found! retrying");
                 continue;
             }
 
