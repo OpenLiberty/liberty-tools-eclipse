@@ -35,6 +35,8 @@ import org.eclipse.m2e.core.project.ProjectImportConfiguration;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotView;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotButton;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -176,5 +178,58 @@ public abstract class AbstractLibertyPluginSWTBotTest {
             }
 
         });
+    }
+
+    /**
+     * Validates if a Remote Java configuration was created. If it was created, it means that the debugger successfully attached to
+     * the Liberty server.
+     * 
+     * @param projectName The project name..
+     */
+    public void validateRemoteJavaAppCreation(String projectName) {
+        int retryLimit = 10;
+        boolean foundMatch = false;
+        for (int i = 0; i < retryLimit; i++) {
+            foundMatch = false;
+            SWTBotPluginOperations.launchConfigurationsDialog(bot, projectName, "debug");
+            SWTBotTreeItem[] configs = null;
+
+            SWTBotTreeItem remoteJavaAppEntry = SWTBotPluginOperations.getRemoteJavaAppConfigMenuItem(bot);
+            if (remoteJavaAppEntry != null) {
+                remoteJavaAppEntry.select();
+                configs = remoteJavaAppEntry.getItems();
+            } else {
+                configs = bot.tree().getAllItems();
+            }
+
+            for (SWTBotTreeItem configEntry : configs) {
+                String configName = configEntry.getText();
+
+                if (configName.contains(projectName)) {
+                    foundMatch = true;
+                    SWTBotButton closeButton = bot.button("Close");
+                    closeButton.setFocus();
+                    closeButton.click();
+                    break;
+                }
+            }
+
+            if (!foundMatch) {
+                try {
+                    Thread.sleep(3000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                SWTBotButton closeButton = bot.button("Close");
+                closeButton.setFocus();
+                closeButton.click();
+                continue;
+            } else {
+                return;
+            }
+        }
+
+        Assertions.fail("The remote java application configuration name should contain project name " + projectName);
     }
 }
