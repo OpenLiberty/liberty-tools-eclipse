@@ -168,9 +168,35 @@ public class LibertyPluginTestUtils {
 
             return;
         }
+    }
+        
+    /**
+     * Validates that a wrapper is found at the the input path.
+     *
+     * @param isExpected to indicate the wrapper should or should not exist
+     * @param pathToWrapper The path to the wrapper file in question.
+     */
+    public static void validateWrapperInProject(boolean isExpected, String pathToWrapper) {
 
-        // If we are here, the expected outcome was not found.
-        Assertions.fail("Timed out while waiting for test report: " + pathToTestReport + " to become available.");
+        boolean wrapperFileExists = wrapperExists(pathToWrapper);
+        if (!wrapperFileExists && isExpected) {
+            Assertions.fail("Wrapper was expected to exisit. Wrapper: " + pathToWrapper + " not found");
+        }
+    }
+    
+    /**
+     * Validates that a preference file associated with the Liberty Tools Plugin exists
+     *
+     * @param isExpected to indicate the preference file should or should not exist.
+     */
+    public static void validateLibertyToolsPreferencesSet(boolean isExpected) {
+        // Preferences are stored in .metadata/.plugins/org.eclipse.core.runtime/.settings/<nodePath>.prefs.
+        // By default, the <nodePath> is the Bundle-SymbolicName of the plug-in. In this case, the qualifier
+        // needed to finding the Liberty Tools preference is the nodePath: io.openliberty.tools.eclipse.ui.
+        Preferences preferences = InstanceScope.INSTANCE.getNode("io.openliberty.tools.eclipse.ui");
+        if (preferences == null && isExpected == true) {
+            Assertions.fail("preferences file not found for Liberty Tools");
+        }
     }
 
     /**
@@ -212,6 +238,19 @@ public class LibertyPluginTestUtils {
         return exists;
     }
 
+    /**
+     * Returns true if the wrapper associated by the input path exists. False, otherwise.
+     *
+     * @param path The file's path.
+     *
+     * @return True if the file identified by the input path exists. False, otherwise.
+     */
+    private static boolean wrapperExists(String wrapperFilePathString) {
+        File f = new File(wrapperFilePathString);
+        boolean exists = f.exists();
+
+        return exists;
+    }
     /**
      * Deletes file identified by the input path. If the file is a directory, it must be empty.
      *

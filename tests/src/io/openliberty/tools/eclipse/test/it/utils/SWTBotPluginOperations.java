@@ -19,6 +19,10 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.eclipse.core.runtime.Platform;
+import org.eclipse.jface.bindings.keys.IKeyLookup;
+import org.eclipse.jface.bindings.keys.KeyStroke;
+import org.eclipse.jface.bindings.keys.ParseException;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Item;
@@ -31,6 +35,7 @@ import org.eclipse.swtbot.swt.finder.utils.SWTUtils;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotButton;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotMenu;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotRootMenu;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotShell;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotStyledText;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTable;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotText;
@@ -313,7 +318,59 @@ public class SWTBotPluginOperations {
     }
 
     /**
+<<<<<<< HEAD
      * Returns the object representing the Run/Debug As -> Run/Debug Configuration... - > Liberty menu entry.
+=======
+     * Sets the absolute path to the maven and gradle executables that should be used for 
+     * build into the Liberty Tools Plugin Preferences page
+     * 
+     * @param bot The SWTWorkbenchBot instance.
+     * @param buildTool the build tool to be used (Maven or Gradle)
+     */
+    public static void setBuildCmdPathInPreferences(SWTWorkbenchBot bot, String buildTool) {
+        
+        /* Preferences are accessed from a different menu on macOS than on Windows and Linux */
+        /* Currently not possible to access the Preferences dialog panel on macOS so we */
+        /* will return and just use an app configured with a wrapper */
+        if (Platform.getOS().equals(Platform.OS_MACOSX)) {
+            return;
+        }
+        
+        String finalMvnExecutableLoc = null;
+        String finalGradleExecutableLoc = null;
+        
+        finalMvnExecutableLoc = System.getProperty("io.liberty.tools.eclipse.tests.mvnexecutable.path");
+        finalGradleExecutableLoc = System.getProperty("io.liberty.tools.eclipse.tests.gradleexecutable.path");
+        
+        bot.menu("Window").menu("Preferences").click();
+        bot.tree().getTreeItem("Liberty").select();
+        if (buildTool == "Maven") {
+            bot.textWithLabel("&Maven Install Location:").setText(finalMvnExecutableLoc);
+        }
+        else if (buildTool == "Gradle") {
+            bot.textWithLabel("&Gradle Install Location:").setText(finalGradleExecutableLoc);
+        }
+        bot.button("Apply and Close").click();
+    }
+    
+    public static void unsetBuildCmdPathInPreferences(SWTWorkbenchBot bot, String buildTool) {
+        
+        /* Preferences are accessed from a different menu on macOS than on Windows and Linux */
+        /* Currently not possible to access the Preferences dialog panel on macOS so we */
+        /* will return and just use an app configured with a wrapper */
+        if (Platform.getOS().equals(Platform.OS_MACOSX)) {
+            return;
+        }
+        
+        bot.menu("Window").menu("Preferences").click();
+        bot.tree().getTreeItem("Liberty").select();
+        bot.button("Restore Defaults").click();
+        bot.button("Apply and Close").click();
+    }
+    
+    /**
+     * Returns the object representing the Run/Debug As->Run/Debug Configuration...->Liberty menu entry.
+>>>>>>> Liberty ToolsPreference PAge tests
      * 
      * @param bot The SWTWorkbenchBot instance.
      * @param item The application name.

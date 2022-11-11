@@ -83,7 +83,6 @@ public class JakartaLSClientImpl extends LanguageClientImpl implements JakartaLa
      */
     @Override
     public CompletableFuture<List<String>> getContextBasedFilter(JakartaClasspathParams classpathParams) {
-        System.out.println("AJM: here?");
         return CompletableFutures.computeAsync((cancelChecker) -> {
             return JDTServicesManager.getInstance().getExistingContextsFromClassPath(classpathParams.getUri(), classpathParams.getSnippetCtx()); 
         });

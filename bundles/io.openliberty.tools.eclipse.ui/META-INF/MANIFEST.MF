@@ -9,8 +9,10 @@ Bundle-Activator: io.openliberty.tools.eclipse.LibertyDevPlugin
 Export-Package: io.openliberty.tools.eclipse;x-friends:="io.openliberty.tools.eclipse.tests",
  io.openliberty.tools.eclipse.ui.dashboard;x-friends:="io.openliberty.tools.eclipse.tests",
  io.openliberty.tools.eclipse.ui.launch;x-friends:="io.openliberty.tools.eclipse.tests",
- io.openliberty.tools.eclipse.ui.launch.shortcuts;x-friends:="io.openliberty.tools.eclipse.tests"
-Require-Bundle: org.eclipse.ui
+ io.openliberty.tools.eclipse.ui.launch.shortcuts;x-friends:="io.openliberty.tools.eclipse.tests",
+ io.openliberty.tools.eclipse.ui.preferences;x-friends:="io.openliberty.tools.eclipse.tests"
+Require-Bundle: org.eclipse.ui,
+ org.eclipse.equinox.preferences
 Bundle-RequiredExecutionEnvironment: JavaSE-17
 Automatic-Module-Name: io.openliberty.tools.eclipse.ui
 Bundle-ActivationPolicy: lazy
@@ -35,6 +37,7 @@ Import-Package: org.eclipse.core.commands,
  org.eclipse.tm.terminal.view.ui.launcher,
  org.eclipse.tm.terminal.view.ui.manager,
  org.eclipse.tm.terminal.view.ui.tabs,
+ org.eclipse.ui,
  org.eclipse.ui.handlers,
  org.eclipse.ui.plugin,
  org.osgi.framework
