@@ -26,6 +26,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.IWorkspaceRoot;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.PlatformUI;
@@ -344,5 +348,19 @@ public class LibertyPluginTestUtils {
         });
 
         return results.get(availableKey);
+    }
+
+    /**
+     * Returns the IProject object associated with the input project name.
+     * 
+     * @param projectName The project name.
+     * 
+     * @return The IProject object associated with the input project name.
+     */
+    public static IProject getProject(String projectName) {
+        IWorkspace workspace = ResourcesPlugin.getWorkspace();
+        IWorkspaceRoot root = workspace.getRoot();
+        IProject iProject = root.getProject(projectName);
+        return iProject;
     }
 }

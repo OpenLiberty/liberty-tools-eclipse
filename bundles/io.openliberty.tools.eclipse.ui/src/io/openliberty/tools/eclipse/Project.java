@@ -211,7 +211,7 @@ public class Project {
      *
      * @throws Exception
      */
-    public void addLibertyNature(IProject project) throws Exception {
+    public static void addLibertyNature(IProject project) throws Exception {
 
         if (Trace.isEnabled()) {
             Trace.getTracer().traceEntry(Trace.TRACE_UTILS, project);
@@ -239,7 +239,7 @@ public class Project {
      *
      * @throws Exception
      */
-    public void removeLibertyNature(IProject project) throws Exception {
+    public static void removeLibertyNature(IProject project) throws Exception {
         if (Trace.isEnabled()) {
             Trace.getTracer().traceEntry(Trace.TRACE_UTILS, project);
         }

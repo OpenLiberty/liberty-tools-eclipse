@@ -22,10 +22,6 @@ import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.swt.widgets.Display;
 
-import io.openliberty.tools.eclipse.logging.Trace;
-import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
-import io.openliberty.tools.eclipse.utils.ErrorHandler;
-
 public class LibertyResourceChangeListener implements IResourceChangeListener {
 
     /**
@@ -37,8 +33,8 @@ public class LibertyResourceChangeListener implements IResourceChangeListener {
 
             @Override
             public void run() {
-
-                WorkspaceProjectsModel db = DevModeOperations.getInstance().getProjectModel();
+                DevModeOperations devModeOps = DevModeOperations.getInstance();
+                WorkspaceProjectsModel db = devModeOps.getProjectModel();
                 IResourceDelta delta = event.getDelta();
                 if (delta == null) {
                     return;
@@ -64,57 +60,42 @@ public class LibertyResourceChangeListener implements IResourceChangeListener {
                     int updateFlag = resourceChanged.getFlags();
 
                     switch (resourceChanged.getKind()) {
-                    // Project opened/closed.
-                    // Flag OPEN (16384): "Change constant (bit mask) indicating that the resource was opened or closed"
-                    // Flag 147456: Although IResourceDelta does not have a predefined constant, this flag value is used to
-                    // denote open/close actions.
-                    case IResourceDelta.CHANGED:
-                        if (updateFlag == IResourceDelta.OPEN || updateFlag == 147456) {
-                            refreshNeeded = true;
-                        }
-                        break;
-                    // Project created/imported.
-                    // Flag OPEN (16384): "This flag is ... set when the project did not exist in the "before" state."
-                    // Flag 147456: Although IResourceDelta does not have a predefined constant, this flag
-                    // value is set when a project, that previously did not exist, is created.
-                    case IResourceDelta.ADDED:
-                        if (project == null && (updateFlag == IResourceDelta.OPEN || updateFlag == 147456)) {
-                            refreshNeeded = true;
-                        }
-                        break;
-                    // Project deleted.
-                    // Flag NO_CHANGE (0).
-                    // Flag MARKERS (130172).
-                    case IResourceDelta.REMOVED:
-                        if (project != null && (updateFlag == IResourceDelta.NO_CHANGE || updateFlag == IResourceDelta.MARKERS)) {
-                            refreshNeeded = true;
-                        }
-                        break;
-                    default:
-                        break;
+                        // Project opened/closed.
+                        // Flag OPEN (16384): "Change constant (bit mask) indicating that the resource was opened or closed"
+                        // Flag 147456: Although IResourceDelta does not have a predefined constant, this flag value is used to
+                        // denote open/close actions.
+                        case IResourceDelta.CHANGED:
+                            if (updateFlag == IResourceDelta.OPEN || updateFlag == 147456) {
+                                refreshNeeded = true;
+                            }
+                            break;
+                        // Project created/imported.
+                        // Flag OPEN (16384): "This flag is ... set when the project did not exist in the "before" state."
+                        // Flag 147456: Although IResourceDelta does not have a predefined constant, this flag
+                        // value is set when a project, that previously did not exist, is created.
+                        case IResourceDelta.ADDED:
+                            if (project == null && (updateFlag == IResourceDelta.OPEN || updateFlag == 147456)) {
+                                refreshNeeded = true;
+                            }
+                            break;
+                        // Project deleted.
+                        // Flag NO_CHANGE (0).
+                        // Flag MARKERS (130172).
+                        case IResourceDelta.REMOVED:
+                            if (project != null && (updateFlag == IResourceDelta.NO_CHANGE || updateFlag == IResourceDelta.MARKERS)) {
+                                refreshNeeded = true;
+                            }
+                            break;
+                        default:
+                            break;
                     }
                 }
 
                 if (refreshNeeded) {
-                    try {
-                        // We leave this commented out as a marker of the idea that maybe one day we'll only
-                        // build the "delta" model instead of the whole workspace model
-                        // db.buildMultiProjectModel(projectsChanged, true);
-                        db.createNewCompleteWorkspaceModelWithClassify();
-
-                        DashboardView dashboardView = DevModeOperations.getInstance().getDashboardView();
-                        // Won't be set if dashboard view hasn't been initialized yet
-                        if (dashboardView != null) {
-                            dashboardView.setInput(db.getSortedDashboardProjectList());
-                        }
-                    } catch (Exception e) {
-                        String msg = "An error was detected while auto-refreshing the Liberty dashboard content.";
-                        if (Trace.isEnabled()) {
-                            Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
-                        }
-                        ErrorHandler.processErrorMessage(msg, e);
-                        return;
-                    }
+                    // We leave this commented out as a marker of the idea that maybe one day we'll only
+                    // build the "delta" model instead of the whole workspace model
+                    // workspaceProjectsModel.buildMultiProjectModel(projectsChanged, true);
+                    devModeOps.refreshDashboardView(false);
                 }
             }
         });

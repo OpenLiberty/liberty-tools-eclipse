@@ -1065,4 +1065,13 @@ public class DevModeOperations {
     public void deregisterTerminalListener(String projectName, TerminalListener listener) {
         projectTabController.deregisterTerminalListener(projectName, listener);
     }
+
+    /**
+     * Refreshes the dashboard view.
+     */
+    public void refreshDashboardView(boolean reportError) {
+        if (dashboardView != null) {
+            dashboardView.refreshDashboardView(projectModel, reportError);
+        }
+    }
 }

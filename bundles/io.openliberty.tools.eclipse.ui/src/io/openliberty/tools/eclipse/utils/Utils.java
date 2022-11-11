@@ -14,6 +14,8 @@ package io.openliberty.tools.eclipse.utils;
 
 import java.io.InputStream;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -136,6 +138,46 @@ public class Utils {
         }
 
         return iProject;
+    }
+
+    /**
+     * Returns an org.eclipse.core.resources.IProject objects associated with the input selection.
+     * 
+     * @param selection The active selection.
+     * 
+     * @return An org.eclipse.core.resources.IProject objects associated with the input selection.
+     */
+    public static List<IProject> getProjectFromSelections(ISelection selection) {
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { selection });
+        }
+
+        List<IProject> selectedProjects = new ArrayList<IProject>();
+        if (selection != null && (selection instanceof IStructuredSelection)) {
+
+            IStructuredSelection structuredSelection = (IStructuredSelection) selection;
+            for (Object element : structuredSelection.toList()) {
+                IProject iProject = null;
+                if (element instanceof IProject) {
+                    iProject = (IProject) element;
+                } else if (element instanceof IResource) {
+                    iProject = ((IResource) element).getProject();
+                } else if (element instanceof IAdaptable) {
+                    iProject = ((IResource) ((IAdaptable) element).getAdapter(IResource.class)).getProject();
+                }
+
+                if (iProject != null) {
+                    selectedProjects.add(iProject);
+                }
+            }
+        }
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, selectedProjects);
+        }
+
+        return selectedProjects;
     }
 
     /**
