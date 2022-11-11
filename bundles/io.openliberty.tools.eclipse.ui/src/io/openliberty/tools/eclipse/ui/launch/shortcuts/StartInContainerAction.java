@@ -19,8 +19,8 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.IEditorPart;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
-import io.openliberty.tools.eclipse.Project;
 import io.openliberty.tools.eclipse.logging.Trace;
+import io.openliberty.tools.eclipse.ui.launch.JRETab;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher.RuntimeEnv;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationHelper;
@@ -106,7 +106,6 @@ public class StartInContainerAction implements ILaunchShortcut {
         // Validate that the project is supported.
         DevModeOperations devModeOps = DevModeOperations.getInstance();
         devModeOps.verifyProjectSupport(iProject);
-        Project project = devModeOps.getProjectModel().getLibertyServerProject(iProject.getName());
 
         // If the configuration was not provided by the caller, determine what configuration to use.
         LaunchConfigurationHelper launchConfigHelper = LaunchConfigurationHelper.getInstance();
@@ -117,8 +116,8 @@ public class StartInContainerAction implements ILaunchShortcut {
         launchConfigHelper.saveConfigProcessingTime(configuration);
 
         // Process the action.
-
         String configParms = configuration.getAttribute(StartTab.PROJECT_START_PARM, (String) null);
-        devModeOps.startInContainer(iProject, configParms, mode);
+        String javaHomePath = JRETab.resolveJavaHome(configuration);
+        devModeOps.startInContainer(iProject, configParms, javaHomePath, mode);
     }
 }

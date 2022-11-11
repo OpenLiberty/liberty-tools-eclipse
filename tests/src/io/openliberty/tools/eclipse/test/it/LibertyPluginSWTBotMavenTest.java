@@ -177,6 +177,21 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         bot.button("Close").click();
     }
 
+    /**
+     * Tests the start with parameters menu action on a dashboard listed application.
+     */
+    @Test
+    public void testLibertyConfigurationTabsExist() {
+        SWTBotPluginOperations.launchConfigurationsDialog(bot, MVN_APP_NAME, "run");
+        try {
+            SWTBotPluginOperations.createNewLibertyConfiguration(bot);
+            Assertions.assertTrue(bot.cTabItem("Start").isVisible(), "Liberty Start tab not visible.");
+            Assertions.assertTrue(bot.cTabItem("JRE").isVisible(), "Liberty JRE tab not visible.");
+        } finally {
+            bot.button("Close").click();
+        }
+    }
+
     @Test
     @DisabledOnMac
     public void testMavenCommandAssembly() throws IOException, InterruptedException {
