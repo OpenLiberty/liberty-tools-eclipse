@@ -140,8 +140,8 @@
       <command
             id="io.openliberty.tools.eclipse.explorer.configuration.add.nature.command"
             categoryId="io.openliberty.tools.eclipse.explorer.menu.category"
-            name="Enable Liberty Tools"
-            description="Add the Liberty nature to the project">
+            name="Enable Liberty"
+            description="Adds the Liberty nature to the project">
       </command>
    </extension>
 

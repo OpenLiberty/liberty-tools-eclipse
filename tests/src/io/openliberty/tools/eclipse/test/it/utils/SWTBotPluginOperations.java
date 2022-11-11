@@ -66,7 +66,7 @@ public class SWTBotPluginOperations {
     public static final String DASHBOARD_VIEW_TITLE = "Liberty Dashboard";
     public static final String LAUNCH_CONFIG_LIBERTY_MENU_NAME = "Liberty";
     public static final String LAUNCH_CONFIG_REMOTE_JAVA_APP = "Remote Java Application";
-    public static final String EXPLORER_CONFIGURE_MENU_ENABLE_LIBERTY_TOOLS = "Enable Liberty Tools";
+    public static final String EXPLORER_CONFIGURE_MENU_ENABLE_LIBERTY_TOOLS = "Enable Liberty";
 
     /**
      * Close the welcome page if active.
@@ -690,7 +690,7 @@ public class SWTBotPluginOperations {
     }
 
     /**
-     * Enables Liberty tools on the input project by clicking on explorer->project->right-click->Configure->Enable Liberty Tools.
+     * Enables Liberty tools on the input project by clicking on explorer->project->right-click->Configure->Enable Liberty.
      * 
      * @param bot The SWTWorkbenchBot instance.
      * @param item The application name.

@@ -23,7 +23,7 @@ import io.openliberty.tools.eclipse.utils.Utils;
 public class ExplorerMenuHandler extends AbstractHandler {
 
     /** Liberty menu options */
-    public static final String ADD_NATURE_ACTION = "Enable Liberty Tools";
+    public static final String ADD_NATURE_ACTION = "Enable Liberty";
 
     /**
      * {@inheritDoc}
