@@ -12,6 +12,9 @@
 *******************************************************************************/
 package io.openliberty.tools.eclipse.ui.terminal;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -32,6 +35,11 @@ public class ProjectTabController {
      * The set of active Terminal associated with different application projects.
      */
     private static ConcurrentHashMap<String, ProjectTab> projectTabMap = new ConcurrentHashMap<String, ProjectTab>();
+
+    /**
+     * The set of terminal listeners associated with the different application projects.
+     */
+    private static ConcurrentHashMap<String, List<TerminalListener>> projectTerminalListenerMap = new ConcurrentHashMap<String, List<TerminalListener>>();
 
     /**
      * TerminalManager instance.
@@ -106,8 +114,7 @@ public class ProjectTabController {
      * @param projectName The application project name.
      * @param connector The terminal connector object associated with input project name.
      *
-     * @return The tab item object associated with the terminal running the application represented by the input project
-     *             name.
+     * @return The tab item object associated with the terminal running the application represented by the input project name.
      */
     public CTabItem findTerminalTab(String projectName, ITerminalConnector connector) {
         CTabItem item = null;
@@ -215,7 +222,7 @@ public class ProjectTabController {
         ProjectTab projectTab = projectTabMap.get(projectName);
         if (projectTab != null) {
             String tabTitle = projectTab.getTitle();
-            if (tabTitle.startsWith("<Closed>")) {
+            if (tabTitle != null && tabTitle.startsWith("<Closed>")) {
                 return true;
             }
         }
@@ -243,11 +250,54 @@ public class ProjectTabController {
             }
         }
 
-        // Cleanup the connector from our cache.
+        // Remove the connector from the connector map cache.
         projectTabMap.remove(projectName);
 
+        // Call cleanup on all registered terminal listeners and remove them from the terminal map cache.
+        List<TerminalListener> listeners = projectTerminalListenerMap.get(projectName);
+        if (listeners != null) {
+            synchronized (listeners) {
+                Iterator<TerminalListener> i = listeners.iterator();
+                while (i.hasNext()) {
+                    i.next().cleanup();
+                }
+            }
+        }
+        projectTerminalListenerMap.remove(projectName);
+
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_UI, "Project: " + projectName + ". ProjectTabMapSize: " + projectTabMap.size());
+            Trace.getTracer().traceExit(Trace.TRACE_UI, "Project: " + projectName + ". ProjectTabMapSize: " + projectTabMap.size()
+                    + ". projectTerminalListenerMapSize: " + projectTerminalListenerMap.size());
+        }
+    }
+
+    /**
+     * Registers the input terminal listener.
+     * 
+     * @param projectName The name of the project for which the listener is registered.
+     * @param listener The listener implementation.
+     */
+    public void registerTerminalListener(String projectName, TerminalListener listener) {
+        List<TerminalListener> listeners = projectTerminalListenerMap.get(projectName);
+        if (listeners == null) {
+            listeners = Collections.synchronizedList(new ArrayList<TerminalListener>());
+        }
+
+        listeners.add(listener);
+        projectTerminalListenerMap.put(projectName, listeners);
+    }
+
+    /**
+     * Deregisters the input terminal listener.
+     * 
+     * @param projectName The name of the project the input listener is registered for.
+     * @param listener The listener implementation.
+     */
+    public void deregisterTerminalListener(String projectName, TerminalListener listener) {
+        List<TerminalListener> listeners = projectTerminalListenerMap.get(projectName);
+        if (listeners != null) {
+            listeners.remove(listener);
+            projectTerminalListenerMap.put(projectName, listeners);
         }
     }
 

@@ -19,9 +19,11 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.IEditorPart;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
+import io.openliberty.tools.eclipse.Project;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher.RuntimeEnv;
+import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationHelper;
 import io.openliberty.tools.eclipse.ui.launch.StartTab;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
 import io.openliberty.tools.eclipse.utils.Utils;
@@ -106,23 +108,25 @@ public class StartAction implements ILaunchShortcut {
         // Validate that the project is supported.
         DevModeOperations devModeOps = DevModeOperations.getInstance();
         devModeOps.verifyProjectSupport(iProject);
+        Project project = devModeOps.getProjectModel().getLibertyServerProject(iProject.getName());
 
         // If the configuration was not provided by the caller, determine what configuration to use.
+        LaunchConfigurationHelper launchConfigHelper = LaunchConfigurationHelper.getInstance();
         ILaunchConfiguration configuration = (iConfiguration != null) ? iConfiguration
-                : LaunchConfigurationDelegateLauncher.getLaunchConfiguration(iProject, mode, RuntimeEnv.LOCAL);
+                : launchConfigHelper.getLaunchConfiguration(iProject, mode, RuntimeEnv.LOCAL);
 
         // Save the time when this configuration was processed.
-        LaunchConfigurationDelegateLauncher.saveConfigProcessingTime(configuration);
+        launchConfigHelper.saveConfigProcessingTime(configuration);
 
         // Retrieve configuration data.
         boolean runInContainer = configuration.getAttribute(StartTab.PROJECT_RUN_IN_CONTAINER, false);
-        String startParms = configuration.getAttribute(StartTab.PROJECT_START_PARM, (String) null);
+        String configParms = configuration.getAttribute(StartTab.PROJECT_START_PARM, (String) null);
 
         // Process the action.
         if (runInContainer) {
-            devModeOps.startInContainer(iProject, startParms);
+            devModeOps.startInContainer(iProject, configParms, mode);
         } else {
-            devModeOps.start(iProject, startParms);
+            devModeOps.start(iProject, configParms, mode);
         }
 
         if (Trace.isEnabled()) {

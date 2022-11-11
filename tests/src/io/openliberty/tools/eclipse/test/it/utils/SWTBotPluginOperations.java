@@ -64,6 +64,7 @@ public class SWTBotPluginOperations {
     public static final String DASHBOARD_TOOLBAR_REFRESH_TIP = "refresh";
     public static final String DASHBOARD_VIEW_TITLE = "Liberty Dashboard";
     public static final String LAUNCH_CONFIG_LIBERTY_MENU_NAME = "Liberty";
+    public static final String LAUNCH_CONFIG_REMOTE_JAVA_APP = "Remote Java Application";
 
     /**
      * Close the welcome page if active.
@@ -312,7 +313,7 @@ public class SWTBotPluginOperations {
     }
 
     /**
-     * Returns the object representing the Run/Debug As->Run/Debug Configuration...->Liberty menu entry.
+     * Returns the object representing the Run/Debug As -> Run/Debug Configuration... - > Liberty menu entry.
      * 
      * @param bot The SWTWorkbenchBot instance.
      * @param item The application name.
@@ -320,7 +321,7 @@ public class SWTBotPluginOperations {
      * 
      * @return The object representing the Run/Debug As->Run/Debug Configuration... menu entry.
      */
-    public static void launchRunConfigurationsDialog(SWTWorkbenchBot bot, String item, String mode) {
+    public static void launchConfigurationsDialog(SWTWorkbenchBot bot, String item, String mode) {
         Assertions.assertTrue(("run".equals(mode) || "debug".equals(mode)),
                 () -> "Invalid configuration mode: " + mode + ". Accepted values: run, debug.");
 
@@ -349,6 +350,28 @@ public class SWTBotPluginOperations {
     }
 
     /**
+     * Returns the object that represents the Debug As->Debug Configuration...->Remote Java Application menu entry.
+     * 
+     * @param bot The SWTWorkbenchBot instance..
+     * 
+     * @return The object that represents the Run/Debug As->Run/Debug Configuration...->Liberty menu entry.
+     */
+    public static SWTBotTreeItem getRemoteJavaAppConfigMenuItem(SWTWorkbenchBot bot) {
+        SWTBotTreeItem remoteJavaApp = null;
+
+        SWTBotTreeItem[] treeItems = bot.tree().getAllItems();
+        for (SWTBotTreeItem treeItem : treeItems) {
+            if (treeItem.getText().equals(LAUNCH_CONFIG_REMOTE_JAVA_APP)) {
+                remoteJavaApp = treeItem;
+                remoteJavaApp.select();
+                break;
+            }
+        }
+
+        return remoteJavaApp;
+    }
+
+    /**
      * Deletes Liberty configuration entries based on the supplied mode.
      * 
      * @param bot The SWTWorkbenchBot instance.
@@ -359,23 +382,42 @@ public class SWTBotPluginOperations {
         Assertions.assertTrue(("run".equals(mode) || "debug".equals(mode)),
                 () -> "Invalid configration mode: " + mode + ". Accepted values: run, debug.");
 
-        SWTBotPluginOperations.launchRunConfigurationsDialog(bot, item, mode);
-        SWTBotTreeItem libertyToolsEntry = getLibertyToolsConfigMenuItem(bot);
-        libertyToolsEntry.setFocus();
-        List<String> configs = libertyToolsEntry.getNodes();
+        SWTBotPluginOperations.launchConfigurationsDialog(bot, item, mode);
+        try {
+            SWTBotTreeItem libertyToolsEntry = getLibertyToolsConfigMenuItem(bot);
+            libertyToolsEntry.setFocus();
+            List<String> configs = libertyToolsEntry.getNodes();
 
-        for (String config : configs) {
-            SWTBotTreeItem configEntry = libertyToolsEntry.getNode(config);
-            configEntry.select().setFocus();
-            bot.toolbarButtonWithTooltip("Delete selected launch configuration(s)").click();
-            SWTBotButton deleteButton = bot.button("Delete");
-            deleteButton.setFocus();
-            deleteButton.click();
+            // Delete Liberty configurations.
+            for (String config : configs) {
+                SWTBotTreeItem configEntry = libertyToolsEntry.getNode(config);
+                configEntry.select().setFocus();
+                bot.toolbarButtonWithTooltip("Delete selected launch configuration(s)").click();
+                SWTBotButton deleteButton = bot.button("Delete");
+                deleteButton.setFocus();
+                deleteButton.click();
+            }
+
+            // Delete debug mode Remote Java Application configurations
+            if ("debug".equals(mode)) {
+                SWTBotTreeItem remoteJavaAppEntry = getRemoteJavaAppConfigMenuItem(bot);
+                remoteJavaAppEntry.setFocus();
+                List<String> rjaConfigs = remoteJavaAppEntry.getNodes();
+                for (String rjaConfig : rjaConfigs) {
+                    SWTBotTreeItem configEntry = remoteJavaAppEntry.getNode(rjaConfig);
+                    configEntry.select().setFocus();
+                    bot.toolbarButtonWithTooltip("Delete selected launch configuration(s)").click();
+                    SWTBotButton deleteButton = bot.button("Delete");
+                    deleteButton.setFocus();
+                    deleteButton.click();
+                }
+            }
+        } finally {
+            // Close the configuration dialog.
+            SWTBotButton closeButton = bot.button("Close");
+            closeButton.setFocus();
+            closeButton.click();
         }
-
-        SWTBotButton closeButton = bot.button("Close");
-        closeButton.setFocus();
-        closeButton.click();
     }
 
     /**
@@ -390,7 +432,7 @@ public class SWTBotPluginOperations {
         Assertions.assertTrue(("run".equals(mode) || "debug".equals(mode)),
                 () -> "Invalid configration mode: " + mode + ". Accepted values: run, debug.");
 
-        SWTBotPluginOperations.launchRunConfigurationsDialog(bot, item, mode);
+        SWTBotPluginOperations.launchConfigurationsDialog(bot, item, mode);
         SWTBotTreeItem libertyToolsEntry = getLibertyToolsConfigMenuItem(bot);
         libertyToolsEntry.doubleClick();
 
@@ -410,7 +452,7 @@ public class SWTBotPluginOperations {
         Assertions.assertTrue(("run".equals(mode) || "debug".equals(mode)),
                 () -> "Invalid configration mode: " + mode + ". Accepted values: run, debug.");
 
-        SWTBotPluginOperations.launchRunConfigurationsDialog(bot, item, mode);
+        SWTBotPluginOperations.launchConfigurationsDialog(bot, item, mode);
         createNewLibertyConfiguration(bot);
 
         setLibertyConfigParms(bot, parms);

@@ -270,7 +270,7 @@
       <launchConfigurationType
           name="Liberty"
           delegate="io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher"
-          modes="run"
+          modes="run, debug"
           id="io.openliberty.tools.eclipse.launch.type">
       </launchConfigurationType>
   </extension>
@@ -294,7 +294,7 @@
           icon="icons/openLibertyLogo.png"
           id="io.openliberty.tools.eclipse.launch.start.shortcut"
           label="Liberty Start"
-          modes="run"
+          modes="run, debug"
           path="io.openliberty.tools.eclipse.launch.shortcuts.group1"
           description="Launches the associated project on Liberty using dev mode">
           <contextualLaunch>
@@ -316,7 +316,7 @@
           icon="icons/openLibertyLogo.png"
           id="io.openliberty.tools.eclipse.launch.start.config.shortcut"
           label="Liberty Start..."
-          modes="run"
+          modes="run, debug"
           path="io.openliberty.tools.eclipse.launch.shortcuts.group1"
           description="Launches the configuration dialog to run the associated project on Liberty using dev mode">
           <contextualLaunch>
@@ -338,7 +338,7 @@
           icon="icons/openLibertyLogo.png"
           id="io.openliberty.tools.eclipse.launch.start.container.shortcut"
           label="Liberty Start in Container"
-          modes="run"
+          modes="run, debug"
           path="io.openliberty.tools.eclipse.launch.shortcuts.group1"
           description="Launches the associated project in a container on Liberty using dev mode">
           <contextualLaunch>

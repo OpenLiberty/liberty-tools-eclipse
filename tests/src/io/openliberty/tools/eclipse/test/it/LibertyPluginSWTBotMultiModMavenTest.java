@@ -150,17 +150,16 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
                         + "Found entry count: " + foundItems + ". Found menu entries: " + runAsMenuItems);
 
         // Check that the Run As -> Run Configurations... contains the Liberty entry in the menu.
-        SWTBotPluginOperations.launchRunConfigurationsDialog(bot, MVN_APP_NAME, "run");
+        SWTBotPluginOperations.launchConfigurationsDialog(bot, MVN_APP_NAME, "run");
         SWTBotTreeItem runAslibertyToolsEntry = SWTBotPluginOperations.getLibertyToolsConfigMenuItem(bot);
         Assertions.assertTrue(runAslibertyToolsEntry != null, "Liberty entry in Run Configurations view was not found.");
         bot.button("Close").click();
 
-        // Commented out pending design discussions.
         // Check that the Debug As -> Debug Configurations... contains the Liberty entry in the menu.
-        // SWTBotPluginOperations.launchRunConfigurationsDialog(bot, MVN_APP_NAME, "debug");
-        // SWTBotTreeItem debugAslibertyToolsEntry = SWTBotPluginOperations.getLibertyToolsConfigMenuItem(bot);
-        // Assertions.assertTrue(debugAslibertyToolsEntry != null, "Liberty entry in Debug Configurations view was not found.");
-        // bot.button("Close").click();
+        SWTBotPluginOperations.launchConfigurationsDialog(bot, MVN_APP_NAME, "debug");
+        SWTBotTreeItem debugAslibertyToolsEntry = SWTBotPluginOperations.getLibertyToolsConfigMenuItem(bot);
+        Assertions.assertTrue(debugAslibertyToolsEntry != null, "Liberty entry in Debug Configurations view was not found.");
+        bot.button("Close").click();
     }
 
     /**
@@ -196,9 +195,6 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
      */
     @Test
     public void testStartWithDefaultRunAsConfig() {
-        // Delete any previously created configs.
-        SWTBotPluginOperations.deleteLibertyToolsConfigEntries(bot, MVN_APP_NAME, "run");
-
         // Start dev mode.
         SWTBotPluginOperations.launchStartWithDefaultConfig(bot, MVN_APP_NAME, "run");
         SWTBotView terminal = bot.viewByTitle("Terminal");

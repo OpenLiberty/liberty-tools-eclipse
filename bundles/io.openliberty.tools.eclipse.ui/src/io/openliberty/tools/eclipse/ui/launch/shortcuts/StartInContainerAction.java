@@ -19,9 +19,11 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.IEditorPart;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
+import io.openliberty.tools.eclipse.Project;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher.RuntimeEnv;
+import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationHelper;
 import io.openliberty.tools.eclipse.ui.launch.StartTab;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
 import io.openliberty.tools.eclipse.utils.Utils;
@@ -104,16 +106,19 @@ public class StartInContainerAction implements ILaunchShortcut {
         // Validate that the project is supported.
         DevModeOperations devModeOps = DevModeOperations.getInstance();
         devModeOps.verifyProjectSupport(iProject);
+        Project project = devModeOps.getProjectModel().getLibertyServerProject(iProject.getName());
 
         // If the configuration was not provided by the caller, determine what configuration to use.
+        LaunchConfigurationHelper launchConfigHelper = LaunchConfigurationHelper.getInstance();
         ILaunchConfiguration configuration = (iConfiguration != null) ? iConfiguration
-                : LaunchConfigurationDelegateLauncher.getLaunchConfiguration(iProject, mode, RuntimeEnv.CONTAINER);
+                : launchConfigHelper.getLaunchConfiguration(iProject, mode, RuntimeEnv.CONTAINER);
 
         // Save the time when this configuration was processed.
-        LaunchConfigurationDelegateLauncher.saveConfigProcessingTime(configuration);
+        launchConfigHelper.saveConfigProcessingTime(configuration);
 
         // Process the action.
-        String startParms = configuration.getAttribute(StartTab.PROJECT_START_PARM, (String) null);
-        devModeOps.startInContainer(iProject, startParms);
+
+        String configParms = configuration.getAttribute(StartTab.PROJECT_START_PARM, (String) null);
+        devModeOps.startInContainer(iProject, configParms, mode);
     }
 }

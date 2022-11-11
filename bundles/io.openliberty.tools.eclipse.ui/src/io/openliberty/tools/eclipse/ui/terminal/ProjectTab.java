@@ -119,6 +119,7 @@ public class ProjectTab {
             public void done(IStatus status) {
                 // The console tab for the associated project opened.
                 if (status.getCode() == IStatus.OK) {
+
                     // Save the object representing the currently active console tab instance.
                     projectTab = getActiveProjectTab();
 
@@ -255,7 +256,12 @@ public class ProjectTab {
      * @return The tab's title text.
      */
     public String getTitle() {
-        return projectTab.getText();
+        String title = null;
+        if (projectTab != null) {
+            title = projectTab.getText();
+        }
+
+        return title;
     }
 
     /**
