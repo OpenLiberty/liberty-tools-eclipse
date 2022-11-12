@@ -19,8 +19,8 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.IEditorPart;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
-import io.openliberty.tools.eclipse.Project;
 import io.openliberty.tools.eclipse.logging.Trace;
+import io.openliberty.tools.eclipse.ui.launch.JRETab;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher.RuntimeEnv;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationHelper;
@@ -108,7 +108,6 @@ public class StartAction implements ILaunchShortcut {
         // Validate that the project is supported.
         DevModeOperations devModeOps = DevModeOperations.getInstance();
         devModeOps.verifyProjectSupport(iProject);
-        Project project = devModeOps.getProjectModel().getLibertyServerProject(iProject.getName());
 
         // If the configuration was not provided by the caller, determine what configuration to use.
         LaunchConfigurationHelper launchConfigHelper = LaunchConfigurationHelper.getInstance();
@@ -121,12 +120,13 @@ public class StartAction implements ILaunchShortcut {
         // Retrieve configuration data.
         boolean runInContainer = configuration.getAttribute(StartTab.PROJECT_RUN_IN_CONTAINER, false);
         String configParms = configuration.getAttribute(StartTab.PROJECT_START_PARM, (String) null);
+        String javaHomePath = JRETab.resolveJavaHome(configuration);
 
         // Process the action.
         if (runInContainer) {
-            devModeOps.startInContainer(iProject, configParms, mode);
+            devModeOps.startInContainer(iProject, configParms, javaHomePath, mode);
         } else {
-            devModeOps.start(iProject, configParms, mode);
+            devModeOps.start(iProject, configParms, javaHomePath, mode);
         }
 
         if (Trace.isEnabled()) {

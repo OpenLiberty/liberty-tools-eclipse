@@ -43,6 +43,15 @@ import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
 public class Utils {
 
     /**
+     * Returns true if the underlying OS is windows. False, otherwise.
+     *
+     * @return True if the underlying OS is windows. False, otherwise.
+     */
+    public static boolean isWindows() {
+        return System.getProperty("os.name").contains("Windows");
+    }
+
+    /**
      * Returns a org.eclipse.swt.graphics.Image object representing the Open Liberty image.
      * 
      * @param device The device display.

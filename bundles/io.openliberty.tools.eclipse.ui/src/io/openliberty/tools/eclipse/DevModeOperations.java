@@ -37,6 +37,7 @@ import io.openliberty.tools.eclipse.ui.terminal.ProjectTab.State;
 import io.openliberty.tools.eclipse.ui.terminal.ProjectTabController;
 import io.openliberty.tools.eclipse.ui.terminal.TerminalListener;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
+import io.openliberty.tools.eclipse.utils.Utils;
 
 /**
  * Provides the implementation of all supported dev mode operations.
@@ -111,22 +112,15 @@ public class DevModeOperations {
     }
 
     /**
-     * Returns true if the underlying OS is windows. False, otherwise.
-     *
-     * @return True if the underlying OS is windows. False, otherwise.
+     * @param iProject The project instance to associate with this action.
+     * @param parms The configuration parameters to be used when starting dev mode.
+     * @param javaHomePath The configuration java installation home to be set in the terminal running dev mode.
+     * @param mode The configuration mode.
      */
-    public static boolean isWindows() {
-        return System.getProperty("os.name").contains("Windows");
-    }
+    public void start(IProject iProject, String parms, String javaHomePath, String mode) {
 
-    /**
-     * Starts the Liberty server in dev mode.
-     * 
-     * @param inputProject The project instance to associate with this action.
-     */
-    public void start(IProject iProject, String parms, String mode) {
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { iProject, parms });
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { iProject, parms, javaHomePath, mode });
         }
 
         if (iProject == null) {
@@ -210,7 +204,7 @@ public class DevModeOperations {
             }
 
             // Start a terminal and run the application in dev mode.
-            startDevMode(cmd, projectName, projectPath);
+            startDevMode(cmd, projectName, projectPath, javaHomePath);
         } catch (Exception e) {
             String msg = "An error was detected while performing the start request on project " + projectName;
             if (Trace.isEnabled()) {
@@ -228,11 +222,15 @@ public class DevModeOperations {
     /**
      * Starts the Liberty server in dev mode in a container.
      * 
-     * @param inputProject The project instance to associate with this action.
+     * @param iProject The project instance to associate with this action.
+     * @param parms The configuration parameters to be used when starting dev mode.
+     * @param javaHomePath The configuration java installation home to be set in the terminal running dev mode.
+     * @param mode The configuration mode.
      */
-    public void startInContainer(IProject iProject, String parms, String mode) {
+    public void startInContainer(IProject iProject, String parms, String javaHomePath, String mode) {
+
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, iProject);
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { iProject, parms, javaHomePath, mode });
         }
 
         if (iProject == null) {
@@ -316,7 +314,7 @@ public class DevModeOperations {
             }
 
             // Start a terminal and run the application in dev mode.
-            startDevMode(cmd, projectName, projectPath);
+            startDevMode(cmd, projectName, projectPath, javaHomePath);
         } catch (Exception e) {
             String msg = "An error was detected while performing the start in container request on project " + projectName;
             if (Trace.isEnabled()) {
@@ -743,33 +741,15 @@ public class DevModeOperations {
      *
      * @throws Exception If an error occurs while running the specified command.
      */
-    public void startDevMode(String cmd, String projectName, String projectPath) throws Exception {
+    public void startDevMode(String cmd, String projectName, String projectPath, String javaInstallPath) throws Exception {
+        // Determine the environment properties to be set in the terminal prior to running dev mode.
         List<String> envs = new ArrayList<String>(1);
-        envs.add("JAVA_HOME=" + getJavaInstallHome());
+
+        // The value for JAVA_HOME comes from the underlying configuration. The configuration allows
+        // the java installation to be custom defined, execution environment defined, or workspace defined.
+        envs.add("JAVA_HOME=" + javaInstallPath);
 
         projectTabController.runOnTerminal(projectName, projectPath, cmd, envs);
-    }
-
-    /**
-     * Returns the home path to the Java installation.
-     *
-     * @return The home path to the Java installation, or null if not found.
-     */
-    private String getJavaInstallHome() {
-        String javaHome = null;
-        // TODO: 1. Find the eclipse->java configured install path
-
-        // 2. Check for associated environment variable.
-        if (javaHome == null) {
-            javaHome = System.getenv("JAVA_HOME");
-        }
-
-        // 3. Check for associated system properties.
-        if (javaHome == null) {
-            javaHome = System.getProperty("java.home");
-        }
-
-        return javaHome;
     }
 
     /**
@@ -783,9 +763,9 @@ public class DevModeOperations {
     public String getMavenCommand(String projectPath, String cmdArgs) {
         String cmd = null;
         boolean isMvn = true;
-        
+
         // Check if there is wrapper defined.
-        Path p2mw = (isWindows()) ? Paths.get(projectPath, "mvnw.cmd") : Paths.get(projectPath, "mvnw");
+        Path p2mw = (Utils.isWindows()) ? Paths.get(projectPath, "mvnw.cmd") : Paths.get(projectPath, "mvnw");
         Path p2mwJar = Paths.get(projectPath, ".mvn", "wrapper", "maven-wrapper.jar");
         Path p2mwProps = Paths.get(projectPath, ".mvn", "wrapper", "maven-wrapper.properties");
 
@@ -812,7 +792,7 @@ public class DevModeOperations {
         boolean isMvn = false;
 
         // Check if there is wrapper defined.
-        Path p2gw = (isWindows()) ? Paths.get(projectPath, "gradlew.bat") : Paths.get(projectPath, "gradlew");
+        Path p2gw = (Utils.isWindows()) ? Paths.get(projectPath, "gradlew.bat") : Paths.get(projectPath, "gradlew");
         Path p2gwJar = Paths.get(projectPath, "gradle", "wrapper", "gradle-wrapper.jar");
         Path p2gwProps = Paths.get(projectPath, "gradle", "wrapper", "gradle-wrapper.properties");
 
@@ -830,7 +810,7 @@ public class DevModeOperations {
         StringBuilder sb = new StringBuilder();
         if (cmd != null) {
             sb.append(cmd).append(" ").append(cmdArgs);
-            if (isWindows()) {
+            if (Utils.isWindows()) {
                 // Include trailing space for separation
                 sb.insert(0, "/c ");
             }
@@ -838,21 +818,23 @@ public class DevModeOperations {
 
         return sb.toString();
     }
-    
+
     private String getCmdFromPrefsOrPath(boolean isMaven) throws IllegalStateException {
 
         String foundCmd = null;
-        File tempCmdFile= null;
+        File tempCmdFile = null;
         boolean foundInPrefs = false;
-        
-        if (isWindows()) {
+
+        if (Utils.isWindows()) {
             // running on Windows
             if (isMaven) {
                 // maven
-                tempCmdFile = new File(LibertyDevPlugin.getDefault().getPreferenceStore().getString("MVNPATH") + File.separator + "mvn.cmd");
+                tempCmdFile = new File(
+                        LibertyDevPlugin.getDefault().getPreferenceStore().getString("MVNPATH") + File.separator + "mvn.cmd");
             } else {
                 // gradle
-                tempCmdFile = new File(LibertyDevPlugin.getDefault().getPreferenceStore().getString("GRADLEPATH") + File.separator + "gradle.bat");
+                tempCmdFile = new File(
+                        LibertyDevPlugin.getDefault().getPreferenceStore().getString("GRADLEPATH") + File.separator + "gradle.bat");
             }
         } else {
             // running linux or macos
@@ -861,17 +843,18 @@ public class DevModeOperations {
                 tempCmdFile = new File(LibertyDevPlugin.getDefault().getPreferenceStore().getString("MVNPATH") + File.separator + "mvn");
             } else {
                 // gradle
-                tempCmdFile = new File(LibertyDevPlugin.getDefault().getPreferenceStore().getString("GRADLEPATH") + File.separator + "gradle");
+                tempCmdFile = new File(
+                        LibertyDevPlugin.getDefault().getPreferenceStore().getString("GRADLEPATH") + File.separator + "gradle");
             }
-            
+
         }
-        
+
         if (tempCmdFile.exists()) {
             foundCmd = tempCmdFile.getPath();
             foundInPrefs = true;
         } else {
             // no mvn or gradle set in prefs - check the path before displaying corrective error dialog
-            if (isWindows()) {
+            if (Utils.isWindows()) {
                 // running on Windows
                 if (isMaven) {
                     // maven
@@ -890,23 +873,24 @@ public class DevModeOperations {
                     foundCmd = getCmdFromPath("gradle");
                 }
             }
-            
+
         }
-        
+
         // error handling that will open an error dialog box
         if (foundCmd == null) {
-            throw new IllegalStateException("Couldn't find command a maven or gradle command using a wrapper or via the Liberty Tools Preferences Page or on the PATH. Please generate a maven or gradle wrapper into th eapplication, set a path to the executable using the Liberty Tools Preferences page or install either maven or gradle onto the system PATH.");
+            throw new IllegalStateException(
+                    "Couldn't find command a maven or gradle command using a wrapper or via the Liberty Tools Preferences Page or on the PATH. Please generate a maven or gradle wrapper into th eapplication, set a path to the executable using the Liberty Tools Preferences page or install either maven or gradle onto the system PATH.");
         }
-        
+
         if (Trace.isEnabled()) {
             Trace.getTracer().trace(Trace.TRACE_UTILS,
-                    foundInPrefs ? "In devmodeOperations, found via the set Preference, the build command = " + foundCmd 
-                                 : "In devmodeOperations, found via the System PATH, the build command = " + foundCmd);
+                    foundInPrefs ? "In devmodeOperations, found via the set Preference, the build command = " + foundCmd
+                            : "In devmodeOperations, found via the System PATH, the build command = " + foundCmd);
         }
 
         return foundCmd;
     }
-    
+
     private String getCmdFromPath(String cmd) throws IllegalStateException {
 
         String foundCmd = null;
