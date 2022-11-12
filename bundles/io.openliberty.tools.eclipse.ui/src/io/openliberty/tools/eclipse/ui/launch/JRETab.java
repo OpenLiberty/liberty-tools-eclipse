@@ -28,16 +28,16 @@ public class JRETab extends JavaJRETab {
             return false;
         }
 
-        setWarningMessage(null);
+        setErrorMessage(null);
 
         // Issue a warning if we detect that the java installation is not a JDK.
         String javaHome = resolveJavaHome(config);
-        java.nio.file.Path toolsJarPath = Paths.get(javaHome, "bin", (Utils.isWindows() ? "javac.exe" : "javac"));
-        File toolsJar = toolsJarPath.toFile();
-        if (!toolsJar.exists()) {
-            super.setWarningMessage("A Java Development Kit (JDK) is required to use Liberty dev mode.");
+        java.nio.file.Path javacPath = Paths.get(javaHome, "bin", (Utils.isWindows() ? "javac.exe" : "javac"));
+        File javacFile = javacPath.toFile();
+        if (!javacFile.exists()) {
+            super.setErrorMessage("A Java Development Kit (JDK) is required to use Liberty dev mode.");
+            return false;
         }
-
         return true;
     }
 
