@@ -15,6 +15,7 @@ package io.openliberty.tools.eclipse.test.it;
 import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.deleteFile;
 import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.isInternalBrowserSupportAvailable;
 import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.validateApplicationOutcome;
+import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.validateApplicationStopped;
 import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.validateTestReportExists;
 import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.validateWrapperInProject;
 
@@ -244,7 +245,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         terminal.show();
 
         // Validate application stopped.
-        validateApplicationOutcome(MVN_WRAPPER_APP_NAME, false, wrapperProjectPath.toAbsolutePath().toString() + "/target/liberty");
+        validateApplicationStopped(wrapperProjectPath.toAbsolutePath().toString() + "/target/liberty");
 
         // Close the terminal.
         terminal.close();
@@ -271,8 +272,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         terminal.show();
 
         // Validate application stopped.
-        validateApplicationOutcome(Platform.getOS().equals(Platform.OS_MACOSX) ? MVN_WRAPPER_APP_NAME : MVN_APP_NAME, false,
-                projectPath.toAbsolutePath().toString() + "/target/liberty");
+        validateApplicationStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
 
         // Close the terminal.
         terminal.close();
@@ -317,8 +317,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
             terminal.show();
 
             // Validate application stopped.
-            validateApplicationOutcome(Platform.getOS().equals(Platform.OS_MACOSX) ? MVN_WRAPPER_APP_NAME : MVN_APP_NAME, false,
-                    projectPath.toAbsolutePath().toString() + "/target/liberty");
+            validateApplicationStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
 
             // Close the terminal.
             terminal.close();
@@ -374,8 +373,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
             terminal.show();
 
             // Validate application stopped.
-            validateApplicationOutcome(Platform.getOS().equals(Platform.OS_MACOSX) ? MVN_WRAPPER_APP_NAME : MVN_APP_NAME, false,
-                    projectPath.toAbsolutePath().toString() + "/target/liberty");
+            validateApplicationStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
 
             // Close the terminal.
             terminal.close();
@@ -499,8 +497,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         terminal.show();
 
         // Validate application stopped.
-        validateApplicationOutcome(Platform.getOS().equals(Platform.OS_MACOSX) ? MVN_WRAPPER_APP_NAME : MVN_APP_NAME, false,
-                projectPath.toAbsolutePath().toString() + "/target/liberty");
+        validateApplicationStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
 
         // Close the terminal.
         terminal.close();
@@ -542,8 +539,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
             terminal.show();
 
             // Validate application stopped.
-            validateApplicationOutcome(Platform.getOS().equals(Platform.OS_MACOSX) ? MVN_WRAPPER_APP_NAME : MVN_APP_NAME, false,
-                    projectPath.toAbsolutePath().toString() + "/target/liberty");
+            validateApplicationStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
 
             // Close the terminal.
             terminal.close();
@@ -603,8 +599,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
             terminal.show();
 
             // Validate application stopped.
-            validateApplicationOutcome(Platform.getOS().equals(Platform.OS_MACOSX) ? MVN_WRAPPER_APP_NAME : MVN_APP_NAME, false,
-                    projectPath.toAbsolutePath().toString() + "/target/liberty");
+            validateApplicationStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
 
             // Close the terminal.
             terminal.close();
@@ -648,7 +643,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
             terminal.show();
 
             // Validate application stopped.
-            validateApplicationOutcome(MVN_APP_NAME, false, projectPath.toAbsolutePath().toString() + "/target/liberty");
+            validateApplicationStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
 
             // Close the terminal.
             terminal.close();
@@ -681,7 +676,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         terminal.show();
 
         // Validate application stopped.
-        validateApplicationOutcome(MVN_APP_NAME, false, projectPath.toAbsolutePath().toString() + "/target/liberty");
+        validateApplicationStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
 
         // Close the terminal.
         terminal.close();
@@ -701,7 +696,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         SWTBotPluginOperations.launchStartWithDashboardAction(bot, dashboard, MVN_APP_NAME);
 
         // Validate application is not up and not running.
-        validateApplicationOutcome(MVN_APP_NAME, false, projectPath.toAbsolutePath().toString() + "/target/liberty");
+        validateApplicationStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
     }
 
     @Test
@@ -728,7 +723,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         terminal.show();
 
         // Validate application stopped.
-        validateApplicationOutcome(MVN_WRAPPER_APP_NAME, false, wrapperProjectPath.toAbsolutePath().toString() + "/target/liberty");
+        validateApplicationStopped(wrapperProjectPath.toAbsolutePath().toString() + "/target/liberty");
 
         // Close the terminal.
         terminal.close();
@@ -758,7 +753,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         terminal.show();
 
         // Validate application stopped.
-        validateApplicationOutcome(MVN_APP_NAME, false, projectPath.toAbsolutePath().toString() + "/target/liberty");
+        validateApplicationStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
 
         // Close the terminal.
         terminal.close();

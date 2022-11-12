@@ -15,6 +15,7 @@ package io.openliberty.tools.eclipse.test.it;
 import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.deleteFile;
 import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.isInternalBrowserSupportAvailable;
 import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.validateApplicationOutcome;
+import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.validateApplicationStopped;
 import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.validateTestReportExists;
 
 import java.io.File;
@@ -214,8 +215,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         terminal.show();
 
         // Validate application stopped.
-        validateApplicationOutcome(Platform.getOS().equals(Platform.OS_MACOSX) ? GRADLE_WRAPPER_APP_NAME : GRADLE_APP_NAME, false,
-                testAppPath + "/build");
+        validateApplicationStopped(testAppPath + "/build");
 
         // Close the terminal.
         terminal.close();
@@ -262,8 +262,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
             terminal.show();
 
             // Validate application stopped.
-            validateApplicationOutcome(Platform.getOS().equals(Platform.OS_MACOSX) ? GRADLE_WRAPPER_APP_NAME : GRADLE_APP_NAME, false,
-                    testAppPath + "/build");
+            validateApplicationStopped(testAppPath + "/build");
 
             // Close the terminal.
             terminal.close();
@@ -310,8 +309,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
             terminal.show();
 
             // Validate application stopped.
-            validateApplicationOutcome(Platform.getOS().equals(Platform.OS_MACOSX) ? GRADLE_WRAPPER_APP_NAME : GRADLE_APP_NAME, false,
-                    testAppPath + "/build");
+            validateApplicationStopped(testAppPath + "/build");
 
             // Close the terminal.
             terminal.close();
@@ -436,8 +434,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         terminal.show();
 
         // Validate application stopped.
-        validateApplicationOutcome(Platform.getOS().equals(Platform.OS_MACOSX) ? GRADLE_WRAPPER_APP_NAME : GRADLE_APP_NAME, false,
-                testAppPath + "/build");
+        validateApplicationStopped(testAppPath + "/build");
 
         // Close the terminal.
         terminal.close();
@@ -480,8 +477,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
             terminal.show();
 
             // Validate application stopped.
-            validateApplicationOutcome(Platform.getOS().equals(Platform.OS_MACOSX) ? GRADLE_WRAPPER_APP_NAME : GRADLE_APP_NAME, false,
-                    testAppPath + "/build");
+            validateApplicationStopped(testAppPath + "/build");
 
             // Close the terminal.
             terminal.close();
@@ -532,8 +528,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
             terminal.show();
 
             // Validate application stopped.
-            validateApplicationOutcome(Platform.getOS().equals(Platform.OS_MACOSX) ? GRADLE_WRAPPER_APP_NAME : GRADLE_APP_NAME, false,
-                    testAppPath + "/build");
+            validateApplicationStopped(testAppPath + "/build");
 
             // Close the terminal.
             terminal.close();
@@ -577,7 +572,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
             terminal.show();
 
             // Validate application stopped.
-            validateApplicationOutcome(GRADLE_APP_NAME, false, testAppPath + "/build");
+            validateApplicationStopped(testAppPath + "/build");
 
             // Close the terminal.
             terminal.close();
@@ -610,7 +605,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         terminal.show();
 
         // Validate application stopped.
-        validateApplicationOutcome(GRADLE_APP_NAME, false, testAppPath + "/build");
+        validateApplicationStopped(testAppPath + "/build");
 
         // Close the terminal.
         terminal.close();

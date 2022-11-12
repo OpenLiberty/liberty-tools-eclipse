@@ -1,15 +1,15 @@
 /*******************************************************************************
-* Copyright (c) 2022 IBM Corporation and others.
-*
-* This program and the accompanying materials are made available under the
-* terms of the Eclipse Public License v. 2.0 which is available at
-* http://www.eclipse.org/legal/epl-2.0.
-*
-* SPDX-License-Identifier: EPL-2.0
-*
-* Contributors:
-*     IBM Corporation - initial implementation
-*******************************************************************************/
+ * Copyright (c) 2022 IBM Corporation and others.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License v. 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0.
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *     IBM Corporation - initial implementation
+ *******************************************************************************/
 package io.openliberty.tools.eclipse.test.it.utils;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -57,6 +57,45 @@ public class LibertyPluginTestUtils {
         validateApplicationOutcomeCustom(appUrl, expectSuccess, expectedResponse, testAppPath);
     }
 
+    public static void validateApplicationStopped(String testAppPath) {
+        int maxAttempts = 10;
+        boolean foundStoppedMsg = false;
+
+        for (int i = 0; i < maxAttempts; i++) {
+
+            try (BufferedReader br = new BufferedReader(new FileReader(testAppPath + "/wlp/usr/servers/defaultServer/logs/messages.log"))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    if (line.contains("CWWKE0036I")) {
+                        foundStoppedMsg = true;
+                        break;
+                    }
+                }
+                Thread.sleep(4000);
+            } catch (Exception e) {
+                Assertions.fail("Caught exception waiting for stop message", e);
+            }
+        }
+
+        if (!foundStoppedMsg) {
+
+            System.out.println("Didn't see stop server message CWWKE0036I, printing messages.log");
+            // If we are here, the expected outcome was not found.
+            System.out.println("--------------------------- messages.log ----------------------------");
+            try (BufferedReader br = new BufferedReader(new FileReader(testAppPath + "/wlp/usr/servers/defaultServer/logs/messages.log"))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    System.out.println(line);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            System.out.println("---------------------------------------------------------------------");
+            Assertions.fail("Didn't see stop server message CWWKE0036I");
+        }
+
+    }
+
     /**
      * Validates that the deployed application is active.
      *
@@ -67,6 +106,7 @@ public class LibertyPluginTestUtils {
         int reryIntervalSecs = 3;
         int retryCount = 0;
 
+        System.out.println("INFO: Entering validateApplicationOutcomeCustom, appUrl: " + appUrl);
         while (retryCount < retryCountLimit) {
             retryCount++;
             int status = 0;
@@ -116,6 +156,7 @@ public class LibertyPluginTestUtils {
                     }
                 }
 
+                System.out.println("INFO: Exiting normally validateApplicationOutcomeCustom, appUrl: " + appUrl);
                 return;
             } catch (Exception e) {
                 if (expectSuccess) {
@@ -129,6 +170,7 @@ public class LibertyPluginTestUtils {
                     continue;
                 }
 
+                System.out.println("INFO: Exiting with exc validateApplicationOutcomeCustom, appUrl: " + appUrl);
                 return;
             }
         }
