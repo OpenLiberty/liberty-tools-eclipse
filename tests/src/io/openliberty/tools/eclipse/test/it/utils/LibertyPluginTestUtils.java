@@ -12,6 +12,8 @@
 *******************************************************************************/
 package io.openliberty.tools.eclipse.test.it.utils;
 
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -173,7 +175,7 @@ public class LibertyPluginTestUtils {
             return;
         }
     }
-        
+
     /**
      * Validates that a wrapper is found at the the input path.
      *
@@ -187,19 +189,19 @@ public class LibertyPluginTestUtils {
             Assertions.fail("Wrapper was expected to exisit. Wrapper: " + pathToWrapper + " not found");
         }
     }
-    
+
     /**
      * Validates that a preference file associated with the Liberty Tools Plugin exists
      *
      * @param isExpected to indicate the preference file should or should not exist.
      */
-    public static void validateLibertyToolsPreferencesSet(boolean isExpected) {
+    public static void validateLibertyToolsPreferencesSet() {
         // Preferences are stored in .metadata/.plugins/org.eclipse.core.runtime/.settings/<nodePath>.prefs.
         // By default, the <nodePath> is the Bundle-SymbolicName of the plug-in. In this case, the qualifier
         // needed to finding the Liberty Tools preference is the nodePath: io.openliberty.tools.eclipse.ui.
         Preferences preferences = InstanceScope.INSTANCE.getNode("io.openliberty.tools.eclipse.ui");
-        if (preferences == null && isExpected == true) {
-            Assertions.fail("preferences file not found for Liberty Tools");
+        if (preferences == null) {
+            assertNotNull(preferences, "preferences file not found for Liberty Tools");
         }
     }
 
@@ -255,6 +257,7 @@ public class LibertyPluginTestUtils {
 
         return exists;
     }
+
     /**
      * Deletes file identified by the input path. If the file is a directory, it must be empty.
      *

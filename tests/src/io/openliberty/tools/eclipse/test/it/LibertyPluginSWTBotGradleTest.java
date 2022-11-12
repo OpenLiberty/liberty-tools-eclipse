@@ -31,6 +31,7 @@ import org.eclipse.core.runtime.Platform;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotView;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotMenu;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
@@ -102,6 +103,16 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
 
         // Check basic plugin artifacts are functioning before running tests.
         validateBeforeTestRun();
+
+        // set the preferences
+        SWTBotPluginOperations.setBuildCmdPathInPreferences(bot, "Gradle");
+        LibertyPluginTestUtils.validateLibertyToolsPreferencesSet();
+
+    }
+
+    @AfterAll
+    public static void cleanup() {
+        SWTBotPluginOperations.unsetBuildCmdPathInPreferences(bot, "Gradle");
     }
 
     /**
@@ -187,9 +198,6 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
     @Test
     public void testDashboardStartAction() {
 
-        // set the preferences
-        SWTBotPluginOperations.setBuildCmdPathInPreferences(bot, "Gradle");
-
         // Start dev mode.
         SWTBotPluginOperations.launchStartWithDashboardAction(bot, dashboard,
                 Platform.getOS().equals(Platform.OS_MACOSX) ? GRADLE_WRAPPER_APP_NAME : GRADLE_APP_NAME);
@@ -209,9 +217,6 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         validateApplicationOutcome(Platform.getOS().equals(Platform.OS_MACOSX) ? GRADLE_WRAPPER_APP_NAME : GRADLE_APP_NAME, false,
                 testAppPath + "/build");
 
-        // unset the preferences
-        SWTBotPluginOperations.unsetBuildCmdPathInPreferences(bot, "Gradle");
-
         // Close the terminal.
         terminal.close();
     }
@@ -222,9 +227,6 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
     @Test
     public void testDashboardStartWithCustomConfigAction() {
         String mode = "run";
-
-        // set the preferences
-        SWTBotPluginOperations.setBuildCmdPathInPreferences(bot, "Gradle");
 
         // Delete any previously created configs.
         SWTBotPluginOperations.deleteLibertyToolsConfigEntries(bot,
@@ -263,9 +265,6 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
             validateApplicationOutcome(Platform.getOS().equals(Platform.OS_MACOSX) ? GRADLE_WRAPPER_APP_NAME : GRADLE_APP_NAME, false,
                     testAppPath + "/build");
 
-            // unset the preferences
-            SWTBotPluginOperations.unsetBuildCmdPathInPreferences(bot, "Gradle");
-
             // Close the terminal.
             terminal.close();
         }
@@ -276,9 +275,6 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
      */
     @Test
     public void testDashboardActions() {
-
-        // set the preferences
-        SWTBotPluginOperations.setBuildCmdPathInPreferences(bot, "Gradle");
 
         // Delete the test report files before we start this test.
         Path projectPath = Paths.get("resources", "applications", "gradle", "liberty-gradle-test-app");
@@ -316,9 +312,6 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
             // Validate application stopped.
             validateApplicationOutcome(Platform.getOS().equals(Platform.OS_MACOSX) ? GRADLE_WRAPPER_APP_NAME : GRADLE_APP_NAME, false,
                     testAppPath + "/build");
-
-            // set the preferences
-            SWTBotPluginOperations.unsetBuildCmdPathInPreferences(bot, "Gradle");
 
             // Close the terminal.
             terminal.close();
@@ -423,9 +416,6 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
     @Test
     public void testStartWithDefaultRunAsConfig() {
 
-        // set the preferences
-        SWTBotPluginOperations.setBuildCmdPathInPreferences(bot, "Gradle");
-
         // Delete any previously created configs.
         SWTBotPluginOperations.deleteLibertyToolsConfigEntries(bot,
                 Platform.getOS().equals(Platform.OS_MACOSX) ? GRADLE_WRAPPER_APP_NAME : GRADLE_APP_NAME, "run");
@@ -449,9 +439,6 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         validateApplicationOutcome(Platform.getOS().equals(Platform.OS_MACOSX) ? GRADLE_WRAPPER_APP_NAME : GRADLE_APP_NAME, false,
                 testAppPath + "/build");
 
-        // unset the preferences
-        SWTBotPluginOperations.unsetBuildCmdPathInPreferences(bot, "Gradle");
-
         // Close the terminal.
         terminal.close();
     }
@@ -462,9 +449,6 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
      */
     @Test
     public void testStartWithCustomRunAsConfig() {
-
-        // set the preferences
-        SWTBotPluginOperations.setBuildCmdPathInPreferences(bot, "Gradle");
 
         // Delete any previously created configs.
         SWTBotPluginOperations.deleteLibertyToolsConfigEntries(bot,
@@ -499,9 +483,6 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
             validateApplicationOutcome(Platform.getOS().equals(Platform.OS_MACOSX) ? GRADLE_WRAPPER_APP_NAME : GRADLE_APP_NAME, false,
                     testAppPath + "/build");
 
-            // unset the preferences
-            SWTBotPluginOperations.unsetBuildCmdPathInPreferences(bot, "Gradle");
-
             // Close the terminal.
             terminal.close();
         }
@@ -512,9 +493,6 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
      */
     @Test
     public void testRunAsShortcutActions() {
-
-        // set the preferences
-        SWTBotPluginOperations.setBuildCmdPathInPreferences(bot, "Gradle");
 
         // Delete any previously created configs.
         SWTBotPluginOperations.deleteLibertyToolsConfigEntries(bot,
@@ -556,9 +534,6 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
             // Validate application stopped.
             validateApplicationOutcome(Platform.getOS().equals(Platform.OS_MACOSX) ? GRADLE_WRAPPER_APP_NAME : GRADLE_APP_NAME, false,
                     testAppPath + "/build");
-
-            // unset the preferences
-            SWTBotPluginOperations.unsetBuildCmdPathInPreferences(bot, "Gradle");
 
             // Close the terminal.
             terminal.close();
