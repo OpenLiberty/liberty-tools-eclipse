@@ -39,7 +39,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-import io.openliberty.tools.eclipse.DevModeOperations;
+import io.openliberty.tools.eclipse.CommandBuilder;
 import io.openliberty.tools.eclipse.LibertyNature;
 import io.openliberty.tools.eclipse.Project;
 import io.openliberty.tools.eclipse.test.it.utils.DisabledOnMac;
@@ -199,12 +199,12 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         // set the preferences
         SWTBotPluginOperations.setBuildCmdPathInPreferences(bot, "Maven");
 
-        DevModeOperations devMode = DevModeOperations.getInstance();
         IProject iProject = LibertyPluginTestUtils.getProject(MVN_APP_NAME);
         String projPath = iProject.getLocation().toOSString();
 
         String localMvnCmd = LibertyPluginTestUtils.onWindows() ? "mvn.cmd" : "mvn";
-        String opaqueMvnCmd = devMode.getMavenCommand(projPath, "io.openliberty.tools:liberty-maven-plugin:dev -f " + projPath);
+        String opaqueMvnCmd = CommandBuilder.getMavenCommandLine(projPath, "io.openliberty.tools:liberty-maven-plugin:dev -f " + projPath,
+                System.getenv("PATH"));
         Assertions.assertTrue(opaqueMvnCmd.contains(localMvnCmd + " io.openliberty.tools:liberty-maven-plugin:dev"),
                 "Expected cmd to contain 'mvn io.openliberty.tools...' but cmd = " + opaqueMvnCmd);
 
@@ -214,11 +214,11 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
 
     @Test
     public void testMavenWrapperCommandAssembly() throws IOException, InterruptedException {
-        DevModeOperations devMode = DevModeOperations.getInstance();
         IProject iProject = LibertyPluginTestUtils.getProject(MVN_WRAPPER_APP_NAME);
         String projPath = iProject.getLocation().toOSString();
 
-        String opaqueMvnwCmd = devMode.getMavenCommand(projPath, "io.openliberty.tools:liberty-maven-plugin:dev -f " + projPath);
+        String opaqueMvnwCmd = CommandBuilder.getMavenCommandLine(projPath, "io.openliberty.tools:liberty-maven-plugin:dev -f " + projPath,
+                System.getenv("PATH"));
         Assertions.assertTrue(opaqueMvnwCmd.contains("mvnw"), "Expected cmd to contain 'mvnw' but cmd = " + opaqueMvnwCmd);
     }
 
