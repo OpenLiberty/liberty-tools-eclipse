@@ -99,7 +99,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
         GridDataFactory.swtDefaults().indent(20, 0).applyTo(projectLabel);
 
         projectNameLabel = new Label(composite, SWT.NONE);
-        projectNameLabel.setText("<need to select project first before creating run config>");
+        projectNameLabel.setText("");
         GridDataFactory.swtDefaults().indent(20, 0).applyTo(projectNameLabel);
 
         // Add an empty line.
