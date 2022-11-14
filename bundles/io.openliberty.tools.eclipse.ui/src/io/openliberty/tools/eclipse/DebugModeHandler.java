@@ -171,7 +171,7 @@ public class DebugModeHandler {
      * 
      * @throws Exception
      */
-    public void startDebbugAttacher(Project project, String debugPort) {
+    public void startDebugAttacher(Project project, String debugPort) {
         String projectName = project.getIProject().getName();
 
         Job job = new Job("Attaching Debugger to JVM...") {

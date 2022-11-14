@@ -12,7 +12,6 @@
 *******************************************************************************/
 package io.openliberty.tools.eclipse;
 
-import java.io.File;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -37,7 +36,6 @@ import io.openliberty.tools.eclipse.ui.terminal.ProjectTab.State;
 import io.openliberty.tools.eclipse.ui.terminal.ProjectTabController;
 import io.openliberty.tools.eclipse.ui.terminal.TerminalListener;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
-import io.openliberty.tools.eclipse.utils.Utils;
 
 /**
  * Provides the implementation of all supported dev mode operations.
@@ -164,7 +162,7 @@ public class DevModeOperations {
         Project project = null;
 
         try {
-            project = projectModel.getLibertyServerProject(projectName);
+            project = projectModel.getProject(projectName);
             if (project == null) {
                 throw new Exception("Unable to find internal instance of project " + projectName);
             }
@@ -190,9 +188,10 @@ public class DevModeOperations {
             String cmd = "";
             BuildType buildType = project.getBuildType();
             if (buildType == Project.BuildType.MAVEN) {
-                cmd = getMavenCommand(projectPath, "io.openliberty.tools:liberty-maven-plugin:dev " + startParms + " -f " + projectPath);
+                cmd = CommandBuilder.getMavenCommandLine(projectPath,
+                        "io.openliberty.tools:liberty-maven-plugin:dev " + startParms + " -f " + projectPath, pathEnv);
             } else if (buildType == Project.BuildType.GRADLE) {
-                cmd = getGradleCommand(projectPath, "libertyDev " + startParms + " -p=" + projectPath);
+                cmd = CommandBuilder.getGradleCommandLine(projectPath, "libertyDev " + startParms + " -p=" + projectPath, pathEnv);
             } else {
                 throw new Exception("Unexpected project build type: " + buildType + ". Project" + projectName
                         + "does not appear to be a Maven or Gradle built project.");
@@ -200,7 +199,7 @@ public class DevModeOperations {
 
             // If there is a debugPort, start the job to attach the debugger to the Liberty server JVM.
             if (debugPort != null) {
-                debugModeHandler.startDebbugAttacher(project, debugPort);
+                debugModeHandler.startDebugAttacher(project, debugPort);
             }
 
             // Start a terminal and run the application in dev mode.
@@ -274,7 +273,7 @@ public class DevModeOperations {
         Project project = null;
 
         try {
-            project = projectModel.getLibertyServerProject(projectName);
+            project = projectModel.getProject(projectName);
             if (project == null) {
                 throw new Exception("Unable to find internal instance of project " + projectName);
             }
@@ -300,9 +299,10 @@ public class DevModeOperations {
             String cmd = "";
             BuildType buildType = project.getBuildType();
             if (buildType == Project.BuildType.MAVEN) {
-                cmd = getMavenCommand(projectPath, "io.openliberty.tools:liberty-maven-plugin:devc " + startParms + " -f " + projectPath);
+                cmd = CommandBuilder.getMavenCommandLine(projectPath,
+                        "io.openliberty.tools:liberty-maven-plugin:devc " + startParms + " -f " + projectPath, pathEnv);
             } else if (buildType == Project.BuildType.GRADLE) {
-                cmd = getGradleCommand(projectPath, "libertyDevc " + startParms + " -p=" + projectPath);
+                cmd = CommandBuilder.getGradleCommandLine(projectPath, "libertyDevc " + startParms + " -p=" + projectPath, pathEnv);
             } else {
                 throw new Exception("Unexpected project build type: " + buildType + ". Project" + projectName
                         + "does not appear to be a Maven or Gradle built project.");
@@ -310,7 +310,7 @@ public class DevModeOperations {
 
             // If there is a debugPort, start the job to attach the debugger to the Liberty server JVM.
             if (debugPort != null) {
-                debugModeHandler.startDebbugAttacher(project, debugPort);
+                debugModeHandler.startDebugAttacher(project, debugPort);
             }
 
             // Start a terminal and run the application in dev mode.
@@ -523,7 +523,7 @@ public class DevModeOperations {
         Project project = null;
 
         try {
-            project = projectModel.getLibertyServerProject(projectName);
+            project = projectModel.getProject(projectName);
             if (project == null) {
                 throw new Exception("Unable to find internal instance of project " + projectName);
             }
@@ -595,7 +595,7 @@ public class DevModeOperations {
         Project project = null;
 
         try {
-            project = projectModel.getLibertyServerProject(projectName);
+            project = projectModel.getProject(projectName);
             if (project == null) {
                 throw new Exception("Unable to find internal instance of project " + projectName);
             }
@@ -666,7 +666,7 @@ public class DevModeOperations {
         Project project = null;
 
         try {
-            project = projectModel.getLibertyServerProject(projectName);
+            project = projectModel.getProject(projectName);
             if (project == null) {
                 throw new Exception("Unable to find internal instance of project " + projectName);
             }
@@ -753,166 +753,6 @@ public class DevModeOperations {
     }
 
     /**
-     * Returns the full Maven command to run on the terminal.
-     *
-     * @param projectPath The project's path.
-     * @param cmdArgs The mvn command args
-     *
-     * @return The full Maven command to run on the terminal.
-     */
-    public String getMavenCommand(String projectPath, String cmdArgs) {
-        String cmd = null;
-        boolean isMvn = true;
-
-        // Check if there is wrapper defined.
-        Path p2mw = (Utils.isWindows()) ? Paths.get(projectPath, "mvnw.cmd") : Paths.get(projectPath, "mvnw");
-        Path p2mwJar = Paths.get(projectPath, ".mvn", "wrapper", "maven-wrapper.jar");
-        Path p2mwProps = Paths.get(projectPath, ".mvn", "wrapper", "maven-wrapper.properties");
-
-        if (p2mw.toFile().exists() && p2mwJar.toFile().exists() && p2mwProps.toFile().exists()) {
-            cmd = p2mw.toString();
-        } else {
-            cmd = getCmdFromPrefsOrPath(isMvn);
-        }
-
-        return getCommandFromArgs(cmd, cmdArgs);
-    }
-
-    /**
-     * Returns the full Gradle command to run on the terminal.
-     *
-     * @param projectPath The project's path.
-     * @param cmdArgs The Gradle command arguments.
-     *
-     * @return The full Gradle command to run on the terminal.
-     */
-    public String getGradleCommand(String projectPath, String cmdArgs) {
-
-        String cmd = null;
-        boolean isMvn = false;
-
-        // Check if there is wrapper defined.
-        Path p2gw = (Utils.isWindows()) ? Paths.get(projectPath, "gradlew.bat") : Paths.get(projectPath, "gradlew");
-        Path p2gwJar = Paths.get(projectPath, "gradle", "wrapper", "gradle-wrapper.jar");
-        Path p2gwProps = Paths.get(projectPath, "gradle", "wrapper", "gradle-wrapper.properties");
-
-        if (p2gw.toFile().exists() && p2gwJar.toFile().exists() && p2gwProps.toFile().exists()) {
-            cmd = p2gw.toString();
-        } else {
-            cmd = getCmdFromPrefsOrPath(isMvn);
-        }
-
-        return getCommandFromArgs(cmd, cmdArgs);
-    }
-
-    private String getCommandFromArgs(String cmd, String cmdArgs) {
-        // Put it all together.
-        StringBuilder sb = new StringBuilder();
-        if (cmd != null) {
-            sb.append(cmd).append(" ").append(cmdArgs);
-            if (Utils.isWindows()) {
-                // Include trailing space for separation
-                sb.insert(0, "/c ");
-            }
-        }
-
-        return sb.toString();
-    }
-
-    private String getCmdFromPrefsOrPath(boolean isMaven) throws IllegalStateException {
-
-        String foundCmd = null;
-        File tempCmdFile = null;
-        boolean foundInPrefs = false;
-
-        if (Utils.isWindows()) {
-            // running on Windows
-            if (isMaven) {
-                // maven
-                tempCmdFile = new File(
-                        LibertyDevPlugin.getDefault().getPreferenceStore().getString("MVNPATH") + File.separator + "mvn.cmd");
-            } else {
-                // gradle
-                tempCmdFile = new File(
-                        LibertyDevPlugin.getDefault().getPreferenceStore().getString("GRADLEPATH") + File.separator + "gradle.bat");
-            }
-        } else {
-            // running linux or macos
-            if (isMaven) {
-                // maven
-                tempCmdFile = new File(LibertyDevPlugin.getDefault().getPreferenceStore().getString("MVNPATH") + File.separator + "mvn");
-            } else {
-                // gradle
-                tempCmdFile = new File(
-                        LibertyDevPlugin.getDefault().getPreferenceStore().getString("GRADLEPATH") + File.separator + "gradle");
-            }
-
-        }
-
-        if (tempCmdFile.exists()) {
-            foundCmd = tempCmdFile.getPath();
-            foundInPrefs = true;
-        } else {
-            // no mvn or gradle set in prefs - check the path before displaying corrective error dialog
-            if (Utils.isWindows()) {
-                // running on Windows
-                if (isMaven) {
-                    // maven
-                    foundCmd = getCmdFromPath("mvn.cmd");
-                } else {
-                    // gradle
-                    foundCmd = getCmdFromPath("gradle.bat");
-                }
-            } else {
-                // running on linux or macos
-                if (isMaven) {
-                    // maven
-                    foundCmd = getCmdFromPath("mvn");
-                } else {
-                    // gradle
-                    foundCmd = getCmdFromPath("gradle");
-                }
-            }
-
-        }
-
-        // error handling that will open an error dialog box
-        if (foundCmd == null) {
-            throw new IllegalStateException(
-                    "Couldn't find command a maven or gradle command using a wrapper or via the Liberty Tools Preferences Page or on the PATH. Please generate a maven or gradle wrapper into th eapplication, set a path to the executable using the Liberty Tools Preferences page or install either maven or gradle onto the system PATH.");
-        }
-
-        if (Trace.isEnabled()) {
-            Trace.getTracer().trace(Trace.TRACE_UTILS,
-                    foundInPrefs ? "In devmodeOperations, found via the set Preference, the build command = " + foundCmd
-                            : "In devmodeOperations, found via the System PATH, the build command = " + foundCmd);
-        }
-
-        return foundCmd;
-    }
-
-    private String getCmdFromPath(String cmd) throws IllegalStateException {
-
-        String foundCmd = null;
-
-        String[] pathMembers = pathEnv.split(File.pathSeparator);
-        for (int s = 0; s < pathMembers.length; s++) {
-            File tempFile = new File(pathMembers[s] + File.separator + cmd);
-
-            if (tempFile.exists()) {
-                foundCmd = tempFile.getPath();
-                break;
-            }
-        }
-
-        if (foundCmd == null) {
-            throw new IllegalStateException("Couldn't find command: " + cmd + " on PATH env var");
-        }
-
-        return foundCmd;
-    }
-
-    /**
      * Returns the path of the HTML file containing the integration test report.
      *
      * @param projectPath The project's path.
@@ -979,7 +819,7 @@ public class DevModeOperations {
                 IStructuredSelection structuredSelection = (IStructuredSelection) selection;
                 Object firstElement = structuredSelection.getFirstElement();
                 if (firstElement instanceof String) {
-                    Project project = projectModel.getLibertyServerProject((String) firstElement);
+                    Project project = projectModel.getProject((String) firstElement);
                     if (project != null) {
                         iProject = project.getIProject();
                     }
@@ -1004,7 +844,7 @@ public class DevModeOperations {
     public void verifyProjectSupport(IProject iProject) throws Exception {
         if (iProject != null) {
             String projectName = iProject.getName();
-            Project project = projectModel.getLibertyServerProject(projectName);
+            Project project = projectModel.getProject(projectName);
             if (project == null) {
                 throw new Exception("Project " + projectName + " is not a supported project. Make sure the project is a Liberty project.");
             }

@@ -1,16 +1,18 @@
 /*******************************************************************************
-* Copyright (c) 2022 IBM Corporation and others.
-*
-* This program and the accompanying materials are made available under the
-* terms of the Eclipse Public License v. 2.0 which is available at
-* http://www.eclipse.org/legal/epl-2.0.
-*
-* SPDX-License-Identifier: EPL-2.0
-*
-* Contributors:
-*     IBM Corporation - initial implementation
-*******************************************************************************/
+ * Copyright (c) 2022 IBM Corporation and others.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License v. 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0.
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *     IBM Corporation - initial implementation
+ *******************************************************************************/
 package io.openliberty.tools.eclipse.test.it.utils;
+
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -55,6 +57,45 @@ public class LibertyPluginTestUtils {
         validateApplicationOutcomeCustom(appUrl, expectSuccess, expectedResponse, testAppPath);
     }
 
+    public static void validateApplicationStopped(String testAppPath) {
+        int maxAttempts = 10;
+        boolean foundStoppedMsg = false;
+
+        for (int i = 0; i < maxAttempts; i++) {
+
+            try (BufferedReader br = new BufferedReader(new FileReader(testAppPath + "/wlp/usr/servers/defaultServer/logs/messages.log"))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    if (line.contains("CWWKE0036I")) {
+                        foundStoppedMsg = true;
+                        break;
+                    }
+                }
+                Thread.sleep(4000);
+            } catch (Exception e) {
+                Assertions.fail("Caught exception waiting for stop message", e);
+            }
+        }
+
+        if (!foundStoppedMsg) {
+
+            System.out.println("Didn't see stop server message CWWKE0036I, printing messages.log");
+            // If we are here, the expected outcome was not found.
+            System.out.println("--------------------------- messages.log ----------------------------");
+            try (BufferedReader br = new BufferedReader(new FileReader(testAppPath + "/wlp/usr/servers/defaultServer/logs/messages.log"))) {
+                String line;
+                while ((line = br.readLine()) != null) {
+                    System.out.println(line);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+            System.out.println("---------------------------------------------------------------------");
+            Assertions.fail("Didn't see stop server message CWWKE0036I");
+        }
+
+    }
+
     /**
      * Validates that the deployed application is active.
      *
@@ -65,6 +106,7 @@ public class LibertyPluginTestUtils {
         int reryIntervalSecs = 3;
         int retryCount = 0;
 
+        System.out.println("INFO: Entering validateApplicationOutcomeCustom, appUrl: " + appUrl);
         while (retryCount < retryCountLimit) {
             retryCount++;
             int status = 0;
@@ -114,6 +156,7 @@ public class LibertyPluginTestUtils {
                     }
                 }
 
+                System.out.println("INFO: Exiting normally validateApplicationOutcomeCustom, appUrl: " + appUrl);
                 return;
             } catch (Exception e) {
                 if (expectSuccess) {
@@ -127,6 +170,7 @@ public class LibertyPluginTestUtils {
                     continue;
                 }
 
+                System.out.println("INFO: Exiting with exc validateApplicationOutcomeCustom, appUrl: " + appUrl);
                 return;
             }
         }
@@ -173,7 +217,7 @@ public class LibertyPluginTestUtils {
             return;
         }
     }
-        
+
     /**
      * Validates that a wrapper is found at the the input path.
      *
@@ -187,19 +231,19 @@ public class LibertyPluginTestUtils {
             Assertions.fail("Wrapper was expected to exisit. Wrapper: " + pathToWrapper + " not found");
         }
     }
-    
+
     /**
      * Validates that a preference file associated with the Liberty Tools Plugin exists
      *
      * @param isExpected to indicate the preference file should or should not exist.
      */
-    public static void validateLibertyToolsPreferencesSet(boolean isExpected) {
+    public static void validateLibertyToolsPreferencesSet() {
         // Preferences are stored in .metadata/.plugins/org.eclipse.core.runtime/.settings/<nodePath>.prefs.
         // By default, the <nodePath> is the Bundle-SymbolicName of the plug-in. In this case, the qualifier
         // needed to finding the Liberty Tools preference is the nodePath: io.openliberty.tools.eclipse.ui.
         Preferences preferences = InstanceScope.INSTANCE.getNode("io.openliberty.tools.eclipse.ui");
-        if (preferences == null && isExpected == true) {
-            Assertions.fail("preferences file not found for Liberty Tools");
+        if (preferences == null) {
+            assertNotNull(preferences, "preferences file not found for Liberty Tools");
         }
     }
 
@@ -255,6 +299,7 @@ public class LibertyPluginTestUtils {
 
         return exists;
     }
+
     /**
      * Deletes file identified by the input path. If the file is a directory, it must be empty.
      *

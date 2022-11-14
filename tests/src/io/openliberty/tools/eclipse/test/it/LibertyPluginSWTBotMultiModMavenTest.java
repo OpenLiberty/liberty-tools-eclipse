@@ -13,6 +13,7 @@
 package io.openliberty.tools.eclipse.test.it;
 
 import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.validateApplicationOutcomeCustom;
+import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.validateApplicationStopped;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -29,7 +30,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import io.openliberty.tools.eclipse.test.it.utils.DisabledOnMac;
 import io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher;
@@ -168,10 +168,10 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
      */
     @Test
     public void testDashboardStartAction() {
-        
-     // set the preferences
+
+        // set the preferences
         SWTBotPluginOperations.setBuildCmdPathInPreferences(bot, "Maven");
-        
+
         // Start dev mode.
         SWTBotPluginOperations.launchStartWithDashboardAction(bot, dashboard, MVN_APP_NAME);
         SWTBotView terminal = bot.viewByTitle("Terminal");
@@ -187,12 +187,11 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
         terminal.show();
 
         // Validate application stopped.
-        validateApplicationOutcomeCustom("http://localhost:9080/converter1/heights.jsp?heightCm=10", false, "N/A",
-                serverModule1Path + "/target/liberty");
+        validateApplicationStopped(serverModule1Path + "/target/liberty");
 
-     // unset the preferences
+        // unset the preferences
         SWTBotPluginOperations.unsetBuildCmdPathInPreferences(bot, "Maven");
-        
+
         // Close the terminal.
         terminal.close();
     }
@@ -203,10 +202,10 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
      */
     @Test
     public void testStartWithDefaultRunAsConfig() {
-        
+
         // set the preferences
         SWTBotPluginOperations.setBuildCmdPathInPreferences(bot, "Maven");
-        
+
         // Delete any previously created configs.
         SWTBotPluginOperations.deleteLibertyToolsConfigEntries(bot, MVN_APP_NAME, "run");
 
@@ -224,12 +223,11 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
         terminal.show();
 
         // Validate application stopped.
-        validateApplicationOutcomeCustom("http://localhost:9080/converter1/heights.jsp?heightCm=30", false, "N/A",
-                serverModule1Path + "/target/liberty");
+        validateApplicationStopped(serverModule1Path + "/target/liberty");
 
-     // unset the preferences
+        // unset the preferences
         SWTBotPluginOperations.unsetBuildCmdPathInPreferences(bot, "Maven");
-        
+
         // Close the terminal.
         terminal.close();
     }

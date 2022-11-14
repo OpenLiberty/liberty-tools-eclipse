@@ -79,11 +79,11 @@ public class ExplorerMenuHandler extends AbstractHandler {
                 }
 
                 switch (commandName) {
-                    case ADD_NATURE_ACTION:
-                        Project.addLibertyNature(iProject);
-                        break;
-                    default:
-                        throw new Exception("invalid command");
+                case ADD_NATURE_ACTION:
+                    Project.addLibertyNature(iProject);
+                    break;
+                default:
+                    throw new Exception("invalid command");
                 }
             } catch (Exception e) {
                 String msg = "Unable to process menu command " + commandName + " on project " + iProject.getName() + ".";
@@ -96,8 +96,7 @@ public class ExplorerMenuHandler extends AbstractHandler {
             }
         }
 
-        // Refresh the dashboard. This will create the internal data for the newly categorized projects.
-        DevModeOperations.getInstance().refreshDashboardView(false);
+        DevModeOperations.getInstance().getProjectModel().createNewCompleteWorkspaceModelWithClassify();
 
         if (Trace.isEnabled()) {
             Trace.getTracer().traceExit(Trace.TRACE_HANDLERS);

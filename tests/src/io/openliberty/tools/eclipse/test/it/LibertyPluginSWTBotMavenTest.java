@@ -15,7 +15,7 @@ package io.openliberty.tools.eclipse.test.it;
 import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.deleteFile;
 import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.isInternalBrowserSupportAvailable;
 import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.validateApplicationOutcome;
-import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.validateLibertyToolsPreferencesSet;
+import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.validateApplicationStopped;
 import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.validateTestReportExists;
 import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.validateWrapperInProject;
 
@@ -34,12 +34,13 @@ import org.eclipse.core.runtime.Platform;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotView;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotMenu;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
-import io.openliberty.tools.eclipse.DevModeOperations;
+import io.openliberty.tools.eclipse.CommandBuilder;
 import io.openliberty.tools.eclipse.LibertyNature;
 import io.openliberty.tools.eclipse.Project;
 import io.openliberty.tools.eclipse.test.it.utils.DisabledOnMac;
@@ -103,8 +104,17 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         projectPaths.add(wrapperProjectPath.toString());
         importMavenProjects(workspaceRoot, projectPaths);
 
+        // set the preferences
+        SWTBotPluginOperations.setBuildCmdPathInPreferences(bot, "Maven");
+        LibertyPluginTestUtils.validateLibertyToolsPreferencesSet();
+
         // Check basic plugin artifacts are functioning before running tests.
         validateBeforeTestRun();
+    }
+
+    @AfterAll
+    public static void cleanup() {
+        SWTBotPluginOperations.unsetBuildCmdPathInPreferences(bot, "Maven");
     }
 
     /**
@@ -196,29 +206,23 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
     @DisabledOnMac
     public void testMavenCommandAssembly() throws IOException, InterruptedException {
 
-        // set the preferences
-        SWTBotPluginOperations.setBuildCmdPathInPreferences(bot, "Maven");
-
-        DevModeOperations devMode = DevModeOperations.getInstance();
         IProject iProject = LibertyPluginTestUtils.getProject(MVN_APP_NAME);
         String projPath = iProject.getLocation().toOSString();
 
         String localMvnCmd = LibertyPluginTestUtils.onWindows() ? "mvn.cmd" : "mvn";
-        String opaqueMvnCmd = devMode.getMavenCommand(projPath, "io.openliberty.tools:liberty-maven-plugin:dev -f " + projPath);
+        String opaqueMvnCmd = CommandBuilder.getMavenCommandLine(projPath, "io.openliberty.tools:liberty-maven-plugin:dev -f " + projPath,
+                System.getenv("PATH"));
         Assertions.assertTrue(opaqueMvnCmd.contains(localMvnCmd + " io.openliberty.tools:liberty-maven-plugin:dev"),
                 "Expected cmd to contain 'mvn io.openliberty.tools...' but cmd = " + opaqueMvnCmd);
-
-        // unset the preferences
-        SWTBotPluginOperations.unsetBuildCmdPathInPreferences(bot, "Maven");
     }
 
     @Test
     public void testMavenWrapperCommandAssembly() throws IOException, InterruptedException {
-        DevModeOperations devMode = DevModeOperations.getInstance();
         IProject iProject = LibertyPluginTestUtils.getProject(MVN_WRAPPER_APP_NAME);
         String projPath = iProject.getLocation().toOSString();
 
-        String opaqueMvnwCmd = devMode.getMavenCommand(projPath, "io.openliberty.tools:liberty-maven-plugin:dev -f " + projPath);
+        String opaqueMvnwCmd = CommandBuilder.getMavenCommandLine(projPath, "io.openliberty.tools:liberty-maven-plugin:dev -f " + projPath,
+                System.getenv("PATH"));
         Assertions.assertTrue(opaqueMvnwCmd.contains("mvnw"), "Expected cmd to contain 'mvnw' but cmd = " + opaqueMvnwCmd);
     }
 
@@ -241,7 +245,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         terminal.show();
 
         // Validate application stopped.
-        validateApplicationOutcome(MVN_WRAPPER_APP_NAME, false, wrapperProjectPath.toAbsolutePath().toString() + "/target/liberty");
+        validateApplicationStopped(wrapperProjectPath.toAbsolutePath().toString() + "/target/liberty");
 
         // Close the terminal.
         terminal.close();
@@ -252,9 +256,6 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
      */
     @Test
     public void testDashboardStartAction() {
-        // set the preferences
-        SWTBotPluginOperations.setBuildCmdPathInPreferences(bot, "Maven");
-
         // Start dev mode.
         SWTBotPluginOperations.launchStartWithDashboardAction(bot, dashboard,
                 Platform.getOS().equals(Platform.OS_MACOSX) ? MVN_WRAPPER_APP_NAME : MVN_APP_NAME);
@@ -271,11 +272,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         terminal.show();
 
         // Validate application stopped.
-        validateApplicationOutcome(Platform.getOS().equals(Platform.OS_MACOSX) ? MVN_WRAPPER_APP_NAME : MVN_APP_NAME, false,
-                projectPath.toAbsolutePath().toString() + "/target/liberty");
-
-        // unset the preferences
-        SWTBotPluginOperations.unsetBuildCmdPathInPreferences(bot, "Maven");
+        validateApplicationStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
 
         // Close the terminal.
         terminal.close();
@@ -287,9 +284,6 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
     @Test
     public void testDashboardStartWithCustomConfigAction() {
         String mode = "run";
-
-        // set the preferences
-        SWTBotPluginOperations.setBuildCmdPathInPreferences(bot, "Maven");
 
         // Delete any previously created configs.
         SWTBotPluginOperations.deleteLibertyToolsConfigEntries(bot,
@@ -323,11 +317,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
             terminal.show();
 
             // Validate application stopped.
-            validateApplicationOutcome(Platform.getOS().equals(Platform.OS_MACOSX) ? MVN_WRAPPER_APP_NAME : MVN_APP_NAME, false,
-                    projectPath.toAbsolutePath().toString() + "/target/liberty");
-
-            // unset the preferences
-            SWTBotPluginOperations.unsetBuildCmdPathInPreferences(bot, "Maven");
+            validateApplicationStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
 
             // Close the terminal.
             terminal.close();
@@ -339,9 +329,6 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
      */
     @Test
     public void testDashboardActions() {
-
-        // set the preferences
-        SWTBotPluginOperations.setBuildCmdPathInPreferences(bot, "Maven");
 
         // Delete the test report files before we start this test.
         Path pathToITReport = Paths.get(projectPath.toString(), "target", "site", "failsafe-report.html");
@@ -386,11 +373,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
             terminal.show();
 
             // Validate application stopped.
-            validateApplicationOutcome(Platform.getOS().equals(Platform.OS_MACOSX) ? MVN_WRAPPER_APP_NAME : MVN_APP_NAME, false,
-                    projectPath.toAbsolutePath().toString() + "/target/liberty");
-
-            // unset the preferences
-            SWTBotPluginOperations.unsetBuildCmdPathInPreferences(bot, "Maven");
+            validateApplicationStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
 
             // Close the terminal.
             terminal.close();
@@ -494,9 +477,6 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
     @Test
     public void testStartWithDefaultRunAsConfig() {
 
-        // set the preferences
-        SWTBotPluginOperations.setBuildCmdPathInPreferences(bot, "Maven");
-
         // Delete any previously created configs.
         SWTBotPluginOperations.deleteLibertyToolsConfigEntries(bot,
                 Platform.getOS().equals(Platform.OS_MACOSX) ? MVN_WRAPPER_APP_NAME : MVN_APP_NAME, "run");
@@ -517,11 +497,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         terminal.show();
 
         // Validate application stopped.
-        validateApplicationOutcome(Platform.getOS().equals(Platform.OS_MACOSX) ? MVN_WRAPPER_APP_NAME : MVN_APP_NAME, false,
-                projectPath.toAbsolutePath().toString() + "/target/liberty");
-
-        // unset the preferences
-        SWTBotPluginOperations.unsetBuildCmdPathInPreferences(bot, "Maven");
+        validateApplicationStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
 
         // Close the terminal.
         terminal.close();
@@ -533,9 +509,6 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
      */
     @Test
     public void testStartWithCustomRunAsConfig() {
-
-        // set the preferences
-        SWTBotPluginOperations.setBuildCmdPathInPreferences(bot, "Maven");
 
         // Delete any previously created configs.
         SWTBotPluginOperations.deleteLibertyToolsConfigEntries(bot,
@@ -566,11 +539,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
             terminal.show();
 
             // Validate application stopped.
-            validateApplicationOutcome(Platform.getOS().equals(Platform.OS_MACOSX) ? MVN_WRAPPER_APP_NAME : MVN_APP_NAME, false,
-                    projectPath.toAbsolutePath().toString() + "/target/liberty");
-
-            // unset the preferences
-            SWTBotPluginOperations.unsetBuildCmdPathInPreferences(bot, "Maven");
+            validateApplicationStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
 
             // Close the terminal.
             terminal.close();
@@ -586,9 +555,6 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         // Delete any previously created configs.
         SWTBotPluginOperations.deleteLibertyToolsConfigEntries(bot,
                 Platform.getOS().equals(Platform.OS_MACOSX) ? MVN_WRAPPER_APP_NAME : MVN_APP_NAME, "run");
-
-        // set the preferences
-        SWTBotPluginOperations.setBuildCmdPathInPreferences(bot, "Maven");
 
         // Delete the test report files before we start this test.
         Path pathToITReport = Paths.get(projectPath.toString(), "target", "site", "failsafe-report.html");
@@ -633,11 +599,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
             terminal.show();
 
             // Validate application stopped.
-            validateApplicationOutcome(Platform.getOS().equals(Platform.OS_MACOSX) ? MVN_WRAPPER_APP_NAME : MVN_APP_NAME, false,
-                    projectPath.toAbsolutePath().toString() + "/target/liberty");
-
-            // unset the preferences
-            SWTBotPluginOperations.unsetBuildCmdPathInPreferences(bot, "Maven");
+            validateApplicationStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
 
             // Close the terminal.
             terminal.close();
@@ -681,7 +643,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
             terminal.show();
 
             // Validate application stopped.
-            validateApplicationOutcome(MVN_APP_NAME, false, projectPath.toAbsolutePath().toString() + "/target/liberty");
+            validateApplicationStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
 
             // Close the terminal.
             terminal.close();
@@ -714,7 +676,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         terminal.show();
 
         // Validate application stopped.
-        validateApplicationOutcome(MVN_APP_NAME, false, projectPath.toAbsolutePath().toString() + "/target/liberty");
+        validateApplicationStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
 
         // Close the terminal.
         terminal.close();
@@ -730,21 +692,18 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         String absoluteMvnwCmd = projectPath.toAbsolutePath().toString() + localMvnwCmd;
         validateWrapperInProject(false, absoluteMvnwCmd);
 
-        // verify no preferences are set
-        validateLibertyToolsPreferencesSet(false);
-
         // Start dev mode.
         SWTBotPluginOperations.launchStartWithDashboardAction(bot, dashboard, MVN_APP_NAME);
 
         // Validate application is not up and not running.
-        validateApplicationOutcome(MVN_APP_NAME, false, projectPath.toAbsolutePath().toString() + "/target/liberty");
+        validateApplicationStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
     }
 
     @Test
+    @DisabledOnMac
     public void testStartWithWrapperAndNoPreferencesSet() {
 
-        // verify no preferences set
-        validateLibertyToolsPreferencesSet(false);
+        SWTBotPluginOperations.unsetBuildCmdPathInPreferences(bot, "Maven");
 
         // verify wrapper present
         String localMvnwCmd = LibertyPluginTestUtils.onWindows() ? "mvnw.cmd" : "mvnw";
@@ -764,26 +723,22 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         terminal.show();
 
         // Validate application stopped.
-        validateApplicationOutcome(MVN_WRAPPER_APP_NAME, false, wrapperProjectPath.toAbsolutePath().toString() + "/target/liberty");
+        validateApplicationStopped(wrapperProjectPath.toAbsolutePath().toString() + "/target/liberty");
 
         // Close the terminal.
         terminal.close();
+
+        SWTBotPluginOperations.setBuildCmdPathInPreferences(bot, "Maven");
     }
 
     @Test
     @DisabledOnMac
     public void testStartWithNoWrapperAndPreferencesSet() {
 
-        // set the preferences
-        SWTBotPluginOperations.setBuildCmdPathInPreferences(bot, "Maven");
-
         // verify no wrapper present
         String localMvnwCmd = LibertyPluginTestUtils.onWindows() ? "mvnw.cmd" : "mvnw";
         String absoluteMvnwCmd = projectPath.toAbsolutePath().toString() + localMvnwCmd;
         validateWrapperInProject(false, absoluteMvnwCmd);
-
-        // verify no preferences set
-        validateLibertyToolsPreferencesSet(false);
 
         // Start dev mode.
         SWTBotPluginOperations.launchStartWithDashboardAction(bot, dashboard, MVN_APP_NAME);
@@ -798,10 +753,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         terminal.show();
 
         // Validate application stopped.
-        validateApplicationOutcome(MVN_APP_NAME, false, projectPath.toAbsolutePath().toString() + "/target/liberty");
-
-        // unset the preferences
-        SWTBotPluginOperations.unsetBuildCmdPathInPreferences(bot, "Maven");
+        validateApplicationStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
 
         // Close the terminal.
         terminal.close();

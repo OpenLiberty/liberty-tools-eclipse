@@ -69,6 +69,8 @@ public class Project {
 
     private boolean libertyServerModule = false;
 
+    private boolean isParentOfServerModule = false;
+
     /**
      * Constructor.
      * 
@@ -77,10 +79,9 @@ public class Project {
     public Project(IProject project) {
         this.iProject = project;
         this.type = findBuildType();
-        this.libertyServerModule = isLibertyNature();
     }
 
-    private boolean isLibertyNature() {
+    public boolean hasLibertyNature() {
         try {
             if (iProject.getDescription().hasNature(LibertyNature.NATURE_ID)) {
                 return true;
@@ -180,23 +181,37 @@ public class Project {
     }
 
     /**
-     * If it is determined that the project is a supported type, the outcome is persisted by associating the project with a Liberty
-     * type/nature.
      */
-    public void classify() {
+    public void classifyAsServerModule() {
         try {
-            if (iProject.getDescription().hasNature(LibertyNature.NATURE_ID)) {
-                libertyServerModule = true;
-                return;
-            }
             IFile serverxml = iProject.getFile(new Path("src/main/liberty/config/server.xml"));
             IFile bootstrapProps = iProject.getFile(new Path("src/main/liberty/config/bootstrap.properties"));
             IFile serverenv = iProject.getFile(new Path("src/main/liberty/config/server.env"));
             if (serverxml.exists() || bootstrapProps.exists() || serverenv.exists()) {
-                addLibertyNature(iProject);
                 libertyServerModule = true;
             } else {
                 libertyServerModule = false;
+            }
+        } catch (Exception e) {
+            String msg = "Error querying and adding Liberty nature";
+            ErrorHandler.processWarningMessage(msg, e, false);
+        }
+    }
+
+    public void classifyAsLibertyNature() {
+        try {
+            if (libertyServerModule) {
+                Project.addLibertyNature(iProject);
+            }
+            // If this is looks like a Maven multi-module project. It may not be however but we take the risk of exposing it
+            if (type.equals(BuildType.MAVEN)) {
+                for (Project child : childDirProjects) {
+                    if (child.isLibertyServerModule()) {
+                        Project.addLibertyNature(iProject);
+                        isParentOfServerModule = true;
+                        break;
+                    }
+                }
             }
         } catch (Exception e) {
             String msg = "Error querying and adding Liberty nature";
@@ -215,6 +230,10 @@ public class Project {
 
         if (Trace.isEnabled()) {
             Trace.getTracer().traceEntry(Trace.TRACE_UTILS, project);
+        }
+
+        if (project.getDescription().hasNature(LibertyNature.NATURE_ID)) {
+            return;
         }
 
         IPath projectPath = project.getLocation().addTrailingSeparator().append(".project");
@@ -280,7 +299,8 @@ public class Project {
     @Override
     public String toString() {
         return "IProject: " + iProject.toString() + ". BuildType: " + type + ". Liberty Server Module: " + libertyServerModule
-                + ". parentDirProj: " + (parentDirProject != null ? parentDirProject.getName() : "<null> ") + ". childDirProjects: "
+                + ". isParentOfServerModule:" + isParentOfServerModule + ". parentDirProj: "
+                + (parentDirProject != null ? parentDirProject.getName() : "<null> ") + ". childDirProjects: "
                 + formatChildProjectToString() + ";";
     }
 
@@ -302,6 +322,10 @@ public class Project {
 
     public boolean isAggregated() {
         return parentDirProject != null;
+    }
+
+    public boolean isParentOfServerModule() {
+        return isParentOfServerModule;
     }
 
 }
