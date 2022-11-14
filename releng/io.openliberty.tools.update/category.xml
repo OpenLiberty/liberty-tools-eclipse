@@ -20,7 +20,6 @@
 
     <repository-reference location="https://download.eclipse.org/jdtls/milestones/1.5.0/repository" enabled="true" />
     <repository-reference location="https://download.eclipse.org/lsp4mp/releases/0.5.0/repository" enabled="true" />
-    <repository-reference location="https://download.eclipse.org/webtools/repository/latest" enabled="true" />
     <repository-reference location="https://raw.githubusercontent.com/eclipse/lsp4jakarta/build-p2-update-site-0.0.1" enabled="true" />
 
     <!-- Dependencies -->
