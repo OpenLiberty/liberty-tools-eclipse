@@ -188,10 +188,31 @@ public class DevModeOperations {
             String cmd = "";
             BuildType buildType = project.getBuildType();
             if (buildType == Project.BuildType.MAVEN) {
-                cmd = CommandBuilder.getMavenCommandLine(projectPath,
+                try {
+                    System.out.println("AJM: trying to get mvn cmd");
+                    cmd = CommandBuilder.getMavenCommandLine(projectPath,
                         "io.openliberty.tools:liberty-maven-plugin:dev " + startParms + " -f " + projectPath, pathEnv);
+                }
+                catch (Exception e) {
+                    String mvnCmdErrMsg = "Unable to get mvn command line";
+                    if (Trace.isEnabled()) {
+                        Trace.getTracer().trace(Trace.TRACE_TOOLS, mvnCmdErrMsg, e);
+                    }
+                    ErrorHandler.processPreferenceWarningMessage(cmd, e, true);
+                    return;
+                }
             } else if (buildType == Project.BuildType.GRADLE) {
-                cmd = CommandBuilder.getGradleCommandLine(projectPath, "libertyDev " + startParms + " -p=" + projectPath, pathEnv);
+                try {
+                    cmd = CommandBuilder.getGradleCommandLine(projectPath, "libertyDev " + startParms + " -p=" + projectPath, pathEnv);
+                }
+                catch (Exception e) {
+                    String gradleCmdErrMsg = "Unable to get gradle command line";
+                    if (Trace.isEnabled()) {
+                        Trace.getTracer().trace(Trace.TRACE_TOOLS, gradleCmdErrMsg, e);
+                    }
+                    ErrorHandler.processPreferenceWarningMessage(cmd, e, false);
+                    return;
+                }
             } else {
                 throw new Exception("Unexpected project build type: " + buildType + ". Project" + projectName
                         + "does not appear to be a Maven or Gradle built project.");
