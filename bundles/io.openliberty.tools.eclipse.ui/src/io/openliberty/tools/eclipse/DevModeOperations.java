@@ -28,6 +28,7 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.browser.IWebBrowser;
 import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
 
+import io.openliberty.tools.eclipse.CommandBuilder.CommandNotFoundException;
 import io.openliberty.tools.eclipse.Project.BuildType;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
@@ -204,6 +205,12 @@ public class DevModeOperations {
 
             // Start a terminal and run the application in dev mode.
             startDevMode(cmd, projectName, projectPath, javaHomePath);
+        } catch (CommandNotFoundException e) {
+            String msg = "Maven or Gradle command not found for project " + projectName;
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
+            }
+            return;
         } catch (Exception e) {
             String msg = "An error was detected while performing the start request on project " + projectName;
             if (Trace.isEnabled()) {

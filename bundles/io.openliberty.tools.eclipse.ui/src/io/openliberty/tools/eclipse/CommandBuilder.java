@@ -17,6 +17,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import io.openliberty.tools.eclipse.logging.Trace;
+import io.openliberty.tools.eclipse.utils.ErrorHandler;
 import io.openliberty.tools.eclipse.utils.Utils;
 
 public class CommandBuilder {
@@ -46,8 +47,11 @@ public class CommandBuilder {
      * @param pathEnv The PATH env var
      *
      * @return The full Maven command to run on the terminal.
+     * 
+     * @throws CommandNotFoundException
      */
-    public static String getMavenCommandLine(String projectPath, String cmdArgs, String pathEnv) {
+    public static String getMavenCommandLine(String projectPath, String cmdArgs, String pathEnv)
+            throws CommandBuilder.CommandNotFoundException {
         if (Trace.isEnabled()) {
             Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { projectPath, cmdArgs });
         }
@@ -60,7 +64,8 @@ public class CommandBuilder {
         return cmdLine;
     }
 
-    public static String getGradleCommandLine(String projectPath, String cmdArgs, String pathEnv) {
+    public static String getGradleCommandLine(String projectPath, String cmdArgs, String pathEnv)
+            throws CommandBuilder.CommandNotFoundException {
         if (Trace.isEnabled()) {
             Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { projectPath, cmdArgs });
         }
@@ -73,7 +78,7 @@ public class CommandBuilder {
         return cmdLine;
     }
 
-    private String getCommand() {
+    private String getCommand() throws CommandBuilder.CommandNotFoundException {
         String cmd = getCommandFromWrapper();
         if (cmd == null) {
             cmd = getCommandFromPreferences();
@@ -85,11 +90,21 @@ public class CommandBuilder {
         if (Trace.isEnabled()) {
             Trace.getTracer().trace(Trace.TRACE_TOOLS, "Command = " + cmd);
         }
+
         if (cmd == null) {
-            throw new IllegalStateException("Could not find " + (isMaven ? "Maven" : "Gradle")
-                    + " executable via wrapper, or the Liberty Tools Preferences, or PATH env var.  Please generate a maven or gradle wrapper into the application,"
-                    + " set a path to the executable using the Liberty Tools Preferences page or set the PATH env var to point to a maven or gradle installation.");
+
+            String errorMsg = "Could not find " + (isMaven ? "Maven" : "Gradle")
+                    + " executable as a wrapper, the Liberty Tools Preferences, or on the PATH";
+
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, errorMsg);
+            }
+
+            ErrorHandler.processPreferenceWarningMessage(errorMsg, true);
+
+            throw new CommandNotFoundException(errorMsg);
         }
+        
         return cmd;
     }
 
@@ -204,4 +219,21 @@ public class CommandBuilder {
         }
     }
 
+    public class CommandNotFoundException extends Exception {
+
+        private static final long serialVersionUID = 8469585975896898403L;
+
+        public CommandNotFoundException() {
+            super();
+        }
+
+        public CommandNotFoundException(String message) {
+            super(message);
+        }
+
+        public CommandNotFoundException(Throwable cause) {
+            super(cause);
+        }
+
+    }
 }
