@@ -41,6 +41,7 @@ import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import io.openliberty.tools.eclipse.CommandBuilder;
+import io.openliberty.tools.eclipse.CommandBuilder.CommandNotFoundException;
 import io.openliberty.tools.eclipse.LibertyNature;
 import io.openliberty.tools.eclipse.Project;
 import io.openliberty.tools.eclipse.test.it.utils.DisabledOnMac;
@@ -204,7 +205,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
 
     @Test
     @DisabledOnMac
-    public void testMavenCommandAssembly() throws IOException, InterruptedException {
+    public void testMavenCommandAssembly() throws IOException, InterruptedException, CommandNotFoundException {
 
         IProject iProject = LibertyPluginTestUtils.getProject(MVN_APP_NAME);
         String projPath = iProject.getLocation().toOSString();
@@ -217,7 +218,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
     }
 
     @Test
-    public void testMavenWrapperCommandAssembly() throws IOException, InterruptedException {
+    public void testMavenWrapperCommandAssembly() throws IOException, InterruptedException, CommandNotFoundException {
         IProject iProject = LibertyPluginTestUtils.getProject(MVN_WRAPPER_APP_NAME);
         String projPath = iProject.getLocation().toOSString();
 

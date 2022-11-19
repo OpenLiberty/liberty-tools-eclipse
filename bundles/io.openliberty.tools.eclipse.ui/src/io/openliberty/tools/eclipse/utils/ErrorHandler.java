@@ -139,20 +139,21 @@ public class ErrorHandler {
             dialog.open();
         }
     }
-    
+
     /**
      * Logs a message to the platform log and opens the error dialog, if indicated.
      *
      * @param message The message to display.
      * @param displayDialog The indicator to open a dialog.
      */
-    public static void processPreferenceWarningMessage(String message, Throwable t, boolean displayDialog) {
+    public static void processPreferenceWarningMessage(String message, boolean displayDialog) {
         Logger.logWarning(message);
 
         if (displayDialog) {
             Shell shell = Display.getCurrent().getActiveShell();
-            String updatedMessage = appendSuffix(t.getMessage(), SUFFIX_MSG);
-            LibertyToolsMessageDialog ltdialog = new LibertyToolsMessageDialog(shell, TITLE, null, updatedMessage, MessageDialog.ERROR, new String[] { "OK" }, 0);
+            String updatedMessage = appendSuffix(message, SUFFIX_MSG);
+            LibertyToolsMessageDialog ltdialog = new LibertyToolsMessageDialog(shell, TITLE, null, updatedMessage, MessageDialog.ERROR,
+                    new String[] { "OK" }, 0);
             ltdialog.open();
         }
     }
