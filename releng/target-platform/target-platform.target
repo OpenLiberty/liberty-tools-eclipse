@@ -109,8 +109,8 @@
             </dependencies>
         </location>
         <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-            <repository location="https://raw.githubusercontent.com/eclipse/lsp4jakarta/build-p2-update-site-0.0.1"/>
-            <unit id="org.eclipse.lsp4jakarta.jdt.core" version="0.0.1.20221028-1834"/>
+            <repository location="https://download.eclipse.org/lsp4jakarta/snapshots/0.0.1/repository"/>
+            <unit id="org.eclipse.lsp4jakarta.jdt.core" version="0.0.1.20221118-2133"/>
         </location>
     </locations>
 </target>

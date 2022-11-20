@@ -74,6 +74,16 @@
                 <enabled>false</enabled>
             </releases>
         </repository>
+        <repository>
+          <id>lsp4jakarta-snapshots</id>
+          <url>https://repo.eclipse.org/content/repositories/lsp4jakarta-snapshots</url>
+          <releases>
+            <enabled>false</enabled>
+          </releases>
+          <snapshots>
+            <enabled>true</enabled>
+          </snapshots>
+        </repository>
 	</repositories>
 
 	<build>
