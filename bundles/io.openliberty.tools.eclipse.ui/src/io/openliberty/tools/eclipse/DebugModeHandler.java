@@ -69,6 +69,12 @@ public class DebugModeHandler {
     /** WLP_DEBUG_ADDRESS property key. */
     public static String WLP_ENV_DEBUG_ADDRESS = "WLP_DEBUG_ADDRESS";
 
+    /** WLP server environment file name. */
+    public static String WLP_SERVER_ENV_FILE_NAME = "server.env";
+
+    /** WLP server environment file backup name. */
+    public static String WLP_SERVER_ENV_BAK_FILE_NAME = "server.env.bak";
+
     /** Debug Perspective ID. */
     public static String DEBUG_PERSPECTIVE_ID = "org.eclipse.debug.ui.DebugPerspective";
 
@@ -92,8 +98,8 @@ public class DebugModeHandler {
      * Returns the input configuration parameters with the debug port argument appended.
      * 
      * @param project The project associated with this call.
-     * @param debugPort The debug port to add to the parameter.
-     * @param configParms The input parms from the Run configuration's dialog.
+     * @param debugPort The debug port to add to the config parameters.
+     * @param configParms The input parameters from the Run configuration's dialog.
      * 
      * @return The input configuration parameters with the debug port argument appended.
      * 
@@ -106,9 +112,13 @@ public class DebugModeHandler {
         if (debugPort != null && !debugPort.isEmpty()) {
             BuildType buildType = project.getBuildType();
             if (buildType == BuildType.MAVEN) {
-                addendum = MAVEN_DEVMODE_DEBUG_PORT_PARM + "=" + debugPort;
+                if (!configParms.contains(MAVEN_DEVMODE_DEBUG_PORT_PARM)) {
+                    addendum = MAVEN_DEVMODE_DEBUG_PORT_PARM + "=" + debugPort;
+                }
             } else if (buildType == BuildType.GRADLE) {
-                addendum = GRADLE_DEVMODE_DEBUG_PORT_PARM + "=" + debugPort;
+                if (!configParms.contains(GRADLE_DEVMODE_DEBUG_PORT_PARM)) {
+                    addendum = GRADLE_DEVMODE_DEBUG_PORT_PARM + "=" + debugPort;
+                }
             } else {
                 throw new Exception("Unexpected project build type: " + buildType + ". Project" + project.getIProject().getName()
                         + "does not appear to be a Maven or Gradle built project.");
@@ -182,22 +192,6 @@ public class DebugModeHandler {
     public void startDebugAttacher(Project project, String debugPort) {
         String projectName = project.getIProject().getName();
 
-        // Find if the project specifies a WLP_DEBUG_ADDRESS entry in the server.env (src/main/liberty/config).
-        // If it is specified, the port value under that variable needs to be ignored. 
-        // This is a safe place to do this because dev mode has not been started yet.
-        String port = null;
-        try {
-            Path projServerEnvPath = Paths.get(project.getPath(), "src", "main", "liberty", "config", "server.env");
-            port = readDebugPortFromServerEnv(projServerEnvPath.toFile());
-        } catch (Exception e) {
-            if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_UI, e.getMessage(), e);
-            }
-
-            ErrorHandler.processErrorMessage(e.getMessage(), e, false);
-        }
-        String projDebugPort = port;
-
         Job job = new Job("Attaching Debugger to JVM...") {
             @Override
             protected IStatus run(IProgressMonitor monitor) {
@@ -206,13 +200,16 @@ public class DebugModeHandler {
                         return Status.CANCEL_STATUS;
                     }
 
-                    String portToConnect = waitForSocketActivation(project, DEFAULT_ATTACH_HOST, debugPort, projDebugPort, monitor);
-                    if (portToConnect != null) {
-                        createRemoteJavaAppDebugConfig(project, DEFAULT_ATTACH_HOST, portToConnect, monitor);
+                    String portToConnect = waitForSocketActivation(project, DEFAULT_ATTACH_HOST, debugPort, monitor);
+                    if (portToConnect == null) {
+                        return Status.CANCEL_STATUS;
                     }
+
+                    createRemoteJavaAppDebugConfig(project, DEFAULT_ATTACH_HOST, portToConnect, monitor);
+
                 } catch (Exception e) {
                     return new Status(IStatus.ERROR, LibertyDevPlugin.PLUGIN_ID, JOB_STATUS_DEBUGGER_CONN_ERROR,
-                            "An error was detected while attempting to Connect the debugger to the JVM.", e);
+                            "An error was detected while attaching the debugger to the JVM.", e);
                 }
 
                 return Status.OK_STATUS;
@@ -309,7 +306,7 @@ public class DebugModeHandler {
 
         try (Stream<Path> matchedStream = Files.find(basePath, 2, (path, basicFileAttribute) -> {
             if (basicFileAttribute.isRegularFile()) {
-                return path.getFileName().toString().equalsIgnoreCase("server.env");
+                return path.getFileName().toString().equalsIgnoreCase(WLP_SERVER_ENV_FILE_NAME);
             }
             return false;
         });) {
@@ -433,21 +430,20 @@ public class DebugModeHandler {
      * 
      * @param host The host to connect to.
      * @param port The port to connect to.
-     * @param projDebugPort The debug port specified in the server.env file provided by the project. It not specified, this value is
-     *        null.
      * @param monitor The progress monitor instance.
      * 
      * @returns The port that the debugger actually connected to.
      * 
      * @throws Exception
      */
-    private String waitForSocketActivation(Project project, String host, String port, String projDebugPort, IProgressMonitor monitor)
-            throws Exception {
+    private String waitForSocketActivation(Project project, String host, String port, IProgressMonitor monitor) throws Exception {
         byte[] handshakeString = "JDWP-Handshake".getBytes(StandardCharsets.US_ASCII);
         int retryLimit = 75;
         int envReadMinLimit = 45;
         int envreadMaxLimit = 75;
         int envReadInterval = 5;
+        boolean doneReadingServerEnvBak = false;
+        String projDebugPort = null;
 
         // Retrieve the location of the server.env in the liberty installation at the default location (wpl/usr/servers/<serverName>).
         Path serverEnvPath = getServerEnvPath(project);
@@ -468,7 +464,6 @@ public class DebugModeHandler {
                     boolean isClosed = devModeOps.isProjectTerminalTabMarkedClosed(project.getIProject().getName());
                     data.closed = isClosed;
                 }
-
             });
 
             if (data.closed == true) {
@@ -477,20 +472,30 @@ public class DebugModeHandler {
 
             // The server.env path may not yet exist. If it is null, retry.
             if (serverEnvPath == null) {
-                serverEnvPath = getServerEnvPath(project);
                 TimeUnit.SECONDS.sleep(1);
-                continue;
+                serverEnvPath = getServerEnvPath(project);
+                if (serverEnvPath == null) {
+                    continue;
+                }
             }
 
             // There is a small window in which the allocated random port could have been taken by another process.
             // Check the deployed server.env at the default location (wlp/usr/servers/<serverName>) for any WLP_DEBUG_ADDRESS entries.
             // If the port is already in use, dev mode will allocate a random port and reflect that by updating the server.env file.
             if (retryCount >= envReadMinLimit && retryCount < envreadMaxLimit && (retryCount % envReadInterval == 0)) {
+                // Look for the server.env.bak file to check if the project provided a WLP_DEBUG_ADDRESS
+                // (server.env in default location or other). If the property is found, the port value under that variable is
+                // ignored to minimize port collisions.
+                if (!doneReadingServerEnvBak) {
+                    Path serverEnvBakPath = (serverEnvPath != null) ? serverEnvPath.resolveSibling(WLP_SERVER_ENV_BAK_FILE_NAME) : null;
+                    if (serverEnvBakPath != null && serverEnvBakPath.toFile().exists()) {
+                        projDebugPort = readDebugPortFromServerEnv(serverEnvBakPath.toFile());
+                        doneReadingServerEnvBak = true;
+                    }
+                }
+
                 String envPort = readDebugPortFromServerEnv(serverEnvPath.toFile());
 
-                // Note that if there is a WLP_DEBUG_ADDRESS entry in the project's src/main/liberty/config/server.env file, that entry is
-                // ignored for the purpose of choosing the debug port. See calcualteDebugPort() for details on how the debug port is
-                // selected.
                 if (envPort != null && (!envPort.equals(projDebugPort))) {
                     if (!envPort.equals(port)) {
                         port = envPort;
@@ -507,7 +512,7 @@ public class DebugModeHandler {
         }
 
         throw new Exception("Unable to automatically attach the debugger to JVM on host: " + host + " and port: " + port
-                + ". Be sure that the server started. If the server started, but it took longer to start than the allocated auto connection time, manual action is required.");
+                + ". If the debug connection timed out but the server did start successfully, you can still manually create a Remote Java Application debug configuration with the mentioned port and attach to the server.");
     }
 
     private class DataHolder {
