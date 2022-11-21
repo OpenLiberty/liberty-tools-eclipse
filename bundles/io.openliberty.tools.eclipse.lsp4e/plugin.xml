@@ -129,7 +129,8 @@
       <server
             class="io.openliberty.tools.eclipse.liberty.languageserver.LibertyLSConnection"
             id="io.openliberty.tools.eclipse.org.liberty.languageserver"
-            label="Liberty Config Language Server">
+            label="Liberty Config Language Server"
+            singleton="true">
       </server>
       <contentTypeMapping
             contentType="io.openliberty.tools.eclipse.org.liberty.tools.config.bootstrap-properties"
@@ -145,7 +146,8 @@
             class="io.openliberty.tools.eclipse.jakarta.languageserver.JakartaLSConnection"
             id="io.openliberty.tools.eclipse.org.liberty.jakartalangserver"
             label="Liberty Tools Jakarta Language Server"
-            clientImpl="io.openliberty.tools.eclipse.jakarta.languageserver.JakartaLSClientImpl">
+            clientImpl="io.openliberty.tools.eclipse.jakarta.languageserver.JakartaLSClientImpl"
+            singleton="true">
       </server>
       <contentTypeMapping
             contentType="org.eclipse.jdt.core.javaSource"
