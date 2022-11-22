@@ -19,6 +19,7 @@ import java.util.Map;
 
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.tm.internal.terminal.provisional.api.ITerminalConnector;
 import org.eclipse.tm.terminal.view.core.TerminalServiceFactory;
 import org.eclipse.tm.terminal.view.core.interfaces.ITerminalService;
@@ -69,6 +70,9 @@ public class ProjectTab {
      */
     private State state;
 
+    /** Tab image */
+    private Image libertyImage;
+
     /**
      * States.
      */
@@ -85,6 +89,7 @@ public class ProjectTab {
         this.projectName = projectName;
         this.terminalService = TerminalServiceFactory.getService();
         this.tabListener = new TerminalTabListenerImpl(projectName);
+        this.libertyImage = Utils.getImage(PlatformUI.getWorkbench().getDisplay(), DashboardView.LIBERTY_LOGO_PATH);
 
         state = State.INACTIVE;
     }
@@ -173,7 +178,7 @@ public class ProjectTab {
      */
     private void updateImage() {
         projectTab.getDisplay().asyncExec(() -> {
-            projectTab.setImage(Utils.getImage(PlatformUI.getWorkbench().getDisplay(), DashboardView.LIBERTY_LOGO_PATH));
+            projectTab.setImage(libertyImage);
         });
     }
 
@@ -289,6 +294,10 @@ public class ProjectTab {
     public void cleanup() {
         // Remove the registered listener from the calling service.
         terminalService.removeTerminalTabListener(tabListener);
+
+        if (libertyImage != null) {
+            libertyImage.dispose();
+        }
     }
 
     /**
