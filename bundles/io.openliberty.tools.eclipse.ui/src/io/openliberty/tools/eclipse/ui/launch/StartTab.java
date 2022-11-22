@@ -34,6 +34,7 @@ import org.eclipse.ui.PlatformUI;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.logging.Trace;
+import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
 import io.openliberty.tools.eclipse.utils.Utils;
 
@@ -77,7 +78,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
      * Constructor.
      */
     public StartTab() {
-        image = Utils.getLibertyImage(PlatformUI.getWorkbench().getDisplay());
+        image = Utils.getImage(PlatformUI.getWorkbench().getDisplay(), DashboardView.LIBERTY_LOGO_PATH);
     }
 
     private boolean isValid = true;

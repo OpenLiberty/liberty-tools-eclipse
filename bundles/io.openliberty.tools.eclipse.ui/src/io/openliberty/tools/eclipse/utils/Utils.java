@@ -35,7 +35,6 @@ import org.eclipse.ui.PlatformUI;
 
 import io.openliberty.tools.eclipse.LibertyDevPlugin;
 import io.openliberty.tools.eclipse.logging.Trace;
-import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
 
 /**
  * Provides a set of utility methods.
@@ -52,14 +51,15 @@ public class Utils {
     }
 
     /**
-     * Returns a org.eclipse.swt.graphics.Image object representing the Open Liberty image.
+     * Returns a org.eclipse.swt.graphics.Image object representing the image under the input path.
      * 
      * @param device The device display.
+     * @param path The path to the image.
      * 
      * @return A org.eclipse.swt.graphics.Image object representing the Open Liberty image.
      */
-    public static Image getLibertyImage(Device device) {
-        URL url = LibertyDevPlugin.getDefault().getBundle().getResource(DashboardView.LIBERTY_LOGO_PATH);
+    public static Image getImage(Device device, String path) {
+        URL url = LibertyDevPlugin.getDefault().getBundle().getResource(path);
         Image image = null;
         if (url != null) {
             InputStream stream = null;
@@ -68,7 +68,7 @@ public class Utils {
                 image = new Image(device, stream);
             } catch (Exception e) {
                 if (Trace.isEnabled()) {
-                    Trace.getTracer().trace(Trace.TRACE_UI, "Error encountered while updating terminal tab image.", e);
+                    Trace.getTracer().trace(Trace.TRACE_UI, "Error encountered while retrieving image.", e);
                 }
             } finally {
                 try {

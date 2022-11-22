@@ -31,6 +31,7 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PlatformUI;
 
 import io.openliberty.tools.eclipse.logging.Trace;
+import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
 import io.openliberty.tools.eclipse.utils.Utils;
 
 /**
@@ -172,7 +173,7 @@ public class ProjectTab {
      */
     private void updateImage() {
         projectTab.getDisplay().asyncExec(() -> {
-            projectTab.setImage(Utils.getLibertyImage(PlatformUI.getWorkbench().getDisplay()));
+            projectTab.setImage(Utils.getImage(PlatformUI.getWorkbench().getDisplay(), DashboardView.LIBERTY_LOGO_PATH));
         });
     }
 
