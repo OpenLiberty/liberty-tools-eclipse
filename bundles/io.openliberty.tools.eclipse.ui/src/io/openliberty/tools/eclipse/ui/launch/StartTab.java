@@ -24,6 +24,7 @@ import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -67,6 +68,9 @@ public class StartTab extends AbstractLaunchConfigurationTab {
 
     private static final String EXAMPLE_START_PARMS = "Example: -DhotTests=true";
 
+    /** The font to use for the contents of this Tab. */
+    private Font font;
+
     /** Tab image */
     private Image image;
 
@@ -87,6 +91,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
      */
     public StartTab() {
         image = Utils.getImage(PlatformUI.getWorkbench().getDisplay(), DashboardView.LIBERTY_LOGO_PATH);
+        font = PlatformUI.getWorkbench().getDisplay().getSystemFont();
     }
 
     /**
@@ -104,8 +109,9 @@ public class StartTab extends AbstractLaunchConfigurationTab {
         // Parameter group composite.
         Composite parmsGroupComposite = createGroupComposite(mainComposite, "", 2);
         createInputParmText(parmsGroupComposite);
-        createLabellWithPreferenceLink(parmsGroupComposite);
         createRunInContainerButton(parmsGroupComposite);
+
+        createLabellWithPreferenceLink(mainComposite);
     }
 
     /**
@@ -296,10 +302,12 @@ public class StartTab extends AbstractLaunchConfigurationTab {
         projectComposite.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
 
         Label projectLabel = new Label(projectComposite, SWT.NONE);
+        projectLabel.setFont(font);
         projectLabel.setText("Project: ");
         GridDataFactory.swtDefaults().applyTo(projectLabel);
 
         projectNameLabel = new Label(projectComposite, SWT.NONE);
+        projectNameLabel.setFont(font);
         projectNameLabel.setText("");
         GridDataFactory.swtDefaults().applyTo(projectNameLabel);
     }
@@ -311,10 +319,12 @@ public class StartTab extends AbstractLaunchConfigurationTab {
      */
     private void createInputParmText(Composite parent) {
         Label inputParmLabel = new Label(parent, SWT.NONE);
+        inputParmLabel.setFont(font);
         inputParmLabel.setText("Start parameters:");
-        GridDataFactory.swtDefaults().applyTo(inputParmLabel);
+        GridDataFactory.swtDefaults().indent(20, 0).applyTo(inputParmLabel);
 
         startParmText = new Text(parent, SWT.BORDER);
+        startParmText.setFont(font);
         startParmText.setMessage(EXAMPLE_START_PARMS);
         startParmText.addModifyListener(new ModifyListener() {
 
@@ -338,11 +348,13 @@ public class StartTab extends AbstractLaunchConfigurationTab {
      * @param parent The parent composite.
      */
     private void createLabellWithPreferenceLink(Composite parent) {
-        Label inputParmLabel = new Label(parent, SWT.NONE);
-        GridDataFactory.swtDefaults().applyTo(inputParmLabel);
+        Label emptyLineLabel = new Label(parent, SWT.NONE);
+        GridDataFactory.swtDefaults().applyTo(emptyLineLabel);
 
         Link link = new Link(parent, SWT.WRAP);
-        link.setText("Note: Use the <a>Liberty Preferences</a> to set the Maven and Gradle executable paths.");
+        link.setFont(font);
+        link.setText(
+                "Note: Use the <a>Liberty Preferences</a> to set the Maven and Gradle executable paths for projects that do not contain a Maven or Gradle wrapper.");
         link.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
@@ -350,7 +362,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
                 dialog.open();
             }
         });
-        GridDataFactory.swtDefaults().applyTo(inputParmLabel);
+        GridDataFactory.swtDefaults().applyTo(link);
     }
 
     /**
@@ -362,6 +374,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
         runInContainerCheckBox = new Button(parent, SWT.CHECK);
         runInContainerCheckBox.setText("Run in Container");
         runInContainerCheckBox.setSelection(false);
+        runInContainerCheckBox.setFont(font);
         runInContainerCheckBox.addSelectionListener(new SelectionAdapter() {
 
             /**
@@ -375,8 +388,8 @@ public class StartTab extends AbstractLaunchConfigurationTab {
         });
         GridDataFactory.swtDefaults().applyTo(runInContainerCheckBox);
 
-        Label emptyLabel = new Label(parent, SWT.NONE);
-        GridDataFactory.swtDefaults().applyTo(emptyLabel);
+        Label emptyColumnLabel = new Label(parent, SWT.NONE);
+        GridDataFactory.swtDefaults().applyTo(emptyColumnLabel);
     }
 
     /**
