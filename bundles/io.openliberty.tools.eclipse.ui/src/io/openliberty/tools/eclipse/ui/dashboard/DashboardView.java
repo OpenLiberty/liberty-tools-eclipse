@@ -52,10 +52,14 @@ import io.openliberty.tools.eclipse.utils.ErrorHandler;
  */
 public class DashboardView extends ViewPart {
 
-    /**
-     * Liberty logo path.
-     */
+    /** Liberty logo path. */
     public static final String LIBERTY_LOGO_PATH = "icons/openLibertyLogo.png";
+
+    /** Maven image tag path. */
+    public static final String MAVEN_IMG_TAG_PATH = "icons/mavenTag.png";
+
+    /** Gradle image tag path. */
+    public static final String GRADLE_IMG_TAG_PATH = "icons/gradleTag.png";
 
     /**
      * Menu Constants.

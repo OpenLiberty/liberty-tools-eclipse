@@ -1,16 +1,14 @@
 package io.openliberty.tools.eclipse.ui.dashboard;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-
-import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.ITableLabelProvider;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.PlatformUI;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.Project;
-import io.openliberty.tools.eclipse.logging.Trace;
+import io.openliberty.tools.eclipse.utils.Utils;
 
 /**
  * Table label provider for entries in the table containing the dashboard content.
@@ -39,18 +37,9 @@ public class DashboardEntryLabelProvider extends LabelProvider implements ITable
      */
     public DashboardEntryLabelProvider(DevModeOperations devModeOps) {
         this.devModeOps = devModeOps;
-
-        try {
-            ImageDescriptor mavenImgDesc = ImageDescriptor.createFromURL(new URL("platform:/plugin/org.eclipse.m2e.core.ui/icons/m2.png"));
-            mavenImg = mavenImgDesc.createImage();
-            ImageDescriptor buildshipImageDesc = ImageDescriptor
-                    .createFromURL(new URL("platform:/plugin/org.eclipse.buildship.ui/icons/full/ovr16/gradle_logo@2x.png"));
-            gradleImg = buildshipImageDesc.createImage();
-        } catch (MalformedURLException e) {
-            if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_UI, "Unable to create URL for specified image path." + e);
-            }
-        }
+        Display display = PlatformUI.getWorkbench().getDisplay();
+        mavenImg = Utils.getImage(display, DashboardView.MAVEN_IMG_TAG_PATH);
+        gradleImg = Utils.getImage(display, DashboardView.GRADLE_IMG_TAG_PATH);
     }
 
     /**
