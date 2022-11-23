@@ -13,16 +13,11 @@
 package io.openliberty.tools.eclipse.ui.preferences;
 
 import org.eclipse.core.runtime.preferences.InstanceScope;
-import org.eclipse.jface.preference.BooleanFieldEditor;
 import org.eclipse.jface.preference.DirectoryFieldEditor;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
-import org.eclipse.jface.preference.RadioGroupFieldEditor;
-import org.eclipse.jface.preference.StringFieldEditor;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.eclipse.ui.preferences.ScopedPreferenceStore;
-
-import io.openliberty.tools.eclipse.LibertyDevPlugin;
 
 public class LibertyToolsPreferencePage extends FieldEditorPreferencePage implements IWorkbenchPreferencePage {
 
@@ -41,5 +36,4 @@ public class LibertyToolsPreferencePage extends FieldEditorPreferencePage implem
         setPreferenceStore(new ScopedPreferenceStore(InstanceScope.INSTANCE, "io.openliberty.tools.eclipse.ui"));
         setDescription("Specify the Maven and Gradle installation locations to be used for starting the application in dev mode");
     }
-
 }

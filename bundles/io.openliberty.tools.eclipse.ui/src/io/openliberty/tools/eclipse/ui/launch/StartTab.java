@@ -18,19 +18,24 @@ import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.ui.AbstractLaunchConfigurationTab;
 import org.eclipse.jface.layout.GridDataFactory;
-import org.eclipse.jface.layout.GridLayoutFactory;
+import org.eclipse.jface.preference.PreferenceDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.dialogs.PreferencesUtil;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.logging.Trace;
@@ -55,17 +60,24 @@ public class StartTab extends AbstractLaunchConfigurationTab {
     /** Configuration map key with a value stating whether or not the associated project ran in a container. */
     public static final String PROJECT_RUN_IN_CONTAINER = "io.openliberty.tools.eclipse.launch.project.container.run";
 
-    /** Tab image */
-    Image image;
+    /** Main preference page ID. */
+    public static final String MAIN_PREFERENCE_PAGE_ID = "io.openliberty.tools.eclipse.ui.preferences.page";
 
     /** Configuration map key with a value stating whether or not the associated project ran in a container. */
-    public static final String START_TAB_NAME = "Start";
+    public static final String TAB_NAME = "Start";
 
     private static final String EXAMPLE_START_PARMS = "Example: -DhotTests=true";
+
+    /** The font to use for the contents of this Tab. */
+    private Font font;
+
+    /** Tab image */
+    private Image image;
 
     /** Holds the start parameter text configuration. */
     private Text startParmText;
 
+    /** Holds the project name associated with the configuration being displayed. */
     private Label projectNameLabel;
 
     /** Holds the run in container check box. */
@@ -79,81 +91,27 @@ public class StartTab extends AbstractLaunchConfigurationTab {
      */
     public StartTab() {
         image = Utils.getImage(PlatformUI.getWorkbench().getDisplay(), DashboardView.LIBERTY_LOGO_PATH);
+        font = PlatformUI.getWorkbench().getDisplay().getSystemFont();
     }
-
-    private boolean isValid = true;
 
     /**
      * {@inheritDoc}
      */
     @Override
     public void createControl(Composite parent) {
-        Composite composite = new Group(parent, SWT.BORDER);
-        setControl(composite);
+        // Main composite.
+        Composite mainComposite = new Composite(parent, SWT.NONE);
+        mainComposite.setLayout(new GridLayout(1, false));
+        mainComposite.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+        setControl(mainComposite);
+        createProjectLabel(mainComposite);
 
-        // Create a page layout.
-        GridLayoutFactory.swtDefaults().numColumns(2).applyTo(composite);
+        // Parameter group composite.
+        Composite parmsGroupComposite = createGroupComposite(mainComposite, "", 2);
+        createInputParmText(parmsGroupComposite);
+        createRunInContainerButton(parmsGroupComposite);
 
-        // Project name
-        Label projectLabel = new Label(composite, SWT.NONE);
-        projectLabel.setText("Project");
-        GridDataFactory.swtDefaults().indent(20, 0).applyTo(projectLabel);
-
-        projectNameLabel = new Label(composite, SWT.NONE);
-        projectNameLabel.setText("");
-        GridDataFactory.swtDefaults().indent(20, 0).applyTo(projectNameLabel);
-
-        // Add an empty line.
-        Label emptyLine = new Label(composite, SWT.NONE);
-        GridDataFactory.swtDefaults().span(2, 1).applyTo(emptyLine);
-
-        // Add the input parameter text box label.
-        Label inputParmLabel = new Label(composite, SWT.NONE);
-        inputParmLabel.setText("Start parameters:");
-        GridDataFactory.swtDefaults().indent(20, 0).applyTo(inputParmLabel);
-
-        // Add the input parameter text box.
-        startParmText = new Text(composite, SWT.BORDER);
-        startParmText.setMessage(EXAMPLE_START_PARMS);
-        startParmText.addModifyListener(new ModifyListener() {
-
-            /**
-             * {@inheritDoc}
-             */
-            @Override
-            public void modifyText(ModifyEvent e) {
-                checkForIncorrectTerms();
-                setDirty(true);
-                updateLaunchConfigurationDialog();
-            }
-
-        });
-
-        GridDataFactory.fillDefaults().grab(true, false).applyTo(startParmText);
-
-        // Add another empty line.
-        Label emptyLine2 = new Label(composite, SWT.NONE);
-        GridDataFactory.swtDefaults().span(2, 1).applyTo(emptyLine2);
-
-        // Add the check box.
-        runInContainerCheckBox = new Button(composite, SWT.CHECK);
-        runInContainerCheckBox.setText("Run in Container");
-        runInContainerCheckBox.setSelection(false);
-        runInContainerCheckBox.addSelectionListener(new SelectionAdapter() {
-
-            /**
-             * {@inheritDoc}
-             */
-            @Override
-            public void widgetSelected(SelectionEvent event) {
-                setDirty(true);
-                updateLaunchConfigurationDialog();
-            }
-        });
-        GridDataFactory.swtDefaults().applyTo(runInContainerCheckBox);
-        Label emptyLabel = new Label(composite, SWT.NONE);
-        GridDataFactory.swtDefaults().applyTo(emptyLabel);
-
+        createLabellWithPreferenceLink(mainComposite);
     }
 
     /**
@@ -213,7 +171,6 @@ public class StartTab extends AbstractLaunchConfigurationTab {
             if (projectName == null) {
                 super.setErrorMessage(
                         "A project must be selected in order to provide a context to associate the run configuration with.  Either use a tree view like Package Explorer or have an editor window.");
-                isValid = false;
             } else {
                 projectNameLabel.setText(projectName);
             }
@@ -277,12 +234,6 @@ public class StartTab extends AbstractLaunchConfigurationTab {
         configuration.setAttribute(PROJECT_RUN_IN_CONTAINER, runInContainerBool);
 
         configuration.setAttribute(PROJECT_START_PARM, startParamStr);
-        //
-        // try {
-        // configuration.doSave();
-        // } catch (CoreException e) {
-        // traceError(e, "Error saving Run Configuration.");
-        // }
 
         if (Trace.isEnabled()) {
             Trace.getTracer().trace(Trace.TRACE_UI, "In performApply with project name = " + projectNameLabel.getText() + ", text = "
@@ -295,7 +246,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
      */
     @Override
     public String getName() {
-        return START_TAB_NAME;
+        return TAB_NAME;
     }
 
     /**
@@ -314,6 +265,131 @@ public class StartTab extends AbstractLaunchConfigurationTab {
         if (image != null) {
             image.dispose();
         }
+    }
+
+    /**
+     * Creates a composite that will display a set of elements as a group.
+     * 
+     * @param parent The parent composite.
+     * @param groupName The title of the group to be created.
+     * @param numColumns The number of columns of the grid layout in the composite to be created.
+     * 
+     * @return A composite that will display a set of elements as a group.
+     */
+    private Composite createGroupComposite(Composite parent, String groupName, int numColumns) {
+        Group group = new Group(parent, SWT.NONE);
+        group.setText(groupName);
+        group.setLayout(new GridLayout());
+        group.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+
+        Composite composite = new Composite(group, SWT.NONE);
+        GridLayout rgLayoutx = new GridLayout(numColumns, false);
+        composite.setLayout(rgLayoutx);
+        composite.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+
+        return composite;
+    }
+
+    /**
+     * Creates the project label entry that shows the name of the project associated with the dialog.
+     * 
+     * @param parent The parent composite.
+     */
+    private void createProjectLabel(Composite parent) {
+        Composite projectComposite = new Composite(parent, SWT.NONE);
+        GridLayout projectLayout = new GridLayout(2, false);
+        projectComposite.setLayout(projectLayout);
+        projectComposite.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+
+        Label projectLabel = new Label(projectComposite, SWT.NONE);
+        projectLabel.setFont(font);
+        projectLabel.setText("Project: ");
+        GridDataFactory.swtDefaults().applyTo(projectLabel);
+
+        projectNameLabel = new Label(projectComposite, SWT.NONE);
+        projectNameLabel.setFont(font);
+        projectNameLabel.setText("");
+        GridDataFactory.swtDefaults().applyTo(projectNameLabel);
+    }
+
+    /**
+     * Creates the labeled input text entry that allows users to enter parameters used to run dev mode.
+     * 
+     * @param parent The parent composite.
+     */
+    private void createInputParmText(Composite parent) {
+        Label inputParmLabel = new Label(parent, SWT.NONE);
+        inputParmLabel.setFont(font);
+        inputParmLabel.setText("Start parameters:");
+        GridDataFactory.swtDefaults().indent(20, 0).applyTo(inputParmLabel);
+
+        startParmText = new Text(parent, SWT.BORDER);
+        startParmText.setFont(font);
+        startParmText.setMessage(EXAMPLE_START_PARMS);
+        startParmText.addModifyListener(new ModifyListener() {
+
+            /**
+             * {@inheritDoc}
+             */
+            @Override
+            public void modifyText(ModifyEvent e) {
+                checkForIncorrectTerms();
+                setDirty(true);
+                updateLaunchConfigurationDialog();
+            }
+
+        });
+        GridDataFactory.fillDefaults().grab(true, false).applyTo(startParmText);
+    }
+
+    /**
+     * Creates the label entry that contains a link to the Liberty preferences.
+     * 
+     * @param parent The parent composite.
+     */
+    private void createLabellWithPreferenceLink(Composite parent) {
+        Label emptyLineLabel = new Label(parent, SWT.NONE);
+        GridDataFactory.swtDefaults().applyTo(emptyLineLabel);
+
+        Link link = new Link(parent, SWT.WRAP);
+        link.setFont(font);
+        link.setText(
+                "Note: Use the <a>Liberty Preferences</a> to set the Maven and Gradle executable paths for projects that do not contain a Maven or Gradle wrapper.");
+        link.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                PreferenceDialog dialog = PreferencesUtil.createPreferenceDialogOn(null, MAIN_PREFERENCE_PAGE_ID, null, null);
+                dialog.open();
+            }
+        });
+        GridDataFactory.swtDefaults().applyTo(link);
+    }
+
+    /**
+     * Creates the button entry that indicates whether or not the project should run in a container.
+     * 
+     * @param parent The parent composite.
+     */
+    private void createRunInContainerButton(Composite parent) {
+        runInContainerCheckBox = new Button(parent, SWT.CHECK);
+        runInContainerCheckBox.setText("Run in Container");
+        runInContainerCheckBox.setSelection(false);
+        runInContainerCheckBox.setFont(font);
+        runInContainerCheckBox.addSelectionListener(new SelectionAdapter() {
+
+            /**
+             * {@inheritDoc}
+             */
+            @Override
+            public void widgetSelected(SelectionEvent event) {
+                setDirty(true);
+                updateLaunchConfigurationDialog();
+            }
+        });
+        GridDataFactory.swtDefaults().applyTo(runInContainerCheckBox);
+
+        Label emptyColumnLabel = new Label(parent, SWT.NONE);
+        GridDataFactory.swtDefaults().applyTo(emptyColumnLabel);
     }
 
     /**
@@ -343,5 +419,4 @@ public class StartTab extends AbstractLaunchConfigurationTab {
 
         return parms;
     }
-
 }
