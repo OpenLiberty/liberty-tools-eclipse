@@ -70,7 +70,9 @@ public class ProjectTab {
      */
     private State state;
 
-    /** Tab image */
+    /**
+     * Tab image
+     */
     private Image libertyImage;
 
     /**
@@ -96,6 +98,8 @@ public class ProjectTab {
 
     /**
      * Sets the connector associated with this terminal.
+     * 
+     * @param connector The terminal connector for terminal interaction.
      */
     public void setConnector(ITerminalConnector connector) {
         this.connector = connector;
@@ -103,6 +107,8 @@ public class ProjectTab {
 
     /**
      * Returns the connector associated with this terminal.
+     * 
+     * @return The connector associated with this terminal.
      */
     public ITerminalConnector getConnector() {
         return connector;
@@ -295,6 +301,7 @@ public class ProjectTab {
         // Remove the registered listener from the calling service.
         terminalService.removeTerminalTabListener(tabListener);
 
+        // Dispose of the liberty image associated with this tab.
         if (libertyImage != null) {
             libertyImage.dispose();
         }
@@ -312,6 +319,7 @@ public class ProjectTab {
             }
             return;
         }
+
         IViewPart viewPart = null;
         try {
             viewPart = activePage.showView(IUIConstants.ID, null, IWorkbenchPage.VIEW_ACTIVATE);
