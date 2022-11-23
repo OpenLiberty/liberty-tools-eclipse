@@ -19,6 +19,7 @@ import java.util.Map;
 
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.swt.custom.CTabItem;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.tm.internal.terminal.provisional.api.ITerminalConnector;
 import org.eclipse.tm.terminal.view.core.TerminalServiceFactory;
 import org.eclipse.tm.terminal.view.core.interfaces.ITerminalService;
@@ -70,6 +71,11 @@ public class ProjectTab {
     private State state;
 
     /**
+     * Tab image
+     */
+    private Image libertyImage;
+
+    /**
      * States.
      */
     public static enum State {
@@ -85,12 +91,15 @@ public class ProjectTab {
         this.projectName = projectName;
         this.terminalService = TerminalServiceFactory.getService();
         this.tabListener = new TerminalTabListenerImpl(projectName);
+        this.libertyImage = Utils.getImage(PlatformUI.getWorkbench().getDisplay(), DashboardView.LIBERTY_LOGO_PATH);
 
         state = State.INACTIVE;
     }
 
     /**
      * Sets the connector associated with this terminal.
+     * 
+     * @param connector The terminal connector for terminal interaction.
      */
     public void setConnector(ITerminalConnector connector) {
         this.connector = connector;
@@ -98,6 +107,8 @@ public class ProjectTab {
 
     /**
      * Returns the connector associated with this terminal.
+     * 
+     * @return The connector associated with this terminal.
      */
     public ITerminalConnector getConnector() {
         return connector;
@@ -173,7 +184,7 @@ public class ProjectTab {
      */
     private void updateImage() {
         projectTab.getDisplay().asyncExec(() -> {
-            projectTab.setImage(Utils.getImage(PlatformUI.getWorkbench().getDisplay(), DashboardView.LIBERTY_LOGO_PATH));
+            projectTab.setImage(libertyImage);
         });
     }
 
@@ -289,6 +300,11 @@ public class ProjectTab {
     public void cleanup() {
         // Remove the registered listener from the calling service.
         terminalService.removeTerminalTabListener(tabListener);
+
+        // Dispose of the liberty image associated with this tab.
+        if (libertyImage != null) {
+            libertyImage.dispose();
+        }
     }
 
     /**
@@ -303,6 +319,7 @@ public class ProjectTab {
             }
             return;
         }
+
         IViewPart viewPart = null;
         try {
             viewPart = activePage.showView(IUIConstants.ID, null, IWorkbenchPage.VIEW_ACTIVATE);
