@@ -176,11 +176,13 @@ public class CommandBuilder {
         // Put it all together.
         StringBuilder sb = new StringBuilder();
         if (cmd != null) {
-            sb.append(cmd).append(" ").append(cmdArgs);
             if (Utils.isWindows()) {
-                // Include trailing space for separation
-                sb.insert(0, "/c ");
+                sb.append("/c ");
+                sb.append("echo && ");
+                sb.append("echo Liberty Tools running command: " + cmd + " " + cmdArgs);
+                sb.append(" from directory: " + projectPath + " && ");
             }
+            sb.append(cmd).append(" ").append(cmdArgs);
         }
 
         return sb.toString();
