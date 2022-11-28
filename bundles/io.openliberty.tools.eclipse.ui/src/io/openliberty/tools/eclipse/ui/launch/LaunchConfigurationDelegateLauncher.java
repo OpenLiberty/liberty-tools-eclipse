@@ -13,6 +13,8 @@
 package io.openliberty.tools.eclipse.ui.launch;
 
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IWorkspaceRoot;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.debug.core.ILaunch;
@@ -72,12 +74,14 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
         display.syncExec(new Runnable() {
             public void run() {
                 try {
-                    IProject iProject = Utils.getActiveProject();
-                    if (iProject == null) {
-                        iProject = devModeOps.getSelectedDashboardProject();
-                    }
+                    validateProjectsMatch(configuration);
 
-                    StartAction.run(iProject, configuration, mode);
+                    String configProjectName = configuration.getAttribute(StartTab.PROJECT_NAME, (String) null);
+                    IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
+                    IProject configProject = root.getProject(configProjectName);
+
+                    StartAction.run(configProject, configuration, mode);
+
                 } catch (Exception e) {
                     String msg = "An error was detected while launching configuration " + configuration.getName() + ".";
                     if (Trace.isEnabled()) {
@@ -87,6 +91,33 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
                     return;
                 }
             }
+
+            private void validateProjectsMatch(ILaunchConfiguration configuration) throws CoreException {
+
+                IProject activeProject = Utils.getActiveProject();
+                if (activeProject != null) {
+                    assertProjectsMatch(configuration, activeProject);
+                }
+
+                IProject dashboardProject = devModeOps.getSelectedDashboardProject();
+                if (dashboardProject != null) {
+                    assertProjectsMatch(configuration, dashboardProject);
+                }
+            }
+
+            private void assertProjectsMatch(ILaunchConfiguration configuration, IProject selectedProject) throws CoreException {
+                String configProjectName = configuration.getAttribute(StartTab.PROJECT_NAME, (String) null);
+
+                if (!configProjectName.equals(selectedProject.getName())) {
+                    String configurationName = configuration.getName();
+                    String msg = "The selected  Run/Debug configuration '" + configurationName
+                            + "' cannot be used to run selected project '" + selectedProject.getName()
+                            + ", because the configuration is associated with project '" + configProjectName
+                            + "'. You can create a new configuration, or pick an existing configuration associated with the selected project.";
+                    throw new IllegalStateException(msg);
+                }
+            }
+
         });
 
         if (Trace.isEnabled()) {
