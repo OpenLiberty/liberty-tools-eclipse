@@ -51,7 +51,7 @@ public class TerminalTabListenerImpl implements ITerminalTabListener {
                     Trace.getTracer().trace(Trace.TRACE_UI, "The terminal associated with project " + projectName
                             + " was closed. Processing cleanup. Listener: " + this + ". Source: " + source + ". Data: " + data);
                 }
-                ProjectTabController.getInstance().cleanupTerminal(projectName);
+                ProjectTabController.getInstance().cleanupDisposedTerminal(projectName);
             }
         }
     }

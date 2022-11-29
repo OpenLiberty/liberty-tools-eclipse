@@ -204,7 +204,7 @@ public class DevModeOperations {
             }
 
             // Start a terminal and run the application in dev mode.
-            startDevMode(cmd, projectName, projectPath, javaHomePath);
+            startDevMode(cmd, project, javaHomePath);
         } catch (CommandNotFoundException e) {
             String msg = "Maven or Gradle command not found for project " + projectName;
             if (Trace.isEnabled()) {
@@ -321,7 +321,7 @@ public class DevModeOperations {
             }
 
             // Start a terminal and run the application in dev mode.
-            startDevMode(cmd, projectName, projectPath, javaHomePath);
+            startDevMode(cmd, project, javaHomePath);
         } catch (Exception e) {
             String msg = "An error was detected while performing the start in container request on project " + projectName;
             if (Trace.isEnabled()) {
@@ -748,7 +748,7 @@ public class DevModeOperations {
      *
      * @throws Exception If an error occurs while running the specified command.
      */
-    public void startDevMode(String cmd, String projectName, String projectPath, String javaInstallPath) throws Exception {
+    public void startDevMode(String cmd, Project project, String javaInstallPath) throws Exception {
         // Determine the environment properties to be set in the terminal prior to running dev mode.
         List<String> envs = new ArrayList<String>(1);
 
@@ -756,7 +756,7 @@ public class DevModeOperations {
         // the java installation to be custom defined, execution environment defined, or workspace defined.
         envs.add("JAVA_HOME=" + javaInstallPath);
 
-        projectTabController.runOnTerminal(projectName, projectPath, cmd, envs);
+        projectTabController.runOnTerminal(project, cmd, envs);
     }
 
     /**
