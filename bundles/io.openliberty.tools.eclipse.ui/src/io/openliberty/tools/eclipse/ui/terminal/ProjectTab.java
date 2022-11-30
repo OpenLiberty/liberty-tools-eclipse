@@ -40,9 +40,7 @@ import io.openliberty.tools.eclipse.utils.Utils;
  */
 public class ProjectTab {
 
-    /**
-     * The name of the application project associated with this terminal.
-     */
+    /** The name of the application project associated with this terminal. */
     private String projectName;
 
     /**
@@ -50,37 +48,28 @@ public class ProjectTab {
      */
     private ITerminalConnector connector;
 
-    /**
-     * Terminal view tab item associated with the running application project.
-     */
+    /** Terminal view tab item associated with the running application project. */
     private CTabItem projectTab;
 
-    /**
-     * Terminal service.
-     */
+    /** Terminal service. */
     private ITerminalService terminalService;
 
-    /**
-     * Terminal tab listener associated with this terminal tab.
-     */
+    /** Terminal tab listener associated with this terminal tab. */
     private TerminalTabListenerImpl tabListener;
 
-    /**
-     * State of this object.
-     */
+    /** State of this object. */
     private State state;
 
-    /**
-     * Tab image
-     */
+    /** Tab image */
     private Image libertyImage;
 
-    /**
-     * States.
-     */
+    /** States. */
     public static enum State {
         INACTIVE, STARTED, STOPPED
     };
+
+    /** The NIX shell on which the terminal commands are processed. */
+    private final String NIX_SHELL_COMMAND = "/bin/sh";
 
     /**
      * Constructor.
@@ -175,6 +164,12 @@ public class ProjectTab {
         properties.put(ITerminalsConnectorConstants.PROP_PROCESS_ARGS, command);
         properties.put(ITerminalsConnectorConstants.PROP_PROCESS_ENVIRONMENT, envs.toArray(new String[envs.size()]));
         properties.put(ITerminalsConnectorConstants.PROP_PROCESS_WORKING_DIR, projectPath);
+
+        // WIN: Terminal command is run using whatever is specified under the ComSpec environment variable, or cmd.exe by default.
+        // NIX: Terminal command is run using the system shell.
+        if (!Utils.isWindows()) {
+            properties.put(ITerminalsConnectorConstants.PROP_PROCESS_PATH, NIX_SHELL_COMMAND);
+        }
 
         return properties;
     }
