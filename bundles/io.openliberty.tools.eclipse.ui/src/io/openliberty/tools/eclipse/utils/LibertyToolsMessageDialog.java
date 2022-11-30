@@ -32,19 +32,19 @@ public class LibertyToolsMessageDialog extends MessageDialog {
     }
 
     @Override
-    protected Control createCustomArea( Composite parent ) {
-      Link link = new Link( parent, SWT.WRAP );
-      link.setText( "Could not find wrapper - executable not configured via <a>Liberty Preferences</a> nor on PATH" );
-      link.addSelectionListener(new SelectionAdapter() {
-          @Override
-          public void widgetSelected(SelectionEvent e) {
-              PreferenceDialog dialog = PreferencesUtil.createPreferenceDialogOn(
-                      null, "io.openliberty.tools.eclipse.ui.preferences.page",  
-                      new String[] {"io.openliberty.tools.eclipse.ui.preferences.page"}, null);
-                  dialog.open();
-          }
-      });
-      return link;
+    protected Control createCustomArea(Composite parent) {
+        Link link = new Link(parent, SWT.WRAP);
+        link.setText(
+                "To fix: either generate wrapper for project, or set the executable in <a>Liberty Preferences</a>, or on the PATH env var");
+        link.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                PreferenceDialog dialog = PreferencesUtil.createPreferenceDialogOn(null, "io.openliberty.tools.eclipse.ui.preferences.page",
+                        new String[] { "io.openliberty.tools.eclipse.ui.preferences.page" }, null);
+                dialog.open();
+            }
+        });
+        return link;
     }
 
 }

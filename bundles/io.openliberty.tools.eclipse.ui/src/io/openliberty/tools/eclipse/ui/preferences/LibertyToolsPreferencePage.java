@@ -31,30 +31,30 @@ public class LibertyToolsPreferencePage extends FieldEditorPreferencePage implem
 
     LibertyPrefDirectoryFieldEditor mvnInstallFE;
     LibertyPrefDirectoryFieldEditor gradleInstallFE;
-    
+
     public LibertyToolsPreferencePage() {
-        
+
         super(GRID);
     }
 
     @Override
     public void createFieldEditors() {
 
-        mvnInstallFE = new LibertyPrefDirectoryFieldEditor("MVNPATH", "&Maven Install Location:",  getFieldEditorParent());
+        mvnInstallFE = new LibertyPrefDirectoryFieldEditor("MVNPATH", "&Maven Install Location:", getFieldEditorParent());
         gradleInstallFE = new LibertyPrefDirectoryFieldEditor("GRADLEPATH", "&Gradle Install Location:", getFieldEditorParent());
 
         addField(mvnInstallFE);
         addField(gradleInstallFE);
-        
+
     }
 
     @Override
     public void init(IWorkbench workbench) {
         // second parameter is typically the plug-in id
         setPreferenceStore(new ScopedPreferenceStore(InstanceScope.INSTANCE, "io.openliberty.tools.eclipse.ui"));
-        setDescription("Use the Browse buttons to specify the Maven and Gradle installation locations to be used for starting the application in dev mode");
+        setDescription(
+                "Use the Browse buttons to specify the Maven and Gradle installation locations to be used for starting the application in dev mode, which will be used if no mvnw/gradlew wrapper is found.");
     }
-
 
     @Override
     public void propertyChange(PropertyChangeEvent event) {
@@ -92,10 +92,9 @@ public class LibertyToolsPreferencePage extends FieldEditorPreferencePage implem
                 setValid(false);
                 if (!installMvnLocValid && !installGradleLocValid) {
                     setErrorMessage("Install locations must contain mvn and gradle executables");
-                } else if (!installMvnLocValid && installGradleLocValid){
+                } else if (!installMvnLocValid && installGradleLocValid) {
                     setErrorMessage("Install location must contain a mvn executable");
-                }
-                else {
+                } else {
                     setErrorMessage("Install location must contain a gradle executable");
                 }
             }

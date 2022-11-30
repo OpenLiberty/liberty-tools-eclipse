@@ -93,8 +93,7 @@ public class CommandBuilder {
 
         if (cmd == null) {
 
-            String errorMsg = "Could not find " + (isMaven ? "Maven" : "Gradle")
-                    + " executable as a wrapper, the Liberty Tools Preferences, or on the PATH";
+            String errorMsg = "Could not find " + (isMaven ? "Maven" : "Gradle") + " executable or wrapper";
 
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, errorMsg);
@@ -104,7 +103,7 @@ public class CommandBuilder {
 
             throw new CommandNotFoundException(errorMsg);
         }
-        
+
         return cmd;
     }
 
