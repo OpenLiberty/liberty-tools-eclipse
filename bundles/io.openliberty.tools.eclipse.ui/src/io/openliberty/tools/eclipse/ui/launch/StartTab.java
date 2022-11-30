@@ -353,8 +353,9 @@ public class StartTab extends AbstractLaunchConfigurationTab {
 
         Link link = new Link(parent, SWT.WRAP);
         link.setFont(font);
-        link.setText(
-                "Note: Use the <a>Liberty Preferences</a> to set the Maven and Gradle executable paths for projects that do not contain a Maven or Gradle wrapper.");
+        // link.setText("Note: Use <a>Liberty Preferences</a> to set Maven/Gradle executable paths for projects without Maven/Gradle
+        // wrapper.");
+        link.setText("Maven/Gradle executable paths can be set in <a>Liberty Preferences</a>");
         link.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
