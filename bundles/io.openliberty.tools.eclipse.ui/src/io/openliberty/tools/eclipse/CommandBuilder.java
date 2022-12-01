@@ -195,6 +195,8 @@ public class CommandBuilder {
                 sb.append("echo && ");
                 sb.append("echo Liberty Tools running command: " + cmd + " " + cmdArgs);
                 sb.append(" from directory: " + projectPath + " && ");
+            } else {
+                sb.append(" -x ");
             }
             sb.append(cmd).append(" ").append(cmdArgs);
         }
