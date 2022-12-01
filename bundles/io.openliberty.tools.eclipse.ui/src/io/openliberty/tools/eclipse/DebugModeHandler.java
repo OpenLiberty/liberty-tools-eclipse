@@ -44,13 +44,18 @@ import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.jdt.launching.IJavaLaunchConfigurationConstants;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
 import io.openliberty.tools.eclipse.Project.BuildType;
 import io.openliberty.tools.eclipse.logging.Trace;
+import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationHelper;
 import io.openliberty.tools.eclipse.ui.launch.StartTab;
+import io.openliberty.tools.eclipse.ui.terminal.ProjectTabController;
 import io.openliberty.tools.eclipse.ui.terminal.TerminalListener;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
 
@@ -65,7 +70,20 @@ public class DebugModeHandler {
     /** Gradle: Dev mode debug port argument key. */
     public static String GRADLE_DEVMODE_DEBUG_PORT_PARM = "--libertyDebugPort";
 
+    /** WLP_DEBUG_ADDRESS property key. */
     public static String WLP_ENV_DEBUG_ADDRESS = "WLP_DEBUG_ADDRESS";
+
+    /** WLP server environment file name. */
+    public static String WLP_SERVER_ENV_FILE_NAME = "server.env";
+
+    /** WLP server environment file backup name. */
+    public static String WLP_SERVER_ENV_BAK_FILE_NAME = "server.env.bak";
+
+    /** Debug Perspective ID. */
+    public static String DEBUG_PERSPECTIVE_ID = "org.eclipse.debug.ui.DebugPerspective";
+
+    /** Job status return code indicating that an error took place while attempting to attach the debugger to the JVM. */
+    public static int JOB_STATUS_DEBUGGER_CONN_ERROR = 1;
 
     /** Instance to this class. */
     private LaunchConfigurationHelper launchConfigHelper = LaunchConfigurationHelper.getInstance();
@@ -84,23 +102,31 @@ public class DebugModeHandler {
      * Returns the input configuration parameters with the debug port argument appended.
      * 
      * @param project The project associated with this call.
-     * @param debugPort The debug port to add to the parameter.
-     * @param configParms The input parms from the Run configuration's dialog.
+     * @param debugPort The debug port to add to the config parameters.
+     * @param configParms The input parameters from the Run configuration's dialog.
      * 
      * @return The input configuration parameters with the debug port argument appended.
      * 
      * @throws Exception
      */
     public String addDebugDataToStartParms(Project project, String debugPort, String configParms) throws Exception {
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { project, debugPort, configParms });
+        }
+
         String startParms = configParms;
         String addendum = null;
 
         if (debugPort != null && !debugPort.isEmpty()) {
             BuildType buildType = project.getBuildType();
             if (buildType == BuildType.MAVEN) {
-                addendum = MAVEN_DEVMODE_DEBUG_PORT_PARM + "=" + debugPort;
+                if (!configParms.contains(MAVEN_DEVMODE_DEBUG_PORT_PARM)) {
+                    addendum = MAVEN_DEVMODE_DEBUG_PORT_PARM + "=" + debugPort;
+                }
             } else if (buildType == BuildType.GRADLE) {
-                addendum = GRADLE_DEVMODE_DEBUG_PORT_PARM + "=" + debugPort;
+                if (!configParms.contains(GRADLE_DEVMODE_DEBUG_PORT_PARM)) {
+                    addendum = GRADLE_DEVMODE_DEBUG_PORT_PARM + "=" + debugPort;
+                }
             } else {
                 throw new Exception("Unexpected project build type: " + buildType + ". Project" + project.getIProject().getName()
                         + "does not appear to be a Maven or Gradle built project.");
@@ -111,6 +137,10 @@ public class DebugModeHandler {
             StringBuffer updatedParms = new StringBuffer(configParms);
             updatedParms.append((configParms.isEmpty()) ? "" : " ").append(addendum);
             startParms = updatedParms.toString();
+        }
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, new Object[] { project, startParms });
         }
 
         return startParms;
@@ -125,9 +155,13 @@ public class DebugModeHandler {
      * @return The debug port to be used.
      */
     public String calculateDebugPort(Project project, String inputParms) throws Exception {
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { project, inputParms });
+        }
+
         String debugPort = null;
 
-        // 1. Check if the debugPort was specified as part of start parameters. If so, try that port first.
+        // 1. Check if the debugPort was specified as part of start parameters. If so, use that port first.
         String searchKey = null;
 
         BuildType buildType = project.getBuildType();
@@ -159,6 +193,10 @@ public class DebugModeHandler {
             }
         }
 
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { project, debugPort });
+        }
+
         return debugPort;
 
     }
@@ -183,12 +221,15 @@ public class DebugModeHandler {
                     }
 
                     String portToConnect = waitForSocketActivation(project, DEFAULT_ATTACH_HOST, debugPort, monitor);
-                    if (portToConnect != null) {
-                        createRemoteJavaAppDebugConfig(project, DEFAULT_ATTACH_HOST, portToConnect, monitor);
+                    if (portToConnect == null) {
+                        return Status.CANCEL_STATUS;
                     }
+
+                    createRemoteJavaAppDebugConfig(project, DEFAULT_ATTACH_HOST, portToConnect, monitor);
+
                 } catch (Exception e) {
-                    return new Status(IStatus.ERROR, LibertyDevPlugin.PLUGIN_ID, 1,
-                            "Unable to attach debugger to host: " + DEFAULT_ATTACH_HOST + " and port: " + debugPort, e);
+                    return new Status(IStatus.ERROR, LibertyDevPlugin.PLUGIN_ID, JOB_STATUS_DEBUGGER_CONN_ERROR,
+                            "An error was detected while attaching the debugger to the JVM.", e);
                 }
 
                 return Status.OK_STATUS;
@@ -196,8 +237,7 @@ public class DebugModeHandler {
         };
 
         // Register a listener with the terminal tab controller. This listener handles cleanup when the terminal or terminal tab is
-        // terminated
-        // while actively processing work.
+        // terminated while actively processing work.
         TerminalListener terminalListener = new TerminalListener() {
             /**
              * {@inheritDoc}
@@ -215,18 +255,81 @@ public class DebugModeHandler {
             public void done(IJobChangeEvent event) {
                 devModeOps.deregisterTerminalListener(projectName, terminalListener);
                 IStatus result = event.getResult();
-                Throwable t = result.getException();
-                if (t != null) {
-                    if (Trace.isEnabled()) {
-                        Trace.getTracer().trace(Trace.TRACE_UI, t.getMessage(), t);
-                    }
+                IWorkbench workbench = PlatformUI.getWorkbench();
+                Display display = workbench.getDisplay();
 
-                    ErrorHandler.processErrorMessage(t.getMessage(), t, false);
+                if (result.isOK()) {
+                    display.syncExec(new Runnable() {
+                        public void run() {
+                            openDebugPerspective();
+                        }
+                    });
+                } else {
+                    Throwable t = result.getException();
+
+                    if (t != null) {
+                        if (Trace.isEnabled()) {
+                            Trace.getTracer().trace(Trace.TRACE_UI, t.getMessage(), t);
+                        }
+
+                        ErrorHandler.processErrorMessage(t.getMessage(), t, false);
+                    }
                 }
             }
         });
 
         job.schedule();
+    }
+
+    /**
+     * Opens the debug perspective with the terminal and liberty dashboard views.
+     */
+    private void openDebugPerspective() {
+        // Open the debug perspective.
+        IWorkbench workbench = PlatformUI.getWorkbench();
+        IWorkbenchWindow window = workbench.getActiveWorkbenchWindow();
+        String currentId = window.getActivePage().getPerspective().getId();
+        if (!DEBUG_PERSPECTIVE_ID.equals(currentId)) {
+            try {
+                workbench.showPerspective(DEBUG_PERSPECTIVE_ID, window);
+            } catch (Exception e) {
+                if (Trace.isEnabled()) {
+                    Trace.getTracer().trace(Trace.TRACE_UI, e.getMessage(), e);
+                }
+
+                ErrorHandler.processErrorMessage(e.getMessage(), e, false);
+                return;
+            }
+        }
+
+        // Open the terminal view.
+        IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+        try {
+            IViewPart terminalView = activePage.findView(ProjectTabController.TERMINAL_VIEW_ID);
+            if (terminalView == null) {
+                activePage.showView(ProjectTabController.TERMINAL_VIEW_ID);
+            }
+        } catch (Exception e) {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UI, e.getMessage(), e);
+            }
+
+            ErrorHandler.processErrorMessage(e.getMessage(), e, false);
+        }
+
+        // Open the dashboard view.
+        try {
+            IViewPart dashboardView = activePage.findView(DashboardView.ID);
+            if (dashboardView == null) {
+                activePage.showView(DashboardView.ID);
+            }
+        } catch (Exception e) {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UI, e.getMessage(), e);
+            }
+
+            ErrorHandler.processErrorMessage(e.getMessage(), e, false);
+        }
     }
 
     /**
@@ -260,7 +363,7 @@ public class DebugModeHandler {
 
         try (Stream<Path> matchedStream = Files.find(basePath, 2, (path, basicFileAttribute) -> {
             if (basicFileAttribute.isRegularFile()) {
-                return path.getFileName().toString().equalsIgnoreCase("server.env");
+                return path.getFileName().toString().equalsIgnoreCase(WLP_SERVER_ENV_FILE_NAME);
             }
             return false;
         });) {
@@ -289,11 +392,13 @@ public class DebugModeHandler {
     }
 
     /**
-     * Returns the last debug port entry in server.env. Null if not found.
+     * Returns the port value associated with the WLP_DEBUG_ADDRESS entry in server.env. Null if not found. If there are multiple
+     * WLP_DEBUG_ADDRESS entries, the last entry is returned.
      * 
      * @param serverEnv The server.env file object.
      * 
-     * @return The last debug port entry in server.env. Null if not found.]]
+     * @return Returns the port value associated with the WLP_DEBUG_ADDRESS entry in server.env. Null if not found. If there are
+     *         multiple WLP_DEBUG_ADDRESS entries, the last entry is returned.
      * 
      * @throws Exception
      */
@@ -384,15 +489,16 @@ public class DebugModeHandler {
      * @param port The port to connect to.
      * @param monitor The progress monitor instance.
      * 
+     * @returns The port that the debugger actually connected to.
+     * 
      * @throws Exception
      */
     private String waitForSocketActivation(Project project, String host, String port, IProgressMonitor monitor) throws Exception {
         byte[] handshakeString = "JDWP-Handshake".getBytes(StandardCharsets.US_ASCII);
-        int retryLimit = 60;
-        int envReadMinLimit = 30;
-        int envreadMaxLimit = 60;
-        int envReadInterval = 5;
+        int retryLimit = 90;
+        int envReadMinLimit = 45;
 
+        // Retrieve the location of the server.env in the liberty installation at the default location (wpl/usr/servers/<serverName>).
         Path serverEnvPath = getServerEnvPath(project);
 
         for (int retryCount = 0; retryCount < retryLimit; retryCount++) {
@@ -411,28 +517,34 @@ public class DebugModeHandler {
                     boolean isClosed = devModeOps.isProjectTerminalTabMarkedClosed(project.getIProject().getName());
                     data.closed = isClosed;
                 }
-
             });
 
             if (data.closed == true) {
                 return null;
             }
 
-            // The server.env path may not yet exists. If it is null, retry.
+            // The server.env path may not yet exist. If it is null, retry.
             if (serverEnvPath == null) {
-                serverEnvPath = getServerEnvPath(project);
                 TimeUnit.SECONDS.sleep(1);
-                continue;
+                serverEnvPath = getServerEnvPath(project);
+                if (serverEnvPath == null) {
+                    continue;
+                }
             }
 
-            // Check the server.env at the default location for any updates to WLP_DEBUG_ADDRESS for any changes.
-            // There is a small window in which the allocated port could have been taken by another process.
-            // If the port is already in use, dev mode will allocate a random port and reflect that by updating the server.env file.
-            if (retryCount >= envReadMinLimit && retryCount < envreadMaxLimit && (retryCount % envReadInterval == 0)) {
-                String envPort = readDebugPortFromServerEnv(serverEnvPath.toFile());
-                if (envPort != null) {
-                    if (!envPort.equals(port)) {
-                        port = envPort;
+            // There is a small window in which the allocated random port could have been taken by another process.
+            // Check the deployed server.env at the default deployment location (wlp/usr/servers/<serverName>) for the WLP_DEBUG_ADDRESS
+            // property. If the port is already in use, dev mode will allocate a random debug port and reflect that by updating the
+            // server.env file.
+            if (retryCount >= envReadMinLimit) {
+                // Look for the server.env.bak file before checking the server.env file.
+                Path serverEnvBakPath = (serverEnvPath != null) ? serverEnvPath.resolveSibling(WLP_SERVER_ENV_BAK_FILE_NAME) : null;
+                if (serverEnvBakPath != null && serverEnvBakPath.toFile().exists()) {
+                    String envPort = readDebugPortFromServerEnv(serverEnvPath.toFile());
+                    if (envPort != null) {
+                        if (!envPort.equals(port)) {
+                            port = envPort;
+                        }
                     }
                 }
             }
@@ -445,7 +557,8 @@ public class DebugModeHandler {
             }
         }
 
-        throw new Exception("Unable to connet to JVM on host: " + host + " and port: " + port);
+        throw new Exception("Unable to automatically attach the debugger to JVM on host: " + host + " and port: " + port
+                + ". If the debug connection timed out but the server did start successfully, you can still manually create a Remote Java Application debug configuration with the mentioned port and attach to the server.");
     }
 
     private class DataHolder {
