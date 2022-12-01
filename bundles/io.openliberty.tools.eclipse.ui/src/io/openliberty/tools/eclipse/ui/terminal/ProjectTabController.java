@@ -31,24 +31,19 @@ import io.openliberty.tools.eclipse.ui.terminal.ProjectTab.State;
  */
 public class ProjectTabController {
 
-    /**
-     * The set of active Terminal associated with different application projects.
-     */
-    private static ConcurrentHashMap<String, ProjectTab> projectTabMap = new ConcurrentHashMap<String, ProjectTab>();
+    /** Terminal view ID. */
+    public static final String TERMINAL_VIEW_ID = "org.eclipse.tm.terminal.view.ui.TerminalsView";
 
-    /**
-     * The set of terminal listeners associated with the different application projects.
-     */
-    private static ConcurrentHashMap<String, List<TerminalListener>> projectTerminalListenerMap = new ConcurrentHashMap<String, List<TerminalListener>>();
+    /** The set of active Terminal associated with different application projects. */
+    private static final ConcurrentHashMap<String, ProjectTab> projectTabMap = new ConcurrentHashMap<String, ProjectTab>();
 
-    /**
-     * TerminalManager instance.
-     */
+    /** The set of terminal listeners associated with the different application projects. */
+    private static final ConcurrentHashMap<String, List<TerminalListener>> projectTerminalListenerMap = new ConcurrentHashMap<String, List<TerminalListener>>();
+
+    /** TerminalManager instance. */
     private static ProjectTabController instance;
 
-    /**
-     * Terminal console manager instance.
-     */
+    /** Terminal console manager instance. */
     private ConsoleManager consoleMgr;
 
     /**

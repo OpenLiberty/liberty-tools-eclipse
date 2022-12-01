@@ -44,14 +44,18 @@ import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.jdt.launching.IJavaLaunchConfigurationConstants;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
 import io.openliberty.tools.eclipse.Project.BuildType;
 import io.openliberty.tools.eclipse.logging.Trace;
+import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationHelper;
 import io.openliberty.tools.eclipse.ui.launch.StartTab;
+import io.openliberty.tools.eclipse.ui.terminal.ProjectTabController;
 import io.openliberty.tools.eclipse.ui.terminal.TerminalListener;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
 
@@ -106,6 +110,10 @@ public class DebugModeHandler {
      * @throws Exception
      */
     public String addDebugDataToStartParms(Project project, String debugPort, String configParms) throws Exception {
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { project, debugPort, configParms });
+        }
+
         String startParms = configParms;
         String addendum = null;
 
@@ -131,6 +139,10 @@ public class DebugModeHandler {
             startParms = updatedParms.toString();
         }
 
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, new Object[] { project, startParms });
+        }
+
         return startParms;
     }
 
@@ -143,6 +155,10 @@ public class DebugModeHandler {
      * @return The debug port to be used.
      */
     public String calculateDebugPort(Project project, String inputParms) throws Exception {
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { project, inputParms });
+        }
+
         String debugPort = null;
 
         // 1. Check if the debugPort was specified as part of start parameters. If so, use that port first.
@@ -175,6 +191,10 @@ public class DebugModeHandler {
                 int randomPort = socket.getLocalPort();
                 debugPort = String.valueOf(randomPort);
             }
+        }
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { project, debugPort });
         }
 
         return debugPort;
@@ -241,22 +261,8 @@ public class DebugModeHandler {
                 if (result.isOK()) {
                     display.syncExec(new Runnable() {
                         public void run() {
-                            IWorkbenchWindow window = workbench.getActiveWorkbenchWindow();
-                            String currentId = window.getActivePage().getPerspective().getId();
-                            if (!DEBUG_PERSPECTIVE_ID.equals(currentId)) {
-
-                                try {
-                                    workbench.showPerspective(DEBUG_PERSPECTIVE_ID, window);
-                                } catch (Exception e) {
-                                    if (Trace.isEnabled()) {
-                                        Trace.getTracer().trace(Trace.TRACE_UI, e.getMessage(), e);
-                                    }
-
-                                    ErrorHandler.processErrorMessage(e.getMessage(), e, false);
-                                }
-                            }
+                            openDebugPerspective();
                         }
-
                     });
                 } else {
                     Throwable t = result.getException();
@@ -273,6 +279,57 @@ public class DebugModeHandler {
         });
 
         job.schedule();
+    }
+
+    /**
+     * Opens the debug perspective with the terminal and liberty dashboard views.
+     */
+    private void openDebugPerspective() {
+        // Open the debug perspective.
+        IWorkbench workbench = PlatformUI.getWorkbench();
+        IWorkbenchWindow window = workbench.getActiveWorkbenchWindow();
+        String currentId = window.getActivePage().getPerspective().getId();
+        if (!DEBUG_PERSPECTIVE_ID.equals(currentId)) {
+            try {
+                workbench.showPerspective(DEBUG_PERSPECTIVE_ID, window);
+            } catch (Exception e) {
+                if (Trace.isEnabled()) {
+                    Trace.getTracer().trace(Trace.TRACE_UI, e.getMessage(), e);
+                }
+
+                ErrorHandler.processErrorMessage(e.getMessage(), e, false);
+                return;
+            }
+        }
+
+        // Open the terminal view.
+        IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+        try {
+            IViewPart terminalView = activePage.findView(ProjectTabController.TERMINAL_VIEW_ID);
+            if (terminalView == null) {
+                activePage.showView(ProjectTabController.TERMINAL_VIEW_ID);
+            }
+        } catch (Exception e) {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UI, e.getMessage(), e);
+            }
+
+            ErrorHandler.processErrorMessage(e.getMessage(), e, false);
+        }
+
+        // Open the dashboard view.
+        try {
+            IViewPart dashboardView = activePage.findView(DashboardView.ID);
+            if (dashboardView == null) {
+                activePage.showView(DashboardView.ID);
+            }
+        } catch (Exception e) {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UI, e.getMessage(), e);
+            }
+
+            ErrorHandler.processErrorMessage(e.getMessage(), e, false);
+        }
     }
 
     /**
@@ -442,8 +499,6 @@ public class DebugModeHandler {
         int envReadMinLimit = 45;
         int envreadMaxLimit = 75;
         int envReadInterval = 5;
-        boolean doneReadingServerEnvBak = false;
-        String projDebugPort = null;
 
         // Retrieve the location of the server.env in the liberty installation at the default location (wpl/usr/servers/<serverName>).
         Path serverEnvPath = getServerEnvPath(project);
@@ -480,25 +535,18 @@ public class DebugModeHandler {
             }
 
             // There is a small window in which the allocated random port could have been taken by another process.
-            // Check the deployed server.env at the default location (wlp/usr/servers/<serverName>) for any WLP_DEBUG_ADDRESS entries.
-            // If the port is already in use, dev mode will allocate a random port and reflect that by updating the server.env file.
+            // Check the deployed server.env at the default deployment location (wlp/usr/servers/<serverName>) for the WLP_DEBUG_ADDRESS
+            // property. If the port is already in use, dev mode will allocate a random debug port and reflect that by updating the
+            // server.env file.
             if (retryCount >= envReadMinLimit && retryCount < envreadMaxLimit && (retryCount % envReadInterval == 0)) {
-                // Look for the server.env.bak file to check if the project provided a WLP_DEBUG_ADDRESS
-                // (server.env in default location or other). If the property is found, the port value under that variable is
-                // ignored to minimize port collisions.
-                if (!doneReadingServerEnvBak) {
-                    Path serverEnvBakPath = (serverEnvPath != null) ? serverEnvPath.resolveSibling(WLP_SERVER_ENV_BAK_FILE_NAME) : null;
-                    if (serverEnvBakPath != null && serverEnvBakPath.toFile().exists()) {
-                        projDebugPort = readDebugPortFromServerEnv(serverEnvBakPath.toFile());
-                        doneReadingServerEnvBak = true;
-                    }
-                }
-
-                String envPort = readDebugPortFromServerEnv(serverEnvPath.toFile());
-
-                if (envPort != null && (!envPort.equals(projDebugPort))) {
-                    if (!envPort.equals(port)) {
-                        port = envPort;
+                // Look for the server.env.bak file before checking the server.env file.
+                Path serverEnvBakPath = (serverEnvPath != null) ? serverEnvPath.resolveSibling(WLP_SERVER_ENV_BAK_FILE_NAME) : null;
+                if (serverEnvBakPath != null && serverEnvBakPath.toFile().exists()) {
+                    String envPort = readDebugPortFromServerEnv(serverEnvPath.toFile());
+                    if (envPort != null) {
+                        if (!envPort.equals(port)) {
+                            port = envPort;
+                        }
                     }
                 }
             }

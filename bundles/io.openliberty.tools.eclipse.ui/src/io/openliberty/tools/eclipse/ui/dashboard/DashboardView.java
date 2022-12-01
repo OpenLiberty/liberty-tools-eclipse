@@ -52,6 +52,9 @@ import io.openliberty.tools.eclipse.utils.ErrorHandler;
  */
 public class DashboardView extends ViewPart {
 
+    /** Dashboard view ID. */
+    public static final String ID = "io.openliberty.tools.eclipse.views.liberty.devmode.dashboard";
+
     /** Liberty logo path. */
     public static final String LIBERTY_LOGO_PATH = "icons/openLibertyLogo.png";
 
