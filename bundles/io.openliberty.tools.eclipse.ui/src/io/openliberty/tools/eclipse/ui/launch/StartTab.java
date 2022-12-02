@@ -124,9 +124,8 @@ public class StartTab extends AbstractLaunchConfigurationTab {
             Trace.getTracer().traceEntry(Trace.TRACE_UI, new Object[] { configuration });
         }
 
-        IProject activeProject = getActiveProject();
-
         // Save the active project's name in the configuration.
+        IProject activeProject = Utils.getActiveProject();
         if (activeProject != null) {
             configuration.setAttribute(PROJECT_NAME, activeProject.getName());
         }
@@ -138,14 +137,6 @@ public class StartTab extends AbstractLaunchConfigurationTab {
         if (Trace.isEnabled()) {
             Trace.getTracer().traceExit(Trace.TRACE_UI);
         }
-    }
-
-    private IProject getActiveProject() {
-        IProject activeProject = Utils.getActiveProject();
-        if (activeProject == null) {
-            activeProject = devModeOps.getSelectedDashboardProject();
-        }
-        return activeProject;
     }
 
     /**

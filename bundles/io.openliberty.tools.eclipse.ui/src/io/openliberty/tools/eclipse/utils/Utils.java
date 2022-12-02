@@ -33,6 +33,7 @@ import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
+import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.LibertyDevPlugin;
 import io.openliberty.tools.eclipse.logging.Trace;
 
@@ -219,6 +220,10 @@ public class Utils {
                     iProject = Utils.getProjectFromPart(part);
                 }
             }
+        }
+
+        if (iProject == null) {
+            iProject = DevModeOperations.getInstance().getSelectedDashboardProject();
         }
 
         if (Trace.isEnabled()) {

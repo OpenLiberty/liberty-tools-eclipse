@@ -93,15 +93,9 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
             }
 
             private void validateProjectsMatch(ILaunchConfiguration configuration) throws CoreException {
-
                 IProject activeProject = Utils.getActiveProject();
                 if (activeProject != null) {
                     assertProjectsMatch(configuration, activeProject);
-                }
-
-                IProject dashboardProject = devModeOps.getSelectedDashboardProject();
-                if (dashboardProject != null) {
-                    assertProjectsMatch(configuration, dashboardProject);
                 }
             }
 
