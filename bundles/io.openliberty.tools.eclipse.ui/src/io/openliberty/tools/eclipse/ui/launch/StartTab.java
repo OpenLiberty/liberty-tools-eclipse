@@ -202,12 +202,22 @@ public class StartTab extends AbstractLaunchConfigurationTab {
     @Override
     public boolean isValid(ILaunchConfiguration config) {
         try {
-            String projectName = config.getAttribute(PROJECT_NAME, (String) null);
-            if (projectName == null) {
+            String configProjectName = config.getAttribute(PROJECT_NAME, (String) null);
+
+            if (configProjectName == null) {
+                super.setErrorMessage("Project name not set");
+                return false;
+            }
+
+            String selectedProjectName = Utils.getActiveProject().getName();
+            if (!configProjectName.equals(selectedProjectName)) {
+                super.setWarningMessage(
+                        "Must use an existing (or new) configuration associated with selected project: " + selectedProjectName);
                 return false;
             }
         } catch (CoreException e) {
             traceError(e, "Error getting project name");
+            return false;
         }
         return checkForIncorrectTerms();
     }
@@ -344,8 +354,6 @@ public class StartTab extends AbstractLaunchConfigurationTab {
 
         Link link = new Link(parent, SWT.WRAP);
         link.setFont(font);
-        // link.setText("Note: Use <a>Liberty Preferences</a> to set Maven/Gradle executable paths for projects without Maven/Gradle
-        // wrapper.");
         link.setText("Maven/Gradle executable paths can be set in <a>Liberty Preferences</a>");
         link.addSelectionListener(new SelectionAdapter() {
             @Override

@@ -107,7 +107,7 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
                     String msg = "The selected  Run/Debug configuration '" + configurationName
                             + "' cannot be used to run selected project '" + selectedProject.getName()
                             + ", because the configuration is associated with project '" + configProjectName
-                            + "'. You can create a new configuration, or pick an existing configuration associated with the selected project.";
+                            + "'. Create a new configuration, or use an existing configuration associated with the selected project.";
                     throw new IllegalStateException(msg);
                 }
             }
