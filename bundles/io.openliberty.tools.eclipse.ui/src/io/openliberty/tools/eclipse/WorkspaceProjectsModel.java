@@ -118,11 +118,15 @@ public class WorkspaceProjectsModel {
                 }
             }
 
-            // Third pass classify with Liberty nature
+            // Third pass classify with Liberty nature and java nature.
+            // Java nature classification is needed for debugger attachment. The Java Remote Application configuration framework
+            // requires it, and some multi-module project imports may not have the Java nature associated with them for different reasons.
             if (classify) {
                 for (IProject iProject : projectsToScan) {
                     if (iProject.isOpen()) {
-                        projectsByName.get(iProject.getName()).classifyAsLibertyNature();
+                        Project project = projectsByName.get(iProject.getName());
+                        project.classifyAsLibertyNature();
+                        project.classifyAsJavaNature();
                     }
                 }
             }

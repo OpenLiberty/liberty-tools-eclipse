@@ -329,7 +329,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         IProject iProject = LibertyPluginTestUtils.getProject(GRADLE_APP_NAME);
         String projectName = iProject.getName();
 
-        Project.removeLibertyNature(iProject);
+        Project.removeNature(iProject, LibertyNature.NATURE_ID);
 
         // Rename the server.xml file.
         Path originalPath = Paths

@@ -14,6 +14,7 @@ package io.openliberty.tools.eclipse;
 
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.eclipse.core.resources.IFile;
@@ -32,39 +33,30 @@ import io.openliberty.tools.eclipse.utils.ErrorHandler;
  */
 public class Project {
 
-    /**
-     * Maven project nature.
-     */
+    /** Maven project nature. */
     public final String MAVEN_NATURE = "org.eclipse.m2e.core.maven2Nature";
 
-    /**
-     * Gradle project nature.
-     */
+    /** Gradle project nature. */
     public final String GRADLE_NATURE = "org.eclipse.buildship.core.gradleprojectnature";
 
-    /**
-     * Project build types.
-     */
+    /** Java project nature. */
+    public final String JAVA_NATURE_ID = "org.eclipse.jdt.core.javanature";
+
+    /** Project build types. */
     public static enum BuildType {
         UNKNOWN, GRADLE, MAVEN
     };
 
-    /**
-     * The Eclipse project reference.
-     */
+    /** The Eclipse project reference. */
     IProject iProject;
 
-    /**
-     * Multi-module project indicator. It is based on the existence of one or more projects inside a project.
-     */
-    boolean multiModule;
-
-    /**
-     * Build type associated with this project.
-     */
+    /** Build type associated with this project. */
     private BuildType type;
 
+    /** The parent of this project. */
     private Project parentDirProject = null;
+
+    /** The child projects associated with this project. */
     private Set<Project> childDirProjects = new HashSet<Project>();
 
     private boolean libertyServerModule = false;
@@ -138,22 +130,6 @@ public class Project {
     }
 
     /**
-     * Returns true if the project was detected to have one or more projects in it. False, otherwise.
-     * 
-     * @return true if the project was detected to have one or more projects in it. False, otherwise.
-     */
-    public boolean isMultiModule() {
-        return multiModule;
-    }
-
-    /**
-     * Sets the multi-module indicator.
-     */
-    public void setMultimodule(boolean multiModule) {
-        this.multiModule = multiModule;
-    }
-
-    /**
      * Gets the associated Eclipse project reference.
      * 
      * @return The associated Eclipse project reference.
@@ -181,6 +157,23 @@ public class Project {
     }
 
     /**
+     * Returns the list child projects that contain Liberty server configuration.
+     * 
+     * @return The list child projects that contain Liberty server configuration.
+     */
+    public List<Project> getChildLibertyServerModules() {
+        ArrayList<Project> clsms = new ArrayList<Project>();
+
+        for (Project child : childDirProjects) {
+            if (child.isLibertyServerModule()) {
+                clsms.add(child);
+            }
+        }
+
+        return clsms;
+    }
+
+    /**
      */
     public void classifyAsServerModule() {
         try {
@@ -198,16 +191,19 @@ public class Project {
         }
     }
 
+    /**
+     * Adds the Liberty nature to the project if it is not already present.
+     */
     public void classifyAsLibertyNature() {
         try {
             if (libertyServerModule) {
-                Project.addLibertyNature(iProject);
+                Project.addNature(iProject, LibertyNature.NATURE_ID);
             }
             // If this is looks like a Maven multi-module project. It may not be however but we take the risk of exposing it
             if (type.equals(BuildType.MAVEN)) {
                 for (Project child : childDirProjects) {
                     if (child.isLibertyServerModule()) {
-                        Project.addLibertyNature(iProject);
+                        Project.addNature(iProject, LibertyNature.NATURE_ID);
                         isParentOfServerModule = true;
                         break;
                     }
@@ -220,19 +216,31 @@ public class Project {
     }
 
     /**
-     * Adds the Liberty type/nature entry to the project's description/metadata (.project).
-     *
+     * Adds the java nature to the project if it is not already present.
+     */
+    public void classifyAsJavaNature() {
+        try {
+            Project.addNature(iProject, JAVA_NATURE_ID);
+        } catch (Exception e) {
+            String msg = "Error querying and adding Java nature";
+            ErrorHandler.processWarningMessage(msg, e, false);
+        }
+    }
+
+    /**
+     * Adds the specified nature ID to the project's description/metadata (.project).
+     * 
      * @param project The project to process.
-     *
+     * @param natureId The nature ID to add.
+     * 
      * @throws Exception
      */
-    public static void addLibertyNature(IProject project) throws Exception {
-
+    public static void addNature(IProject project, String natureId) throws Exception {
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_UTILS, project);
+            Trace.getTracer().traceEntry(Trace.TRACE_UTILS, new Object[] { project, natureId });
         }
 
-        if (project.getDescription().hasNature(LibertyNature.NATURE_ID)) {
+        if (project.getDescription().hasNature(natureId)) {
             return;
         }
 
@@ -242,7 +250,7 @@ public class Project {
         String[] currentNatures = projectDesc.getNatureIds();
         String[] newNatures = new String[currentNatures.length + 1];
         System.arraycopy(currentNatures, 0, newNatures, 0, currentNatures.length);
-        newNatures[currentNatures.length] = LibertyNature.NATURE_ID;
+        newNatures[currentNatures.length] = natureId;
         projectDesc.setNatureIds(newNatures);
         project.setDescription(projectDesc, new NullProgressMonitor());
 
@@ -252,13 +260,14 @@ public class Project {
     }
 
     /**
-     * Removes the Liberty type/nature entry from the project's description/metadata (.project).
+     * Removes the specified nature ID from the project's description/metadata (.project).
      *
      * @param project The project to process.
+     * @param natureId The nature ID to remove.
      *
      * @throws Exception
      */
-    public static void removeLibertyNature(IProject project) throws Exception {
+    public static void removeNature(IProject project, String natureId) throws Exception {
         if (Trace.isEnabled()) {
             Trace.getTracer().traceEntry(Trace.TRACE_UTILS, project);
         }
@@ -268,7 +277,7 @@ public class Project {
         ArrayList<String> newNatures = new ArrayList<String>(currentNatures.length - 1);
 
         for (int i = 0; i < currentNatures.length; i++) {
-            if (currentNatures[i].equals(LibertyNature.NATURE_ID)) {
+            if (currentNatures[i].equals(natureId)) {
                 continue;
             }
             newNatures.add(currentNatures[i]);

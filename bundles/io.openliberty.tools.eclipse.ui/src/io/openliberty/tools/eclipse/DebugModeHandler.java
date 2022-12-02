@@ -170,7 +170,7 @@ public class DebugModeHandler {
         } else if (buildType == BuildType.GRADLE) {
             searchKey = GRADLE_DEVMODE_DEBUG_PORT_PARM;
         } else {
-            throw new Exception("Unexpected project build type: " + buildType + ". Project" + project.getIProject().getName()
+            throw new Exception("Unexpected project build type: " + buildType + ". Project " + project.getIProject().getName()
                     + "does not appear to be a Maven or Gradle built project.");
         }
 
@@ -342,10 +342,12 @@ public class DebugModeHandler {
      * @throws Exception
      */
     private Path getServerEnvPath(Project project) throws Exception {
-        String projectPath = project.getPath();
-        String projectName = project.getName();
         Path basePath = null;
-        BuildType buildType = project.getBuildType();
+        Project serverProj = getLibertyServerProject(project);
+        String projectPath = serverProj.getPath();
+        String projectName = serverProj.getName();
+        BuildType buildType = serverProj.getBuildType();
+
         if (buildType == Project.BuildType.MAVEN) {
             basePath = Paths.get(projectPath, "target", "liberty", "wlp", "usr", "servers");
         } else if (buildType == Project.BuildType.GRADLE) {
@@ -559,6 +561,31 @@ public class DebugModeHandler {
 
         throw new Exception("Unable to automatically attach the debugger to JVM on host: " + host + " and port: " + port
                 + ". If the debug connection timed out but the server did start successfully, you can still manually create a Remote Java Application debug configuration with the mentioned port and attach to the server.");
+    }
+
+    /**
+     * Returns the liberty server module project associated with the input project.
+     * 
+     * @param project The project to process.
+     * 
+     * @return The liberty server module project associated with the input project.
+     * 
+     * @throws Exception
+     */
+    private Project getLibertyServerProject(Project project) throws Exception {
+        if (project.isParentOfServerModule()) {
+            List<Project> mmps = project.getChildLibertyServerModules();
+            switch (mmps.size()) {
+                case 0:
+                    throw new Exception("Unable to find a child project that contains the Liberty server configuration.");
+                case 1:
+                    return mmps.get(0);
+                default:
+                    throw new Exception("Multiple child projects containing Liberty server configuration were found.");
+            }
+        }
+
+        return project;
     }
 
     private class DataHolder {
