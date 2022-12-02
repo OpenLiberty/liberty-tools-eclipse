@@ -15,7 +15,6 @@ package io.openliberty.tools.eclipse;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectNature;
 import org.eclipse.core.runtime.CoreException;
-import org.eclipse.swt.widgets.Display;
 
 /**
  * Represents a Liberty nature or type.
@@ -27,22 +26,10 @@ public class LibertyNature implements IProjectNature {
 
     @Override
     public void configure() throws CoreException {
-        Display.getDefault().syncExec(new Runnable() {
-            @Override
-            public void run() {
-                DevModeOperations.getInstance().refreshDashboardView(false);
-            }
-        });
     }
 
     @Override
     public void deconfigure() throws CoreException {
-        Display.getDefault().syncExec(new Runnable() {
-            @Override
-            public void run() {
-                DevModeOperations.getInstance().refreshDashboardView(false);
-            }
-        });
     }
 
     @Override
