@@ -189,10 +189,10 @@ public class DevModeOperations {
             String cmd = "";
             BuildType buildType = project.getBuildType();
             if (buildType == Project.BuildType.MAVEN) {
-                cmd = CommandBuilder.getMavenCommandLine(projectPath,
-                        "io.openliberty.tools:liberty-maven-plugin:dev " + startParms + " -f " + projectPath, pathEnv);
+                cmd = CommandBuilder.getMavenCommandLine(projectPath, "io.openliberty.tools:liberty-maven-plugin:dev " + startParms,
+                        pathEnv);
             } else if (buildType == Project.BuildType.GRADLE) {
-                cmd = CommandBuilder.getGradleCommandLine(projectPath, "libertyDev " + startParms + " -p=" + projectPath, pathEnv);
+                cmd = CommandBuilder.getGradleCommandLine(projectPath, "libertyDev " + startParms, pathEnv);
             } else {
                 throw new Exception("Unexpected project build type: " + buildType + ". Project" + projectName
                         + "does not appear to be a Maven or Gradle built project.");
@@ -306,10 +306,10 @@ public class DevModeOperations {
             String cmd = "";
             BuildType buildType = project.getBuildType();
             if (buildType == Project.BuildType.MAVEN) {
-                cmd = CommandBuilder.getMavenCommandLine(projectPath,
-                        "io.openliberty.tools:liberty-maven-plugin:devc " + startParms + " -f " + projectPath, pathEnv);
+                cmd = CommandBuilder.getMavenCommandLine(projectPath, "io.openliberty.tools:liberty-maven-plugin:devc " + startParms,
+                        pathEnv);
             } else if (buildType == Project.BuildType.GRADLE) {
-                cmd = CommandBuilder.getGradleCommandLine(projectPath, "libertyDevc " + startParms + " -p=" + projectPath, pathEnv);
+                cmd = CommandBuilder.getGradleCommandLine(projectPath, "libertyDevc " + startParms, pathEnv);
             } else {
                 throw new Exception("Unexpected project build type: " + buildType + ". Project" + projectName
                         + "does not appear to be a Maven or Gradle built project.");

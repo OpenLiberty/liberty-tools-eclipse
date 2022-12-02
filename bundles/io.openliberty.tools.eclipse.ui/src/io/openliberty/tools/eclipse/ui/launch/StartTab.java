@@ -124,9 +124,8 @@ public class StartTab extends AbstractLaunchConfigurationTab {
             Trace.getTracer().traceEntry(Trace.TRACE_UI, new Object[] { configuration });
         }
 
-        IProject activeProject = getActiveProject();
-
         // Save the active project's name in the configuration.
+        IProject activeProject = Utils.getActiveProject();
         if (activeProject != null) {
             configuration.setAttribute(PROJECT_NAME, activeProject.getName());
         }
@@ -138,14 +137,6 @@ public class StartTab extends AbstractLaunchConfigurationTab {
         if (Trace.isEnabled()) {
             Trace.getTracer().traceExit(Trace.TRACE_UI);
         }
-    }
-
-    private IProject getActiveProject() {
-        IProject activeProject = Utils.getActiveProject();
-        if (activeProject == null) {
-            activeProject = devModeOps.getSelectedDashboardProject();
-        }
-        return activeProject;
     }
 
     /**
@@ -211,12 +202,22 @@ public class StartTab extends AbstractLaunchConfigurationTab {
     @Override
     public boolean isValid(ILaunchConfiguration config) {
         try {
-            String projectName = config.getAttribute(PROJECT_NAME, (String) null);
-            if (projectName == null) {
+            String configProjectName = config.getAttribute(PROJECT_NAME, (String) null);
+
+            if (configProjectName == null) {
+                super.setErrorMessage("Project name not set");
+                return false;
+            }
+
+            String selectedProjectName = Utils.getActiveProject().getName();
+            if (!configProjectName.equals(selectedProjectName)) {
+                super.setWarningMessage(
+                        "Must use an existing (or new) configuration associated with selected project: " + selectedProjectName);
                 return false;
             }
         } catch (CoreException e) {
             traceError(e, "Error getting project name");
+            return false;
         }
         return checkForIncorrectTerms();
     }
@@ -353,8 +354,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
 
         Link link = new Link(parent, SWT.WRAP);
         link.setFont(font);
-        link.setText(
-                "Note: Use the <a>Liberty Preferences</a> to set the Maven and Gradle executable paths for projects that do not contain a Maven or Gradle wrapper.");
+        link.setText("Maven/Gradle executable paths can be set in <a>Liberty Preferences</a>");
         link.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
