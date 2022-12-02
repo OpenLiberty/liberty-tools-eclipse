@@ -108,6 +108,12 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
     public static final void validateBeforeTestRun() {
         dashboard = SWTBotPluginOperations.openDashboardUsingToolbar(bot);
 
+        try {
+            Thread.sleep(60000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         // Check that the dashboard can be opened and its content retrieved.
         List<String> projectList = SWTBotPluginOperations.getDashboardContent(bot, dashboard);
 
