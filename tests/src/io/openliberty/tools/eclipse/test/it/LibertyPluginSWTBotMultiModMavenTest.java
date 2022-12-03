@@ -188,6 +188,9 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
         validateApplicationOutcomeCustom("http://localhost:9080/converter2/heights.jsp?heightCm=20", true, "Height in feet and inches",
                 serverModule1Path + "/target/liberty");
 
+        // If there are issues with the workspace, close the error dialog.
+        SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
+
         // Stop dev mode.
         SWTBotPluginOperations.launchStopWithDashboardAction(bot, dashboard, MVN_APP_NAME);
         terminal.show();
@@ -223,6 +226,9 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
         // Validate application is up and running.
         validateApplicationOutcomeCustom("http://localhost:9080/converter1/heights.jsp?heightCm=30", true, "Height in feet and inches",
                 serverModule1Path + "/target/liberty");
+
+        // If there are issues with the workspace, close the error dialog.
+        SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
 
         // Stop dev mode.
         SWTBotPluginOperations.launchStopWithRunDebugAsShortcut(bot, MVN_APP_NAME, "run");

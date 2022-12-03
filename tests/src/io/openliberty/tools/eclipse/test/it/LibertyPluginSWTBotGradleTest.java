@@ -209,6 +209,9 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         validateApplicationOutcome(Platform.getOS().equals(Platform.OS_MACOSX) ? GRADLE_WRAPPER_APP_NAME : GRADLE_APP_NAME, true,
                 testAppPath + "/build");
 
+        // If there are issues with the workspace, close the error dialog.
+        SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
+
         // Stop dev mode.
         SWTBotPluginOperations.launchStopWithDashboardAction(bot, dashboard,
                 Platform.getOS().equals(Platform.OS_MACOSX) ? GRADLE_WRAPPER_APP_NAME : GRADLE_APP_NAME);
@@ -252,6 +255,9 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         validateApplicationOutcome(Platform.getOS().equals(Platform.OS_MACOSX) ? GRADLE_WRAPPER_APP_NAME : GRADLE_APP_NAME, true,
                 testAppPath + "/build");
 
+        // If there are issues with the workspace, close the error dialog.
+        SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
+
         try {
             // Validate that the test reports were generated.
             validateTestReportExists(pathToTestReport);
@@ -290,6 +296,9 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         // Validate application is up and running.
         validateApplicationOutcome(Platform.getOS().equals(Platform.OS_MACOSX) ? GRADLE_WRAPPER_APP_NAME : GRADLE_APP_NAME, true,
                 testAppPath + "/build");
+
+        // If there are issues with the workspace, close the error dialog.
+        SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
 
         try {
             // Run Tests.
@@ -428,6 +437,9 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         validateApplicationOutcome(Platform.getOS().equals(Platform.OS_MACOSX) ? GRADLE_WRAPPER_APP_NAME : GRADLE_APP_NAME, true,
                 testAppPath + "/build");
 
+        // If there are issues with the workspace, close the error dialog.
+        SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
+
         // Stop dev mode.
         SWTBotPluginOperations.launchStopWithRunDebugAsShortcut(bot,
                 Platform.getOS().equals(Platform.OS_MACOSX) ? GRADLE_WRAPPER_APP_NAME : GRADLE_APP_NAME, "run");
@@ -466,6 +478,9 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         // Validate application is up and running.
         validateApplicationOutcome(Platform.getOS().equals(Platform.OS_MACOSX) ? GRADLE_WRAPPER_APP_NAME : GRADLE_APP_NAME, true,
                 testAppPath + "/build");
+
+        // If there are issues with the workspace, close the error dialog.
+        SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
 
         try {
             // Validate that the test reports were generated.
@@ -509,6 +524,9 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         // Validate application is up and running.
         validateApplicationOutcome(Platform.getOS().equals(Platform.OS_MACOSX) ? GRADLE_WRAPPER_APP_NAME : GRADLE_APP_NAME, true,
                 testAppPath + "/build");
+
+        // If there are issues with the workspace, close the error dialog.
+        SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
 
         try {
             // Run Tests.
@@ -555,6 +573,9 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         // Validate application is up and running.
         validateApplicationOutcome(GRADLE_APP_NAME, true, testAppPath + "/build");
 
+        // If there are issues with the workspace, close the error dialog.
+        SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
+
         try {
             // Validate that the test reports were generated.
             validateTestReportExists(pathToTestReport);
@@ -567,6 +588,9 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
             // Validate that a remote java application configuration was created and is named after the application.
             // validateRemoteJavaAppCreation(GRADLE_APP_NAME);
         } finally {
+            // Switch to the explorer view.
+            SWTBotPluginOperations.switchToProjectExplotereView(bot);
+
             // Stop dev mode using the Run As stop command.
             SWTBotPluginOperations.launchStopWithRunDebugAsShortcut(bot, GRADLE_APP_NAME, "run");
             terminal.show();
@@ -592,6 +616,9 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         // Validate application is up and running.
         validateApplicationOutcome(GRADLE_APP_NAME, true, testAppPath + "/build");
 
+        // If there are issues with the workspace, close the error dialog.
+        SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
+
         // At the moment this check is just too unreliable because the configuration dialog contains different
         // sections that maybe in focus at different times. This makes it difficult to predictably get the panel
         // we are after. We need to find a way to focus on the main dialog. We should also cleanup the configurations.
@@ -599,6 +626,9 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         //
         // Validate that a remote java application configuration was created and is named after the application.
         // validateRemoteJavaAppCreation(GRADLE_APP_NAME);
+
+        // Switch to the explorer view.
+        SWTBotPluginOperations.switchToProjectExplotereView(bot);
 
         // Stop dev mode using the Run As stop command.
         SWTBotPluginOperations.launchStopWithRunDebugAsShortcut(bot, GRADLE_APP_NAME, "run");
