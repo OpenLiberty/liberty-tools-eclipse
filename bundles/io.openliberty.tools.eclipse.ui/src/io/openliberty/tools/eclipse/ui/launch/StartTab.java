@@ -111,7 +111,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
         createInputParmText(parmsGroupComposite);
         createRunInContainerButton(parmsGroupComposite);
 
-        createLabellWithPreferenceLink(mainComposite);
+        createLabelWithPreferenceLink(mainComposite);
     }
 
     /**
@@ -205,15 +205,19 @@ public class StartTab extends AbstractLaunchConfigurationTab {
             String configProjectName = config.getAttribute(PROJECT_NAME, (String) null);
 
             if (configProjectName == null) {
-                super.setErrorMessage("Project name not set");
+                super.setErrorMessage(
+                        "This Run/Debug config is corrupted and can't be used since no project was selected before creating. To create a new Run/Debug config first select a project in the Liberty dashboard, Project/Package explorer view, or via editor.");
                 return false;
             }
 
-            String selectedProjectName = Utils.getActiveProject().getName();
-            if (!configProjectName.equals(selectedProjectName)) {
-                super.setWarningMessage(
-                        "Must use an existing (or new) configuration associated with selected project: " + selectedProjectName);
-                return false;
+            IProject selectedProject = Utils.getActiveProject();
+            if (selectedProject != null) {
+                String selectedProjectName = Utils.getActiveProject().getName();
+                if (!configProjectName.equals(selectedProjectName)) {
+                    super.setWarningMessage(
+                            "Must use an existing (or new) configuration associated with selected project: " + selectedProjectName);
+                    return false;
+                }
             }
         } catch (CoreException e) {
             traceError(e, "Error getting project name");
@@ -348,7 +352,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
      * 
      * @param parent The parent composite.
      */
-    private void createLabellWithPreferenceLink(Composite parent) {
+    private void createLabelWithPreferenceLink(Composite parent) {
         Label emptyLineLabel = new Label(parent, SWT.NONE);
         GridDataFactory.swtDefaults().applyTo(emptyLineLabel);
 
