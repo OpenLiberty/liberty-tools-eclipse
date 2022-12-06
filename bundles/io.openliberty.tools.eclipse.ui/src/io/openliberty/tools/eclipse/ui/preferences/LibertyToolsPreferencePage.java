@@ -20,6 +20,7 @@ import java.nio.file.Paths;
 import org.eclipse.core.runtime.preferences.InstanceScope;
 import org.eclipse.jface.preference.FieldEditorPreferencePage;
 import org.eclipse.jface.util.PropertyChangeEvent;
+import org.eclipse.jface.preference.IntegerFieldEditor;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.eclipse.ui.preferences.ScopedPreferenceStore;
@@ -31,6 +32,7 @@ public class LibertyToolsPreferencePage extends FieldEditorPreferencePage implem
 
     LibertyPrefDirectoryFieldEditor mvnInstallFE;
     LibertyPrefDirectoryFieldEditor gradleInstallFE;
+    IntegerFieldEditor debugIntFE;
 
     public LibertyToolsPreferencePage() {
 
@@ -40,12 +42,18 @@ public class LibertyToolsPreferencePage extends FieldEditorPreferencePage implem
     @Override
     public void createFieldEditors() {
 
-        mvnInstallFE = new LibertyPrefDirectoryFieldEditor("MVNPATH", "&Maven Install Location:", getFieldEditorParent());
-        gradleInstallFE = new LibertyPrefDirectoryFieldEditor("GRADLEPATH", "&Gradle Install Location:", getFieldEditorParent());
+        mvnInstallFE = new LibertyPrefDirectoryFieldEditor("MVNPATH", "&Maven Install Location:",
+                getFieldEditorParent());
+        gradleInstallFE = new LibertyPrefDirectoryFieldEditor("GRADLEPATH", "&Gradle Install Location:",
+                getFieldEditorParent());
+        debugIntFE = new IntegerFieldEditor("DEBUG_TIMEOUT", "&Debug Timeout Value (in seconds):",
+                getFieldEditorParent());
+        debugIntFE.setValidRange(0, 9000);
+        // debugIntFE.setTextLimit(4);
 
         addField(mvnInstallFE);
         addField(gradleInstallFE);
-
+        addField(debugIntFE);
     }
 
     @Override
@@ -65,6 +73,7 @@ public class LibertyToolsPreferencePage extends FieldEditorPreferencePage implem
         boolean isMvn;
         boolean installMvnLocValid = false;
         boolean installGradleLocValid = false;
+        boolean debugTimeoutValid = false;
 
         String eventProp = event.getProperty();
         if (event.getProperty().equals("field_editor_value")) {
@@ -74,14 +83,20 @@ public class LibertyToolsPreferencePage extends FieldEditorPreferencePage implem
                 isMvn = true;
                 installMvnLocValid = doValidation(isMvn, mvnInstallFE.getStringValue());
                 installGradleLocValid = doValidation(false, gradleInstallFE.getStringValue());
+                debugTimeoutValid = doValidation(Integer.parseInt(debugIntFE.getStringValue()));
             } else {
                 // validate gradle loc
                 isMvn = false;
                 installGradleLocValid = doValidation(isMvn, gradleInstallFE.getStringValue());
                 installMvnLocValid = doValidation(true, mvnInstallFE.getStringValue());
+                debugTimeoutValid = doValidation(Integer.parseInt(debugIntFE.getStringValue()));
             }
 
-            if (installMvnLocValid && installGradleLocValid) {
+            if (event.getSource() == debugIntFE) {
+                debugTimeoutValid = doValidation(Integer.parseInt(debugIntFE.getStringValue()));
+            }
+
+            if (installMvnLocValid && installGradleLocValid && debugTimeoutValid) {
                 setValid(true);
                 setErrorMessage(null);
                 super.performApply();
@@ -94,9 +109,11 @@ public class LibertyToolsPreferencePage extends FieldEditorPreferencePage implem
                     setErrorMessage("Install locations must contain mvn and gradle executables");
                 } else if (!installMvnLocValid && installGradleLocValid) {
                     setErrorMessage("Install location must contain a mvn executable");
-                } else {
+                } else if (installMvnLocValid && !installGradleLocValid) {
                     setErrorMessage("Install location must contain a gradle executable");
-                }
+                } else if (!debugTimeoutValid) {
+                    setErrorMessage("Debug Timeout Value must be between 0 and 9000");
+                } 
             }
         }
     }
@@ -113,6 +130,14 @@ public class LibertyToolsPreferencePage extends FieldEditorPreferencePage implem
                 Path mvnCmd = Paths.get(installLoc + File.separator, Utils.isWindows() ? "gradle.bat" : "gradle");
                 return Files.exists(mvnCmd);
             }
+        }
+    }
+
+    private boolean doValidation(int timeoutVal) {
+        if (timeoutVal < 0 || timeoutVal > 9000) {
+            return false;
+        } else {
+            return true;
         }
     }
 }

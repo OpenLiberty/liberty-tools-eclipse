@@ -495,7 +495,7 @@ public class DebugModeHandler {
      */
     private String waitForSocketActivation(Project project, String host, String port, IProgressMonitor monitor) throws Exception {
         byte[] handshakeString = "JDWP-Handshake".getBytes(StandardCharsets.US_ASCII);
-        int retryLimit = 90;
+        int retryLimit = Integer.parseInt(LibertyDevPlugin.getDefault().getPreferenceStore().getString("DEBUG_TIMEOUT"));
         int envReadMinLimit = 45;
 
         // Retrieve the location of the server.env in the liberty installation at the default location (wpl/usr/servers/<serverName>).
