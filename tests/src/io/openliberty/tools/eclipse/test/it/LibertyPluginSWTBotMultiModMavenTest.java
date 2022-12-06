@@ -109,6 +109,7 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
     public static final void validateBeforeTestRun() {
         dashboard = SWTBotPluginOperations.openDashboardUsingToolbar(bot);
 
+        // Give the app some time to be imported (especially on Windows GHA runs)
         try {
             Thread.sleep(60000);
         } catch (InterruptedException e) {
