@@ -78,11 +78,11 @@ public class ExplorerMenuHandler extends AbstractHandler {
                 }
 
                 switch (commandName) {
-                case ADD_NATURE_ACTION:
-                    Project.addLibertyNature(iProject);
-                    break;
-                default:
-                    throw new Exception("invalid command");
+                    case ADD_NATURE_ACTION:
+                        Project.addNature(iProject, LibertyNature.NATURE_ID);
+                        break;
+                    default:
+                        throw new Exception("invalid command");
                 }
             } catch (Exception e) {
                 String msg = "Unable to process menu command " + commandName + " on project " + iProject.getName() + ".";

@@ -852,6 +852,32 @@ public class SWTBotPluginOperations {
     }
 
     /**
+     * Switches the perspective to Project Explorer.
+     *
+     * @param bot The SWTWorkbenchBot instance.
+     */
+    public static void switchToProjectExplotereView(SWTWorkbenchBot bot) {
+        try {
+            bot.menu("Window").menu("Show View").menu("Project Explorer").click();
+        } catch (Exception e) {
+            // Best effort approach.
+        }
+    }
+
+    /**
+     * Presses the Proceed button if it exists on the error in workspace dialog.
+     * 
+     * @param bot The SWTWorkbenchBot instance.
+     */
+    public static void pressWorkspaceErrorDialogProceedButton(SWTWorkbenchBot bot) {
+        try {
+            bot.button("Proceed").click();
+        } catch (Exception e) {
+            // Best effort approach.
+        }
+    }
+
+    /**
      * Returns a SWTBotToolbarButton instance representing the toolbar button with the input tooltip prefix.
      *
      * @param bot The SWTWorkbenchBot instance.

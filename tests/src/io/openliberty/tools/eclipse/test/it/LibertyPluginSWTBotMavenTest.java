@@ -249,6 +249,9 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         // Validate application is up and running.
         validateApplicationOutcome(MVN_WRAPPER_APP_NAME, true, wrapperProjectPath.toAbsolutePath().toString() + "/target/liberty");
 
+        // If there are issues with the workspace, close the error dialog.
+        SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
+
         // Stop dev mode.
         SWTBotPluginOperations.launchStopWithDashboardAction(bot, dashboard, MVN_WRAPPER_APP_NAME);
         terminal.show();
@@ -274,6 +277,9 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         // Validate application is up and running.
         validateApplicationOutcome(Platform.getOS().equals(Platform.OS_MACOSX) ? MVN_WRAPPER_APP_NAME : MVN_APP_NAME, true,
                 projectPath.toAbsolutePath().toString() + "/target/liberty");
+
+        // If there are issues with the workspace, close the error dialog.
+        SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
 
         // Stop dev mode.
         SWTBotPluginOperations.launchStopWithDashboardAction(bot, dashboard,
@@ -316,6 +322,9 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         validateApplicationOutcome(Platform.getOS().equals(Platform.OS_MACOSX) ? MVN_WRAPPER_APP_NAME : MVN_APP_NAME, true,
                 projectPath.toAbsolutePath().toString() + "/target/liberty");
 
+        // If there are issues with the workspace, close the error dialog.
+        SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
+
         try {
             // Validate that the test reports were generated.
             validateTestReportExists(pathToITReport);
@@ -357,6 +366,9 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         // Validate application is up and running.
         validateApplicationOutcome(Platform.getOS().equals(Platform.OS_MACOSX) ? MVN_WRAPPER_APP_NAME : MVN_APP_NAME, true,
                 projectPath.toAbsolutePath().toString() + "/target/liberty");
+
+        // If there are issues with the workspace, close the error dialog.
+        SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
 
         try {
             // Run Tests.
@@ -402,7 +414,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         IProject iProject = LibertyPluginTestUtils.getProject(MVN_APP_NAME);
         String projectName = iProject.getName();
 
-        Project.removeLibertyNature(iProject);
+        Project.removeNature(iProject, LibertyNature.NATURE_ID);
 
         // Rename the server.xml file.
         Path originalPath = Paths
@@ -500,6 +512,9 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         validateApplicationOutcome(Platform.getOS().equals(Platform.OS_MACOSX) ? MVN_WRAPPER_APP_NAME : MVN_APP_NAME, true,
                 projectPath.toAbsolutePath().toString() + "/target/liberty");
 
+        // If there are issues with the workspace, close the error dialog.
+        SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
+
         // Stop dev mode.
         SWTBotPluginOperations.launchStopWithRunDebugAsShortcut(bot,
                 Platform.getOS().equals(Platform.OS_MACOSX) ? MVN_WRAPPER_APP_NAME : MVN_APP_NAME, "run");
@@ -584,6 +599,9 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         validateApplicationOutcome(Platform.getOS().equals(Platform.OS_MACOSX) ? MVN_WRAPPER_APP_NAME : MVN_APP_NAME, true,
                 projectPath.toAbsolutePath().toString() + "/target/liberty");
 
+        // If there are issues with the workspace, close the error dialog.
+        SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
+
         try {
             // Run Tests.
             SWTBotPluginOperations.launchRunTestspWithRunDebugAsShortcut(bot,
@@ -634,6 +652,9 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         // Validate application is up and running.
         validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
 
+        // If there are issues with the workspace, close the error dialog.
+        SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
+
         try {
             // Validate that the test reports were generated.
             validateTestReportExists(pathToITReport);
@@ -647,6 +668,9 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
             // validateRemoteJavaAppCreation(MVN_APP_NAME);
 
         } finally {
+            // Switch to the explorer view.
+            SWTBotPluginOperations.switchToProjectExplotereView(bot);
+
             // Stop dev mode using the Run As stop command.
             SWTBotPluginOperations.launchStopWithRunDebugAsShortcut(bot, MVN_APP_NAME, "run");
             terminal.show();
@@ -672,6 +696,9 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         // Validate application is up and running.
         validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
 
+        // If there are issues with the workspace, close the error dialog.
+        SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
+
         // At the moment this check is just too unreliable because the configuration dialog contains different
         // sections that maybe in focus at different times. This makes it difficult to predictably get the panel
         // we are after. We need to find a way to focus on the main dialog. We should also cleanup the configurations.
@@ -679,6 +706,9 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         //
         // Validate that a remote java application configuration was created and is named after the application.
         // validateRemoteJavaAppCreation(MVN_APP_NAME);
+
+        // Switch to the explorer view.
+        SWTBotPluginOperations.switchToProjectExplotereView(bot);
 
         // Stop dev mode using the Run As stop command.
         SWTBotPluginOperations.launchStopWithRunDebugAsShortcut(bot, MVN_APP_NAME, "run");
@@ -727,6 +757,9 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         // Validate application is up and running.
         validateApplicationOutcome(MVN_WRAPPER_APP_NAME, true, wrapperProjectPath.toAbsolutePath().toString() + "/target/liberty");
 
+        // If there are issues with the workspace, close the error dialog.
+        SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
+
         // Stop dev mode.
         SWTBotPluginOperations.launchStopWithDashboardAction(bot, dashboard, MVN_WRAPPER_APP_NAME);
         terminal.show();
@@ -756,6 +789,9 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
 
         // Validate application is up and running.
         validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
+
+        // If there are issues with the workspace, close the error dialog.
+        SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
 
         // Stop dev mode.
         SWTBotPluginOperations.launchStopWithDashboardAction(bot, dashboard, MVN_APP_NAME);
