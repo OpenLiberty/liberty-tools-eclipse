@@ -139,7 +139,10 @@ public class Utils {
             } else if (firstElement instanceof IResource) {
                 iProject = ((IResource) firstElement).getProject();
             } else if (firstElement instanceof IAdaptable) {
-                iProject = ((IResource) ((IAdaptable) firstElement).getAdapter(IResource.class)).getProject();
+                IResource adapter = (IResource) ((IAdaptable) firstElement).getAdapter(IResource.class);
+                if (adapter != null) {
+                    iProject = adapter.getProject();
+                }
             }
         }
 

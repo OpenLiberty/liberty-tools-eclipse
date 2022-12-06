@@ -61,6 +61,11 @@
             categoryId="io.openliberty.tools.eclipse.command.category">
       </command>      
       <command
+            id="io.openliberty.tools.eclipse.project.debugConfigDialog.command"
+            name="Liberty Debug with Configuration"
+            categoryId="io.openliberty.tools.eclipse.command.category">
+      </command>
+      <command
             id="io.openliberty.tools.eclipse.project.stop.command"
             name="Liberty Stop"
             categoryId="io.openliberty.tools.eclipse.command.category">
@@ -171,6 +176,12 @@
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
             sequence="M2+M3+L C">
       </key> 
+      <key
+            commandId="io.openliberty.tools.eclipse.project.debugConfigDialog.command"
+            contextId="io.openliberty.tools.eclipse.context"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M2+M3+L D">
+      </key>
       <key
             commandId="io.openliberty.tools.eclipse.project.stop.command"
             contextId="io.openliberty.tools.eclipse.context"
