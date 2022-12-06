@@ -439,40 +439,51 @@ public class DebugModeHandler {
      * @throws Exception
      */
     private ILaunch createRemoteJavaAppDebugConfig(Project project, String host, String port, IProgressMonitor monitor) throws Exception {
-        // Look for an existing config that contains the name of the project. If one is not found create a new config.
+        // There are cases where the modules of an imported multi-module project may not be categorized as Java projects.
+        // This can happen for different reasons. For example, the module does not contain any Java source files.
+        // A module being identified as a Java project is important when creating a Remote Java Application configuration.
+        // The Remote Java Application configuration requires that the project specified is a Java project; otherwise, an error is issued.
+        // Given this requirement, multi-module projects that contain modules with liberty server configuration that do not
+        // meet the requirements to be a Java project may not be able to run debug mode.
+        // A compromise to go around this is to associate the configuration to a child/peer project that is a Java project.
+        // Having said that, the configuration is processed on behalf of the input project, but the specified project is modified
+        // if needed.
         String projectName = project.getIProject().getName();
+        String jProjectName = getJavaProject(project).getName();
+
         ILaunchManager iLaunchManager = DebugPlugin.getDefault().getLaunchManager();
         ILaunchConfigurationType remoteJavaAppConfigType = iLaunchManager
                 .getLaunchConfigurationType(IJavaLaunchConfigurationConstants.ID_REMOTE_JAVA_APPLICATION);
         ILaunchConfiguration[] remoteJavaAppConfigs = iLaunchManager.getLaunchConfigurations(remoteJavaAppConfigType);
         ILaunchConfigurationWorkingCopy remoteJavaAppConfigWCopy = null;
 
-        // There could be multiple entries that contain the project name and it may not be exactly equal to the
-        // project name. Pick the last run configuration and update it.
+        // Find the configurations associated with the project.
         List<ILaunchConfiguration> projectAssociatedConfigs = new ArrayList<ILaunchConfiguration>();
         for (ILaunchConfiguration remoteJavaAppConfig : remoteJavaAppConfigs) {
-            String savedProjectName = remoteJavaAppConfig.getAttribute(IJavaLaunchConfigurationConstants.ATTR_PROJECT_NAME, (String) null);
-            if (projectName.equals(savedProjectName)) {
+            String savedProjectName = remoteJavaAppConfig.getAttribute(StartTab.PROJECT_NAME, (String) null);
+            if (savedProjectName != null && savedProjectName.equals(projectName)) {
                 projectAssociatedConfigs.add(remoteJavaAppConfig);
             }
         }
 
+        // Find the configuration used last.
         if (projectAssociatedConfigs.size() > 0) {
             ILaunchConfiguration lastUsedConfig = launchConfigHelper.getLastRunConfiguration(projectAssociatedConfigs);
             remoteJavaAppConfigWCopy = lastUsedConfig.getWorkingCopy();
         }
 
+        // If an existing configuration was not found, create one.
         if (remoteJavaAppConfigWCopy == null) {
             String configName = launchConfigHelper.buildConfigurationName(projectName);
-
             remoteJavaAppConfigWCopy = remoteJavaAppConfigType.newInstance(null, configName);
-            remoteJavaAppConfigWCopy.setAttribute(IJavaLaunchConfigurationConstants.ATTR_PROJECT_NAME, projectName);
+            remoteJavaAppConfigWCopy.setAttribute(StartTab.PROJECT_NAME, projectName);
+            remoteJavaAppConfigWCopy.setAttribute(IJavaLaunchConfigurationConstants.ATTR_PROJECT_NAME, jProjectName);
             remoteJavaAppConfigWCopy.setAttribute(IJavaLaunchConfigurationConstants.ATTR_VM_CONNECTOR,
                     IJavaLaunchConfigurationConstants.ID_SOCKET_ATTACH_VM_CONNECTOR);
             remoteJavaAppConfigWCopy.setAttribute(IJavaLaunchConfigurationConstants.ATTR_ALLOW_TERMINATE, false);
-
         }
 
+        // Update the configuration with the current data.
         Map<String, String> connectMap = new HashMap<>(2);
         connectMap.put("port", port);
         connectMap.put("hostname", host);
@@ -574,7 +585,7 @@ public class DebugModeHandler {
      */
     private Project getLibertyServerProject(Project project) throws Exception {
         if (project.isParentOfServerModule()) {
-            List<Project> mmps = project.getChildLibertyServerModules();
+            List<Project> mmps = project.getChildLibertyServerProjects();
             switch (mmps.size()) {
                 case 0:
                     throw new Exception("Unable to find a child project that contains the Liberty server configuration.");
@@ -586,6 +597,37 @@ public class DebugModeHandler {
         }
 
         return project;
+    }
+
+    /**
+     * Returns a java project associated with the input project.
+     * 
+     * @param project The project to search for.
+     * 
+     * @return A java project associated with the input project.
+     * 
+     * @throws Exception
+     */
+    private Project getJavaProject(Project project) throws Exception {
+        // If the input project is a Java project, return it.
+        if (project.hasNature(Project.JAVA_NATURE_ID)) {
+            return project;
+        }
+
+        // Find a child java project.
+        List<Project> jProjects = project.getChildJavaProjects();
+        if (!jProjects.isEmpty()) {
+            return jProjects.get(0);
+        }
+
+        // find a peer Java project.
+        jProjects = project.getPeerJavaProjects();
+        if (!jProjects.isEmpty()) {
+            return jProjects.get(0);
+        }
+
+        throw new Exception("No Java project was found. A java project is required to create a Remote Java Application configuration.");
+
     }
 
     private class DataHolder {

@@ -13,14 +13,15 @@
 package io.openliberty.tools.eclipse;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
@@ -34,34 +35,37 @@ import io.openliberty.tools.eclipse.utils.ErrorHandler;
 public class Project {
 
     /** Maven project nature. */
-    public final String MAVEN_NATURE = "org.eclipse.m2e.core.maven2Nature";
+    public static final String MAVEN_NATURE = "org.eclipse.m2e.core.maven2Nature";
 
     /** Gradle project nature. */
-    public final String GRADLE_NATURE = "org.eclipse.buildship.core.gradleprojectnature";
+    public static final String GRADLE_NATURE = "org.eclipse.buildship.core.gradleprojectnature";
 
     /** Java project nature. */
-    public final String JAVA_NATURE_ID = "org.eclipse.jdt.core.javanature";
+    public static final String JAVA_NATURE_ID = "org.eclipse.jdt.core.javanature";
 
     /** Project build types. */
     public static enum BuildType {
         UNKNOWN, GRADLE, MAVEN
     };
 
+    /** The child projects associated with this project. */
+    private Set<Project> childDirProjects = ConcurrentHashMap.newKeySet();
+
+    /** The set of peer projects */
+    private Set<Project> peerDirProjects = ConcurrentHashMap.newKeySet();
+
     /** The Eclipse project reference. */
-    IProject iProject;
+    private IProject iProject;
 
     /** Build type associated with this project. */
     private BuildType type;
 
     /** The parent of this project. */
-    private Project parentDirProject = null;
+    private Project parentDirProject;
 
-    /** The child projects associated with this project. */
-    private Set<Project> childDirProjects = new HashSet<Project>();
+    private boolean libertyServerModule;
 
-    private boolean libertyServerModule = false;
-
-    private boolean isParentOfServerModule = false;
+    private boolean isParentOfServerModule;
 
     /**
      * Constructor.
@@ -161,16 +165,55 @@ public class Project {
      * 
      * @return The list child projects that contain Liberty server configuration.
      */
-    public List<Project> getChildLibertyServerModules() {
-        ArrayList<Project> clsms = new ArrayList<Project>();
+    public List<Project> getChildLibertyServerProjects() {
+        ArrayList<Project> clsps = new ArrayList<Project>();
 
         for (Project child : childDirProjects) {
             if (child.isLibertyServerModule()) {
-                clsms.add(child);
+                clsps.add(child);
             }
         }
 
-        return clsms;
+        return clsps;
+    }
+
+    /**
+     * Returns the list child projects that contain the java nature.
+     * 
+     * @return The list child projects that contain the java nature.
+     */
+    public List<Project> getChildJavaProjects() {
+        return filterJavaProjects(childDirProjects);
+    }
+
+    /**
+     * Returns the list of peer projects that contain the java nature.
+     * 
+     * @return The list of peer projects that contain the java nature.
+     */
+    public List<Project> getPeerJavaProjects() {
+        return filterJavaProjects(peerDirProjects);
+    }
+
+    /**
+     * Returns the list of projects that contain the Java nature from the input set.
+     * 
+     * @param projects The set of projects to filter.
+     * 
+     * @return The list of projects that contain the Java nature from the input set.
+     */
+    public List<Project> filterJavaProjects(Set<Project> projects) {
+        ArrayList<Project> javaProjecs = new ArrayList<Project>();
+        for (Project child : projects) {
+            try {
+                if (child.getIProject().hasNature(JAVA_NATURE_ID)) {
+                    javaProjecs.add(child);
+                }
+            } catch (CoreException e) {
+                ErrorHandler.processWarningMessage("Unable to determine if project : " + child.getName() + " is a Java project.", e, false);
+            }
+        }
+        return javaProjecs;
     }
 
     /**
@@ -211,18 +254,6 @@ public class Project {
             }
         } catch (Exception e) {
             String msg = "Error querying and adding Liberty nature";
-            ErrorHandler.processWarningMessage(msg, e, false);
-        }
-    }
-
-    /**
-     * Adds the java nature to the project if it is not already present.
-     */
-    public void classifyAsJavaNature() {
-        try {
-            Project.addNature(iProject, JAVA_NATURE_ID);
-        } catch (Exception e) {
-            String msg = "Error querying and adding Java nature";
             ErrorHandler.processWarningMessage(msg, e, false);
         }
     }
@@ -291,6 +322,32 @@ public class Project {
         }
     }
 
+    /**
+     * Returns true if the project has the specified nature. False; otherwise.
+     * 
+     * @param nature The nature to check for.
+     * 
+     * @return True if the project has the specified nature. False; otherwise.
+     * 
+     * @throws CoreException
+     */
+    public boolean hasNature(String nature) throws CoreException {
+        return iProject.hasNature(nature);
+    }
+
+    /**
+     * Filters and saves the list of peer projects associated with this project.
+     * 
+     * @param peerProjects The raw list of peer projects.
+     */
+    public void setPeerDirProjects(List<Project> peerProjects) {
+        for (Project project : peerProjects) {
+            if (!getName().equals(project.getName())) {
+                this.peerDirProjects.add(project);
+            }
+        }
+    }
+
     private String formatChildProjectToString() {
         if (childDirProjects.isEmpty()) {
             return "<empty>";
@@ -336,5 +393,4 @@ public class Project {
     public boolean isParentOfServerModule() {
         return isParentOfServerModule;
     }
-
 }

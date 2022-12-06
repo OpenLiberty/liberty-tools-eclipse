@@ -10,7 +10,6 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.handlers.HandlerUtil;
 
-import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.LibertyNature;
 import io.openliberty.tools.eclipse.Project;
 import io.openliberty.tools.eclipse.logging.Trace;
@@ -95,9 +94,6 @@ public class ExplorerMenuHandler extends AbstractHandler {
                 ErrorHandler.processErrorMessage(msg, e);
             }
         }
-
-        // Refresh the dashboard.
-        DevModeOperations.getInstance().refreshDashboardView(false);
 
         if (Trace.isEnabled()) {
             Trace.getTracer().traceExit(Trace.TRACE_HANDLERS);

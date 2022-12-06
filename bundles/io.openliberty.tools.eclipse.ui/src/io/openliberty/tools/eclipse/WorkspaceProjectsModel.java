@@ -105,6 +105,7 @@ public class WorkspaceProjectsModel {
         try {
             // Second pass - establish parent/child relationships (i.e. containing dir / contained subdir relationship)
             for (IProject iProject : projectsToScan) {
+                ArrayList<Project> childPeers = new ArrayList<Project>();
                 for (IResource res : iProject.members()) {
                     if (res.getType() == IResource.FOLDER) {
                         String resLocation = res.getLocation().toOSString();
@@ -112,21 +113,30 @@ public class WorkspaceProjectsModel {
                         if (child != null) {
                             Project parent = projectsByLocation.get(iProject.getLocation().toOSString());
                             child.setParentDirProject(parent);
+                            childPeers.add(child);
                             parent.addChildDirProject(child);
+                        }
+                    }
+                }
+
+                // Set the list of peer projects for each child.
+                for (IResource res : iProject.members()) {
+                    if (res.getType() == IResource.FOLDER) {
+                        String resLocation = res.getLocation().toOSString();
+                        Project child = projectsByLocation.get(resLocation);
+                        if (child != null) {
+                            child.setPeerDirProjects(childPeers);
                         }
                     }
                 }
             }
 
-            // Third pass classify with Liberty nature and java nature.
-            // Java nature classification is needed for debugger attachment. The Java Remote Application configuration framework
-            // requires it, and some multi-module project imports may not have the Java nature associated with them for different reasons.
+            // Third pass classify with Liberty nature.
             if (classify) {
                 for (IProject iProject : projectsToScan) {
                     if (iProject.isOpen()) {
                         Project project = projectsByName.get(iProject.getName());
                         project.classifyAsLibertyNature();
-                        project.classifyAsJavaNature();
                     }
                 }
             }
