@@ -70,6 +70,7 @@ public class DashboardView extends ViewPart {
     public static final String APP_MENU_ACTION_START = "Start";
     public static final String APP_MENU_ACTION_START_CONFIG = "Start...";
     public static final String APP_MENU_ACTION_START_IN_CONTAINER = "Start in container";
+    public static final String APP_MENU_ACTION_DEBUG_CONFIG = "Debug...";
     public static final String APP_MENU_ACTION_STOP = "Stop";
     public static final String APP_MENU_ACTION_RUN_TESTS = "Run tests";
     public static final String APP_MENU_ACTION_VIEW_MVN_IT_REPORT = "View integration test report";
@@ -83,6 +84,7 @@ public class DashboardView extends ViewPart {
     private Action startAction;
     private Action startConfigDialogAction;
     private Action startInContainerAction;
+    private Action debugConfigDialogAction;
     private Action stopAction;
     private Action runTestAction;
     private Action viewMavenITestReportsAction;
@@ -185,6 +187,7 @@ public class DashboardView extends ViewPart {
             mgr.add(startAction);
             mgr.add(startConfigDialogAction);
             mgr.add(startInContainerAction);
+            mgr.add(debugConfigDialogAction);
             mgr.add(stopAction);
             mgr.add(runTestAction);
 
@@ -294,6 +297,27 @@ public class DashboardView extends ViewPart {
         startInContainerAction.setActionDefinitionId("io.openliberty.tools.eclipse.project.startInContainer.command");
         ActionHandler startWithContainerHandler = new ActionHandler(startInContainerAction);
         handlerService.activateHandler(startInContainerAction.getActionDefinitionId(), startWithContainerHandler);
+
+        // Menu: Debug with parameters.
+        debugConfigDialogAction = new Action(APP_MENU_ACTION_DEBUG_CONFIG) {
+            @Override
+            public void run() {
+                IProject iProject = devModeOps.getSelectedDashboardProject();
+                try {
+                    StartConfigurationDialogAction.run(iProject, ILaunchManager.DEBUG_MODE);
+                } catch (Exception e) {
+                    String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_DEBUG_CONFIG + " action.";
+                    if (Trace.isEnabled()) {
+                        Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
+                    }
+                    ErrorHandler.processErrorMessage(msg, e, true);
+                }
+            }
+        };
+        debugConfigDialogAction.setImageDescriptor(ActionImg);
+        debugConfigDialogAction.setActionDefinitionId("io.openliberty.tools.eclipse.project.debugConfigDialog.command");
+        ActionHandler debugConfigDialogHandler = new ActionHandler(debugConfigDialogAction);
+        handlerService.activateHandler(startConfigDialogAction.getActionDefinitionId(), debugConfigDialogHandler);
 
         // Menu: Stop.
         stopAction = new Action(APP_MENU_ACTION_STOP) {
