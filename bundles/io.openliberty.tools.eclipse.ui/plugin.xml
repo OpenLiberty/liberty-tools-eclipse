@@ -561,4 +561,8 @@
             name="Liberty">
       </page>
    </extension>
+   
+   <extension point="org.eclipse.core.runtime.preferences">
+    <initializer class="io.openliberty.tools.eclipse.ui.preferences.LibertyToolsPreferenceInitializer"/>
+   </extension>
 </plugin>

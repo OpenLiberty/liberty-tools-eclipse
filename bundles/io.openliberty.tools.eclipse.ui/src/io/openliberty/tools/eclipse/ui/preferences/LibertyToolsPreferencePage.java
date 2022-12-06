@@ -49,7 +49,6 @@ public class LibertyToolsPreferencePage extends FieldEditorPreferencePage implem
         debugIntFE = new IntegerFieldEditor("DEBUG_TIMEOUT", "&Debug Timeout Value (in seconds):",
                 getFieldEditorParent());
         debugIntFE.setValidRange(0, 9000);
-        // debugIntFE.setTextLimit(4);
 
         addField(mvnInstallFE);
         addField(gradleInstallFE);
