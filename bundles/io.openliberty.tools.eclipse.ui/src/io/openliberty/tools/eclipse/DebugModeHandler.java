@@ -508,8 +508,9 @@ public class DebugModeHandler {
      */
     private String waitForSocketActivation(Project project, String host, String port, IProgressMonitor monitor) throws Exception {
         byte[] handshakeString = "JDWP-Handshake".getBytes(StandardCharsets.US_ASCII);
-        int retryLimit = 90;
+        int retryLimit = 300;
         int envReadMinLimit = 45;
+        int envReadInterval = 5;
 
         // Retrieve the location of the server.env in the liberty installation at the default location (wpl/usr/servers/<serverName>).
         Path serverEnvPath = getServerEnvPath(project);
@@ -549,7 +550,7 @@ public class DebugModeHandler {
             // Check the deployed server.env at the default deployment location (wlp/usr/servers/<serverName>) for the WLP_DEBUG_ADDRESS
             // property. If the port is already in use, dev mode will allocate a random debug port and reflect that by updating the
             // server.env file.
-            if (retryCount >= envReadMinLimit) {
+            if ((retryCount >= envReadMinLimit) && (retryCount < retryLimit) && (retryCount % envReadInterval == 0)) {
                 // Look for the server.env.bak file before checking the server.env file.
                 Path serverEnvBakPath = (serverEnvPath != null) ? serverEnvPath.resolveSibling(WLP_SERVER_ENV_BAK_FILE_NAME) : null;
                 if (serverEnvBakPath != null && serverEnvBakPath.toFile().exists()) {
