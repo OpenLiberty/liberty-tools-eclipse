@@ -508,58 +508,33 @@ public class DebugModeHandler {
      */
     private String waitForSocketActivation(Project project, String host, String port, IProgressMonitor monitor) throws Exception {
         byte[] handshakeString = "JDWP-Handshake".getBytes(StandardCharsets.US_ASCII);
-        int retryLimit = 300;
-        int envReadMinLimit = 45;
-        int envReadInterval = 5;
-
-        // Retrieve the location of the server.env in the liberty installation at the default location (wpl/usr/servers/<serverName>).
-        Path serverEnvPath = getServerEnvPath(project);
+        int retryLimit = 180;
+        int envReadInterval = 2;
 
         for (int retryCount = 0; retryCount < retryLimit; retryCount++) {
+
             // Check if the job was cancelled.
             if (monitor.isCanceled()) {
                 return null;
             }
 
-            // Check if the terminal was marked as closed.
-            IWorkbench workbench = PlatformUI.getWorkbench();
-            Display display = workbench.getDisplay();
-            DataHolder data = new DataHolder();
+            // Check if the terminal was marked as closed, but to reduce contention on the UI thread,
+            // not every time through the loop. We don't have a clean callback/notification that the
+            // terminal session has been marked closed; we're actually going to read the UI element text
+            if (retryCount % envReadInterval == 0) {
+                IWorkbench workbench = PlatformUI.getWorkbench();
+                Display display = workbench.getDisplay();
+                DataHolder data = new DataHolder();
 
-            display.syncExec(new Runnable() {
-                public void run() {
-                    boolean isClosed = devModeOps.isProjectTerminalTabMarkedClosed(project.getIProject().getName());
-                    data.closed = isClosed;
-                }
-            });
-
-            if (data.closed == true) {
-                return null;
-            }
-
-            // The server.env path may not yet exist. If it is null, retry.
-            if (serverEnvPath == null) {
-                TimeUnit.SECONDS.sleep(1);
-                serverEnvPath = getServerEnvPath(project);
-                if (serverEnvPath == null) {
-                    continue;
-                }
-            }
-
-            // There is a small window in which the allocated random port could have been taken by another process.
-            // Check the deployed server.env at the default deployment location (wlp/usr/servers/<serverName>) for the WLP_DEBUG_ADDRESS
-            // property. If the port is already in use, dev mode will allocate a random debug port and reflect that by updating the
-            // server.env file.
-            if ((retryCount >= envReadMinLimit) && (retryCount < retryLimit) && (retryCount % envReadInterval == 0)) {
-                // Look for the server.env.bak file before checking the server.env file.
-                Path serverEnvBakPath = (serverEnvPath != null) ? serverEnvPath.resolveSibling(WLP_SERVER_ENV_BAK_FILE_NAME) : null;
-                if (serverEnvBakPath != null && serverEnvBakPath.toFile().exists()) {
-                    String envPort = readDebugPortFromServerEnv(serverEnvPath.toFile());
-                    if (envPort != null) {
-                        if (!envPort.equals(port)) {
-                            port = envPort;
-                        }
+                display.syncExec(new Runnable() {
+                    public void run() {
+                        boolean isClosed = devModeOps.isProjectTerminalTabMarkedClosed(project.getIProject().getName());
+                        data.closed = isClosed;
                     }
+                });
+
+                if (data.closed == true) {
+                    return null;
                 }
             }
 
@@ -571,8 +546,8 @@ public class DebugModeHandler {
             }
         }
 
-        throw new Exception("Unable to automatically attach the debugger to JVM on host: " + host + " and port: " + port
-                + ". If the debug connection timed out but the server did start successfully, you can still manually create a Remote Java Application debug configuration with the mentioned port and attach to the server.");
+        throw new Exception("Timed out trying to attach the debugger to JVM on host: " + host + " and port: " + port
+                + ".  If the server starts later you might try to manually create a Remote Java Application debug configuration and attach to the server.  You can confirm the debug port used in the terminal output looking for a message like  'Liberty debug port: [ 63624 ]'.");
     }
 
     /**
@@ -588,12 +563,12 @@ public class DebugModeHandler {
         if (project.isParentOfServerModule()) {
             List<Project> mmps = project.getChildLibertyServerProjects();
             switch (mmps.size()) {
-                case 0:
-                    throw new Exception("Unable to find a child project that contains the Liberty server configuration.");
-                case 1:
-                    return mmps.get(0);
-                default:
-                    throw new Exception("Multiple child projects containing Liberty server configuration were found.");
+            case 0:
+                throw new Exception("Unable to find a child project that contains the Liberty server configuration.");
+            case 1:
+                return mmps.get(0);
+            default:
+                throw new Exception("Multiple child projects containing Liberty server configuration were found.");
             }
         }
 
