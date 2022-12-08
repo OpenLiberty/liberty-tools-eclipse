@@ -317,7 +317,7 @@ public class DashboardView extends ViewPart {
         debugConfigDialogAction.setImageDescriptor(ActionImg);
         debugConfigDialogAction.setActionDefinitionId("io.openliberty.tools.eclipse.project.debugConfigDialog.command");
         ActionHandler debugConfigDialogHandler = new ActionHandler(debugConfigDialogAction);
-        handlerService.activateHandler(startConfigDialogAction.getActionDefinitionId(), debugConfigDialogHandler);
+        handlerService.activateHandler(debugConfigDialogAction.getActionDefinitionId(), debugConfigDialogHandler);
 
         // Menu: Stop.
         stopAction = new Action(APP_MENU_ACTION_STOP) {
