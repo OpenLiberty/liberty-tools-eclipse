@@ -100,7 +100,7 @@
       </command>
       <command
             id="io.openliberty.tools.eclipse.launch.start.config.shortcut.run"
-            name="Liberty Start with Configuration Dialog"
+            name="Liberty Start with Configuration"
             description="Launches the configuration dialog to run the associated project on Liberty using dev mode"
             categoryId="org.eclipse.debug.ui.category.run">
       </command>
