@@ -5,25 +5,33 @@
 
 [![License](https://img.shields.io/badge/License-EPL%202.0-red.svg?label=license&logo=eclipse)](https://www.eclipse.org/legal/epl-2.0/)
 
-A [Liberty](https://openliberty.io/) plugin for Eclipse IDE. The plugin will detect your Liberty Maven or
-Liberty Gradle project, and using the Liberty Dashboard view, you can start,
+A [Liberty](https://openliberty.io/) plugin for Eclipse IDE. The plugin allows you to run your Liberty Maven or
+Liberty Gradle projects in dev mode through the Liberty dashboard view or through the project explorer view. You can start,
 stop, or interact with [Liberty dev mode](https://openliberty.io/docs/latest/development-mode.html) on all configured
 [Liberty Maven](https://github.com/OpenLiberty/ci.maven/blob/master/docs/dev.md#dev)
 and [Liberty Gradle](https://github.com/OpenLiberty/ci.gradle/blob/master/docs/libertyDev.md) projects in your
 workspace.
 
+### Liberty dashboard
+
 Maven Projects             | Gradle Projects
 :-------------------------:|:-------------------------:
 ![Dashboard context menu for Maven Projects](docs/getting-started/images/maven-dashboardViewContextMenuShown.png) | ![Dashboard context menu for Gradle Projects](docs/getting-started/images/gradle-dashboardViewContextMenuShown.png)
+
+### Explorer view
+
+Maven Projects             | Gradle Projects
+:-------------------------:|:-------------------------:
+![Dashboard context menu for Maven Projects](docs/getting-started/images/maven-RunAsConfigShortcutsExplorerMenuShown.png) | ![Dashboard context menu for Gradle Projects](docs/getting-started/images/gradle-RunAsConfigShortcutsExplorerMenuShown.png)
 
 ## Quick Start
 
 - [Install Liberty Tools](docs/installation/installation.md).
 - Install your Maven or Gradle application.
-- Open the Liberty Dashboard view by clicking on the Open Liberty icon on the toolbar. For more details see [Opening the Liberty Dashboard view](https://github.com/OpenLiberty/liberty-tools-eclipse/blob/main/docs/getting-started/getting-started.md#opening-the-liberty-tools-dashboard-view). Once the dashboard is opened, existing Liberty supported projects will appear in the Liberty Dashboard view.
-- Right-click on your application in the Liberty Dashboard to view the available action commands.
+- Open the Liberty dashboard view by [clicking on the Open Liberty icon on the toolbar](https://github.com/OpenLiberty/liberty-tools-eclipse/blob/main/docs/getting-started/getting-started.md#opening-the-liberty-tools-dashboard-view), or open the project explorer view.
+- Right-click on your application in the Liberty dashboard to view the available action commands, or, if you are using the project explorer view, right-click on your application and select the `Run As` entry on the menu to view the available Liberty launch shortcuts.
 
-For more detailed instructions on making use of the Liberty Dashboard context menu action commands, check out the [Getting Started](docs/getting-started/getting-started.md) page.
+For detailed instructions on how to use the Liberty dashboard context menu commands or the Liberty launch shortcuts provided thought the project explorer view, check out the [Getting Started](docs/getting-started/getting-started.md) page.
 
 ## Features
 
@@ -31,6 +39,7 @@ For more detailed instructions on making use of the Liberty Dashboard context me
 - Start/Stop dev mode.
 - Start dev mode with custom parameters.
 - Start dev mode in a container.
+- Start dev mode with the debugger attached.
 - Run tests.
 - View test reports.
 
@@ -39,8 +48,9 @@ For more detailed instructions on making use of the Liberty Dashboard context me
 | Action Command                       | Description                                                                                                                                                                                                                                                                                                                  |
 | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Start                                | Starts dev mode.                                                                                                                                                                                                                                                                                                             |
-| Start…                               | Starts dev mode with custom parameters. Supported parameters can be found in the documentation for the [dev goal of the Liberty Maven Plugin](https://github.com/OpenLiberty/ci.maven/blob/master/docs/dev.md#additional-parameters) and the [libertyDev task of the Liberty Gradle Plugin](https://github.com/OpenLiberty/ci.gradle/blob/master/docs/libertyDev.md#command-line-parameters). |
+| Start...                             | Opens the Run Configurations dialog to customize and run dev mode. Supported parameters can be found in the documentation for the [dev goal of the Liberty Maven Plugin](https://github.com/OpenLiberty/ci.maven/blob/master/docs/dev.md#additional-parameters) and the [libertyDev task of the Liberty Gradle Plugin](https://github.com/OpenLiberty/ci.gradle/blob/master/docs/libertyDev.md#command-line-parameters). |
 | Start in container                   | Starts dev mode with the server in a container.
+| Debug...                             | Opens the Debug Configurations dialog to customize and run dev mode, and attach the debugger to the server JVM running the application.
 | Stop                                 | Stops dev mode.                                                                                                                                                                                                                                                                                                              |
 | Run tests                            | Runs the unit tests and integration tests that are configured for your project. This command requires dev mode to be already started.                                                                                                                                                                                        |
 | View integration test report (Maven) | Opens the integration test report file if it exists at `/target/site/failsafe-report.html`. This action command is only available to Maven projects.                                                                                                                                                                                                                                                                                  |
