@@ -26,6 +26,7 @@
     
     <properties>
         <liberty.ls.version>1.0-M1-SNAPSHOT</liberty.ls.version>
+        <jakarta.ls.version>0.1.0-SNAPSHOT</jakarta.ls.version>
     </properties>
     <artifactId>io.openliberty.tools.eclipse.lsp4e</artifactId>
     
@@ -51,7 +52,7 @@
         <dependency>
             <groupId>org.eclipse.lsp4jakarta</groupId>
             <artifactId>org.eclipse.lsp4jakarta.ls</artifactId>
-            <version>0.0.1-SNAPSHOT</version>
+            <version>${jakarta.ls.version}</version>
             <classifier>jar-with-dependencies</classifier>
         </dependency>
     </dependencies>
@@ -111,11 +112,11 @@
                                 <artifactItem>
                                   <groupId>org.eclipse.lsp4jakarta</groupId>
                                   <artifactId>org.eclipse.lsp4jakarta.ls</artifactId>
-                                  <version>0.0.1-SNAPSHOT</version>
+                                  <version>${jakarta.ls.version}</version>
                                   <classifier>jar-with-dependencies</classifier>
                                   <type>jar</type>
                                   <overWrite>true</overWrite>
-                                  <destFileName>org.eclipse.lsp4jakarta.ls-0.0.1-SNAPSHOT-jar-with-dependencies.jar</destFileName>
+                                  <destFileName>org.eclipse.lsp4jakarta.ls.jar</destFileName>
                                 </artifactItem>
                                </artifactItems> 
                               <outputDirectory>${project.basedir}/server/jakarta-langserver</outputDirectory>
