@@ -1,12 +1,12 @@
-# Welcome to the Liberty Tools (for Eclipse) project
+# Welcome to the Liberty Tools for Eclipse IDE project
 
 > NOTE: Starting with the [0.3 early release](https://github.com/OpenLiberty/liberty-tools-eclipse/releases/tag/liberty-tools-0.3.0), Eclipse version 2022-09 and Java 17 are required. If using Eclipse version 2022-03 or 2022-06, you must use [Liberty Tools version 0.2 ](https://github.com/OpenLiberty/liberty-tools-eclipse/releases/tag/liberty-tools-0.2.0.202209201734).
 
 
 [![License](https://img.shields.io/badge/License-EPL%202.0-red.svg?label=license&logo=eclipse)](https://www.eclipse.org/legal/epl-2.0/)
 
-An [Open Liberty](https://openliberty.io/) plugin for Eclipse. The plugin will detect your Liberty Maven or
-Liberty Gradle project, and using the Liberty tools dashboard view, you can start,
+A [Liberty](https://openliberty.io/) plugin for Eclipse IDE. The plugin will detect your Liberty Maven or
+Liberty Gradle project, and using the Liberty Dashboard view, you can start,
 stop, or interact with [Liberty dev mode](https://openliberty.io/docs/latest/development-mode.html) on all configured
 [Liberty Maven](https://github.com/OpenLiberty/ci.maven/blob/master/docs/dev.md#dev)
 and [Liberty Gradle](https://github.com/OpenLiberty/ci.gradle/blob/master/docs/libertyDev.md) projects in your
@@ -20,10 +20,10 @@ Maven Projects             | Gradle Projects
 
 - [Install Liberty Tools](docs/installation/installation.md).
 - Install your Maven or Gradle application.
-- Open the Liberty Tools dashboard view by clicking on the Open Liberty icon on the toolbar. For more details see [Opening the Liberty tools dashboard view](https://github.com/OpenLiberty/liberty-tools-eclipse/blob/main/docs/getting-started/getting-started.md#opening-the-liberty-tools-dashboard-view). Once the dashboard is opened, existing Liberty supported projects will appear in the Liberty Tools dashboard view.
-- Right-click on your application in the Open Liberty tools dashboard to view the available action commands.
+- Open the Liberty Dashboard view by clicking on the Open Liberty icon on the toolbar. For more details see [Opening the Liberty Dashboard view](https://github.com/OpenLiberty/liberty-tools-eclipse/blob/main/docs/getting-started/getting-started.md#opening-the-liberty-tools-dashboard-view). Once the dashboard is opened, existing Liberty supported projects will appear in the Liberty Dashboard view.
+- Right-click on your application in the Liberty Dashboard to view the available action commands.
 
-For more detailed instructions on making use of the Open Liberty Tools dashboard context menu action commands, check out the  [Getting Started](docs/getting-started/getting-started.md) page.
+For more detailed instructions on making use of the Liberty Dashboard context menu action commands, check out the [Getting Started](docs/getting-started/getting-started.md) page.
 
 ## Features
 
@@ -49,7 +49,7 @@ For more detailed instructions on making use of the Open Liberty Tools dashboard
 
 ## Contributing
 
-Contributions to the Open Liberty Tools for Eclipse plugin are welcome!
+Contributions to the Liberty Tools for Eclipse IDE plugin are welcome!
 
 Our [CONTRIBUTING](CONTRIBUTING.md) document contains details for setting up your development environment and submitting pull requests.
 
