@@ -18,7 +18,7 @@
       <extension
            point="org.eclipse.wildwebdeveloper.xml.lemminxExtension">
             <jar
-                  path="server/liberty-lemminx-extn/liberty-langserver-lemminx-1.0-SNAPSHOT-jar-with-dependencies.jar">
+                  path="server/liberty-lemminx-extn/liberty-langserver-lemminx.jar">
             </jar>
       </extension>
    

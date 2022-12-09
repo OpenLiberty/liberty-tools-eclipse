@@ -62,7 +62,7 @@ public class LibertyLSConnection extends ProcessStreamConnectionProvider {
 
 	private String computeClasspath() throws IOException {
 		StringBuilder builder = new StringBuilder();
-		URL url = FileLocator.toFileURL(getClass().getResource("/server/liberty-langserver/liberty-langserver-1.0-SNAPSHOT-jar-with-dependencies.jar"));
+		URL url = FileLocator.toFileURL(getClass().getResource("/server/liberty-langserver/liberty-langserver.jar"));
 		builder.append(new java.io.File(url.getPath()).getAbsolutePath());
 		return builder.toString();
 	}

@@ -44,8 +44,6 @@ public class JakartaLSConnection extends ProcessStreamConnectionProvider {
 
     public JakartaLSConnection() {
 
-//      Locale.setDefault(new Locale("my", "TEST")); // testing code
-
       List<String> commands = new ArrayList<>();
       commands.add(computeJavaPath());
       String debugPortString = System.getProperty(getClass().getName() + ".debugPort");
@@ -73,7 +71,7 @@ public class JakartaLSConnection extends ProcessStreamConnectionProvider {
   }
     private String computeClasspath() throws IOException {
         StringBuilder builder = new StringBuilder();
-        URL url = FileLocator.toFileURL(getClass().getResource("/server/jakarta-langserver/org.eclipse.lsp4jakarta.ls-0.0.1-SNAPSHOT-jar-with-dependencies.jar"));
+        URL url = FileLocator.toFileURL(getClass().getResource("/server/jakarta-langserver/org.eclipse.lsp4jakarta.ls.jar"));
         builder.append(new java.io.File(url.getPath()).getAbsolutePath());
         return builder.toString();
     }
