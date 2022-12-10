@@ -113,7 +113,7 @@
             clientImpl="io.openliberty.tools.eclipse.mpls.LibertyMPLSClientImpl"
             id="io.openliberty.tools.eclipse.org.microprofile.mpserver"
             serverInterface="org.eclipse.lsp4mp.ls.api.MicroProfileLanguageServerAPI"
-            label="Liberty MicroProfile Language Server"
+            label="Language Server for MicroProfile (via Liberty Tools)"
             singleton="true">
       </server>
       <contentTypeMapping
@@ -145,7 +145,7 @@
       <server
             class="io.openliberty.tools.eclipse.jakarta.languageserver.JakartaLSConnection"
             id="io.openliberty.tools.eclipse.org.liberty.jakartalangserver"
-            label="Liberty Tools Jakarta Language Server"
+            label="Language Server for Jakarta EE (via Liberty Tools)"
             clientImpl="io.openliberty.tools.eclipse.jakarta.languageserver.JakartaLSClientImpl"
             singleton="true">
       </server>
