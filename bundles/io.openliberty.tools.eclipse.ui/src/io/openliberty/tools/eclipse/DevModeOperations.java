@@ -261,7 +261,7 @@ public class DevModeOperations {
             if (projectTabController.isProjectTabMarkedClosed(projectName)) {
                 if (Trace.isEnabled()) {
                     Trace.getTracer().trace(Trace.TRACE_TOOLS,
-                            "The start in coontainer request was already processed on project " + projectName
+                            "The start in container request was already processed on project " + projectName
                                     + ". The terminal tab for this project is marked as closed. Cleaning up. ProjectTabController: "
                                     + projectTabController);
                 }
@@ -366,8 +366,9 @@ public class DevModeOperations {
 
         // Check if the stop action has already been issued of if a start action was never issued before.
         if (projectTabController.getProjectConnector(projectName) == null) {
-            String msg = "The start request was not issued first or the stop request has already been issued on project " + projectName
-                    + ".";
+            String msg = "Either a start request was not issued previously by Liberty Tools, or a stop request has already been issued on project "
+                    + projectName
+                    + ".  To stop an application/server that was started outside of the current Liberty Tools session, you must use another method: e.g. open a new terminal inside or outside of Eclipse and issue 'mvn liberty:stop' or 'gradle libertyStop'.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op. ProjectTabController: " + projectTabController);
             }

@@ -21,7 +21,7 @@
 
    <copyright>%copyright</copyright>
 
-   <license>%license</license>
+   <license url="%licenseURL">%license</license>
 
    <plugin
          id="io.openliberty.tools.eclipse.ui"
