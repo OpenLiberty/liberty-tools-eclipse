@@ -15,7 +15,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>io.openliberty.tools.eclipse</groupId>
 	<artifactId>parent</artifactId>
-	<version>0.6.0-SNAPSHOT</version>
+	<version>0.7.0-SNAPSHOT</version>
 	<packaging>pom</packaging>
     <licenses>
       <license>
@@ -82,6 +82,16 @@
           </releases>
           <snapshots>
             <enabled>true</enabled>
+          </snapshots>
+        </repository>
+        <repository>
+          <id>lsp4jakarta-releases</id>
+          <url>https://repo.eclipse.org/content/repositories/lsp4jakarta-releases</url>
+          <releases>
+            <enabled>true</enabled>
+          </releases>
+          <snapshots>
+            <enabled>false</enabled>
           </snapshots>
         </repository>
 	</repositories>
@@ -182,7 +192,7 @@
 						<artifact>
 							<groupId>io.openliberty.tools.eclipse</groupId>
 							<artifactId>target-platform</artifactId>
-							<version>0.6.0-SNAPSHOT</version>
+							<version>0.7.0-SNAPSHOT</version>
 						</artifact>
 					</target>
 					<environments>

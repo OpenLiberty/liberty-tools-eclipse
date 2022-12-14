@@ -4,7 +4,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Liberty Tools UI
 Bundle-Vendor: Open Liberty
 Bundle-SymbolicName: io.openliberty.tools.eclipse.ui;singleton:=true
-Bundle-Version: 0.6.0.qualifier
+Bundle-Version: 0.7.0.qualifier
 Bundle-Activator: io.openliberty.tools.eclipse.LibertyDevPlugin
 Export-Package: io.openliberty.tools.eclipse;x-friends:="io.openliberty.tools.eclipse.tests",
  io.openliberty.tools.eclipse.ui.dashboard;x-friends:="io.openliberty.tools.eclipse.tests",

@@ -12,7 +12,7 @@
       IBM Corporation - initial implementation
 -->
 <site>
-    <feature url="features/io.openliberty.tools.eclipse_0.6.0.qualifier.liberty.jar" id="io.openliberty.tools.eclipse" version="0.6.0.qualifier">
+    <feature url="features/io.openliberty.tools.eclipse_0.7.0.qualifier.liberty.jar" id="io.openliberty.tools.eclipse" version="0.7.0.qualifier">
         <category name="io.openliberty.tools.eclipse" />
     </feature>
 
@@ -20,7 +20,7 @@
 
     <repository-reference location="https://download.eclipse.org/jdtls/milestones/1.5.0/repository" enabled="true" />
     <repository-reference location="https://download.eclipse.org/lsp4mp/releases/0.5.0/repository" enabled="true" />
-    <repository-reference location="https://download.eclipse.org/lsp4jakarta/snapshots/0.1.0/repository" enabled="true" />
+    <repository-reference location="https://download.eclipse.org/lsp4jakarta/releases/0.1.0/repository" enabled="true" />
 
     <!-- Dependencies -->
     <bundle id="org.eclipse.ui.trace" version="1.2.200.v20220310-2159">
