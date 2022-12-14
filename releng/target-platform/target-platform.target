@@ -109,7 +109,7 @@
             </dependencies>
         </location>
         <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-            <repository location="https://download.eclipse.org/lsp4jakarta/snapshots/0.1.0/repository"/>
+            <repository location="https://download.eclipse.org/lsp4jakarta/releases/0.1.0/repository"/>
             <unit id="org.eclipse.lsp4jakarta.jdt.core" version="0.0"/>
         </location>
     </locations>
