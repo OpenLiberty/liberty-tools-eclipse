@@ -11,7 +11,7 @@ The Liberty Tools feature can be installed as new software either by using the E
 
 ## Using Eclipse Marketplace client
 
-1. Go to menu:  `Help`->`Eclipse Marketplace` and type "Liberty Tools".
+1. Go to menu:  `Help`->`Eclipse Marketplace` and type **"Liberty Tools"**.
 
     **NOTE:** Do NOT select the "IBM Liberty Developer Tools" selection, which is an earlier, different set of IDE features/plugins, though with the similar name.
 
@@ -47,30 +47,17 @@ The Liberty Tools feature can be installed using the artifacts provided in the f
 
 5. Review/Accept the License agreement and click `Finish`.
 
-6. Restart Eclipse.
+6. Trust - Depending on your original IDE package you may be required to accept trust of **org.apache.commons3.lang**, a prerequisite of the LSP4Jakarta component used by Liberty Tools.
+
+7. Restart Eclipse at the prompt.
 
 ![Step 5. Reboot](images/install-restartAfterInstall.png)
 
 ### Avoid trouble
 
-The plugin uses the available Java, Maven, Gradle, and Docker executables to run the command actions associated with each project on the dashboard. 
-
-#### Java
-
-The plugin detects what Java executable to use by first checking the `JAVA_HOME` environment variable. If that variable is not set, the JRE used to run the Eclipse IDE itself is used. 
-
-#### Maven/Gradle 
-
-The plugin first looks if there is a Maven or Gradle wrapper in the project and uses that to run the command actions. For Maven, a wrapper can be created with the following command:
-> mvn org.apache.maven.plugins:maven-wrapper-plugin:3.1.1:wrapper 
-
-If no wrapper is included, the Maven and Gradle executables defined on the PATH environment variable are used. 
-
 #### Docker 
 
-The plugin detects what Docker executable to use by checking the Docker executable defined on the PATH environment variable.
-
-Consequently, to fully setup your environment, be sure to check that your local PATH environment variable contains the paths to the Java, Maven, Gradle, and Docker executables. Be sure that the PATH is also visible to the terminal in your Eclipse IDE.
+The Liberty Tools `Start in container` function detects what Docker executable to use by checking the Docker executable defined on the PATH environment variable. Be sure that the PATH is also visible to the terminal in your Eclipse IDE.
 
 ### Next steps
 
