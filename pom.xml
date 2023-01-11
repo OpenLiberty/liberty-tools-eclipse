@@ -191,8 +191,9 @@
 					<target>
 						<artifact>
 							<groupId>io.openliberty.tools.eclipse</groupId>
-							<artifactId>target-platform</artifactId>
+							<artifactId>${eclipseversion}</artifactId>
 							<version>0.7.0-SNAPSHOT</version>
+							<file>${eclipseversion}</file>
 						</artifact>
 					</target>
 					<environments>

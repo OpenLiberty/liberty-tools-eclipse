@@ -104,6 +104,45 @@
                 </pluginManagement>
             </build>
         </profile>
+         
+                <profile>
+                        <id>run-on-Q4Eclipse</id>
+                        <build>
+							<pluginManagement>
+                                <plugins>
+                                        <plugin>
+                                                <groupId>org.eclipse.tycho</groupId>
+                                                <artifactId>tycho-surefire-plugin</artifactId>
+                                                <version>${tycho-version}</version>
+                                                <configuration>
+                                                        <testRuntime>p2Installed</testRuntime>
+                                                        <work>${env.TEMP}\testrun-eclipse-4Q2022</work>
+                                                        <profileName>Q4Eclipse</profileName>
+                                                </configuration>
+                                        </plugin>
+                                </plugins>
+                             </pluginManagement>   
+                        </build>
+                </profile>
+                <profile>
+                        <id>run-on-Q3Eclipse</id>
+                        <build>
+							<pluginManagement>
+                                <plugins>
+                                        <plugin>
+                                                <groupId>org.eclipse.tycho</groupId>
+                                                <artifactId>tycho-surefire-plugin</artifactId>
+                                                <version>${tycho-version}</version>
+                                                <configuration>
+                                                        <testRuntime>p2Installed</testRuntime>
+                                                        <work>${env.TEMP}\testrun-eclipse-3Q2022</work>
+                                                        <profileName>Q3Eclipse</profileName>
+                                                </configuration>
+                                        </plugin>
+                                </plugins>
+                             </pluginManagement>   
+                        </build>
+                </profile>       
     </profiles>
 
 </project>
