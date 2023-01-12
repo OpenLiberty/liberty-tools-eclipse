@@ -39,6 +39,10 @@
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <repository.home>${project.basedir}</repository.home>
+        
+        <!-- default version of the eclipse IDE to run tests against -->
+        <!-- must be one of the target platform files defined in this project under releng -->
+        <eclipse.target>4Q2022</eclipse.target>
             
 	</properties>
 	
@@ -191,9 +195,9 @@
 					<target>
 						<artifact>
 							<groupId>io.openliberty.tools.eclipse</groupId>
-							<artifactId>${eclipseversion}</artifactId>
+							<artifactId>target-platform-${eclipse.target}</artifactId>
 							<version>0.7.0-SNAPSHOT</version>
-							<file>${eclipseversion}</file>
+							<file>target-platform-${eclipse.target}</file>
 						</artifact>
 					</target>
 					<environments>
