@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2022 IBM Corporation and others.
+* Copyright (c) 2022, 2023 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -15,10 +15,15 @@ package io.openliberty.tools.eclipse.ui.launch;
 import java.io.File;
 import java.nio.file.Paths;
 
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
+import org.eclipse.jdt.core.IClasspathEntry;
+import org.eclipse.jdt.core.IJavaProject;
+import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.debug.ui.launchConfigurations.JavaJRETab;
+import org.eclipse.jdt.launching.IJavaLaunchConfigurationConstants;
 import org.eclipse.jdt.launching.IVMInstall;
 import org.eclipse.jdt.launching.JavaRuntime;
 
@@ -27,9 +32,6 @@ import io.openliberty.tools.eclipse.utils.ErrorHandler;
 import io.openliberty.tools.eclipse.utils.Utils;
 
 public class JRETab extends JavaJRETab {
-
-    /** JRE container key. */
-    public static final String JRE_CONTAINER_KEY = "org.eclipse.jdt.launching.JRE_CONTAINER";
 
     /**
      * {@inheritDoc}
@@ -54,17 +56,48 @@ public class JRETab extends JavaJRETab {
     }
 
     /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void setDefaults(ILaunchConfigurationWorkingCopy configuration) {
+        String javaInstallation = null;
+        IProject activeProject = Utils.getActiveProject();
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_UI, new Object[] { activeProject, configuration });
+        }
+
+        try {
+            if (activeProject != null) {
+                javaInstallation = getDefaulJavaFromBuildPath(activeProject);
+                if (javaInstallation != null) {
+                    configuration.setAttribute(IJavaLaunchConfigurationConstants.ATTR_JRE_CONTAINER_PATH, javaInstallation);
+                }
+            }
+        } catch (Exception e) {
+            ErrorHandler.processWarningMessage("Unable to set the default Java installation obtained from the build path of project "
+                    + activeProject.getName() + " in configuration " + configuration.getName(), e);
+        }
+
+        super.setDefaults(configuration);
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_UI, javaInstallation);
+        }
+    }
+
+    /**
      * Resolves the java installation to use based on the configuration.
      */
     public static String resolveJavaHome(ILaunchConfiguration configuration) {
-        IVMInstall install;
+        IVMInstall install = null;
         String keyValue = null;
 
         // The JRE_CONTAINER_KEY is set when using the configuration's execution environment
         // or an alternate JRE. If this is not set, the workspace default JRE is used.
         try {
             ILaunchConfigurationWorkingCopy configWorkingCopy = configuration.getWorkingCopy();
-            keyValue = configWorkingCopy.getAttribute(JRE_CONTAINER_KEY, (String) null);
+            keyValue = configWorkingCopy.getAttribute(IJavaLaunchConfigurationConstants.ATTR_JRE_CONTAINER_PATH, (String) null);
         } catch (Exception e) {
             String msg = "Unable to resolve the Java installation path using configuration." + configuration.getName()
                     + ". Using the workspace Java installation";
@@ -82,5 +115,35 @@ public class JRETab extends JavaJRETab {
         }
 
         return install.getInstallLocation().getAbsolutePath();
+    }
+
+    /**
+     * Returns the Java execution environment configured in the Java build path of the input project (.classpath).
+     * 
+     * @param iProject The project currently being processed.
+     * 
+     * @return the Java execution environment configured in the Java build path of the input project (.classpath). Null if the
+     *         required data is not found.
+     * 
+     * @throws Exception
+     */
+    public static String getDefaulJavaFromBuildPath(IProject iProject) throws Exception {
+        if (iProject.hasNature(JavaCore.NATURE_ID)) {
+            IJavaProject ijp = JavaCore.create(iProject);
+
+            IClasspathEntry[] rawCPEs = ijp.getRawClasspath();
+            for (IClasspathEntry rawCPE : rawCPEs) {
+                if (rawCPE.getEntryKind() == IClasspathEntry.CPE_CONTAINER) {
+                    IPath path = rawCPE.getPath();
+                    if (path.segmentCount() == 3) {
+                        if (path.segment(0).equals(IJavaLaunchConfigurationConstants.ATTR_JRE_CONTAINER_PATH)) {
+                            return path.toOSString();
+                        }
+                    }
+                }
+            }
+        }
+
+        return null;
     }
 }
