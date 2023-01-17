@@ -61,6 +61,9 @@ main() {
 }
 
 # installSoftware installs base software.
+# MAC: Add `|| true` to failing brew command to bypass issue:
+# https://github.com/actions/setup-python/issues/577
+# Once the issue is resolved, `|| true' can be removed.
 installBaseSoftware() {
     if [[ $OS == "Linux" ]]; then
         sudo apt-get update
@@ -69,7 +72,7 @@ installBaseSoftware() {
         installDockerOnLinux
     elif [[ $OS == "Darwin" ]]; then
         brew update
-        brew install curl unzip
+        brew install curl unzip || true
         brew install docker
     else
         # Note: Docker is already installed on the windows VMs provisioned by GHA. 
@@ -124,7 +127,7 @@ installJDK() {
 # installMaven installs the set version of Maven.
 installMaven() {
     local mavenHome="${SOFTWARE_INSTALL_DIR}/apache-maven-${MAVEN_VERSION}"
-	local url="https://dlcdn.apache.org/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.zip"
+	local url="https://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.zip"
 
     # Download the Maven archive.
 	curl -fsSL -o /tmp/liberty-dev-tool-apache-maven.zip "$url"
