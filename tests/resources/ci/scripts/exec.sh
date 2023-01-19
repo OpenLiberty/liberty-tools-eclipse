@@ -35,7 +35,9 @@ main() {
         metacity --sm-disable --replace 2> metacity.err &
     fi
     
-    # Run the plugin's install goal.
+    # Run the plugin's install goal against the 3Q2022 Eclipse IDE
+    mvn clean install -Declipse.target="3Q2022" -Dosgi.debug=./tests/resources/ci/debug.opts -Dtycho.showEclipseLog -DmvnPath="${PWD}/test-tools/liberty-dev-tools/apache-maven-3.8.6/bin" -DgradlePath="${PWD}/test-tools/liberty-dev-tools/gradle-7.4.2/bin"
+    # Run the plugin's install goal against the 3Q2022 Eclipse IDE. The following invocation will use the default 4Q2022 Eclipse IDE - no need to specify the -D
     mvn clean install -Dosgi.debug=./tests/resources/ci/debug.opts -Dtycho.showEclipseLog -DmvnPath="${PWD}/test-tools/liberty-dev-tools/apache-maven-3.8.6/bin" -DgradlePath="${PWD}/test-tools/liberty-dev-tools/gradle-7.4.2/bin"
 
     # If there were any errors, gather some debug data before exiting.
