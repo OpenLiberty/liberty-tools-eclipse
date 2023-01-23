@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2022 IBM Corporation and others.
+* Copyright (c) 2022, 2023 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -16,15 +16,26 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
+import org.eclipse.swt.custom.CTabFolder;
+import org.eclipse.swt.custom.CTabFolder2Listener;
 import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.tm.internal.terminal.provisional.api.ITerminalConnector;
+import org.eclipse.tm.terminal.view.ui.interfaces.ITerminalsView;
 import org.eclipse.tm.terminal.view.ui.interfaces.IUIConstants;
 import org.eclipse.tm.terminal.view.ui.manager.ConsoleManager;
+import org.eclipse.ui.IViewPart;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PlatformUI;
 
+import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.ui.terminal.ProjectTab.State;
+import io.openliberty.tools.eclipse.utils.Utils;
 
 /**
  * Manages a set of terminal view project tab instances.
@@ -45,6 +56,9 @@ public class ProjectTabController {
 
     /** Terminal console manager instance. */
     private ConsoleManager consoleMgr;
+
+    /** The active terminal view part. It is refreshed when the terminal reopens. */
+    private IViewPart viewPart;
 
     /**
      * Constructor.
@@ -88,7 +102,7 @@ public class ProjectTabController {
      *
      * @throws Exception
      */
-    public void writeTerminalStream(String projectName, byte[] data) throws Exception {
+    public void writeToTerminalStream(String projectName, byte[] data) throws Exception {
         ProjectTab projectTab = projectTabMap.get(projectName);
 
         if (projectTab == null) {
@@ -100,18 +114,18 @@ public class ProjectTabController {
             throw new Exception(msg);
         }
 
-        projectTab.writeToStream(data);
+        projectTab.writeToStream(data, false);
     }
 
     /**
-     * Finds the tab item object associated with the terminal running the application represented by the input project name.
+     * Returns the terminal tab item associated with the specified project name and connector.
      *
      * @param projectName The application project name.
      * @param connector The terminal connector object associated with input project name.
      *
-     * @return The tab item object associated with the terminal running the application represented by the input project name.
+     * @return the terminal tab item associated with the specified project name and connector.
      */
-    public CTabItem findTerminalTab(String projectName, ITerminalConnector connector) {
+    public CTabItem getTerminalTabItem(String projectName, ITerminalConnector connector) {
         CTabItem item = null;
 
         if (connector != null) {
@@ -119,6 +133,17 @@ public class ProjectTabController {
         }
 
         return item;
+    }
+
+    /**
+     * Returns the ProjectTab instance associated with the specified project name.
+     *
+     * @param projectName The application project name.
+     *
+     * @return the ProjectTab instance associated with the specified project name.
+     */
+    public ProjectTab getProjectTab(String projectName) {
+        return projectTabMap.get(projectName);
     }
 
     public State getTerminalState(String projectName) {
@@ -202,7 +227,7 @@ public class ProjectTabController {
         }
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_UI, "ProjectTabMapSize: " + projectTabMap.size());
+            Trace.getTracer().traceExit(Trace.TRACE_UI, projectTabMap.size());
         }
     }
 
@@ -226,14 +251,63 @@ public class ProjectTabController {
     }
 
     /**
-     * Cleans up the objects associated with the terminal object represented by the input project name.
+     * Exits Liberty dev mode running on all active terminal tabs in the view.
+     */
+    public void processTerminalViewCleanup() {
+        for (Map.Entry<String, ProjectTab> entry : projectTabMap.entrySet()) {
+            String projectName = entry.getKey();
+            ProjectTab projectTab = entry.getValue();
+            exitDevModeOnTerminalTab(projectName, projectTab);
+        }
+    }
+
+    /**
+     * Exits dev mode processing running on a terminal tab.
+     * 
+     * @param projectName The name of the project associated with the dev mode process.
+     * @param projectTab The project tab object representing the terminal tab where dev mode is running.
+     */
+    public void exitDevModeOnTerminalTab(String projectName, ProjectTab projectTab) {
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_UI, new Object[] { projectName, projectTab });
+        }
+
+        if (projectTab != null) {
+            try {
+                // Run the exit command on the terminal. This will trigger dev mode cleanup processing.
+                projectTab.writeToStream(DevModeOperations.DEVMODE_COMMAND_EXIT.getBytes(), true);
+
+                // Wait for the command issued to take effect. This also handles some cases where
+                // the terminal tab/view is terminated while dev mode is starting, but the command
+                // is not processed until dev mode finishes starting. On Mac or Linux, a
+                // runtime shutdown hook mechanism will make sure that dev mode cleanup is processed in
+                // "all" cases.
+                // Note that this is a best effort approach workaround for Windows where the runtime
+                // shutdown hooks are not called.
+                TimeUnit.MILLISECONDS.sleep(100);
+            } catch (Exception e) {
+                if (Trace.isEnabled()) {
+                    Trace.getTracer().trace(Trace.TRACE_UI, "Failed to exit dev mode associated with project " + projectName, e);
+                }
+            }
+        }
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_UI, projectName);
+        }
+
+    }
+
+    /**
+     * Cleans up the objects associated with the terminal object represented by the specified project name.
      *
      * @param projectName The application project name.
      */
-    public void cleanupTerminal(String projectName) {
+    public void processTerminalTabCleanup(String projectName) {
         if (Trace.isEnabled()) {
             Trace.getTracer().traceEntry(Trace.TRACE_UI, new Object[] { projectName, projectTabMap.size() });
         }
+
         // Call the terminal object to do further cleanup.
         ProjectTab projectTab = projectTabMap.get(projectName);
         if (projectTab != null) {
@@ -261,8 +335,8 @@ public class ProjectTabController {
         projectTerminalListenerMap.remove(projectName);
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_UI, "Project: " + projectName + ". ProjectTabMapSize: " + projectTabMap.size()
-                    + ". projectTerminalListenerMapSize: " + projectTerminalListenerMap.size());
+            Trace.getTracer().traceExit(Trace.TRACE_UI,
+                    Utils.objectsToString(projectName, projectTabMap.size(), projectTerminalListenerMap.size()));
         }
     }
 
@@ -283,16 +357,70 @@ public class ProjectTabController {
     }
 
     /**
-     * Deregisters the input terminal listener.
+     * Unregisters the input terminal listener.
      * 
      * @param projectName The name of the project the input listener is registered for.
      * @param listener The listener implementation.
      */
-    public void deregisterTerminalListener(String projectName, TerminalListener listener) {
+    public void unregisterTerminalListener(String projectName, TerminalListener listener) {
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_UI, new Object[] { projectName, listener, projectTerminalListenerMap.size() });
+        }
+
         List<TerminalListener> listeners = projectTerminalListenerMap.get(projectName);
         if (listeners != null) {
             listeners.remove(listener);
             projectTerminalListenerMap.put(projectName, listeners);
+        }
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_UI, projectTerminalListenerMap.size());
+        }
+    }
+
+    /**
+     * Removes the listener registered with the Eclipse terminal view folder.
+     * 
+     * @param listener The listener to remove.
+     */
+    public void unregisterCTabFolder2Listener(CTabFolder2Listener listener) {
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_UI, new Object[] { listener, viewPart });
+        }
+
+        if (viewPart != null || (viewPart instanceof ITerminalsView)) {
+            ITerminalsView terminalView = (ITerminalsView) viewPart;
+            CTabFolder tabFolder = terminalView.getAdapter(CTabFolder.class);
+
+            if (tabFolder != null) {
+                tabFolder.removeCTabFolder2Listener(listener);
+            }
+        }
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_UI);
+        }
+    }
+
+    /**
+     * Refreshes the active terminal view part.
+     */
+    public void refreshViewPart() {
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_UI, viewPart);
+        }
+
+        IWorkbenchWindow iWokbenchWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+        if (iWokbenchWindow != null) {
+            IWorkbenchPage activePage = iWokbenchWindow.getActivePage();
+
+            if (activePage != null) {
+                viewPart = activePage.findView(IUIConstants.ID);
+            }
+        }
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_UI, viewPart);
         }
     }
 

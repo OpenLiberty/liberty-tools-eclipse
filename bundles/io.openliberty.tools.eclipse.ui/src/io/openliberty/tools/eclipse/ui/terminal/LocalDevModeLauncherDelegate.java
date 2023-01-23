@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2022 IBM Corporation and others.
+* Copyright (c) 2022, 2023 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -32,9 +32,9 @@ public class LocalDevModeLauncherDelegate extends LocalLauncherDelegate {
     public static final String id = "io.openliberty.tools.eclipse.ui.terminal.local.devmode.launcher.delegate";
 
     /**
-     * Returns an instance of the LocalTerminalLauncherDelegate. Note that there should only be a single delegate instance
-     * being used. TerminalService.createTerminalConnector by default does not require the delegate instances to be
-     * unique, but the first instance created is returned.
+     * Returns an instance of the LocalTerminalLauncherDelegate. Note that there should only be a single delegate instance being used.
+     * TerminalService.createTerminalConnector by default does not require the delegate instances to be unique, but the first instance
+     * created is returned.
      *
      * @return An instance of the LocalTerminalLauncherDelegate
      */
@@ -51,12 +51,12 @@ public class LocalDevModeLauncherDelegate extends LocalLauncherDelegate {
         String projectName = (String) properties.get(ITerminalsConnectorConstants.PROP_DATA);
 
         if (projectName != null) {
-            ProjectTabController tptm = ProjectTabController.getInstance();
-            connector = tptm.getProjectConnector(projectName);
+            ProjectTabController ptc = ProjectTabController.getInstance();
+            connector = ptc.getProjectConnector(projectName);
 
             if (connector == null) {
                 connector = super.createTerminalConnector(properties);
-                tptm.setProjectConnector(projectName, connector);
+                ptc.setProjectConnector(projectName, connector);
 
                 if (Trace.isEnabled()) {
                     Trace.getTracer().trace(Trace.TRACE_UI,

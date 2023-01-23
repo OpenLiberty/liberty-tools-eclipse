@@ -234,6 +234,23 @@ public class Utils {
         }
 
         return iProject;
+    }
 
+    /**
+     * Returns a formatted string with the list of given objects. The format follows DebugTrace.traceEntry object list formatting.
+     * 
+     * @param objects The list of objects to format.
+     * 
+     * @return A formatted string with the list of given objects. The format follows DebugTrace.traceEntry object list formatting.
+     */
+    public static String objectsToString(Object... objects) {
+        StringBuffer sb = new StringBuffer("(");
+        for (Object o : objects) {
+            sb.append(o).append(" ");
+        }
+        sb.deleteCharAt(sb.length() - 1);
+        sb.append(")");
+
+        return sb.toString();
     }
 }

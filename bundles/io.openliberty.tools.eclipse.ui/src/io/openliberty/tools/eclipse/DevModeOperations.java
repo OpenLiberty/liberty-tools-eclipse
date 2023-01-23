@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2022 IBM Corporation and others.
+* Copyright (c) 2022, 2023 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -48,6 +48,10 @@ public class DevModeOperations {
      */
     public static final String DEVMODE_START_PARMS_DIALOG_TITLE = "Liberty Dev Mode";
     public static final String DEVMODE_START_PARMS_DIALOG_MSG = "Specify custom parameters for the liberty dev command.";
+
+    public static final String DEVMODE_COMMAND_EXIT = "exit" + System.lineSeparator();
+    public static final String DEVMODE_COMMAND_RUN_TESTS = System.lineSeparator();
+
     public static final String BROWSER_MVN_IT_REPORT_NAME_SUFFIX = "failsafe report";
     public static final String BROWSER_MVN_UT_REPORT_NAME_SUFFIX = "surefire report";
     public static final String BROWSER_GRADLE_TEST_REPORT_NAME_SUFFIX = "test report";
@@ -67,14 +71,18 @@ public class DevModeOperations {
      */
     private String pathEnv;
 
+    /**
+     * Handles debug mode processing.
+     */
     private DebugModeHandler debugModeHandler;
+
     /**
      * The instance of this class.
      */
     private static DevModeOperations instance;
 
     /**
-     * DashboardView
+     * Represents the liberty dashboard view.
      */
     private DashboardView dashboardView;
 
@@ -148,7 +156,7 @@ public class DevModeOperations {
                                     + ". The terminal tab for this project is marked as closed. Cleaning up. ProjectTabController: "
                                     + projectTabController);
                 }
-                projectTabController.cleanupTerminal(projectName);
+                projectTabController.processTerminalTabCleanup(projectName);
             } else {
                 if (Trace.isEnabled()) {
                     Trace.getTracer().trace(Trace.TRACE_TOOLS, "The start request was already issued on project " + projectName
@@ -265,7 +273,7 @@ public class DevModeOperations {
                                     + ". The terminal tab for this project is marked as closed. Cleaning up. ProjectTabController: "
                                     + projectTabController);
                 }
-                projectTabController.cleanupTerminal(projectName);
+                projectTabController.processTerminalTabCleanup(projectName);
             } else {
                 if (Trace.isEnabled()) {
                     Trace.getTracer().trace(Trace.TRACE_TOOLS, "The start in container request was already issued on project " + projectName
@@ -393,11 +401,8 @@ public class DevModeOperations {
         }
 
         try {
-            // Prepare the dev mode command to stop the server.
-            String cmd = "exit" + System.lineSeparator();
-
             // Issue the command on the terminal.
-            projectTabController.writeTerminalStream(projectName, cmd.getBytes());
+            projectTabController.writeToTerminalStream(projectName, DEVMODE_COMMAND_EXIT.getBytes());
 
             // The command to exit dev mode was issued. Set the internal project tab state to STOPPED as
             // indication that the stop command was issued. The project's terminal tab UI will be marked as closed (title and state
@@ -410,7 +415,7 @@ public class DevModeOperations {
             // dev mode exit, those errors may not be easily solved by re-trying the stop command.
             // If there are any errors during cleanup or if cleanup does not happen at all here, cleanup will be attempted
             // when the associated terminal view tab is closed/disposed.
-            projectTabController.cleanupTerminal(projectName);
+            projectTabController.processTerminalTabCleanup(projectName);
 
         } catch (Exception e) {
             String msg = "An error was detected while processing the stop request on project " + projectName + ".";
@@ -482,11 +487,8 @@ public class DevModeOperations {
         }
 
         try {
-            // Prepare the dev mode command to run a test.
-            String cmd = System.lineSeparator();
-
             // Issue the command on the terminal.
-            projectTabController.writeTerminalStream(projectName, cmd.getBytes());
+            projectTabController.writeToTerminalStream(projectName, DEVMODE_COMMAND_RUN_TESTS.getBytes());
         } catch (Exception e) {
             String msg = "An error was detected while processing the run tests request on project " + projectName + ".";
             if (Trace.isEnabled()) {
@@ -889,13 +891,13 @@ public class DevModeOperations {
     }
 
     /**
-     * Deregisters the input terminal listener.
+     * Unregisters the input terminal listener.
      * 
      * @param projectName The name of the project the input listener is registered for.
      * @param listener The listener implementation.
      */
-    public void deregisterTerminalListener(String projectName, TerminalListener listener) {
-        projectTabController.deregisterTerminalListener(projectName, listener);
+    public void unregisterTerminalListener(String projectName, TerminalListener listener) {
+        projectTabController.unregisterTerminalListener(projectName, listener);
     }
 
     /**
