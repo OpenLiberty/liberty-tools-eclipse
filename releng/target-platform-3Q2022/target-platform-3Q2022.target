@@ -11,8 +11,7 @@
   
   Contributors:
       IBM Corporation - initial implementation
--->
-<target includeMode="feature" name="target-platform.target" sequenceNumber="15">
+--><target includeMode="feature" name="target-platform.target" sequenceNumber="15">
     <locations>
         <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
             <repository location="https://download.eclipse.org/releases/2022-09/"/>
@@ -74,43 +73,43 @@
             <repository location="https://download.eclipse.org/jdtls/milestones/1.5.0/repository/"/>
             <unit id="org.eclipse.jdt.ls.core" version="1.5.0.202110191539"/>
         </location>
-        <location includeDependencyDepth="none" includeDependencyScopes="compile" missingManifest="generate" type="Maven">
-            <dependencies>
-                <dependency>
-                    <groupId>net.bytebuddy</groupId>
-                    <artifactId>byte-buddy-agent</artifactId>
-                    <version>1.12.17</version>
-                    <type>jar</type>
-                </dependency>
-                <dependency>
-                    <groupId>net.bytebuddy</groupId>
-                    <artifactId>byte-buddy</artifactId>
-                    <version>1.12.17</version>
-                    <type>jar</type>
-                </dependency>
-                <dependency>
-                    <groupId>org.mockito</groupId>
-                    <artifactId>mockito-core</artifactId>
-                    <version>4.8.0</version>
-                    <type>jar</type>
-                </dependency>
-                <dependency>
-                    <groupId>org.mockito</groupId>
-                    <artifactId>mockito-junit-jupiter</artifactId>
-                    <version>4.8.0</version>
-                    <type>jar</type>
-                </dependency>
-                <dependency>
-                    <groupId>org.objenesis</groupId>
-                    <artifactId>objenesis</artifactId>
-                    <version>3.3</version>
-                    <type>jar</type>
-                </dependency>
-            </dependencies>
-        </location>
         <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
             <repository location="https://download.eclipse.org/lsp4jakarta/releases/0.1.0/repository"/>
-            <unit id="org.eclipse.lsp4jakarta.jdt.core" version="0.0"/>
+            <unit id="org.eclipse.lsp4jakarta.jdt.core" version="0.0.0"/>
         </location>
+	    <location includeDependencyDepth="none" includeDependencyScopes="compile" missingManifest="generate" type="Maven">
+		    <dependencies>
+			    <dependency>
+				    <groupId>net.bytebuddy</groupId>
+				    <artifactId>byte-buddy-agent</artifactId>
+				    <version>1.12.17</version>
+				    <type>jar</type>
+			    </dependency>
+			    <dependency>
+				    <groupId>net.bytebuddy</groupId>
+				    <artifactId>byte-buddy</artifactId>
+				    <version>1.12.17</version>
+				    <type>jar</type>
+			    </dependency>
+			    <dependency>
+				    <groupId>org.mockito</groupId>
+				    <artifactId>mockito-core</artifactId>
+				    <version>4.8.0</version>
+				    <type>jar</type>
+			    </dependency>
+			    <dependency>
+				    <groupId>org.mockito</groupId>
+				    <artifactId>mockito-junit-jupiter</artifactId>
+				    <version>4.8.0</version>
+				    <type>jar</type>
+			    </dependency>
+			    <dependency>
+				    <groupId>org.objenesis</groupId>
+				    <artifactId>objenesis</artifactId>
+				    <version>3.3</version>
+				    <type>jar</type>
+			    </dependency>
+		    </dependencies>
+	    </location>
     </locations>
 </target>
