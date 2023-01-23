@@ -1,6 +1,6 @@
 # Installation
 
-> NOTE: The latest [v0.7.0 early release](https://github.com/OpenLiberty/liberty-tools-eclipse/releases/tag/liberty-tools-0.7.0.202212141445) has been tested with Eclipse versions 2022-09 (v4.25) and 2022-12 (v4.26), with Java 17 required.
+> NOTE: The latest [v0.8.0 early release](https://github.com/OpenLiberty/liberty-tools-eclipse/releases/tag/liberty-tools-0.7.0.202212141445) has been tested with Eclipse versions 2022-09 (v4.25) and 2022-12 (v4.26), with Java 17 required.
 
 The Liberty Tools feature can be installed as new software either by using the Eclipse Marketplace, configuring an update site or by downloading the artifacts and installing using the archive.
 
@@ -25,13 +25,13 @@ The Liberty Tools feature can be installed using the artifacts provided in the f
 
 2. Add the location containing the plugin's installation artifacts. This can be done in two ways:
     
-    a. Using an update site, with Location URL: https://public.dhe.ibm.com/ibmdl/export/pub/software/openliberty/liberty-tools-eclipse/0.7.0/repository/
+    a. Using an update site, with Location URL: https://public.dhe.ibm.com/ibmdl/export/pub/software/openliberty/liberty-tools-eclipse/0.8.0/repository/
 
     Click on the `Add...` button to open the `Add Repository` view. Specify a name, copy/paste the URL above as the location, and click on the `Add` button. 
 
     ![Step 2a. Add repository](images/install-addRepoSite.png)
  
-    b. Using an archive. The archive is provided at a related link on the IBM DHE download site: https://public.dhe.ibm.com/ibmdl/export/pub/software/openliberty/liberty-tools-eclipse/0.7.0/repository.zip
+    b. Using an archive. The archive is provided at a related link on the IBM DHE download site: https://public.dhe.ibm.com/ibmdl/export/pub/software/openliberty/liberty-tools-eclipse/0.8.0/repository.zip
 
     Download this zip to your local workstation and copy the path to the downloaded archive.
 
