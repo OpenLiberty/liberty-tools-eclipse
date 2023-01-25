@@ -1,6 +1,6 @@
 # Installation
 
-> NOTE: The latest [v0.8.0 early release](https://github.com/OpenLiberty/liberty-tools-eclipse/releases/tag/liberty-tools-0.7.0.202212141445) has been tested with Eclipse versions 2022-09 (v4.25) and 2022-12 (v4.26), with Java 17 required.
+> NOTE: The latest [v0.8.0 early release](https://github.com/OpenLiberty/liberty-tools-eclipse/releases/tag/liberty-tools-0.8.0.202301250158) has been tested with Eclipse versions 2022-09 (v4.25) and 2022-12 (v4.26), with Java 17 required.
 
 The Liberty Tools feature can be installed as new software either by using the Eclipse Marketplace, configuring an update site or by downloading the artifacts and installing using the archive.
 
