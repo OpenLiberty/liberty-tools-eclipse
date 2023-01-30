@@ -1,4 +1,30 @@
-# Getting Started
+# User Guide
+
+This guide provides detailed instructions on how to use Liberty Tools for the Eclipse IDE
+
+- [Before you begin](#before-you-begin)
+  - [Software requirements](#software-requirements)
+  - [Application requirements](#application-requirements)
+  - [Avoid Trouble](#avoid-trouble)
+    - [Starting the Eclipse IDE with the correct environment](#starting-the-eclipse-ide-with-the-correct-environment)
+- [Opening the Liberty dashboard view](#opening-the-liberty-dashboard-view)
+- [Running your application on Liberty using dev mode](#running-your-application-on-liberty-using-dev-mode)
+  - [Using the Liberty dashboard view](#using-the-liberty-dashboard-view)
+  - [Using the Project Explorer view](#using-the-project-explorer-view)
+  - [Start](#start)
+  - [Start with configuration](#start-with-configuration)
+  - [Start in container](#start-in-container)
+- [Running tests](#running-tests)
+- [Viewing test reports](#viewing-test-reports)
+  - [Maven built application](#maven-built-application)
+  - [Gradle built application](#gradle-built-application)
+- [Stopping your application](#stopping-your-application)
+- [Debugging your application](#debugging-your-application)
+- [Manually adding the Liberty nature to a project](#manually-adding-the-liberty-nature-to-a-project)
+- [Setting preferences](#setting-preferences)
+- [Configuring a Liberty server](#configuring-a-liberty-server)
+- [Developing with MicroProfile](#developing-with-microprofile)
+- [Developing with Jakarta EE](#developing-with-jakarta-ee)
 
 ## Before you begin
 
@@ -116,7 +142,7 @@ If you want to make use dev mode for containers, you can either right-click on t
 
 For more information on dev mode for containers, check out the [Liberty Maven devc goal](https://github.com/OpenLiberty/ci.maven/blob/main/docs/dev.md#devc-container-mode) or the [Liberty Gradle libertyDevc task](https://github.com/OpenLiberty/ci.gradle/blob/main/docs/libertyDev.md#libertydevc-task-container-mode).
 
-## Running your application's tests
+## Running tests
 
 Once your application is running on Liberty using dev mode, you can easily run the tests provided by your application. 
 
@@ -126,7 +152,7 @@ The tests are run in the corresponding terminal.
 
 ![Run tests](images/maven-devModeITRun.png)
 
-## Viewing your application's test reports
+## Viewing test reports
 
 Once you are done running your application's tests, you can access the produced test reports.
 
@@ -156,7 +182,7 @@ To stop your application, you can either right-click on the application listed i
 
 Once the project is stopped, the terminal in which it ran is closed.
 
-## Debugging you application
+## Debugging your application
 
 To debug your application, you can start dev mode with the debugger automatically attached to the Liberty server JVM running your application.
 
@@ -200,21 +226,49 @@ To set these preferences open the preference dialog, locate and click on the `Li
 Set your preferences and click `Apply and Close`.  
 
 
-## Configuring a Liberty server (editing server.xml)
+## Configuring a Liberty server
 
-1. Start the project in dev mode, using one of the dashboard start commands above.  This will install the Liberty features required for your app and allow the generation of a corresponding server.xml XSD schema file.
+Liberty configuration assistance provides editing assistance, such as [code completion, diagnostics, and quick-fixes](https://github.com/OpenLiberty/liberty-language-server#features), in Liberty `server.xml`, `server.env`, and `bootstrap.properties` files.
 
-2. Double-click on your server.xml file which will cause it to be opened in the "Generic Text Editor" (an editor in which the function here is enabled).
+1. Start the project in dev mode using one of the dashboard start commands above.  This will install the Liberty features required for your app and allow the generation of a corresponding server.xml XSD schema file.
 
-3. Proceed to use development support:  hover support, content assist via clicking to insert the cursor then typing `<Ctrl>+<Space>` at a given point within the document.
+2. Open any of the supported Liberty configuration files using the "Generic Text Editor".
 
-## Developing MicroProfile applications
+3. To use content assist enter <kbd>Ctrl</kbd> + <kbd>Space</kbd> at a given point within the document.
 
-1. Start dev mode.
-2. Open a Java or microprofile-config.properties file.
-3. Proceed to take advantage of the MicroProfile Language Server support: hover support, content assist (via `<Ctrl>+<Space>`), etc.
+server.xml             | bootstrap.properties
+:-------------------------:|:-------------------------:
+![Server.xml content assist](images/liberty-config-ls-server-xml.png) | ![Bootstrap.properties content assist](images/liberty-config-ls-bootstrap.png)
+
+Liberty configuration assistance is offered through the Liberty Config Language Server. For more information, see the [project documentation in GitHub](https://github.com/OpenLiberty/liberty-language-server#liberty-config-language-server).
+
+## Developing with MicroProfile
+
+Liberty Tools editing assistance provides hover-over, code completion, and diagnostics in configuration and application files for MicroProfile APIs.
+
+1. Start the project in dev mode using one of the dashboard start commands above.
+2. Open a Java or microprofile-config.properties file. 
+3. To use MicroProfile-specific code completion, press <kbd>Ctrl</kbd> + <kbd>Space</kbd> / <kbd>Cmd</kbd> + <kbd>Space</kbd> anywhere within the document. A drop-down list of completion suggestions appears.
+
+![MicroProfile code completion](images/mp-ls-config.png)
 
 Though it is not written for Liberty Tools specifically, [this article](
 https://microprofile.io/2020/09/25/announcement-language-server-for-microprofile-and-the-tools-for-microprofile-vs-code-extension/) shows the MicroProfile Language Server tooling features in another context.
 
+MicroProfile EE API configuration assistance is offered through Eclipse LSP4MP, the Language Server for MicroProfile. For more information, see the [project documentation in GitHub](https://github.com/eclipse/lsp4mp#eclipse-lsp4mp---language-server-for-microprofile).
 
+## Developing with Jakarta EE
+
+Liberty Tools editing assistance provides code completion, diagnostics, and quick-fixes in application files for Jakarta EE.
+
+1. Start the project in dev mode using one of the dashboard start commands above.
+2. Open a Java file. 
+3. To use Jakarta EE-specific code completion, press <kbd>Ctrl</kbd> + <kbd>Space</kbd> / <kbd>Cmd</kbd> + <kbd>Space</kbd> anywhere within the document. A drop-down list of completion suggestions and code snippets appears.
+
+![Jakarta EE code completion](images/jakarta-ee-ls-rest-snippet.png)
+
+4. To use Jakarta EE-specific quick-fixes, hover over a supported Jakarta EE error. A drop-down list of quick-fixes appears.
+
+![Jakarta EE quick-dix](images/jakarta-ee-ls-quick-fix.png)
+
+Jakarta EE API configuration assistance is offered through Eclipse LSP4Jakarta, the Language Server for Jakarta EE. For more information, see the [project documentation in GitHub](https://github.com/eclipse/lsp4jakarta#eclipse-lsp4jakarta).

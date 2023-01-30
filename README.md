@@ -16,22 +16,22 @@ workspace.
 
 Maven Projects             | Gradle Projects
 :-------------------------:|:-------------------------:
-![Dashboard context menu for Maven Projects](docs/getting-started/images/maven-dashboardViewContextMenuShown.png) | ![Dashboard context menu for Gradle Projects](docs/getting-started/images/gradle-dashboardViewContextMenuShown.png)
+![Dashboard context menu for Maven Projects](docs/images/maven-dashboardViewContextMenuShown.png) | ![Dashboard context menu for Gradle Projects](docs/images/gradle-dashboardViewContextMenuShown.png)
 
 ### Explorer view
 
 Maven Projects             | Gradle Projects
 :-------------------------:|:-------------------------:
-![Dashboard context menu for Maven Projects](docs/getting-started/images/maven-RunAsConfigShortcutsExplorerMenuShown.png) | ![Dashboard context menu for Gradle Projects](docs/getting-started/images/gradle-RunAsConfigShortcutsExplorerMenuShown.png)
+![Dashboard context menu for Maven Projects](docs/images/maven-RunAsConfigShortcutsExplorerMenuShown.png) | ![Dashboard context menu for Gradle Projects](docs/images/gradle-RunAsConfigShortcutsExplorerMenuShown.png)
 
 ## Quick Start
 
 - [Install Liberty Tools](docs/installation/installation.md).
 - Install your Maven or Gradle application.
-- Open the Liberty dashboard view by [clicking on the Open Liberty icon on the toolbar](https://github.com/OpenLiberty/liberty-tools-eclipse/blob/main/docs/getting-started/getting-started.md#opening-the-liberty-tools-dashboard-view), or open the project explorer view.
+- Open the Liberty dashboard view by [clicking on the Open Liberty icon on the toolbar](https://github.com/OpenLiberty/liberty-tools-eclipse/blob/main/docs/user-guide.md#opening-the-liberty-dashboard-view), or open the project explorer view.
 - Right-click on your application in the Liberty dashboard to view the available action commands, or, if you are using the project explorer view, right-click on your application and select the `Run As` entry on the menu to view the available Liberty launch shortcuts.
 
-For detailed instructions on how to use the Liberty dashboard context menu commands or the Liberty launch shortcuts provided thought the project explorer view, check out the [Getting Started](docs/getting-started/getting-started.md) page.
+For detailed instructions on how to use the Liberty dashboard context menu commands or the Liberty launch shortcuts provided thought the project explorer view, check out the [User Guide](docs/user-guide.md) page.
 
 ## Features
 
