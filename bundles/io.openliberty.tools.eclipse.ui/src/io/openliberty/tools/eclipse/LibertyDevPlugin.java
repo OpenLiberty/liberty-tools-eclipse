@@ -113,8 +113,16 @@ public class LibertyDevPlugin extends AbstractUIPlugin {
      * Register listeners.
      */
     private void registerListeners() {
-        registerResourceChangeListener();
-        registerPartListener();
+        PlatformUI.getWorkbench().getDisplay().asyncExec(() -> {
+            registerResourceChangeListener();
+            registerPartListener();
+
+            // If the terminal tab is active on start, register the tab folder listener here; Otherwise,
+            // the tab folder listener is registered when the terminal tab is opened.
+            if (getTerminalViewTabFolder() != null) {
+                registerCTabFolderListener();
+            }
+        });
     }
 
     /**
@@ -228,7 +236,7 @@ public class LibertyDevPlugin extends AbstractUIPlugin {
         }
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, Utils.objectsToString(tabFolder, viewPartListener));
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, Utils.objectsToString(tabFolder, tabFolderListener));
         }
     }
 
@@ -253,8 +261,6 @@ public class LibertyDevPlugin extends AbstractUIPlugin {
                 if (iViewPart != null || (iViewPart instanceof ITerminalsView)) {
                     ITerminalsView terminalView = (ITerminalsView) iViewPart;
                     tabFolder = terminalView.getAdapter(CTabFolder.class);
-
-                    return tabFolder;
                 }
             }
         }
@@ -303,7 +309,7 @@ public class LibertyDevPlugin extends AbstractUIPlugin {
      */
     public void unregisterPartListener() {
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS);
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, viewPartListener);
         }
 
         if (iWorkbenchPage != null) {
@@ -311,7 +317,7 @@ public class LibertyDevPlugin extends AbstractUIPlugin {
         }
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, Utils.objectsToString(iWorkbenchPage, viewPartListener));
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, iWorkbenchPage);
         }
     }
 }
