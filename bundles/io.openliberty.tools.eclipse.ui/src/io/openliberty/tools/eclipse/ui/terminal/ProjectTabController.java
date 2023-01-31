@@ -410,9 +410,9 @@ public class ProjectTabController {
             Trace.getTracer().traceEntry(Trace.TRACE_UI, viewPart);
         }
 
-        IWorkbenchWindow iWokbenchWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-        if (iWokbenchWindow != null) {
-            IWorkbenchPage activePage = iWokbenchWindow.getActivePage();
+        IWorkbenchWindow iWorkbenchWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+        if (iWorkbenchWindow != null) {
+            IWorkbenchPage activePage = iWorkbenchWindow.getActivePage();
 
             if (activePage != null) {
                 viewPart = activePage.findView(IUIConstants.ID);

@@ -85,11 +85,11 @@ public class LibertyDevPlugin extends AbstractUIPlugin {
         props.put(DebugOptions.LISTENER_SYMBOLICNAME, LibertyDevPlugin.DEBUG_OPTIONS_ID);
         context.registerService(DebugOptionsListener.class.getName(), new Trace(), props);
 
-        // Register a workspace listener for cleanup.
-        registerListeners();
-
         // Classify all projects in the workspace.
         DevModeOperations.getInstance().getProjectModel().createNewCompleteWorkspaceModelWithClassify();
+
+        // Register a workspace listener for cleanup.
+        registerListeners();
     }
 
     @Override
@@ -219,12 +219,16 @@ public class LibertyDevPlugin extends AbstractUIPlugin {
 
                 CTabItem item = (CTabItem) event.item;
                 if (item != null && !item.isDisposed()) {
+                    String projectName = null;
                     try {
-                        String projectName = (String) item.getData(StartTab.PROJECT_NAME);
+                        projectName = (String) item.getData(StartTab.PROJECT_NAME);
                         ProjectTab projectTab = tabController.getProjectTab(projectName);
                         tabController.exitDevModeOnTerminalTab(projectName, projectTab);
                     } catch (Exception e) {
-                        e.printStackTrace();
+                        if (Trace.isEnabled()) {
+                            Trace.getTracer().trace(Trace.TRACE_TOOLS, "Unable to close Tab item associated with project " + projectName,
+                                    e);
+                        }
                     }
                 }
             }
