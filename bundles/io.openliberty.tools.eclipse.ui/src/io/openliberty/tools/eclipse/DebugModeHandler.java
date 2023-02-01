@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2022 IBM Corporation and others.
+* Copyright (c) 2022, 2023 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -253,7 +253,7 @@ public class DebugModeHandler {
         job.addJobChangeListener(new JobChangeAdapter() {
             @Override
             public void done(IJobChangeEvent event) {
-                devModeOps.deregisterTerminalListener(projectName, terminalListener);
+                devModeOps.unregisterTerminalListener(projectName, terminalListener);
                 IStatus result = event.getResult();
                 IWorkbench workbench = PlatformUI.getWorkbench();
                 Display display = workbench.getDisplay();

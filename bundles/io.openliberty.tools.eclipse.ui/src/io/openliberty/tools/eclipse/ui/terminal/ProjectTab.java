@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2022 IBM Corporation and others.
+* Copyright (c) 2022, 2023 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -33,6 +33,7 @@ import org.eclipse.ui.PlatformUI;
 
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
+import io.openliberty.tools.eclipse.ui.launch.StartTab;
 import io.openliberty.tools.eclipse.utils.Utils;
 
 /**
@@ -132,6 +133,10 @@ public class ProjectTab {
 
                     // Update the state.
                     setState(State.STARTED);
+
+                    // Save the project name in the project tab item object. This is needed to be
+                    // able to reliably identify this project tab item during cleanup.
+                    projectTab.setData(StartTab.PROJECT_NAME, projectName);
                 }
             }
         };
@@ -187,16 +192,17 @@ public class ProjectTab {
      * Writes to the terminal's output stream.
      *
      * @param content The bytes to be written to the terminal.
+     * @param cleanup Indicates whether or not this call was made as part of cleanup or not.
      *
      * @throws Exception
      */
-    public void writeToStream(byte[] content) throws Exception {
+    public void writeToStream(byte[] content, boolean cleanup) throws Exception {
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_UI, new String(content));
+            Trace.getTracer().traceEntry(Trace.TRACE_UI, new Object[] { new String(content), cleanup });
         }
 
         if (connector == null) {
-            String msg = "Unable to find terminal connector. Be sure to run the start action first.";
+            String msg = "Unable to write to terminal. Terminal connector associated with project " + projectName + " was not found.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg + "Content: " + new String(content));
             }
@@ -205,14 +211,17 @@ public class ProjectTab {
 
         OutputStream terminalStream = connector.getTerminalToRemoteStream();
         if (terminalStream == null) {
-            String msg = "Unable to find terminal remote stream. The terminal might not be active. Be sure to run the start action first.";
+            String msg = "Unable to write to terminal. Terminal remote stream associated with project " + projectName + " was not found.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg + " Connector: " + connector);
             }
             throw new Exception(msg);
         }
 
-        showTerminalView();
+        if (!cleanup) {
+            showTerminalView();
+        }
+
         terminalStream.write(content);
 
         if (Trace.isEnabled()) {
