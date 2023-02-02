@@ -24,7 +24,7 @@ Maven Projects             | Gradle Projects
 
 ## Quick Start
 
-- [Install Liberty Tools](docs/installation/installation.md).
+- [Install Liberty Tools](docs/installation.md).
 - Install your Maven or Gradle application.
 - Open the Liberty dashboard view by [clicking on the Open Liberty icon on the toolbar](https://github.com/OpenLiberty/liberty-tools-eclipse/blob/main/docs/user-guide.md#opening-the-liberty-dashboard-view), or open the project explorer view.
 - Right-click on your application in the Liberty dashboard to view the available action commands, or, if you are using the project explorer view, right-click on your application and select the `Run As` entry on the menu to view the available Liberty launch shortcuts.

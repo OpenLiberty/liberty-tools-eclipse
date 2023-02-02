@@ -32,7 +32,7 @@ This guide provides detailed instructions on how to use Liberty Tools for the Ec
 
 - **Eclipse IDE:** Starting with the Liberty Tools 0.3 early release, Eclipse version 2022-09 is required. Tested with Eclipse IDE for Enterprise Java and Web Developers packages.
 
-- [Liberty Tools feature](../installation/installation.md).
+- [Liberty Tools feature](installation.md).
 
 ### Application requirements
 
