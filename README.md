@@ -40,6 +40,33 @@ For detailed instructions on how to use the Liberty dashboard context menu comma
 - Start dev mode with the debugger attached.
 - Run tests.
 - View test reports.
+- Code with language assistance in the following configuration and application files:
+  - server.xml, server.env, bootstrap.properties Liberty configuration files
+  - Jakarta EE 9.x APIs in Java files 
+  - MicroProfile APIs in microprofile-config.properties and Java files
+
+Code completion in `server.xml` files helps you quickly edit your Liberty runtime configuration.
+
+![Liberty Config Language Server completion](docs/images/liberty-config-ls-server-xml.png)
+
+Similar code assistance is provided for `bootstrap.properties` files (and `server.env` though not shown):
+
+![Liberty Config Language Server completion bootstrap.properties](docs/images/liberty-config-ls-bootstrap.png)
+
+Helpful code snippets are provided in Java files for Jakarta EE APIs such as Jakarta RESTful Web Services.
+
+![Eclipse LSP4Jakarta completion](docs/images/jakarta-ee-ls-rest-snippet.png)
+
+Code completion for `microprofile-config.properties` files helps you easily set properties for MicroProfile APIs.
+
+![Eclipse LSP4MP completion](docs/images/mp-ls-config.png)
+
+Editing assistance for configuration and application files is provided through the following language server projects, which this project consumes. For more information, see the documentation for these projects.
+
+- Liberty configuration files: [Liberty Config Language Server](https://github.com/OpenLiberty/liberty-language-server#liberty-config-language-server)
+- Jakarta EE APIs in Java files:  [Eclipse LSP4Jakarta](https://github.com/eclipse/lsp4jakarta#eclipse-lsp4jakarta), the Language Server for Jakarta EE.
+- MicroProfile APIs in `microprofile-config.properties` and Java files: [Eclipse LSP4MP](https://github.com/eclipse/lsp4mp#eclipse-lsp4mp---language-server-for-microprofile), the Language Server for MicroProfile.
+
 
 ## Action Commands
 
