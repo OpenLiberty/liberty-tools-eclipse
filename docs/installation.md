@@ -1,5 +1,9 @@
-# Installation
+# Install Guide
 
+## Prerequisites
+See [here](user-guide.md#before-you-begin) for install requirements
+
+## Install Options
 The Liberty Tools feature can be installed as new software either by:
 
 *  using the Eclipse Marketplace, OR
