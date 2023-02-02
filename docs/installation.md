@@ -61,4 +61,4 @@ The Liberty Tools `Start in container` function detects what Docker executable t
 
 ### Next steps
 
-See: [Getting Started](../getting-started/getting-started.md)
+See: [User Guide](../user-guide.md)
