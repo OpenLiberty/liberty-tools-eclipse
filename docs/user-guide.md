@@ -2,36 +2,39 @@
 
 This guide provides detailed instructions on how to use Liberty Tools for the Eclipse IDE
 
-- [Before you begin](#before-you-begin)
-  - [Software requirements](#software-requirements)
-  - [Application requirements](#application-requirements)
-  - [Avoid Trouble](#avoid-trouble)
-    - [Starting the Eclipse IDE with the correct environment](#starting-the-eclipse-ide-with-the-correct-environment)
-- [Opening the Liberty dashboard view](#opening-the-liberty-dashboard-view)
-- [Running your application on Liberty using dev mode](#running-your-application-on-liberty-using-dev-mode)
-  - [Using the Liberty dashboard view](#using-the-liberty-dashboard-view)
-  - [Using the Project Explorer view](#using-the-project-explorer-view)
-  - [Start](#start)
-  - [Start with configuration](#start-with-configuration)
-  - [Start in container](#start-in-container)
-- [Running tests](#running-tests)
-- [Viewing test reports](#viewing-test-reports)
-  - [Maven built application](#maven-built-application)
-  - [Gradle built application](#gradle-built-application)
-- [Stopping your application](#stopping-your-application)
-- [Debugging your application](#debugging-your-application)
-- [Manually adding the Liberty nature to a project](#manually-adding-the-liberty-nature-to-a-project)
-- [Setting preferences](#setting-preferences)
-- [Configuring a Liberty server](#configuring-a-liberty-server)
-- [Developing with MicroProfile](#developing-with-microprofile)
-- [Developing with Jakarta EE](#developing-with-jakarta-ee)
+- [User Guide](#user-guide)
+  * [Before you begin](#before-you-begin)
+    + [Software requirements](#software-requirements)
+    + [Application requirements](#application-requirements)
+    + [Maven and Gradle](#maven-and-gradle)
+    + [Docker](#docker)
+  * [Opening the Liberty dashboard view](#opening-the-liberty-dashboard-view)
+  * [Running your application on Liberty using dev mode](#running-your-application-on-liberty-using-dev-mode)
+    + [Using the Liberty dashboard view](#using-the-liberty-dashboard-view)
+    + [Using the Project Explorer view](#using-the-project-explorer-view)
+    + [Start](#start)
+    + [Start with Configuration](#start-with-configuration)
+    + [Start in container](#start-in-container)
+  * [Running tests](#running-tests)
+  * [Viewing test reports](#viewing-test-reports)
+    + [Maven built application](#maven-built-application)
+    + [Gradle built application](#gradle-built-application)
+  * [Stopping your application](#stopping-your-application)
+  * [Debugging your application](#debugging-your-application)
+  * [Manually adding the Liberty nature to a project](#manually-adding-the-liberty-nature-to-a-project)
+  * [Setting preferences](#setting-preferences)
+  * [Configuring a Liberty server](#configuring-a-liberty-server)
+  * [Developing with MicroProfile](#developing-with-microprofile)
+  * [Developing with Jakarta EE](#developing-with-jakarta-ee)
+
+<small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
 
 ## Before you begin
 
 ### Software requirements
 
-- **Eclipse IDE:** 
-    - Releases: Tested on Eclipse versions 4.25 (2022-09) and 4.26 (2022-12). 
+- **Eclipse IDE:**
+    - Releases: Tested on Eclipse versions 4.25 (2022-09) and 4.26 (2022-12).
     - Packages: Tested with `Eclipse IDE for Enterprise Java and Web Developers` and `Eclipse IDE for Java Developers` packages
 
 - **Java:**  The Eclipse IDE itself requires Java 17.   As noted [in this guide](#start-with-configuration) the application runtime, however, can be run with other versions of Java , as long as they are supported by Liberty.
@@ -42,7 +45,7 @@ This guide provides detailed instructions on how to use Liberty Tools for the Ec
 
 - Define a Liberty server.xml configuration file at location src/main/liberty/config.
 
-- Configure the [Liberty Maven Plugin](https://github.com/OpenLiberty/ci.maven#configuration) or [Liberty Gradle Plugin](https://github.com/OpenLiberty/ci.gradle#adding-the-plugin-to-the-build-script). We recommend using newer versions of the plugins as several important bug fixes have been included in recent versions.
+- Configure the [Liberty Maven Plugin](https://github.com/OpenLiberty/ci.maven#configuration) or [Liberty Gradle Plugin](https://github.com/OpenLiberty/ci.gradle#adding-the-plugin-to-the-build-script). We recommend using newer versions of the plugins as several important fixes and enhancements have been included in recent versions.
 
   Recommended minimum versions of:
 
@@ -50,27 +53,34 @@ This guide provides detailed instructions on how to use Liberty Tools for the Ec
     
   - Liberty Gradle Plugin -> 3.5.1
 
-### Avoid trouble
+### Maven and Gradle 
 
-#### Starting the Eclipse IDE with the correct environment
+Since Liberty dev mode centers around the use of the Liberty Maven/Gradle plugins to manage a Maven/Gradle project, it requires the ability to find a Maven/Gradle executable to launch a build.
 
-Since the Liberty Tools feature uses the well-known environment variables: PATH and JAVA_HOME, you will encounter problems if these variables are not set within your Eclipse IDE process, e.g. the mvn executable might not be found.
+1. Liberty Tools will first give precedence to launching via a Maven/Gradle wrapper within the project
 
-There are several methods that can be used to potentially address this:
+    To generate a mvn wrapper into the project, from your project folder:
 
-1. On MacOS, start you eclipse IDE through Finder:
+      - `mvn wrapper:wrapper`
+      - `gradle wrapper`
+
+2. If a Maven/Gradle wrapper is not found, Liberty Tools will use a **Liberty preference** to find the Maven and Gradle installations (it will not use the preferences of the Maven/Gradle m2e/buildship Eclipse tooling ):
+
+   - [Open the Liberty preferences dialog on your Eclipse IDE](#setting-preferences)
+   - Set the Maven/Gradle installation to use.
+   - click on `Apply and Close` to save your changes.
+
+3. If a Maven/Gradle installation is still not found, Liberty Tools will look on the PATH env variable.  See [below](#Docker) for instructions.
+
+### Docker
+
+If using the dev mode in containers (devc) function, you must add the 'docker' executable to the PATH environment variable for the Eclipse IDE process, e.g. : 
+* On MacOS, start you eclipse IDE through Finder:
     - right-click your application and choose Show Package Contents.
     - Enter the newly displayed Contents folder, select MacOS, and then run Eclipse by clicking the displayed executable.
+* `export PATH=$PATH:../path/to/docker`
+* launch Eclipse via:   `PATH=$PATH:../path/to/docker eclipse.exe ...`
 
-2. Generate a mvn wrapper into the project:
-    - In your project folder execute the mvn wrapper create command:
-    - `mvn org.apache.maven.plugins:maven-wrapper-plugin:3.1.1:wrapper`
-    - start your eclipse IDE as normal
-
-3. Set the Maven and Gradle installations to use.
-   - [Open the Liberty preferences dialog on your Eclipse IDE](#setting-preferences)
-   - Set the Maven and Gradle installations to use.
-   - click on `Apply and Close` to save your changes.
    
 ## Opening the Liberty dashboard view
 
