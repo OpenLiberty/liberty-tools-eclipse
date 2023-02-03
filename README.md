@@ -1,8 +1,5 @@
 # Welcome to the Liberty Tools for Eclipse IDE project
 
-> NOTE: Starting with the [0.3 early release](https://github.com/OpenLiberty/liberty-tools-eclipse/releases/tag/liberty-tools-0.3.0), Eclipse version 2022-09 and Java 17 are required. If using Eclipse version 2022-03 or 2022-06, you must use [Liberty Tools version 0.2 ](https://github.com/OpenLiberty/liberty-tools-eclipse/releases/tag/liberty-tools-0.2.0.202209201734).
-
-
 [![License](https://img.shields.io/badge/License-EPL%202.0-red.svg?label=license&logo=eclipse)](https://www.eclipse.org/legal/epl-2.0/)
 
 A [Liberty](https://openliberty.io/) plugin for Eclipse IDE. The plugin allows you to run your Liberty Maven or
@@ -20,13 +17,12 @@ Maven Projects             | Gradle Projects
 
 ### Explorer view
 
-Maven Projects             | Gradle Projects
-:-------------------------:|:-------------------------:
-![Dashboard context menu for Maven Projects](docs/images/maven-RunAsConfigShortcutsExplorerMenuShown.png) | ![Dashboard context menu for Gradle Projects](docs/images/gradle-RunAsConfigShortcutsExplorerMenuShown.png)
+![Dashboard context menu view](docs/images/maven-RunAsConfigShortcutsExplorerMenuShown.png) 
 
 ## Quick Start
 
-- [Install Liberty Tools](docs/installation/installation.md).
+- Understand [prerequisites](docs/user-guide.md#before-you-begin)
+- [Install Liberty Tools](docs/installation.md).
 - Install your Maven or Gradle application.
 - Open the Liberty dashboard view by [clicking on the Open Liberty icon on the toolbar](https://github.com/OpenLiberty/liberty-tools-eclipse/blob/main/docs/user-guide.md#opening-the-liberty-dashboard-view), or open the project explorer view.
 - Right-click on your application in the Liberty dashboard to view the available action commands, or, if you are using the project explorer view, right-click on your application and select the `Run As` entry on the menu to view the available Liberty launch shortcuts.
@@ -42,6 +38,33 @@ For detailed instructions on how to use the Liberty dashboard context menu comma
 - Start dev mode with the debugger attached.
 - Run tests.
 - View test reports.
+- Code with language assistance in the following configuration and application files:
+  - server.xml, server.env, bootstrap.properties Liberty configuration files
+  - Jakarta EE 9.x APIs in Java files 
+  - MicroProfile APIs in microprofile-config.properties and Java files
+
+Code completion in `server.xml` files helps you quickly edit your Liberty runtime configuration.
+
+![Liberty Config Language Server completion](docs/images/liberty-config-ls-server-xml.png)
+
+Similar code assistance is provided for `bootstrap.properties` files (and `server.env` though not shown):
+
+![Liberty Config Language Server completion bootstrap.properties](docs/images/liberty-config-ls-bootstrap.png)
+
+Helpful code snippets are provided in Java files for Jakarta EE APIs such as Jakarta RESTful Web Services.
+
+![Eclipse LSP4Jakarta completion](docs/images/jakarta-ee-ls-rest-snippet.png)
+
+Code completion for `microprofile-config.properties` files helps you easily set properties for MicroProfile APIs.
+
+![Eclipse LSP4MP completion](docs/images/mp-ls-config.png)
+
+Editing assistance for configuration and application files is provided through the following language server projects, which this project consumes. For more information, see the documentation for these projects.
+
+- Liberty configuration files: [Liberty Config Language Server](https://github.com/OpenLiberty/liberty-language-server#liberty-config-language-server)
+- Jakarta EE APIs in Java files:  [Eclipse LSP4Jakarta](https://github.com/eclipse/lsp4jakarta#eclipse-lsp4jakarta), the Language Server for Jakarta EE.
+- MicroProfile APIs in `microprofile-config.properties` and Java files: [Eclipse LSP4MP](https://github.com/eclipse/lsp4mp#eclipse-lsp4mp---language-server-for-microprofile), the Language Server for MicroProfile.
+
 
 ## Action Commands
 
