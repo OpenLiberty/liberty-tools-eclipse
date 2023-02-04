@@ -1,7 +1,3 @@
-# User Guide
-
-This guide provides detailed instructions on how to use Liberty Tools for the Eclipse IDE
-
 - [User Guide](#user-guide)
   * [Before you begin](#before-you-begin)
     + [Software requirements](#software-requirements)
@@ -26,6 +22,8 @@ This guide provides detailed instructions on how to use Liberty Tools for the Ec
   * [Configuring a Liberty server](#configuring-a-liberty-server)
   * [Developing with MicroProfile](#developing-with-microprofile)
   * [Developing with Jakarta EE](#developing-with-jakarta-ee)
+  * [Importing Gradle projects](#importing-gradle-projects)
+  * [Maven multi-module projects](#maven-multi-module-projects)
 
 <small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
 
@@ -285,4 +283,23 @@ Liberty Tools editing assistance provides code completion, diagnostics, and quic
 
 ![Jakarta EE quick-dix](images/jakarta-ee-ls-quick-fix.png)
 
-Jakarta EE API configuration assistance is offered through Eclipse LSP4Jakarta, the Language Server for Jakarta EE. For more information, see the [project documentation in GitHub](https://github.com/eclipse/lsp4jakarta#eclipse-lsp4jakarta).
+Jakarta EE API configuration assistance is offered through Eclipse LSP4Jakarta, the Language Server for Jakarta EE. For more information, see the [project documentation in GitHub](https://github.com/eclipse/lsp4jakarta#eclipse-lsp4jakarta).1G
+
+## Importing Gradle projects
+
+The Gradle Eclipse plugins (Buildship) run a simple Gradle build upon import (**Import -> Gradle -> Existing Gradle Project**) to query project information.
+
+If this build does not complete successfully, the Liberty Tools function may not work correctly.
+
+E.g. one problem in particular can arise if your project uses a Gradle wrapper at a Gradle version less than v7.3 (and thus NOT supporting Java 17 per [matrix](https://docs.gradle.org/current/userguide/compatibility.html)), while using the Java 17+ workspace JRE required for running Liberty Tools.
+
+One approach for resolving this incompatibility is to configure the preference at:
+**Preferences -> Gradle -> Java home** to refer to a Java installation compatible with the level of Gradle in your `gradlew` wrapper.
+
+More generally the Gradle Eclipse preferences and project Java requirements must be compatible.
+
+
+## Maven multi-module projects
+
+
+
