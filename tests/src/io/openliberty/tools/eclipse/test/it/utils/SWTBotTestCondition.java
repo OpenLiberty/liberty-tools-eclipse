@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2022 IBM Corporation and others.
+* Copyright (c) 2022, 2023 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -17,9 +17,12 @@ import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotEditor;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotView;
 import org.eclipse.swtbot.swt.finder.SWTBot;
 import org.eclipse.swtbot.swt.finder.waits.ICondition;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotButton;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotMenu;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotShell;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotText;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTree;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
 
 /**
  * Provides a predefined set conditions to wait for.
@@ -73,25 +76,91 @@ public class SWTBotTestCondition {
     }
 
     /**
-     * Returns true if the input tree structure is active and contains a particular item. False, otherwise.
+     * Returns true if the input tree structure is enabled and contains a particular item. False, otherwise.
      * 
      * @param tree The tree widget
      * @param item The name of the desired item in the tree structure.
      * 
-     * @return True If the input tree structure is active and contains a particular item. False, otherwise.
+     * @return True If the input tree structure is enabled and contains a particular item. False, otherwise.
      */
-    public static ICondition isTreeWidgetActive(SWTWorkbenchBot bot, String item) {
+    public static ICondition isTreeWidgetEnabled(SWTWorkbenchBot bot, String item) {
         return new CustomCondition() {
 
             @Override
             public boolean test() throws Exception {
                 SWTBotTree tree = bot.tree();
-                return (tree != null) && (tree.isActive() && tree.getTreeItem(item) != null);
+                return (tree != null) && (tree.isEnabled() && tree.getTreeItem(item) != null);
             }
 
             @Override
             public String getFailureMessage() {
-                return "Tree is not active.";
+                return "Tree is not enabled or tree item " + item + " could not be found.";
+            }
+        };
+    }
+
+    /**
+     * Returns true if the input tree item is enabled. False, otherwise.
+     * 
+     * @param item The tree item in the tree structure.
+     * 
+     * @return True if the input tree item is enabled. False, otherwise.
+     */
+    public static ICondition isTreeItemEnabled(SWTBotTreeItem item) {
+        return new CustomCondition() {
+
+            @Override
+            public boolean test() throws Exception {
+                return (item != null) && (item.isEnabled());
+            }
+
+            @Override
+            public String getFailureMessage() {
+                return "Tree item " + item + " not enabled.";
+            }
+        };
+    }
+
+    /**
+     * Returns true if the input menu is enabled. False, otherwise.
+     * 
+     * @param menu The menu item object.
+     * 
+     * @return True if the input menu is enabled. False, otherwise.
+     */
+    public static ICondition isMenuEnabled(SWTBotMenu menu) {
+        return new CustomCondition() {
+
+            @Override
+            public boolean test() throws Exception {
+                return (menu != null) && (menu.isEnabled());
+            }
+
+            @Override
+            public String getFailureMessage() {
+                return "Menu " + menu + " is not enabled.";
+            }
+        };
+    }
+
+    /**
+     * Returns true if the input button is enabled. False, otherwise.
+     * 
+     * @param button The button object.
+     * 
+     * @return True if the input button is enabled. False, otherwise.
+     */
+    public static ICondition isButtonEnabled(SWTBotButton button) {
+        return new CustomCondition() {
+
+            @Override
+            public boolean test() throws Exception {
+                return (button != null) && (button.isEnabled());
+            }
+
+            @Override
+            public String getFailureMessage() {
+                return "Button " + button.getText() + " is not enabled.";
             }
         };
     }

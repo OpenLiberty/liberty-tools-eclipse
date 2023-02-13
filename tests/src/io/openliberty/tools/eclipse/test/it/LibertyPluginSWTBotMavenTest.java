@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2022 IBM Corporation and others.
+* Copyright (c) 2022, 2023 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -12,13 +12,6 @@
 *******************************************************************************/
 package io.openliberty.tools.eclipse.test.it;
 
-import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.deleteFile;
-import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.isInternalBrowserSupportAvailable;
-import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.validateApplicationOutcome;
-import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.validateApplicationStopped;
-import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.validateTestReportExists;
-import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.validateWrapperInProject;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -30,8 +23,8 @@ import java.util.List;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotView;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotCombo;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotMenu;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
 import org.junit.jupiter.api.AfterAll;
@@ -184,16 +177,24 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
                         + "Found entry count: " + foundItems + ". Found menu entries: " + runAsMenuItems);
 
         // Check that the Run As -> Run Configurations... contains the Liberty entry in the menu.
-        SWTBotPluginOperations.launchConfigurationsDialog(bot, MVN_APP_NAME, "run");
-        SWTBotTreeItem runAslibertyToolsEntry = SWTBotPluginOperations.getLibertyToolsConfigMenuItem(bot);
-        Assertions.assertTrue(runAslibertyToolsEntry != null, "Liberty entry in Run Configurations view was not found.");
-        bot.button("Close").click();
+        try {
+            SWTBotPluginOperations.launchConfigurationsDialog(bot, MVN_APP_NAME, "run");
+            SWTBotTreeItem runAslibertyToolsEntry = SWTBotPluginOperations.getLibertyToolsConfigMenuItem(bot);
+            Assertions.assertTrue(runAslibertyToolsEntry != null, "Liberty entry in Run Configurations view was not found.");
+        } finally {
+            SWTBotPluginOperations.closeDialog(bot);
+
+        }
 
         // Check that the Debug As -> Debug Configurations... contains the Liberty entry in the menu.
-        SWTBotPluginOperations.launchConfigurationsDialog(bot, MVN_APP_NAME, "debug");
-        SWTBotTreeItem debugAslibertyToolsEntry = SWTBotPluginOperations.getLibertyToolsConfigMenuItem(bot);
-        Assertions.assertTrue(debugAslibertyToolsEntry != null, "Liberty entry in Debug Configurations view was not found.");
-        bot.button("Close").click();
+        try {
+            SWTBotPluginOperations.launchConfigurationsDialog(bot, MVN_APP_NAME, "debug");
+            SWTBotTreeItem debugAslibertyToolsEntry = SWTBotPluginOperations.getLibertyToolsConfigMenuItem(bot);
+            Assertions.assertTrue(debugAslibertyToolsEntry != null, "Liberty entry in Debug Configurations view was not found.");
+        } finally {
+            SWTBotPluginOperations.closeDialog(bot);
+
+        }
     }
 
     /**
@@ -243,11 +244,13 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
 
         // Start dev mode.
         SWTBotPluginOperations.launchStartWithDashboardAction(bot, dashboard, MVN_WRAPPER_APP_NAME);
+
         SWTBotView terminal = bot.viewByTitle("Terminal");
         terminal.show();
 
         // Validate application is up and running.
-        validateApplicationOutcome(MVN_WRAPPER_APP_NAME, true, wrapperProjectPath.toAbsolutePath().toString() + "/target/liberty");
+        LibertyPluginTestUtils.validateApplicationOutcome(MVN_WRAPPER_APP_NAME, true,
+                wrapperProjectPath.toAbsolutePath().toString() + "/target/liberty");
 
         // If there are issues with the workspace, close the error dialog.
         SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
@@ -257,7 +260,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         terminal.show();
 
         // Validate application stopped.
-        validateApplicationStopped(wrapperProjectPath.toAbsolutePath().toString() + "/target/liberty");
+        LibertyPluginTestUtils.validateLibertyServerStopped(wrapperProjectPath.toAbsolutePath().toString() + "/target/liberty");
 
         // Close the terminal.
         terminal.close();
@@ -269,25 +272,22 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
     @Test
     public void testDashboardStartAction() {
         // Start dev mode.
-        SWTBotPluginOperations.launchStartWithDashboardAction(bot, dashboard,
-                Platform.getOS().equals(Platform.OS_MACOSX) ? MVN_WRAPPER_APP_NAME : MVN_APP_NAME);
+        SWTBotPluginOperations.launchStartWithDashboardAction(bot, dashboard, MVN_APP_NAME);
         SWTBotView terminal = bot.viewByTitle("Terminal");
         terminal.show();
 
         // Validate application is up and running.
-        validateApplicationOutcome(Platform.getOS().equals(Platform.OS_MACOSX) ? MVN_WRAPPER_APP_NAME : MVN_APP_NAME, true,
-                projectPath.toAbsolutePath().toString() + "/target/liberty");
+        LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
 
         // If there are issues with the workspace, close the error dialog.
         SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
 
         // Stop dev mode.
-        SWTBotPluginOperations.launchStopWithDashboardAction(bot, dashboard,
-                Platform.getOS().equals(Platform.OS_MACOSX) ? MVN_WRAPPER_APP_NAME : MVN_APP_NAME);
+        SWTBotPluginOperations.launchStopWithDashboardAction(bot, dashboard, MVN_APP_NAME);
         terminal.show();
 
         // Validate application stopped.
-        validateApplicationStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
+        LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
 
         // Close the terminal.
         terminal.close();
@@ -301,17 +301,15 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         String mode = "run";
 
         // Delete any previously created configs.
-        SWTBotPluginOperations.deleteLibertyToolsConfigEntries(bot,
-                Platform.getOS().equals(Platform.OS_MACOSX) ? MVN_WRAPPER_APP_NAME : MVN_APP_NAME, mode);
+        SWTBotPluginOperations.deleteLibertyToolsConfigEntries(bot, MVN_APP_NAME, mode);
 
         // Delete the test report files before we start this test.
         Path pathToITReport = Paths.get(projectPath.toString(), "target", "site", "failsafe-report.html");
-        boolean testReportDeleted = deleteFile(pathToITReport.toFile());
+        boolean testReportDeleted = LibertyPluginTestUtils.deleteFile(pathToITReport.toFile());
         Assertions.assertTrue(testReportDeleted, () -> "File: " + pathToITReport + " was not be deleted.");
 
         // Start dev mode with parms.
-        SWTBotPluginOperations.launchStartConfigDialogWithDashboardAction(bot, dashboard,
-                Platform.getOS().equals(Platform.OS_MACOSX) ? MVN_WRAPPER_APP_NAME : MVN_APP_NAME);
+        SWTBotPluginOperations.launchStartConfigDialogWithDashboardAction(bot, dashboard, MVN_APP_NAME);
         SWTBotPluginOperations.createNewLibertyConfiguration(bot);
         SWTBotPluginOperations.setLibertyConfigParms(bot, "-DhotTests=true");
         SWTBotPluginOperations.runLibertyConfiguration(bot, mode);
@@ -319,23 +317,21 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         terminal.show();
 
         // Validate application is up and running.
-        validateApplicationOutcome(Platform.getOS().equals(Platform.OS_MACOSX) ? MVN_WRAPPER_APP_NAME : MVN_APP_NAME, true,
-                projectPath.toAbsolutePath().toString() + "/target/liberty");
+        LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
 
         // If there are issues with the workspace, close the error dialog.
         SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
 
         try {
             // Validate that the test reports were generated.
-            validateTestReportExists(pathToITReport);
+            LibertyPluginTestUtils.validateTestReportExists(pathToITReport);
         } finally {
             // Stop dev mode.
-            SWTBotPluginOperations.launchStopWithDashboardAction(bot, dashboard,
-                    Platform.getOS().equals(Platform.OS_MACOSX) ? MVN_WRAPPER_APP_NAME : MVN_APP_NAME);
+            SWTBotPluginOperations.launchStopWithDashboardAction(bot, dashboard, MVN_APP_NAME);
             terminal.show();
 
             // Validate application stopped.
-            validateApplicationStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
+            LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
 
             // Close the terminal.
             terminal.close();
@@ -350,51 +346,45 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
 
         // Delete the test report files before we start this test.
         Path pathToITReport = Paths.get(projectPath.toString(), "target", "site", "failsafe-report.html");
-        boolean itReportDeleted = deleteFile(pathToITReport.toFile());
+        boolean itReportDeleted = LibertyPluginTestUtils.deleteFile(pathToITReport.toFile());
         Assertions.assertTrue(itReportDeleted, () -> "Test report file: " + pathToITReport + " was not be deleted.");
 
         Path pathToUTReport = Paths.get(projectPath.toString(), "target", "site", "surefire-report.html");
-        boolean utReportDeleted = deleteFile(pathToITReport.toFile());
+        boolean utReportDeleted = LibertyPluginTestUtils.deleteFile(pathToITReport.toFile());
         Assertions.assertTrue(utReportDeleted, () -> "Test report file: " + pathToITReport + " was not be deleted.");
 
         // Start dev mode.
-        SWTBotPluginOperations.launchStartWithDashboardAction(bot, dashboard,
-                Platform.getOS().equals(Platform.OS_MACOSX) ? MVN_WRAPPER_APP_NAME : MVN_APP_NAME);
+        SWTBotPluginOperations.launchStartWithDashboardAction(bot, dashboard, MVN_APP_NAME);
         SWTBotView terminal = bot.viewByTitle("Terminal");
         terminal.show();
 
         // Validate application is up and running.
-        validateApplicationOutcome(Platform.getOS().equals(Platform.OS_MACOSX) ? MVN_WRAPPER_APP_NAME : MVN_APP_NAME, true,
-                projectPath.toAbsolutePath().toString() + "/target/liberty");
+        LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
 
         // If there are issues with the workspace, close the error dialog.
         SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
 
         try {
             // Run Tests.
-            SWTBotPluginOperations.launchRunTestsWithDashboardAction(bot, dashboard,
-                    Platform.getOS().equals(Platform.OS_MACOSX) ? MVN_WRAPPER_APP_NAME : MVN_APP_NAME);
+            SWTBotPluginOperations.launchRunTestsWithDashboardAction(bot, dashboard, MVN_APP_NAME);
 
             // Validate that the reports were generated and the the browser editor was launched.
-            validateTestReportExists(pathToITReport);
-            if (isInternalBrowserSupportAvailable()) {
-                SWTBotPluginOperations.launchViewITReportWithDashboardAction(bot, dashboard,
-                        Platform.getOS().equals(Platform.OS_MACOSX) ? MVN_WRAPPER_APP_NAME : MVN_APP_NAME);
+            LibertyPluginTestUtils.validateTestReportExists(pathToITReport);
+            if (LibertyPluginTestUtils.isInternalBrowserSupportAvailable()) {
+                SWTBotPluginOperations.launchViewITReportWithDashboardAction(bot, dashboard, MVN_APP_NAME);
             }
 
-            validateTestReportExists(pathToUTReport);
-            if (isInternalBrowserSupportAvailable()) {
-                SWTBotPluginOperations.launchViewUTReportWithDashboardAction(bot, dashboard,
-                        Platform.getOS().equals(Platform.OS_MACOSX) ? MVN_WRAPPER_APP_NAME : MVN_APP_NAME);
+            LibertyPluginTestUtils.validateTestReportExists(pathToUTReport);
+            if (LibertyPluginTestUtils.isInternalBrowserSupportAvailable()) {
+                SWTBotPluginOperations.launchViewUTReportWithDashboardAction(bot, dashboard, MVN_APP_NAME);
             }
         } finally {
             // Stop dev mode.
-            SWTBotPluginOperations.launchStopWithDashboardAction(bot, dashboard,
-                    Platform.getOS().equals(Platform.OS_MACOSX) ? MVN_WRAPPER_APP_NAME : MVN_APP_NAME);
+            SWTBotPluginOperations.launchStopWithDashboardAction(bot, dashboard, MVN_APP_NAME);
             terminal.show();
 
             // Validate application stopped.
-            validateApplicationStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
+            LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
 
             // Close the terminal.
             terminal.close();
@@ -497,31 +487,26 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
      */
     @Test
     public void testStartWithDefaultRunAsConfig() {
-
         // Delete any previously created configs.
-        SWTBotPluginOperations.deleteLibertyToolsConfigEntries(bot,
-                Platform.getOS().equals(Platform.OS_MACOSX) ? MVN_WRAPPER_APP_NAME : MVN_APP_NAME, "run");
+        SWTBotPluginOperations.deleteLibertyToolsConfigEntries(bot, MVN_APP_NAME, "run");
 
         // Start dev mode.
-        SWTBotPluginOperations.launchStartWithDefaultConfig(bot,
-                Platform.getOS().equals(Platform.OS_MACOSX) ? MVN_WRAPPER_APP_NAME : MVN_APP_NAME, "run");
+        SWTBotPluginOperations.launchStartWithDefaultConfig(bot, MVN_APP_NAME, "run");
         SWTBotView terminal = bot.viewByTitle("Terminal");
         terminal.show();
 
         // Validate application is up and running.
-        validateApplicationOutcome(Platform.getOS().equals(Platform.OS_MACOSX) ? MVN_WRAPPER_APP_NAME : MVN_APP_NAME, true,
-                projectPath.toAbsolutePath().toString() + "/target/liberty");
+        LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
 
         // If there are issues with the workspace, close the error dialog.
         SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
 
         // Stop dev mode.
-        SWTBotPluginOperations.launchStopWithRunDebugAsShortcut(bot,
-                Platform.getOS().equals(Platform.OS_MACOSX) ? MVN_WRAPPER_APP_NAME : MVN_APP_NAME, "run");
+        SWTBotPluginOperations.launchStopWithRunDebugAsShortcut(bot, MVN_APP_NAME, "run");
         terminal.show();
 
         // Validate application stopped.
-        validateApplicationStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
+        LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
 
         // Close the terminal.
         terminal.close();
@@ -533,37 +518,32 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
      */
     @Test
     public void testStartWithCustomRunAsConfig() {
-
         // Delete any previously created configs.
-        SWTBotPluginOperations.deleteLibertyToolsConfigEntries(bot,
-                Platform.getOS().equals(Platform.OS_MACOSX) ? MVN_WRAPPER_APP_NAME : MVN_APP_NAME, "run");
+        SWTBotPluginOperations.deleteLibertyToolsConfigEntries(bot, MVN_APP_NAME, "run");
 
         // Delete the test report files before we start this test.
         Path pathToITReport = Paths.get(projectPath.toString(), "target", "site", "failsafe-report.html");
-        boolean testReportDeleted = deleteFile(pathToITReport.toFile());
+        boolean testReportDeleted = LibertyPluginTestUtils.deleteFile(pathToITReport.toFile());
         Assertions.assertTrue(testReportDeleted, () -> "File: " + pathToITReport + " was not be deleted.");
 
         // Start dev mode with parms.
-        SWTBotPluginOperations.launchStartWithCustomConfig(bot,
-                Platform.getOS().equals(Platform.OS_MACOSX) ? MVN_WRAPPER_APP_NAME : MVN_APP_NAME, "run", "-DhotTests=true");
+        SWTBotPluginOperations.launchStartWithCustomConfig(bot, MVN_APP_NAME, "run", "-DhotTests=true");
         SWTBotView terminal = bot.viewByTitle("Terminal");
         terminal.show();
 
         // Validate application is up and running.
-        validateApplicationOutcome(Platform.getOS().equals(Platform.OS_MACOSX) ? MVN_WRAPPER_APP_NAME : MVN_APP_NAME, true,
-                projectPath.toAbsolutePath().toString() + "/target/liberty");
+        LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
 
         try {
             // Validate that the test reports were generated.
-            validateTestReportExists(pathToITReport);
+            LibertyPluginTestUtils.validateTestReportExists(pathToITReport);
         } finally {
             // Stop dev mode.
-            SWTBotPluginOperations.launchStopWithRunDebugAsShortcut(bot,
-                    Platform.getOS().equals(Platform.OS_MACOSX) ? MVN_WRAPPER_APP_NAME : MVN_APP_NAME, "run");
+            SWTBotPluginOperations.launchStopWithRunDebugAsShortcut(bot, MVN_APP_NAME, "run");
             terminal.show();
 
             // Validate application stopped.
-            validateApplicationStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
+            LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
 
             // Close the terminal.
             terminal.close();
@@ -575,58 +555,50 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
      */
     @Test
     public void testRunAsShortcutActions() {
-
         // Delete any previously created configs.
-        SWTBotPluginOperations.deleteLibertyToolsConfigEntries(bot,
-                Platform.getOS().equals(Platform.OS_MACOSX) ? MVN_WRAPPER_APP_NAME : MVN_APP_NAME, "run");
+        SWTBotPluginOperations.deleteLibertyToolsConfigEntries(bot, MVN_APP_NAME, "run");
 
         // Delete the test report files before we start this test.
         Path pathToITReport = Paths.get(projectPath.toString(), "target", "site", "failsafe-report.html");
-        boolean itReportDeleted = deleteFile(pathToITReport.toFile());
+        boolean itReportDeleted = LibertyPluginTestUtils.deleteFile(pathToITReport.toFile());
         Assertions.assertTrue(itReportDeleted, () -> "Test report file: " + pathToITReport + " was not be deleted.");
 
         Path pathToUTReport = Paths.get(projectPath.toString(), "target", "site", "surefire-report.html");
-        boolean utReportDeleted = deleteFile(pathToITReport.toFile());
+        boolean utReportDeleted = LibertyPluginTestUtils.deleteFile(pathToITReport.toFile());
         Assertions.assertTrue(utReportDeleted, () -> "Test report file: " + pathToITReport + " was not be deleted.");
 
         // Start dev mode.
-        SWTBotPluginOperations.launchStartWithRunDebugAsShortcut(bot,
-                Platform.getOS().equals(Platform.OS_MACOSX) ? MVN_WRAPPER_APP_NAME : MVN_APP_NAME, "run");
+        SWTBotPluginOperations.launchStartWithRunDebugAsShortcut(bot, MVN_APP_NAME, "run");
         SWTBotView terminal = bot.viewByTitle("Terminal");
         terminal.show();
 
         // Validate application is up and running.
-        validateApplicationOutcome(Platform.getOS().equals(Platform.OS_MACOSX) ? MVN_WRAPPER_APP_NAME : MVN_APP_NAME, true,
-                projectPath.toAbsolutePath().toString() + "/target/liberty");
+        LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
 
         // If there are issues with the workspace, close the error dialog.
         SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
 
         try {
             // Run Tests.
-            SWTBotPluginOperations.launchRunTestspWithRunDebugAsShortcut(bot,
-                    Platform.getOS().equals(Platform.OS_MACOSX) ? MVN_WRAPPER_APP_NAME : MVN_APP_NAME, "run");
+            SWTBotPluginOperations.launchRunTestspWithRunDebugAsShortcut(bot, MVN_APP_NAME, "run");
 
             // Validate that the reports were generated and the the browser editor was launched.
-            validateTestReportExists(pathToITReport);
-            if (isInternalBrowserSupportAvailable()) {
-                SWTBotPluginOperations.launchViewITReportWithRunDebugAsShortcut(bot,
-                        Platform.getOS().equals(Platform.OS_MACOSX) ? MVN_WRAPPER_APP_NAME : MVN_APP_NAME);
+            LibertyPluginTestUtils.validateTestReportExists(pathToITReport);
+            if (LibertyPluginTestUtils.isInternalBrowserSupportAvailable()) {
+                SWTBotPluginOperations.launchViewITReportWithRunDebugAsShortcut(bot, MVN_APP_NAME);
             }
 
-            validateTestReportExists(pathToUTReport);
-            if (isInternalBrowserSupportAvailable()) {
-                SWTBotPluginOperations.launchViewUTReportWithRunDebugAsShortcut(bot,
-                        Platform.getOS().equals(Platform.OS_MACOSX) ? MVN_WRAPPER_APP_NAME : MVN_APP_NAME);
+            LibertyPluginTestUtils.validateTestReportExists(pathToUTReport);
+            if (LibertyPluginTestUtils.isInternalBrowserSupportAvailable()) {
+                SWTBotPluginOperations.launchViewUTReportWithRunDebugAsShortcut(bot, MVN_APP_NAME);
             }
         } finally {
             // Stop dev mode.
-            SWTBotPluginOperations.launchStopWithRunDebugAsShortcut(bot,
-                    Platform.getOS().equals(Platform.OS_MACOSX) ? MVN_WRAPPER_APP_NAME : MVN_APP_NAME, "run");
+            SWTBotPluginOperations.launchStopWithRunDebugAsShortcut(bot, MVN_APP_NAME, "run");
             terminal.show();
 
             // Validate application stopped.
-            validateApplicationStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
+            LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
 
             // Close the terminal.
             terminal.close();
@@ -639,9 +611,12 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
      */
     @Test
     public void testStartWithCustomDebugAsConfig() {
+        // Delete any previously created configs.
+        SWTBotPluginOperations.deleteLibertyToolsConfigEntries(bot, MVN_APP_NAME, "debug");
+
         // Delete the test report files before we start this test.
         Path pathToITReport = Paths.get(projectPath.toString(), "target", "site", "failsafe-report.html");
-        boolean testReportDeleted = deleteFile(pathToITReport.toFile());
+        boolean testReportDeleted = LibertyPluginTestUtils.deleteFile(pathToITReport.toFile());
         Assertions.assertTrue(testReportDeleted, () -> "File: " + pathToITReport + " was not be deleted.");
 
         // Start dev mode with parms.
@@ -650,22 +625,17 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         terminal.show();
 
         // Validate application is up and running.
-        validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
+        LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
 
         // If there are issues with the workspace, close the error dialog.
         SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
 
         try {
             // Validate that the test reports were generated.
-            validateTestReportExists(pathToITReport);
+            LibertyPluginTestUtils.validateTestReportExists(pathToITReport);
 
-            // At the moment this check is just too unreliable because the configuration dialog contains different
-            // sections that maybe in focus at different times. This makes it difficult to predictably get the panel
-            // we are after. We need to find a way to focus on the main dialog. We should also cleanup the configurations.
-            // Commenting this code out for now.
-            //
             // Validate that a remote java application configuration was created and is named after the application.
-            // validateRemoteJavaAppCreation(MVN_APP_NAME);
+            validateRemoteJavaAppCreation(MVN_APP_NAME);
 
         } finally {
             // Switch to the explorer view.
@@ -676,7 +646,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
             terminal.show();
 
             // Validate application stopped.
-            validateApplicationStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
+            LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
 
             // Close the terminal.
             terminal.close();
@@ -688,24 +658,22 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
      */
     @Test
     public void testStartWithDebugAsShortcut() {
+        // Delete any previously created configs.
+        SWTBotPluginOperations.deleteLibertyToolsConfigEntries(bot, MVN_APP_NAME, "debug");
+
         // Start dev mode.
         SWTBotPluginOperations.launchStartWithRunDebugAsShortcut(bot, MVN_APP_NAME, "debug");
         SWTBotView terminal = bot.viewByTitle("Terminal");
         terminal.show();
 
         // Validate application is up and running.
-        validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
+        LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
 
         // If there are issues with the workspace, close the error dialog.
         SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
 
-        // At the moment this check is just too unreliable because the configuration dialog contains different
-        // sections that maybe in focus at different times. This makes it difficult to predictably get the panel
-        // we are after. We need to find a way to focus on the main dialog. We should also cleanup the configurations.
-        // Commenting this code out for now.
-        //
         // Validate that a remote java application configuration was created and is named after the application.
-        // validateRemoteJavaAppCreation(MVN_APP_NAME);
+        validateRemoteJavaAppCreation(MVN_APP_NAME);
 
         // Switch to the explorer view.
         SWTBotPluginOperations.switchToProjectExplotereView(bot);
@@ -715,7 +683,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         terminal.show();
 
         // Validate application stopped.
-        validateApplicationStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
+        LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
 
         // Close the terminal.
         terminal.close();
@@ -726,16 +694,15 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
     public void testStartWithNoWrapperAndNoPreferencesSet() {
 
         // verify no wrapper present
-
         String localMvnwCmd = LibertyPluginTestUtils.onWindows() ? "mvnw.cmd" : "mvnw";
         String absoluteMvnwCmd = projectPath.toAbsolutePath().toString() + localMvnwCmd;
-        validateWrapperInProject(false, absoluteMvnwCmd);
+        LibertyPluginTestUtils.validateWrapperInProject(false, absoluteMvnwCmd);
 
         // Start dev mode.
         SWTBotPluginOperations.launchStartWithDashboardAction(bot, dashboard, MVN_APP_NAME);
 
         // Validate application is not up and not running.
-        validateApplicationStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
+        LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
     }
 
     @Test
@@ -747,7 +714,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         // verify wrapper present
         String localMvnwCmd = LibertyPluginTestUtils.onWindows() ? "mvnw.cmd" : "mvnw";
         String absoluteMvnwCmd = wrapperProjectPath + File.separator + localMvnwCmd;
-        validateWrapperInProject(true, absoluteMvnwCmd);
+        LibertyPluginTestUtils.validateWrapperInProject(true, absoluteMvnwCmd);
 
         // Start dev mode.
         SWTBotPluginOperations.launchStartWithDashboardAction(bot, dashboard, MVN_WRAPPER_APP_NAME);
@@ -755,7 +722,8 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         terminal.show();
 
         // Validate application is up and running.
-        validateApplicationOutcome(MVN_WRAPPER_APP_NAME, true, wrapperProjectPath.toAbsolutePath().toString() + "/target/liberty");
+        LibertyPluginTestUtils.validateApplicationOutcome(MVN_WRAPPER_APP_NAME, true,
+                wrapperProjectPath.toAbsolutePath().toString() + "/target/liberty");
 
         // If there are issues with the workspace, close the error dialog.
         SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
@@ -765,7 +733,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         terminal.show();
 
         // Validate application stopped.
-        validateApplicationStopped(wrapperProjectPath.toAbsolutePath().toString() + "/target/liberty");
+        LibertyPluginTestUtils.validateLibertyServerStopped(wrapperProjectPath.toAbsolutePath().toString() + "/target/liberty");
 
         // Close the terminal.
         terminal.close();
@@ -780,7 +748,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         // verify no wrapper present
         String localMvnwCmd = LibertyPluginTestUtils.onWindows() ? "mvnw.cmd" : "mvnw";
         String absoluteMvnwCmd = projectPath.toAbsolutePath().toString() + localMvnwCmd;
-        validateWrapperInProject(false, absoluteMvnwCmd);
+        LibertyPluginTestUtils.validateWrapperInProject(false, absoluteMvnwCmd);
 
         // Start dev mode.
         SWTBotPluginOperations.launchStartWithDashboardAction(bot, dashboard, MVN_APP_NAME);
@@ -788,7 +756,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         terminal.show();
 
         // Validate application is up and running.
-        validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
+        LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
 
         // If there are issues with the workspace, close the error dialog.
         SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
@@ -798,10 +766,40 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         terminal.show();
 
         // Validate application stopped.
-        validateApplicationStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
+        LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
 
         // Close the terminal.
         terminal.close();
     }
 
+    /**
+     * Tests that the default JRE set in the project's java build path matches what is marked as default in the Liberty Tools
+     * configuration JRE tab.
+     */
+    @Test
+    public void testDefaultJRECompliance() {
+        // Delete any previously created configs.
+        SWTBotPluginOperations.deleteLibertyToolsConfigEntries(bot, MVN_APP_NAME, "run");
+
+        try {
+            SWTBotPluginOperations.launchConfigurationsDialog(bot, MVN_APP_NAME, "run");
+            SWTBotPluginOperations.createNewLibertyConfiguration(bot);
+            SWTBotPluginOperations.openJRETab(bot);
+            String buildPathJRE = LibertyPluginTestUtils.getJREFromBuildpath(projectPath.toString());
+
+            Assertions.assertTrue(buildPathJRE != null,
+                    () -> "Unable to find the JRE configured in the project's build path (.classpath).");
+
+            SWTBotCombo comboJREBox = SWTBotPluginOperations.getComboTextBoxWithTextPrefix(bot, buildPathJRE);
+
+            Assertions.assertTrue(comboJREBox != null,
+                    () -> "The java installation shown on the Liberty run configurations JRE tab does not contain the Java installation configured on project's the build path (claspath):"
+                            + buildPathJRE);
+            Assertions.assertTrue(comboJREBox.isEnabled(),
+                    () -> "The JRE tab box showing Java installation \" + buildPathJRE + \" is not selected.");
+        } finally {
+            SWTBotPluginOperations.applyDialogChanges(bot);
+            SWTBotPluginOperations.closeDialog(bot);
+        }
+    }
 }

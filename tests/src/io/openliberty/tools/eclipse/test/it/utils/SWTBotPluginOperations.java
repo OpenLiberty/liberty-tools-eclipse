@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2022 IBM Corporation and others.
+* Copyright (c) 2022, 2023 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -18,20 +18,26 @@ import static org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory.widget
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Item;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotEditor;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotView;
+import org.eclipse.swtbot.swt.finder.SWTBot;
 import org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory;
 import org.eclipse.swtbot.swt.finder.utils.SWTUtils;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotButton;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotCTabItem;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotCombo;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotMenu;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotRootMenu;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotShell;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotStyledText;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTable;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotText;
@@ -165,10 +171,12 @@ public class SWTBotPluginOperations {
      * @param item The application name to select.
      */
     public static void refreshProjectUsingExplorerView(SWTWorkbenchBot bot, String item) {
-        SWTBotTreeItem explorerProj = SWTBotPluginOperations.getInstalledProjectItem(bot, item);
-        Assertions.assertTrue(explorerProj != null, () -> "Could not find project " + item + " in the explorer view.");
-        explorerProj.select();
-        SWTBotMenu refresh = explorerProj.contextMenu("Refresh");
+        SWTBotTreeItem projectInExplorer = SWTBotPluginOperations.getInstalledProjectItem(bot, item);
+        Assertions.assertTrue(projectInExplorer != null, () -> "Could not find project " + item + " in the explorer view.");
+        bot.waitUntil(SWTBotTestCondition.isTreeItemEnabled(projectInExplorer), 5000);
+        projectInExplorer.select();
+        SWTBotMenu refresh = projectInExplorer.contextMenu("Refresh");
+        bot.waitUntil(SWTBotTestCondition.isMenuEnabled(refresh), 5000);
         refresh.setFocus();
         refresh.click();
     }
@@ -306,9 +314,12 @@ public class SWTBotPluginOperations {
         SWTBotMenu runAsMenu = null;
         SWTBotTreeItem project = getInstalledProjectItem(bot, item);
         Assertions.assertTrue(project != null, () -> "Could not find active project.");
+        bot.waitUntil(SWTBotTestCondition.isTreeItemEnabled(project), 5000);
+        project.select().setFocus();
 
-        project.setFocus();
-        runAsMenu = project.contextMenu("Run As").click();
+        runAsMenu = project.contextMenu("Run As");
+        bot.waitUntil(SWTBotTestCondition.isMenuEnabled(runAsMenu), 5000);
+        runAsMenu.click();
 
         return runAsMenu;
     }
@@ -323,11 +334,15 @@ public class SWTBotPluginOperations {
      */
     public static SWTBotMenu getAppDebugAsMenu(SWTWorkbenchBot bot, String item) {
         SWTBotMenu runAsMenu = null;
+
         SWTBotTreeItem project = getInstalledProjectItem(bot, item);
         Assertions.assertTrue(project != null, () -> "Could not find active project.");
+        bot.waitUntil(SWTBotTestCondition.isTreeItemEnabled(project), 5000);
+        project.select().setFocus();
 
-        project.setFocus();
-        runAsMenu = project.contextMenu("Debug As").click();
+        runAsMenu = project.contextMenu("Debug As");
+        bot.waitUntil(SWTBotTestCondition.isMenuEnabled(runAsMenu), 5000);
+        runAsMenu.click();
 
         return runAsMenu;
     }
@@ -397,7 +412,12 @@ public class SWTBotPluginOperations {
         runConfigMenu.setFocus();
         runConfigMenu.click();
 
-        SWTBotTestCondition.isTreeWidgetActive(bot, LAUNCH_CONFIG_LIBERTY_MENU_NAME);
+        bot.waitUntil(SWTBotTestCondition.isTreeWidgetEnabled(bot, LAUNCH_CONFIG_LIBERTY_MENU_NAME), 5000);
+
+        if ("debug".equals(mode)) {
+            bot.waitUntil(SWTBotTestCondition.isTreeWidgetEnabled(bot, LAUNCH_CONFIG_REMOTE_JAVA_APP), 5000);
+        }
+
     }
 
     /**
@@ -409,7 +429,8 @@ public class SWTBotPluginOperations {
      */
     public static SWTBotTreeItem getLibertyToolsConfigMenuItem(SWTWorkbenchBot bot) {
         SWTBotTreeItem libertyToolsEntry = bot.tree().getTreeItem(LAUNCH_CONFIG_LIBERTY_MENU_NAME);
-        libertyToolsEntry.setFocus();
+        bot.waitUntil(SWTBotTestCondition.isTreeItemEnabled(libertyToolsEntry), 10000);
+        libertyToolsEntry.select().setFocus();
 
         return libertyToolsEntry;
     }
@@ -428,7 +449,9 @@ public class SWTBotPluginOperations {
         for (SWTBotTreeItem treeItem : treeItems) {
             if (treeItem.getText().equals(LAUNCH_CONFIG_REMOTE_JAVA_APP)) {
                 remoteJavaApp = treeItem;
-                remoteJavaApp.select();
+
+                bot.waitUntil(SWTBotTestCondition.isTreeItemEnabled(remoteJavaApp), 10000);
+                remoteJavaApp.select().setFocus();
                 break;
             }
         }
@@ -450,15 +473,21 @@ public class SWTBotPluginOperations {
         SWTBotPluginOperations.launchConfigurationsDialog(bot, item, mode);
         try {
             SWTBotTreeItem libertyToolsEntry = getLibertyToolsConfigMenuItem(bot);
-            libertyToolsEntry.setFocus();
+            Assertions.assertTrue((libertyToolsEntry != null), () -> "The Liberty entry was not found in run Configurations dialog.");
+
             List<String> configs = libertyToolsEntry.getNodes();
 
-            // Delete Liberty configurations.
             for (String config : configs) {
                 SWTBotTreeItem configEntry = libertyToolsEntry.getNode(config);
+                bot.waitUntil(SWTBotTestCondition.isTreeItemEnabled(configEntry), 10000);
                 configEntry.select().setFocus();
-                bot.toolbarButtonWithTooltip("Delete selected launch configuration(s)").click();
+
+                SWTBotToolbarButton deleteButon = bot.toolbarButtonWithTooltip("Delete selected launch configuration(s)");
+                deleteButon.setFocus();
+                deleteButon.click();
+
                 SWTBotButton deleteButton = bot.button("Delete");
+                bot.waitUntil(SWTBotTestCondition.isButtonEnabled(deleteButton), 5000);
                 deleteButton.setFocus();
                 deleteButton.click();
             }
@@ -466,22 +495,28 @@ public class SWTBotPluginOperations {
             // Delete debug mode Remote Java Application configurations
             if ("debug".equals(mode)) {
                 SWTBotTreeItem remoteJavaAppEntry = getRemoteJavaAppConfigMenuItem(bot);
-                remoteJavaAppEntry.setFocus();
+                Assertions.assertTrue((remoteJavaAppEntry != null),
+                        () -> "The " + LAUNCH_CONFIG_REMOTE_JAVA_APP + " entry was not found in run Configurations dialog.");
+
                 List<String> rjaConfigs = remoteJavaAppEntry.getNodes();
                 for (String rjaConfig : rjaConfigs) {
                     SWTBotTreeItem configEntry = remoteJavaAppEntry.getNode(rjaConfig);
+                    bot.waitUntil(SWTBotTestCondition.isTreeItemEnabled(configEntry), 10000);
                     configEntry.select().setFocus();
-                    bot.toolbarButtonWithTooltip("Delete selected launch configuration(s)").click();
+
+                    SWTBotToolbarButton deleteButon = bot.toolbarButtonWithTooltip("Delete selected launch configuration(s)");
+                    deleteButon.setFocus();
+                    deleteButon.click();
+
                     SWTBotButton deleteButton = bot.button("Delete");
+                    bot.waitUntil(SWTBotTestCondition.isButtonEnabled(deleteButton), 5000);
                     deleteButton.setFocus();
                     deleteButton.click();
                 }
             }
         } finally {
             // Close the configuration dialog.
-            SWTBotButton closeButton = bot.button("Close");
-            closeButton.setFocus();
-            closeButton.click();
+            closeDialog(bot);
         }
     }
 
@@ -558,9 +593,10 @@ public class SWTBotPluginOperations {
      * @param mode The operating mode. It can be either \"run\" or \"debug\".
      */
     public static void runLibertyConfiguration(SWTWorkbenchBot bot, String mode) {
-        SWTBotButton runButton = bot.button(("run".equals(mode)) ? "Run" : "Debug");
-        runButton.setFocus();
-        runButton.click();
+        SWTBotButton button = bot.button(("run".equals(mode)) ? "Run" : "Debug");
+        bot.waitUntil(SWTBotTestCondition.isButtonEnabled(button), 5000);
+        button.setFocus();
+        button.click();
     }
 
     /**
@@ -598,7 +634,6 @@ public class SWTBotPluginOperations {
                 .menu(WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_STOP + ".*"), false, 0);
         stopShortcut.setFocus();
         stopShortcut.click();
-
     }
 
     /**
@@ -852,16 +887,50 @@ public class SWTBotPluginOperations {
     }
 
     /**
+     * Switches the Liberty run configuration main tab to the JRE Tab. A Liberty configuration must be opened prior to calling this
+     * method.
+     * 
+     * @param bot The SWTWorkbenchBot instance.
+     */
+    public static void openJRETab(SWTWorkbenchBot bot) {
+        SWTBotShell shell = bot.shell("Run Configurations");
+        shell.activate().setFocus();
+        SWTBot shellBot = shell.bot();
+        SWTBotCTabItem tabItem = shellBot.cTabItem("JRE");
+        tabItem.activate().setFocus();
+    }
+
+    /**
      * Switches the perspective to Project Explorer.
      *
      * @param bot The SWTWorkbenchBot instance.
      */
     public static void switchToProjectExplotereView(SWTWorkbenchBot bot) {
-        try {
-            bot.menu("Window").menu("Show View").menu("Project Explorer").click();
-        } catch (Exception e) {
-            // Best effort approach.
+
+        String projExpViewName = "Project Explorer";
+        bot.menu("Window").menu("Show View").menu(projExpViewName).click();
+        int maxRetries = 10;
+        String activeViewTitle = null;
+
+        for (int i = 0; i < maxRetries; i++) {
+            SWTBotView activeView = bot.activeView();
+            activeViewTitle = activeView.getTitle();
+
+            if (projExpViewName.equals(activeViewTitle)) {
+                bot.waitUntil(SWTBotTestCondition.isViewActive(activeView, activeView.getTitle()), 10000);
+                return;
+            } else {
+                try {
+                    TimeUnit.MILLISECONDS.sleep(1000);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+
+                continue;
+            }
         }
+
+        Assertions.fail("Found Invalid view: " + activeViewTitle + ". Expected view: " + projExpViewName);
     }
 
     /**
@@ -878,6 +947,34 @@ public class SWTBotPluginOperations {
     }
 
     /**
+     * Clicks the Apply button on run configuration dialog tab. A dialog containing this button must be active before making this
+     * call.
+     * 
+     * @param bot The SWTWorkbenchBot instance.
+     */
+    public static void applyDialogChanges(SWTWorkbenchBot bot) {
+        SWTBotButton applyButton = bot.button("Apply");
+        if (applyButton.isEnabled()) {
+            applyButton.setFocus();
+            applyButton.click();
+        }
+    }
+
+    /**
+     * Clicks the Close button on run configuration dialog tab. A dialog containing this button must be active before making this
+     * call.
+     * 
+     * @param bot The SWTWorkbenchBot instance.
+     */
+    public static void closeDialog(SWTWorkbenchBot bot) {
+        SWTBotButton closeButton = bot.button("Close");
+        if (closeButton.isEnabled()) {
+            closeButton.setFocus();
+            closeButton.click();
+        }
+    }
+
+    /**
      * Returns a SWTBotToolbarButton instance representing the toolbar button with the input tooltip prefix.
      *
      * @param bot The SWTWorkbenchBot instance.
@@ -887,7 +984,7 @@ public class SWTBotPluginOperations {
      */
     @SuppressWarnings("unchecked")
     public static SWTBotToolbarButton getToolbarButtonWithToolTipPrefix(SWTWorkbenchBot bot, String toolTipPrefix) {
-        Matcher<Item> matcher = allOf(widgetOfType(ToolItem.class), new ToolTipPrefixMatcher<Item>(toolTipPrefix));
+        Matcher<Item> matcher = allOf(widgetOfType(ToolItem.class), new TextPrefixMatcher<Item>(toolTipPrefix, "getToolTipText"));
         Item item = bot.widget(matcher, 0);
         if (item instanceof ToolItem) {
             ToolItem toolItem = (ToolItem) item;
@@ -900,20 +997,36 @@ public class SWTBotPluginOperations {
                 "toolbar button of type ToolItem, with style push, and tooltip prefix of " + toolTipPrefix + " was not found.");
     }
 
-    /**
-     * Toolbar button tip prefix matcher.
-     */
-    public static class ToolTipPrefixMatcher<T> extends BaseMatcher<T> {
+    @SuppressWarnings("unchecked")
+    public static SWTBotCombo getComboTextBoxWithTextPrefix(SWTWorkbenchBot bot, String textPrefix) {
+        Matcher<Combo> matcher = allOf(widgetOfType(Combo.class), new TextPrefixMatcher<Combo>(textPrefix, "getText"));
+        Combo comboBox = bot.widget(matcher, 0);
+        if (comboBox instanceof Combo) {
+            Combo combo = (Combo) comboBox;
+            if (SWTUtils.hasStyle(comboBox, SWT.DROP_DOWN)) {
+                return new SWTBotCombo(combo, matcher);
+            }
+        }
 
-        final String toolTipPrefix;
+        throw new RuntimeException("Combo box of type Combo, with style drop down, and text prefix of " + textPrefix + " was not found.");
+    }
+
+    /**
+     * Text prefix matcher.
+     */
+    public static class TextPrefixMatcher<T> extends BaseMatcher<T> {
+
+        String prefix;
+        String method;
 
         /**
          * Constructor.
          *
          * @param toolTipPrefix The tooltip prefix to match.
          */
-        public ToolTipPrefixMatcher(String toolTipPrefix) {
-            this.toolTipPrefix = toolTipPrefix;
+        public TextPrefixMatcher(String prefix, String method) {
+            this.prefix = prefix;
+            this.method = method;
         }
 
         /**
@@ -921,7 +1034,7 @@ public class SWTBotPluginOperations {
          */
         @Override
         public void describeTo(Description description) {
-            description.appendText("with tooltip prefix '").appendText(toolTipPrefix).appendText("'");
+            description.appendText("with prefix '").appendText(prefix).appendText("'");
         }
 
         /**
@@ -932,12 +1045,12 @@ public class SWTBotPluginOperations {
             boolean matchFound = false;
 
             try {
-                Object tooltipText = SWTUtils.invokeMethod(object, "getToolTipText");
-                if (tooltipText instanceof String) {
-                    matchFound = ((String) tooltipText).startsWith(toolTipPrefix);
+                Object text = SWTUtils.invokeMethod(object, method);
+                if (text instanceof String) {
+                    matchFound = ((String) text).startsWith(prefix);
                 }
             } catch (Exception e) {
-                System.out.println("INFO: Unabled to find tooltip with prefix: " + toolTipPrefix + ". Error: " + e.getMessage());
+                System.out.println("INFO: Unabled to find text with prefix: " + prefix + ". Error: " + e.getMessage());
             }
 
             return matchFound;

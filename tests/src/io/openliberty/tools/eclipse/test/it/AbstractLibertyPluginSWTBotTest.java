@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2022 IBM Corporation and others.
+ * Copyright (c) 2022, 2023 IBM Corporation and others.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -45,6 +45,7 @@ import org.junit.jupiter.api.TestInfo;
 
 import io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils;
 import io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations;
+import io.openliberty.tools.eclipse.test.it.utils.SWTBotTestCondition;
 
 public abstract class AbstractLibertyPluginSWTBotTest {
 
@@ -93,28 +94,6 @@ public abstract class AbstractLibertyPluginSWTBotTest {
     public void afterEach(TestInfo info) {
         System.out.println(
                 "INFO: Test " + this.getClass().getSimpleName() + "#" + info.getDisplayName() + " exit: " + java.time.LocalDateTime.now());
-    }
-
-    /**
-     * Imports the specified list of projects.
-     *
-     * @param workspaceRoot The workspace root location.
-     * @param folders The list of folders containing the projects to install.
-     *
-     * @throws InterruptedException
-     * @throws CoreException
-     */
-    protected static void importProjects(File workspaceRoot, List<String> folders) throws InterruptedException, CoreException {
-        // Get the list of projects to install.
-        MavenModelManager modelManager = MavenPlugin.getMavenModelManager();
-        LocalProjectScanner lps = new LocalProjectScanner(folders, false, modelManager);
-        lps.run(new NullProgressMonitor());
-        List<MavenProjectInfo> projects = lps.getProjects();
-
-        // Import the projects.
-        ProjectImportConfiguration projectImportConfig = new ProjectImportConfiguration();
-        IProjectConfigurationManager projectConfigurationManager = MavenPlugin.getProjectConfigurationManager();
-        projectConfigurationManager.importProjects(projects, projectImportConfig, new NullProgressMonitor());
     }
 
     /**
@@ -187,49 +166,25 @@ public abstract class AbstractLibertyPluginSWTBotTest {
      * @param projectName The project name..
      */
     public void validateRemoteJavaAppCreation(String projectName) {
-        int retryLimit = 10;
-        boolean foundMatch = false;
-        for (int i = 0; i < retryLimit; i++) {
-            foundMatch = false;
-            SWTBotPluginOperations.launchConfigurationsDialog(bot, projectName, "debug");
-            SWTBotTreeItem[] configs = null;
+        SWTBotPluginOperations.launchConfigurationsDialog(bot, projectName, "debug");
+        SWTBotTreeItem remoteJavaAppEntry = SWTBotPluginOperations.getRemoteJavaAppConfigMenuItem(bot);
+        Assertions.assertTrue((remoteJavaAppEntry != null),
+                () -> "The " + SWTBotPluginOperations.LAUNCH_CONFIG_REMOTE_JAVA_APP + " entry was not found in run Configurations dialog.");
 
-            SWTBotTreeItem remoteJavaAppEntry = SWTBotPluginOperations.getRemoteJavaAppConfigMenuItem(bot);
-            if (remoteJavaAppEntry != null) {
-                remoteJavaAppEntry.select();
-                configs = remoteJavaAppEntry.getItems();
-            } else {
-                configs = bot.tree().getAllItems();
-            }
+        List<String> configs = remoteJavaAppEntry.getNodes();
+        for (String config : configs) {
+            SWTBotTreeItem configEntry = remoteJavaAppEntry.getNode(config);
+            bot.waitUntil(SWTBotTestCondition.isTreeItemEnabled(configEntry), 10000);
+            configEntry.select().setFocus();
 
-            for (SWTBotTreeItem configEntry : configs) {
-                String configName = configEntry.getText();
-
-                if (configName.contains(projectName)) {
-                    foundMatch = true;
-                    SWTBotButton closeButton = bot.button("Close");
-                    closeButton.setFocus();
-                    closeButton.click();
-                    break;
-                }
-            }
-
-            if (!foundMatch) {
-                try {
-                    Thread.sleep(3000);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-
+            if (config.startsWith(projectName)) {
                 SWTBotButton closeButton = bot.button("Close");
                 closeButton.setFocus();
                 closeButton.click();
-                continue;
-            } else {
                 return;
             }
         }
 
-        Assertions.fail("The remote java application configuration name should contain project name " + projectName);
+        Assertions.fail("The remote java application configuration did not contain project name " + projectName);
     }
 }
