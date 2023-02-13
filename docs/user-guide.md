@@ -200,7 +200,7 @@ Once the project is stopped, the terminal in which it ran is closed.
 
 To debug your application, you can start dev mode with the debugger automatically attached to the Liberty server JVM running your application.
 
-To start dev mode with the debugger attached, you can right-click on the application in the project explorer, select `Debug As` on the menu, and click on one of the launch shortcut start actions: `Liberty Start`, `Liberty Start...`, and `Liberty Start in Container`. 
+To start dev mode with the debugger attached, you can right-click on the application in the project explorer, select `Debug As` on the menu, and click on one of the launch shortcut start actions: `Liberty Start`, `Liberty Start...`, or `Liberty Start in Container`. 
 
 ![Debug As launch shortcuts](images/maven-DebugAsLaunchShortcuts.png)
 

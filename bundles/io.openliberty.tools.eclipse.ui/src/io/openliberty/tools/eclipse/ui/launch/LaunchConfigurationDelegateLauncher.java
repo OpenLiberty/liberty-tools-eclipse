@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2022 IBM Corporation and others.
+ * Copyright (c) 2022, 2023 IBM Corporation and others.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -24,7 +24,6 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.PlatformUI;
 
-import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.ui.launch.shortcuts.StartAction;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
@@ -66,7 +65,6 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
         // Processing paths:
         // - Explorer-> Run As-> Run Configurations
         // - Dashboard-> project -> Start...
-        DevModeOperations devModeOps = DevModeOperations.getInstance();
         IWorkbench workbench = PlatformUI.getWorkbench();
         Display display = workbench.getDisplay();
 

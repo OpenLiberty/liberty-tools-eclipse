@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2022 IBM Corporation and others.
+* Copyright (c) 2022, 2023 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -23,6 +23,7 @@ import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationType;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.core.ILaunchManager;
+import org.eclipse.jdt.launching.IJavaLaunchConfigurationConstants;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.logging.Trace;
@@ -68,24 +69,29 @@ public class LaunchConfigurationHelper {
         List<ILaunchConfiguration> matchingConfigList = filterLaunchConfigurations(existingConfigs, iProject.getName(), runtimeEnv);
 
         switch (matchingConfigList.size()) {
-            case 0:
-                // Create a new configuration.
-                String newName = iLaunchMgr.generateLaunchConfigurationName(iProject.getName());
-                ILaunchConfigurationWorkingCopy workingCopy = iLaunchConfigType.newInstance(null, newName);
-                workingCopy.setAttribute(StartTab.PROJECT_NAME, iProject.getName());
-                workingCopy.setAttribute(StartTab.PROJECT_START_PARM, devModeOps.getProjectModel().getDefaultStartParameters(iProject));
-                workingCopy.setAttribute(StartTab.PROJECT_RUN_IN_CONTAINER, false);
-                configuration = workingCopy.doSave();
-                break;
+        case 0:
+            // Create a new configuration.
+            String newName = iLaunchMgr.generateLaunchConfigurationName(iProject.getName());
+            ILaunchConfigurationWorkingCopy workingCopy = iLaunchConfigType.newInstance(null, newName);
+            workingCopy.setAttribute(StartTab.PROJECT_NAME, iProject.getName());
+            workingCopy.setAttribute(StartTab.PROJECT_START_PARM, devModeOps.getProjectModel().getDefaultStartParameters(iProject));
+            workingCopy.setAttribute(StartTab.PROJECT_RUN_IN_CONTAINER, false);
 
-            case 1:
-                // Return the found configuration.
-                configuration = matchingConfigList.get(0);
-                break;
-            default:
-                // Return the configuration that was run last.
-                configuration = getLastRunConfiguration(matchingConfigList);
-                break;
+            String defaultJavaDef = JRETab.getDefaultJavaFromBuildPath(iProject);
+            if (defaultJavaDef != null) {
+                workingCopy.setAttribute(IJavaLaunchConfigurationConstants.ATTR_JRE_CONTAINER_PATH, defaultJavaDef);
+            }
+
+            configuration = workingCopy.doSave();
+            break;
+        case 1:
+            // Return the found configuration.
+            configuration = matchingConfigList.get(0);
+            break;
+        default:
+            // Return the configuration that was run last.
+            configuration = getLastRunConfiguration(matchingConfigList);
+            break;
         }
 
         return configuration;

@@ -12,9 +12,6 @@
  *******************************************************************************/
 package io.openliberty.tools.eclipse.test.it;
 
-import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.validateApplicationOutcomeCustom;
-import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.validateApplicationStopped;
-
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -30,6 +27,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
+import io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils;
 import io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher;
@@ -185,10 +183,10 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
         SWTBotView terminal = bot.viewByTitle("Terminal");
         terminal.show();
 
-        validateApplicationOutcomeCustom("http://localhost:9080/converter1/heights.jsp?heightCm=10", true, "Height in feet and inches",
-                serverModule1Path + "/target/liberty");
-        validateApplicationOutcomeCustom("http://localhost:9080/converter2/heights.jsp?heightCm=20", true, "Height in feet and inches",
-                serverModule1Path + "/target/liberty");
+        LibertyPluginTestUtils.validateApplicationOutcomeCustom("http://localhost:9080/converter1/heights.jsp?heightCm=10", true,
+                "Height in feet and inches", serverModule1Path + "/target/liberty");
+        LibertyPluginTestUtils.validateApplicationOutcomeCustom("http://localhost:9080/converter2/heights.jsp?heightCm=20", true,
+                "Height in feet and inches", serverModule1Path + "/target/liberty");
 
         // If there are issues with the workspace, close the error dialog.
         SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
@@ -198,7 +196,7 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
         terminal.show();
 
         // Validate application stopped.
-        validateApplicationStopped(serverModule1Path + "/target/liberty");
+        LibertyPluginTestUtils.validateLibertyServerStopped(serverModule1Path + "/target/liberty");
 
         // unset the preferences
         SWTBotPluginOperations.unsetBuildCmdPathInPreferences(bot, "Maven");
@@ -226,8 +224,8 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
         terminal.show();
 
         // Validate application is up and running.
-        validateApplicationOutcomeCustom("http://localhost:9080/converter1/heights.jsp?heightCm=30", true, "Height in feet and inches",
-                serverModule1Path + "/target/liberty");
+        LibertyPluginTestUtils.validateApplicationOutcomeCustom("http://localhost:9080/converter1/heights.jsp?heightCm=30", true,
+                "Height in feet and inches", serverModule1Path + "/target/liberty");
 
         // If there are issues with the workspace, close the error dialog.
         SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
@@ -237,7 +235,7 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
         terminal.show();
 
         // Validate application stopped.
-        validateApplicationStopped(serverModule1Path + "/target/liberty");
+        LibertyPluginTestUtils.validateLibertyServerStopped(serverModule1Path + "/target/liberty");
 
         // unset the preferences
         SWTBotPluginOperations.unsetBuildCmdPathInPreferences(bot, "Maven");

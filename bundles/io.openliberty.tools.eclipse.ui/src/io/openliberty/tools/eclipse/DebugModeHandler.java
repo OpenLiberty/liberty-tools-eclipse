@@ -30,6 +30,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Status;
@@ -42,6 +43,7 @@ import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationType;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.core.ILaunchManager;
+import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.launching.IJavaLaunchConfigurationConstants;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IViewPart;
@@ -439,17 +441,25 @@ public class DebugModeHandler {
      * @throws Exception
      */
     private ILaunch createRemoteJavaAppDebugConfig(Project project, String host, String port, IProgressMonitor monitor) throws Exception {
-        // There are cases where the modules of an imported multi-module project may not be categorized as Java projects.
-        // This can happen for different reasons. For example, the module does not contain any Java source files.
-        // A module being identified as a Java project is important when creating a Remote Java Application configuration.
-        // The Remote Java Application configuration requires that the project specified is a Java project; otherwise, an error is issued.
-        // Given this requirement, multi-module projects that contain modules with liberty server configuration that do not
-        // meet the requirements to be a Java project may not be able to run debug mode.
-        // A compromise to go around this is to associate the configuration to a child/peer project that is a Java project.
-        // Having said that, the configuration is processed on behalf of the input project, but the specified project is modified
-        // if needed.
-        String projectName = project.getIProject().getName();
-        String jProjectName = getJavaProject(project).getName();
+        // There are cases where some modules of a multi-module project may not be categorized as Java projects.
+        // The Remote Java Application configuration requires that the project being processed is a Java project.
+        // Given this requirement, multi-module projects that contain modules with liberty server configuration that
+        // are not considered Java projects may not be able to run debug mode.
+        // A compromise to go around this case is to obtain configuration information from a child or peer project that
+        // is considered to be Java project.
+        // Therefore, the following code obtains Java configuration information from an associated Java project and
+        // uses it on behalf of the application being processed.
+        IProject iProject = project.getIProject();
+        String projectName = iProject.getName();
+        String associatedProjectName = projectName;
+        if (!iProject.hasNature(JavaCore.NATURE_ID)) {
+            Project associatedProject = project.getAssociatedJavaProject(project);
+            if (associatedProject != null) {
+                associatedProjectName = associatedProject.getName();
+            } else {
+                throw new Exception("Project " + projectName + " is not a Java project. Associated Java projects not found.");
+            }
+        }
 
         ILaunchManager iLaunchManager = DebugPlugin.getDefault().getLaunchManager();
         ILaunchConfigurationType remoteJavaAppConfigType = iLaunchManager
@@ -477,7 +487,7 @@ public class DebugModeHandler {
             String configName = launchConfigHelper.buildConfigurationName(projectName);
             remoteJavaAppConfigWCopy = remoteJavaAppConfigType.newInstance(null, configName);
             remoteJavaAppConfigWCopy.setAttribute(StartTab.PROJECT_NAME, projectName);
-            remoteJavaAppConfigWCopy.setAttribute(IJavaLaunchConfigurationConstants.ATTR_PROJECT_NAME, jProjectName);
+            remoteJavaAppConfigWCopy.setAttribute(IJavaLaunchConfigurationConstants.ATTR_PROJECT_NAME, associatedProjectName);
             remoteJavaAppConfigWCopy.setAttribute(IJavaLaunchConfigurationConstants.ATTR_VM_CONNECTOR,
                     IJavaLaunchConfigurationConstants.ID_SOCKET_ATTACH_VM_CONNECTOR);
             remoteJavaAppConfigWCopy.setAttribute(IJavaLaunchConfigurationConstants.ATTR_ALLOW_TERMINATE, false);
@@ -573,37 +583,6 @@ public class DebugModeHandler {
         }
 
         return project;
-    }
-
-    /**
-     * Returns a java project associated with the input project.
-     * 
-     * @param project The project to search for.
-     * 
-     * @return A java project associated with the input project.
-     * 
-     * @throws Exception
-     */
-    private Project getJavaProject(Project project) throws Exception {
-        // If the input project is a Java project, return it.
-        if (project.hasNature(Project.JAVA_NATURE_ID)) {
-            return project;
-        }
-
-        // Find a child java project.
-        List<Project> jProjects = project.getChildJavaProjects();
-        if (!jProjects.isEmpty()) {
-            return jProjects.get(0);
-        }
-
-        // find a peer Java project.
-        jProjects = project.getPeerJavaProjects();
-        if (!jProjects.isEmpty()) {
-            return jProjects.get(0);
-        }
-
-        throw new Exception("No Java project was found. A java project is required to create a Remote Java Application configuration.");
-
     }
 
     private class DataHolder {
