@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2022 IBM Corporation and others.
+ * Copyright (c) 2022, 2023 IBM Corporation and others.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -16,6 +16,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -27,12 +28,14 @@ import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.preferences.InstanceScope;
+import org.eclipse.jdt.launching.IJavaLaunchConfigurationConstants;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
@@ -45,11 +48,11 @@ import org.osgi.service.prefs.Preferences;
 public class LibertyPluginTestUtils {
 
     /**
-     * This is the format we started with.
+     * Validates the state of the application (active/inactive) based on the expectation of success (true/false).
      * 
-     * @param ctxRoot
-     * @param expectSuccess
-     * @param testAppPath
+     * @param ctxRoot The applications context root.
+     * @param expectSuccess True for success. False for failure.
+     * @param testAppPath The base path to the liberty installation.
      */
     public static void validateApplicationOutcome(String ctxRoot, boolean expectSuccess, String testAppPath) {
         String expectedResponse = "Hello! How are you today?";
@@ -57,13 +60,19 @@ public class LibertyPluginTestUtils {
         validateApplicationOutcomeCustom(appUrl, expectSuccess, expectedResponse, testAppPath);
     }
 
-    public static void validateApplicationStopped(String testAppPath) {
-        int maxAttempts = 10;
+    /**
+     * Validates that the Liberty server is no longer running.
+     * 
+     * @param testAppPath The base path to the Liberty installation.
+     */
+    public static void validateLibertyServerStopped(String testAppPath) {
+        String wlpMsgLogPath = testAppPath + "/wlp/usr/servers/defaultServer/logs/messages.log";
+        int maxAttempts = 20;
         boolean foundStoppedMsg = false;
 
+        // Find message CWWKE0036I: The server x stopped after y seconds
         for (int i = 0; i < maxAttempts; i++) {
-
-            try (BufferedReader br = new BufferedReader(new FileReader(testAppPath + "/wlp/usr/servers/defaultServer/logs/messages.log"))) {
+            try (BufferedReader br = new BufferedReader(new FileReader(wlpMsgLogPath))) {
                 String line;
                 while ((line = br.readLine()) != null) {
                     if (line.contains("CWWKE0036I")) {
@@ -71,35 +80,32 @@ public class LibertyPluginTestUtils {
                         break;
                     }
                 }
-                Thread.sleep(4000);
+
+                if (foundStoppedMsg) {
+                    break;
+                } else {
+                    Thread.sleep(2000);
+                }
             } catch (Exception e) {
                 Assertions.fail("Caught exception waiting for stop message", e);
             }
         }
 
         if (!foundStoppedMsg) {
-
-            System.out.println("Didn't see stop server message CWWKE0036I, printing messages.log");
-            // If we are here, the expected outcome was not found.
-            System.out.println("--------------------------- messages.log ----------------------------");
-            try (BufferedReader br = new BufferedReader(new FileReader(testAppPath + "/wlp/usr/servers/defaultServer/logs/messages.log"))) {
-                String line;
-                while ((line = br.readLine()) != null) {
-                    System.out.println(line);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            System.out.println("---------------------------------------------------------------------");
-            Assertions.fail("Didn't see stop server message CWWKE0036I");
+            // If we are here, the expected outcome was not found. Print the Liberty server's messages.log and fail.
+            printLibertyMessagesLogFile(wlpMsgLogPath);
+            Assertions.fail("Message CWWKE0036I not found in " + wlpMsgLogPath);
         }
 
     }
 
     /**
-     * Validates that the deployed application is active.
-     *
-     * @param expectSuccess True if the validation is expected to be successful. False, otherwise.
+     * Validates the state of the application (active/inactive) based on the expectation of success (true/false).
+     * 
+     * @param appUrl The application URL.
+     * @param expectSuccess True to check for success. False to check for failure.
+     * @param expectedResponse The expected application response payload.
+     * @param testAppPath The base path to the liberty installation.
      */
     public static void validateApplicationOutcomeCustom(String appUrl, boolean expectSuccess, String expectedResponse, String testAppPath) {
         int retryCountLimit = 60;
@@ -175,9 +181,22 @@ public class LibertyPluginTestUtils {
             }
         }
 
-        // If we are here, the expected outcome was not found.
+        // If we are here, the expected outcome was not found. Print the Liberty server's messages.log and fail.
+        String wlpMsgLogPath = testAppPath + "/wlp/usr/servers/defaultServer/logs/messages.log";
+        printLibertyMessagesLogFile(wlpMsgLogPath);
+
+        Assertions.fail("Timed out while waiting for application under URL: " + appUrl + " to become available.");
+    }
+
+    /**
+     * Prints the Liberty server's messages.log identified by the input path.
+     * 
+     * @param wlpMsgLogPath The messages.log path to print.
+     */
+    public static void printLibertyMessagesLogFile(String wlpMsgLogPath) {
         System.out.println("--------------------------- messages.log ----------------------------");
-        try (BufferedReader br = new BufferedReader(new FileReader(testAppPath + "/wlp/usr/servers/defaultServer/logs/messages.log"))) {
+
+        try (BufferedReader br = new BufferedReader(new FileReader(wlpMsgLogPath))) {
             String line;
             while ((line = br.readLine()) != null) {
                 System.out.println(line);
@@ -185,9 +204,8 @@ public class LibertyPluginTestUtils {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        System.out.println("---------------------------------------------------------------------");
 
-        Assertions.fail("Timed out while waiting for application under URL: " + appUrl + " to become available.");
+        System.out.println("---------------------------------------------------------------------");
     }
 
     /**
@@ -407,5 +425,47 @@ public class LibertyPluginTestUtils {
         IWorkspaceRoot root = workspace.getRoot();
         IProject iProject = root.getProject(projectName);
         return iProject;
+    }
+
+    /**
+     * Returns the Java installation configured on the project's build path (.classpath file).
+     * 
+     * @param testAppPath The path to the application.
+     * 
+     * @return The Java installation configured on the project's build path (.classpath file).
+     */
+    public static String getJREFromBuildpath(String testAppPath) {
+        String jre = null;
+        File cpFile = new File(testAppPath + File.separator + ".classpath");
+
+        try (Scanner scanner = new Scanner(cpFile).useDelimiter("\\n")) {
+            while (scanner.hasNext()) {
+                String line = scanner.next().trim();
+                // Sample 1:
+                // <classpathentry kind="con"
+                // path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-11/"/>
+                //
+                // Sample 2: <classpathentry kind="con"
+                // path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-11">
+                if (line.contains(IJavaLaunchConfigurationConstants.ATTR_JRE_CONTAINER_PATH)) {
+                    String[] jreParts = line.split("path=");
+                    if (jreParts.length == 2) {
+                        String jrePathRaw = jreParts[1];
+                        String jrePath = (jrePathRaw.endsWith("/>")) ? jrePathRaw.substring(1, jrePathRaw.length() - 3)
+                                : jrePathRaw.substring(1, jrePathRaw.length() - 2);
+                        jrePath = (jrePath.endsWith("/")) ? jrePath.substring(0, jrePath.length() - 1) : jrePath;
+
+                        String[] jrePathParts = jrePath.split("/");
+                        if (jrePathParts.length == 3) {
+                            jre = jrePathParts[2];
+                        }
+                    }
+                }
+            }
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
+        return jre;
     }
 }
