@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2022 IBM Corporation and others.
+ * Copyright (c) 2022, 2023 IBM Corporation and others.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -59,7 +59,7 @@ public class WorkspaceProjectsModel {
     private void createNewCompleteWorkspaceModel(boolean classify) {
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_UTILS, new Object[] { classify });
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { classify });
         }
 
         IWorkspaceRoot workspaceRoot = ResourcesPlugin.getWorkspace().getRoot();
@@ -71,7 +71,7 @@ public class WorkspaceProjectsModel {
         buildMultiProjectModel(openProjects, classify);
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_UTILS);
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS);
         }
     }
 
@@ -144,13 +144,13 @@ public class WorkspaceProjectsModel {
         } catch (Exception e) {
             String msg = "An error occurred while analyzing projects in the workspace.";
             if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_UTILS, msg + " Workspace projects: " + projectsByLocation.values(), e);
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " Workspace projects: " + projectsByLocation.values(), e);
             }
             ErrorHandler.processWarningMessage(msg, e, false);
         }
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().trace(Trace.TRACE_UTILS, "Projects: " + projectsByLocation.values());
+            Trace.getTracer().trace(Trace.TRACE_TOOLS, "Projects: " + projectsByLocation.values());
         }
     }
 
@@ -165,13 +165,13 @@ public class WorkspaceProjectsModel {
     public Project getProject(String name) {
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_UTILS, name);
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, name);
         }
 
         Project retVal = projectsByName.get(name);
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_UTILS, retVal);
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, retVal);
         }
 
         return retVal;
@@ -187,7 +187,7 @@ public class WorkspaceProjectsModel {
     public List<String> getSortedDashboardProjectList() {
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_UTILS);
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS);
         }
 
         List<String> mavenDashboardProjects = new ArrayList<String>();
@@ -202,7 +202,7 @@ public class WorkspaceProjectsModel {
                     gradleDashboardProjects.add(p.getName());
                 } else {
                     if (Trace.isEnabled()) {
-                        Trace.getTracer().trace(Trace.TRACE_UTILS,
+                        Trace.getTracer().trace(Trace.TRACE_TOOLS,
                                 "Project " + p.getIProject().getName() + " could not be identified as being a Maven or Gradle project.");
                     }
                 }
@@ -215,7 +215,7 @@ public class WorkspaceProjectsModel {
         retVal.addAll(gradleDashboardProjects);
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_UTILS, retVal);
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, retVal);
         }
 
         return retVal;
@@ -231,7 +231,7 @@ public class WorkspaceProjectsModel {
     public String getDefaultStartParameters(IProject iProject) {
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_UTILS, new Object[] { iProject });
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { iProject });
         }
 
         String retVal = null;
@@ -244,7 +244,7 @@ public class WorkspaceProjectsModel {
         }
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_UTILS, retVal);
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, retVal);
         }
 
         return retVal;

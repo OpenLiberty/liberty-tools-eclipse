@@ -77,7 +77,7 @@ public class LaunchConfigurationHelper {
             workingCopy.setAttribute(StartTab.PROJECT_START_PARM, devModeOps.getProjectModel().getDefaultStartParameters(iProject));
             workingCopy.setAttribute(StartTab.PROJECT_RUN_IN_CONTAINER, false);
 
-            String defaultJavaDef = JRETab.getDefaulJavaFromBuildPath(iProject);
+            String defaultJavaDef = JRETab.getDefaultJavaFromBuildPath(iProject);
             if (defaultJavaDef != null) {
                 workingCopy.setAttribute(IJavaLaunchConfigurationConstants.ATTR_JRE_CONTAINER_PATH, defaultJavaDef);
             }

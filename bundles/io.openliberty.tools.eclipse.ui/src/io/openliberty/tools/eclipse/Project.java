@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2022 IBM Corporation and others.
+* Copyright (c) 2022, 2023 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -86,7 +86,7 @@ public class Project {
             }
         } catch (Exception e) {
             if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_UTILS,
+                Trace.getTracer().trace(Trace.TRACE_TOOLS,
                         "An error occurred while attempting to find the nature of project " + iProject.getName(), e);
             }
             return false;
@@ -117,7 +117,7 @@ public class Project {
             }
         } catch (Exception e) {
             if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_UTILS,
+                Trace.getTracer().trace(Trace.TRACE_TOOLS,
                         "An error occurred while attempting to find the nature of project " + iProject.getName(), e);
             }
         }
@@ -217,6 +217,44 @@ public class Project {
     }
 
     /**
+     * Returns a Java project that is a peer or child of the input project.
+     * 
+     * @param project The project to search for.
+     * 
+     * @return A Java project that is a peer or child of the input project.
+     * 
+     * @throws Exception If none of the associated projecs
+     */
+    public Project getAssociatedJavaProject(Project project) throws Exception {
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, project);
+        }
+
+        Project aJProject = null;
+
+        // Find a child java project.
+        List<Project> jProjects = project.getChildJavaProjects();
+        if (!jProjects.isEmpty()) {
+            aJProject = jProjects.get(0);
+        }
+
+        // find a peer Java project.
+        if (aJProject == null) {
+            jProjects = project.getPeerJavaProjects();
+            if (!jProjects.isEmpty()) {
+                aJProject = jProjects.get(0);
+            }
+        }
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, aJProject);
+        }
+
+        return aJProject;
+    }
+
+    /**
+     * Classifies this project as a project able to run on a Linerty server.
      */
     public void classifyAsServerModule() {
         try {
@@ -268,7 +306,7 @@ public class Project {
      */
     public static void addNature(IProject project, String natureId) throws Exception {
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_UTILS, new Object[] { project, natureId });
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { project, natureId });
         }
 
         if (project.getDescription().hasNature(natureId)) {
@@ -286,7 +324,7 @@ public class Project {
         project.setDescription(projectDesc, new NullProgressMonitor());
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_UTILS, new Object[] { project, newNatures });
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, new Object[] { project, newNatures });
         }
     }
 
@@ -300,7 +338,7 @@ public class Project {
      */
     public static void removeNature(IProject project, String natureId) throws Exception {
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_UTILS, project);
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, project);
         }
 
         IProjectDescription projectDesc = project.getDescription();
@@ -318,7 +356,7 @@ public class Project {
         project.setDescription(projectDesc, new NullProgressMonitor());
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_UTILS, new Object[] { project, newNatures });
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, new Object[] { project, newNatures });
         }
     }
 

@@ -27,6 +27,9 @@ import org.eclipse.jdt.launching.IJavaLaunchConfigurationConstants;
 import org.eclipse.jdt.launching.IVMInstall;
 import org.eclipse.jdt.launching.JavaRuntime;
 
+import io.openliberty.tools.eclipse.DevModeOperations;
+import io.openliberty.tools.eclipse.Project;
+import io.openliberty.tools.eclipse.WorkspaceProjectsModel;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
 import io.openliberty.tools.eclipse.utils.Utils;
@@ -69,7 +72,7 @@ public class JRETab extends JavaJRETab {
 
         try {
             if (activeProject != null) {
-                javaInstallation = getDefaulJavaFromBuildPath(activeProject);
+                javaInstallation = getDefaultJavaFromBuildPath(activeProject);
                 if (javaInstallation != null) {
                     configuration.setAttribute(IJavaLaunchConfigurationConstants.ATTR_JRE_CONTAINER_PATH, javaInstallation);
                 }
@@ -127,18 +130,33 @@ public class JRETab extends JavaJRETab {
      * 
      * @throws Exception
      */
-    public static String getDefaulJavaFromBuildPath(IProject iProject) throws Exception {
-        if (iProject.hasNature(JavaCore.NATURE_ID)) {
-            IJavaProject ijp = JavaCore.create(iProject);
+    public static String getDefaultJavaFromBuildPath(IProject iProject) throws Exception {
+        // There are cases where some modules of a multi-module project may not be categorized as Java
+        // projects. If the project being processed is not marked as a Java project, find an associated
+        // Java project to be able to determine what JRE installation should be associated with the
+        // project. This workaround expects that the modules within the project define the same JRE
+        // within their build paths.
+        IProject jIProject = iProject;
+        if (!iProject.hasNature(JavaCore.NATURE_ID)) {
+            DevModeOperations devModeOps = DevModeOperations.getInstance();
+            WorkspaceProjectsModel model = devModeOps.getProjectModel();
+            Project project = model.getProject(iProject.getName());
+            Project associatedJavaProject = project.getAssociatedJavaProject(project);
+            if (associatedJavaProject == null) {
+                return null;
+            }
+            jIProject = associatedJavaProject.getIProject();
+        }
 
-            IClasspathEntry[] rawCPEs = ijp.getRawClasspath();
-            for (IClasspathEntry rawCPE : rawCPEs) {
-                if (rawCPE.getEntryKind() == IClasspathEntry.CPE_CONTAINER) {
-                    IPath path = rawCPE.getPath();
-                    if (path.segmentCount() == 3) {
-                        if (path.segment(0).equals(IJavaLaunchConfigurationConstants.ATTR_JRE_CONTAINER_PATH)) {
-                            return path.toOSString();
-                        }
+        IJavaProject ijp = JavaCore.create(jIProject);
+
+        IClasspathEntry[] rawCPEs = ijp.getRawClasspath();
+        for (IClasspathEntry rawCPE : rawCPEs) {
+            if (rawCPE.getEntryKind() == IClasspathEntry.CPE_CONTAINER) {
+                IPath path = rawCPE.getPath();
+                if (path.segmentCount() == 3) {
+                    if (path.segment(0).equals(IJavaLaunchConfigurationConstants.ATTR_JRE_CONTAINER_PATH)) {
+                        return path.addTrailingSeparator().toPortableString();
                     }
                 }
             }
