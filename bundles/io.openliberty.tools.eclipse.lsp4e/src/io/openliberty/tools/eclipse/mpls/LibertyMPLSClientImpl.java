@@ -34,6 +34,7 @@ import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.PublishDiagnosticsParams;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import org.eclipse.lsp4j.jsonrpc.CompletableFutures;
+import org.eclipse.lsp4mp.commons.CodeActionResolveData;
 import org.eclipse.lsp4mp.commons.JavaFileInfo;
 import org.eclipse.lsp4mp.commons.MicroProfileDefinition;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaCodeActionParams;
@@ -48,6 +49,7 @@ import org.eclipse.lsp4mp.commons.MicroProfileProjectInfo;
 import org.eclipse.lsp4mp.commons.MicroProfileProjectInfoParams;
 import org.eclipse.lsp4mp.commons.MicroProfilePropertyDefinitionParams;
 import org.eclipse.lsp4mp.commons.ProjectLabelInfoEntry;
+import org.eclipse.lsp4mp.commons.utils.JSONUtility;
 import org.eclipse.lsp4mp.jdt.core.IMicroProfilePropertiesChangedListener;
 import org.eclipse.lsp4mp.jdt.core.MicroProfileCorePlugin;
 import org.eclipse.lsp4mp.jdt.core.ProjectLabelManager;
@@ -202,6 +204,22 @@ public class LibertyMPLSClientImpl extends LanguageClientImpl implements MicroPr
             IProgressMonitor monitor = getProgressMonitor(cancelChecker);
             try {
                 return PropertiesManagerForJava.getInstance().hover(javaParams, JDTUtilsLSImpl.getInstance(), monitor);
+            } catch (JavaModelException e) {
+                LibertyToolsLSPlugin.logException(e.getLocalizedMessage(), e);
+                return null;
+            }
+        });
+    }
+
+    @Override
+    public CompletableFuture<CodeAction> resolveCodeAction(CodeAction unresolved) {
+        return CompletableFutures.computeAsync((cancelChecker) -> {
+            try {
+                IProgressMonitor monitor = getProgressMonitor(cancelChecker);
+                // Deserialize CodeAction#data which is a JSonObject to CodeActionResolveData
+                CodeActionResolveData resolveData = JSONUtility.toModel(unresolved.getData(), CodeActionResolveData.class);
+                unresolved.setData(resolveData);
+                return PropertiesManagerForJava.getInstance().resolveCodeAction(unresolved, JDTUtilsLSImpl.getInstance(), monitor);
             } catch (JavaModelException e) {
                 LibertyToolsLSPlugin.logException(e.getLocalizedMessage(), e);
                 return null;
