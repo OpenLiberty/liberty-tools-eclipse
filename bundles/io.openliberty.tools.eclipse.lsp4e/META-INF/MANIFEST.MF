@@ -9,7 +9,8 @@ Bundle-Activator: io.openliberty.tools.eclipse.ls.plugin.LibertyToolsLSPlugin
 Bundle-ActivationPolicy: lazy
 Automatic-Module-Name: io.openliberty.tools.eclipse.lsp4e
 Bundle-RequiredExecutionEnvironment: JavaSE-17
-Require-Bundle: org.eclipse.lsp4mp.jdt.core,
+Require-Bundle: com.google.gson,
+ org.eclipse.lsp4mp.jdt.core,
  org.eclipse.lsp4jakarta.jdt.core,
  org.eclipse.lsp4e,
  org.eclipse.lsp4e.jdt,
