@@ -59,6 +59,11 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
     static final String MVN_WRAPPER_APP_NAME = "liberty.maven.test.wrapper.app";
 
     /**
+     * Wrapper Application name.
+     */
+    static final String NON_DFLT_NAME = "non.dflt.server.xml.path";
+
+    /**
      * Test app relative path.
      */
     static final Path projectPath = Paths.get("resources", "applications", "maven", "liberty-maven-test-app");
@@ -67,6 +72,11 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
      * Test app relative path.
      */
     static final Path wrapperProjectPath = Paths.get("resources", "applications", "maven", "liberty-maven-test-wrapper-app");
+
+    /**
+     * Test app relative path.
+     */
+    static final Path nonDfltProjectPath = Paths.get("resources", "applications", "maven", "non-dflt-server-xml-path");
 
     /**
      * Expected menu items.
@@ -97,6 +107,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         ArrayList<String> projectPaths = new ArrayList<String>();
         projectPaths.add(projectPath.toString());
         projectPaths.add(wrapperProjectPath.toString());
+        projectPaths.add(nonDfltProjectPath.toString());
         importMavenProjects(workspaceRoot, projectPaths);
 
         // set the preferences
@@ -388,96 +399,6 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
 
             // Close the terminal.
             terminal.close();
-        }
-    }
-
-    /**
-     * Tests that a non-Liberty project can be manually be categorized to be Liberty project. This test also tests the refresh
-     * function.
-     * 
-     * @throws Exception
-     */
-    @Test
-    @Disabled("Issue 232")
-    public void testAddingProjectToDashboardManually() throws Exception {
-        // Update the application .project file to remove the liberty nature if it exists. and rename the server.xml
-        IProject iProject = LibertyPluginTestUtils.getProject(MVN_APP_NAME);
-        String projectName = iProject.getName();
-
-        Project.removeNature(iProject, LibertyNature.NATURE_ID);
-
-        // Rename the server.xml file.
-        Path originalPath = Paths
-                .get("resources", "applications", "maven", "liberty-maven-test-app", "src", "main", "liberty", "config", "server.xml")
-                .toAbsolutePath();
-        Path renamedPath = Paths.get("resources", "applications", "maven", "liberty-maven-test-app", "src", "main", "liberty", "config",
-                "server.xml.renamed").toAbsolutePath();
-
-        File originalFile = originalPath.toFile();
-        Assertions.assertTrue(originalFile.exists(), () -> "The server.xml for project " + projectName
-                + " should exist, but it could not be found at this location: " + originalPath);
-
-        Files.copy(originalPath, renamedPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-        Files.delete(originalPath);
-
-        File renamedFile = renamedPath.toFile();
-        Assertions.assertTrue(renamedFile.exists(), () -> "The server.xml for project " + projectName
-                + " should have been renamed to server.xml.renamed. The renamed file does not exist at this location: " + renamedPath);
-
-        Assertions.assertTrue(!originalFile.exists(), () -> "The server.xml for project " + projectName
-                + " should no longer exist because it was renamed. File still exists at this location: " + originalPath);
-
-        Assertions.assertTrue(iProject.getDescription().hasNature(LibertyNature.NATURE_ID) == false,
-                () -> "The nature ID should have been removed, but it is still present.");
-
-        try {
-            // Refresh the project through the explorer view to pick up the nature removal.
-            SWTBotPluginOperations.refreshProjectUsingExplorerView(bot, MVN_APP_NAME);
-
-            // Refresh the dashboard.
-            SWTBotPluginOperations.refreshDashboard(bot);
-
-            // Make sure the application is no longer listed in the dashboard.
-            List<String> projectList = SWTBotPluginOperations.getDashboardContent(bot, dashboard);
-            boolean mavenAppFound = false;
-            for (String project : projectList) {
-                if (MVN_APP_NAME.equals(project)) {
-                    mavenAppFound = true;
-                    break;
-                }
-            }
-
-            Assertions.assertTrue(!mavenAppFound, () -> "Project " + projectName + " should not be listed in the dashboard.");
-
-            // Add the project nature manually.
-            SWTBotPluginOperations.enableLibertyTools(bot, MVN_APP_NAME);
-
-            // Refresh the project through the explorer view to pick up the nature removal.
-            SWTBotPluginOperations.refreshProjectUsingExplorerView(bot, MVN_APP_NAME);
-
-            // Refresh the dashboard.
-            SWTBotPluginOperations.refreshDashboard(bot);
-
-            // Make sure the application is listed in the dashboard.
-            List<String> newProjectList = SWTBotPluginOperations.getDashboardContent(bot, dashboard);
-            boolean newMavenAppFound = false;
-            for (String project : newProjectList) {
-                if (MVN_APP_NAME.equals(project)) {
-                    newMavenAppFound = true;
-                    break;
-                }
-            }
-            Assertions.assertTrue(newMavenAppFound, () -> "The Maven project should be listed in the dashboard.");
-
-        } finally {
-            // Rename server.xml.renamed to server.xml. The nature should have already been added.
-            Files.copy(renamedPath, originalPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-            Files.delete(renamedPath);
-
-            Assertions.assertTrue(!renamedFile.exists(), () -> "File server.xml.renamed for project " + projectName
-                    + " should have been renamed to server.xml, but it was found at this location: " + renamedPath);
-            Assertions.assertTrue(originalFile.exists(), () -> "The server.xml for project " + projectName
-                    + " should exist, but it could not be found at this location: " + originalPath);
         }
     }
 
@@ -801,5 +722,57 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
             SWTBotPluginOperations.applyDialogChanges(bot);
             SWTBotPluginOperations.closeDialog(bot);
         }
+    }
+
+    /**
+     * Tests that a non-Liberty project can be manually be categorized to be Liberty project. This test also tests the refresh
+     * function.
+     * 
+     * @throws Exception
+     */
+    @Test
+    public void testAddingProjectToDashboardManually() throws Exception {
+
+        IProject iProject = LibertyPluginTestUtils.getProject(NON_DFLT_NAME);
+        String projectName = iProject.getName();
+
+        // Refresh the project through the explorer view to pick up the nature removal.
+        SWTBotPluginOperations.refreshProjectUsingExplorerView(bot, NON_DFLT_NAME);
+
+        // Refresh the dashboard.
+        SWTBotPluginOperations.refreshDashboard(bot);
+
+        // Make sure the application is no longer listed in the dashboard.
+        List<String> projectList = SWTBotPluginOperations.getDashboardContent(bot, dashboard);
+        boolean mavenAppFound = false;
+        for (String project : projectList) {
+            if (NON_DFLT_NAME.equals(project)) {
+                mavenAppFound = true;
+                break;
+            }
+        }
+
+        Assertions.assertTrue(!mavenAppFound, () -> "Project " + projectName + " should not be listed in the dashboard.");
+
+        // Add the project nature manually.
+        SWTBotPluginOperations.enableLibertyTools(bot, NON_DFLT_NAME);
+
+        // Refresh the project through the explorer view to pick up the nature removal.
+        SWTBotPluginOperations.refreshProjectUsingExplorerView(bot, NON_DFLT_NAME);
+
+        // Refresh the dashboard.
+        SWTBotPluginOperations.refreshDashboard(bot);
+
+        // Make sure the application is listed in the dashboard.
+        List<String> newProjectList = SWTBotPluginOperations.getDashboardContent(bot, dashboard);
+        boolean newMavenAppFound = false;
+        for (String project : newProjectList) {
+            if (NON_DFLT_NAME.equals(project)) {
+                newMavenAppFound = true;
+                break;
+            }
+        }
+
+        Assertions.assertTrue(newMavenAppFound, () -> "The Maven project should be listed in the dashboard.");
     }
 }
