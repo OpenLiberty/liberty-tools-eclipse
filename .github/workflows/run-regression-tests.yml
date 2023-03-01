@@ -10,21 +10,16 @@ jobs:
       fail-fast: false
       matrix:
         runtime: [ linux, mac, windows ]
+        targetPlatform: [ 3Q2022, 4Q2022 ]
         include:
         - runtime: linux
           os: ubuntu-latest
-          setupCmd: ./tests/resources/ci/scripts/setup.sh
-          execCmd: ./tests/resources/ci/scripts/exec.sh
 
         - runtime: mac
           os: macOS-latest
-          setupCmd: ./tests/resources/ci/scripts/setup.sh
-          execCmd: ./tests/resources/ci/scripts/exec.sh
 
         - runtime: windows
           os: windows-latest
-          setupCmd: bash ./tests/resources/ci/scripts/setup.sh
-          execCmd: bash ./tests/resources/ci/scripts/exec.sh
 
     name: Build Plugin
     runs-on: ${{ matrix.os }}
@@ -36,8 +31,8 @@ jobs:
 
       # Install the required software.
       - name: 'Setup: Install required software' 
-        run: ${{ matrix.setupCmd }}
+        run: bash ./tests/resources/ci/scripts/setup.sh
         
       # Build the plugin.
       - name: 'Build: Build-Package-RunTests'
-        run: ${{ matrix.execCmd }}
+        run: bash ./tests/resources/ci/scripts/exec.sh ${{ matrix.targetPlatform }}
