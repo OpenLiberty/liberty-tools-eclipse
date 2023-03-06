@@ -1,4 +1,4 @@
-name: run-regression-tests
+name: lte-run-regression-tests
 
 on:
   pull_request:
