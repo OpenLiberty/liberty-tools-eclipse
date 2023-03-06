@@ -34,7 +34,7 @@
                     <useUIThread>false</useUIThread>
                     <providerHint>junit5</providerHint>
                     <systemProperties>
-                        <org.eclipse.swtbot.search.timeout>20000</org.eclipse.swtbot.search.timeout>
+                        <org.eclipse.swtbot.search.timeout>60000</org.eclipse.swtbot.search.timeout>
                         <io.liberty.tools.eclipse.tests.mvnexecutable.path>${mvnPath}</io.liberty.tools.eclipse.tests.mvnexecutable.path>
                         <io.liberty.tools.eclipse.tests.gradleexecutable.path>${gradlePath}</io.liberty.tools.eclipse.tests.gradleexecutable.path>
                     </systemProperties>

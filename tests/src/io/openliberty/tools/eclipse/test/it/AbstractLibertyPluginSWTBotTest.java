@@ -173,6 +173,8 @@ public abstract class AbstractLibertyPluginSWTBotTest {
 
         List<String> configs = remoteJavaAppEntry.getNodes();
         for (String config : configs) {
+            System.out.println("INFO: In validateRemoteJavaAppCreation for projectName = " + projectName + ", config = " + config + ": "
+                    + java.time.LocalDateTime.now());
             SWTBotTreeItem configEntry = remoteJavaAppEntry.getNode(config);
             bot.waitUntil(SWTBotTestCondition.isTreeItemEnabled(configEntry), 10000);
             configEntry.select().setFocus();
