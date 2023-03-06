@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ############################################################################
-# Copyright (c) 2022,2023 IBM Corporation and others.
+# Copyright (c) 2022 IBM Corporation and others.
 # 
 # This program and the accompanying materials are made available under the
 # terms of the Eclipse Public License v. 2.0 which is available at
@@ -40,7 +40,9 @@ MAVEN_ARCHIVE_SHA512=f92dbd90060c5fd422349f844ea904a0918c9c9392f3277543ce2bfb0aa
 GRADLE_VERSION=7.4.2
 GRADLE_ARCHIVE_SHA256=29e49b10984e585d8118b7d0bc452f944e386458df27371b49b4ac1dec4b7fda
 
-SOFTWARE_INSTALL_DIR="${GITHUB_WORKSPACE}/test-tools"
+# Software install directory.
+SOFTWARE_INSTALL_DIR="${PWD}/test-tools/liberty-dev-tools"
+
 
 # main.
 main() {
