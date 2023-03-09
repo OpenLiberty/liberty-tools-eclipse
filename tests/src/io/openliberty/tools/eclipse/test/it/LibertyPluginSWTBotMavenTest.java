@@ -736,12 +736,6 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         IProject iProject = LibertyPluginTestUtils.getProject(NON_DFLT_NAME);
         String projectName = iProject.getName();
 
-        // Refresh the project through the explorer view to pick up the nature removal.
-        SWTBotPluginOperations.refreshProjectUsingExplorerView(bot, NON_DFLT_NAME);
-
-        // Refresh the dashboard.
-        SWTBotPluginOperations.refreshDashboard(bot);
-
         // Make sure the application is no longer listed in the dashboard.
         List<String> projectList = SWTBotPluginOperations.getDashboardContent(bot, dashboard);
         boolean mavenAppFound = false;
@@ -760,8 +754,8 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         // Refresh the project through the explorer view to pick up the nature removal.
         SWTBotPluginOperations.refreshProjectUsingExplorerView(bot, NON_DFLT_NAME);
 
-        // Refresh the dashboard.
-        SWTBotPluginOperations.refreshDashboard(bot);
+        // Dashboard refresh should happen automatically, right?
+        // SWTBotPluginOperations.refreshDashboard(bot);
 
         // Make sure the application is listed in the dashboard.
         List<String> newProjectList = SWTBotPluginOperations.getDashboardContent(bot, dashboard);
