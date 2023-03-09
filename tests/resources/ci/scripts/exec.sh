@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ############################################################################
-# Copyright (c) 2022 IBM Corporation and others.
+# Copyright (c) 2022, 2023 IBM Corporation and others.
 # 
 # This program and the accompanying materials are made available under the
 # terms of the Eclipse Public License v. 2.0 which is available at
@@ -21,6 +21,11 @@ currentTime=(date +"%Y/%m/%d-%H:%M:%S:%3N")
 OS=$(uname -s)
 
 main() {
+
+    TARGET="$1"
+
+    echo "LTE test begin for target platform = $TARGET"
+
     echo -e "\n> $(${currentTime[@]}): Build: Building the plugin"
 
     # Tell the terminal session to use display port 77.
@@ -36,9 +41,7 @@ main() {
     fi
     
     # Run the plugin's install goal against the 3Q2022 Eclipse IDE
-    mvn clean install -Declipse.target="3Q2022" -Dosgi.debug=./tests/resources/ci/debug.opts -Dtycho.showEclipseLog -DmvnPath="${PWD}/test-tools/liberty-dev-tools/apache-maven-3.8.6/bin" -DgradlePath="${PWD}/test-tools/liberty-dev-tools/gradle-7.4.2/bin"
-    # Run the plugin's install goal against the 3Q2022 Eclipse IDE. The following invocation will use the default 4Q2022 Eclipse IDE - no need to specify the -D
-    mvn clean install -Dosgi.debug=./tests/resources/ci/debug.opts -Dtycho.showEclipseLog -DmvnPath="${PWD}/test-tools/liberty-dev-tools/apache-maven-3.8.6/bin" -DgradlePath="${PWD}/test-tools/liberty-dev-tools/gradle-7.4.2/bin"
+    mvn clean install -Declipse.target="$TARGET" -Dosgi.debug=./tests/resources/ci/debug.opts -Dtycho.showEclipseLog -DmvnPath="${PWD}/test-tools/liberty-dev-tools/apache-maven-3.8.6/bin" -DgradlePath="${PWD}/test-tools/liberty-dev-tools/gradle-7.4.2/bin"
 
     # If there were any errors, gather some debug data before exiting.
     rc=$?
