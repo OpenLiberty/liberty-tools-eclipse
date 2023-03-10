@@ -174,7 +174,7 @@ public class SWTBotPluginOperations {
         SWTBotTreeItem projectInExplorer = SWTBotPluginOperations.getInstalledProjectItem(bot, item);
         Assertions.assertTrue(projectInExplorer != null, () -> "Could not find project " + item + " in the explorer view.");
         bot.waitUntil(SWTBotTestCondition.isTreeItemEnabled(projectInExplorer), 5000);
-        projectInExplorer.select();
+        projectInExplorer.select().setFocus();
         SWTBotMenu refresh = projectInExplorer.contextMenu("Refresh");
         bot.waitUntil(SWTBotTestCondition.isMenuEnabled(refresh), 5000);
         refresh.setFocus();
@@ -370,7 +370,7 @@ public class SWTBotPluginOperations {
         finalGradleExecutableLoc = System.getProperty("io.liberty.tools.eclipse.tests.gradleexecutable.path");
 
         bot.menu("Window").menu("Preferences").click();
-        bot.tree().getTreeItem("Liberty").select();
+        bot.tree().getTreeItem("Liberty").select().setFocus();
         if (buildTool == "Maven") {
             bot.textWithLabel("&Maven Install Location:").setText(finalMvnExecutableLoc);
         } else if (buildTool == "Gradle") {
@@ -389,7 +389,7 @@ public class SWTBotPluginOperations {
         }
 
         bot.menu("Window").menu("Preferences").click();
-        bot.tree().getTreeItem("Liberty").select();
+        bot.tree().getTreeItem("Liberty").select().setFocus();
         bot.button("Restore Defaults").click();
         bot.button("Apply and Close").click();
     }
@@ -794,10 +794,10 @@ public class SWTBotPluginOperations {
             }
         }
 
-        appProj.select();
+        appProj.select().setFocus();
         appProj.expand();
         SWTBotTreeItem file = appProj.getNode(fileName);
-        file.select();
+        file.select().setFocus();
         file.doubleClick();
 
         SWTBotEditor editor = searchForEditor(bot, fileName);
