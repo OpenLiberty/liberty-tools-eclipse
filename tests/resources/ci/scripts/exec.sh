@@ -41,7 +41,7 @@ main() {
     fi
     
     # Run the plugin's install goal against the 3Q2022 Eclipse IDE
-    mvn clean install -Declipse.target="$TARGET" -Dosgi.debug=./tests/resources/ci/debug.opts -Dtycho.showEclipseLog -DmvnPath="${PWD}/test-tools/liberty-dev-tools/apache-maven-3.8.6/bin" -DgradlePath="${PWD}/test-tools/liberty-dev-tools/gradle-7.4.2/bin"
+    mvn clean install -Declipse.target="$TARGET" -Dosgi.debug=./tests/resources/ci/debug.opts -Dtycho.showEclipseLog -DmvnPath="${PWD}/test-tools/liberty-dev-tools/apache-maven-3.8.6" -DgradlePath="${PWD}/test-tools/liberty-dev-tools/gradle-7.4.2"
 
     # If there were any errors, gather some debug data before exiting.
     rc=$?

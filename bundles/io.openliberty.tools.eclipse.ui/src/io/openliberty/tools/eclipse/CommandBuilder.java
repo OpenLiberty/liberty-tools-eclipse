@@ -142,7 +142,7 @@ public class CommandBuilder {
 
     private String getCommandFromPreferences() throws IllegalStateException {
 
-        File tempCmdFile = new File(getInstallLocationPreferenceString() + File.separator + getExecBaseName());
+        File tempCmdFile = new File(getInstallLocationPreferenceString() + File.separator + "bin" + File.separator + getExecBaseName());
         String cmdPathStr = tempCmdFile.getPath();
 
         if (tempCmdFile.exists()) {

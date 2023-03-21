@@ -93,9 +93,9 @@ public class LibertyToolsPreferencePage extends FieldEditorPreferencePage implem
                 if (!installMvnLocValid && !installGradleLocValid) {
                     setErrorMessage("Install locations must contain mvn and gradle executables");
                 } else if (!installMvnLocValid && installGradleLocValid) {
-                    setErrorMessage("Install location must contain a mvn executable");
+                    setErrorMessage("Install location must contain a bin directory containing a mvn executable");
                 } else {
-                    setErrorMessage("Install location must contain a gradle executable");
+                    setErrorMessage("Install location must contain a bin directory containing a gradle executable");
                 }
             }
         }
@@ -107,10 +107,10 @@ public class LibertyToolsPreferencePage extends FieldEditorPreferencePage implem
             return true;
         } else {
             if (ismvn) {
-                Path mvnCmd = Paths.get(installLoc + File.separator, Utils.isWindows() ? "mvn.cmd" : "mvn");
+                Path mvnCmd = Paths.get(installLoc + File.separator + "bin" + File.separator, Utils.isWindows() ? "mvn.cmd" : "mvn");
                 return Files.exists(mvnCmd);
             } else {
-                Path mvnCmd = Paths.get(installLoc + File.separator, Utils.isWindows() ? "gradle.bat" : "gradle");
+                Path mvnCmd = Paths.get(installLoc + File.separator + "bin" + File.separator, Utils.isWindows() ? "gradle.bat" : "gradle");
                 return Files.exists(mvnCmd);
             }
         }
