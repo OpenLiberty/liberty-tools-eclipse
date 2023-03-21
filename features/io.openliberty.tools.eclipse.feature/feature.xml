@@ -15,6 +15,7 @@
       id="io.openliberty.tools.eclipse"
       label="%featureName"
       version="0.8.0.qualifier"
+    plugin="io.openliberty.tools.eclipse.product"
     provider-name="%providerName">
 
    <description>%description</description>
@@ -32,6 +33,13 @@
 
    <plugin
          id="io.openliberty.tools.eclipse.lsp4e"
+         download-size="0"
+         install-size="0"
+         version="0.8.0.qualifier"
+         unpack="false"/>
+
+   <plugin
+         id="io.openliberty.tools.eclipse.product"
          download-size="0"
          install-size="0"
          version="0.8.0.qualifier"
