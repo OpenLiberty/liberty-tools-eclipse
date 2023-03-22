@@ -59,12 +59,22 @@
             id="io.openliberty.tools.eclipse.project.startInContainer.command"
             name="Liberty Start in Container"
             categoryId="io.openliberty.tools.eclipse.command.category">
-      </command>      
+      </command>  
+      <command
+            id="io.openliberty.tools.eclipse.project.debug.command"
+            name="Liberty Debug"
+            categoryId="io.openliberty.tools.eclipse.command.category">
+      </command>    
       <command
             id="io.openliberty.tools.eclipse.project.debugConfigDialog.command"
             name="Liberty Debug with Configuration"
             categoryId="io.openliberty.tools.eclipse.command.category">
       </command>
+      <command
+            id="io.openliberty.tools.eclipse.project.debugInContainer.command"
+            name="Liberty Debug in Container"
+            categoryId="io.openliberty.tools.eclipse.command.category">
+      </command> 
       <command
             id="io.openliberty.tools.eclipse.project.stop.command"
             name="Liberty Stop"
@@ -95,7 +105,13 @@
       <command
             id="io.openliberty.tools.eclipse.launch.start.shortcut.run"
             name="Liberty Start"
-            description="Launches the associated project on Liberty using dev mode"
+            description="Launches a request to run the associated project on Liberty using dev mode"
+            categoryId="org.eclipse.debug.ui.category.run">
+      </command>
+      <command
+            id="io.openliberty.tools.eclipse.launch.start.shortcut.debug"
+            name="Liberty Debug"
+            description="Launches a request to debug the associated project on Liberty using dev mode"
             categoryId="org.eclipse.debug.ui.category.run">
       </command>
       <command
@@ -105,9 +121,21 @@
             categoryId="org.eclipse.debug.ui.category.run">
       </command>
       <command
+            id="io.openliberty.tools.eclipse.launch.start.config.shortcut.debug"
+            name="Liberty Debug with Configuration"
+            description="Launches the configuration dialog to debug the associated project on Liberty using dev mode"
+            categoryId="org.eclipse.debug.ui.category.run">
+      </command>
+      <command
             id="io.openliberty.tools.eclipse.launch.start.container.shortcut.run"
             name="Liberty Start in Container"
-            description="Launches the associated project in a container on Liberty using dev mode"
+            description="Launches a request to run the associated project in a container on Liberty using dev mode"
+            categoryId="org.eclipse.debug.ui.category.run">
+      </command>
+      <command
+            id="io.openliberty.tools.eclipse.launch.start.container.shortcut.debug"
+            name="Liberty Debug in Container"
+            description="Launches a request to debug the associated project in a container on Liberty using dev mode"
             categoryId="org.eclipse.debug.ui.category.run">
       </command>
       <command
@@ -175,12 +203,24 @@
             contextId="io.openliberty.tools.eclipse.context"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
             sequence="M2+M3+L C">
-      </key> 
+      </key>
+      <key
+            commandId="io.openliberty.tools.eclipse.project.debug.command"
+            contextId="io.openliberty.tools.eclipse.context"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M2+M3+L D">
+      </key>
       <key
             commandId="io.openliberty.tools.eclipse.project.debugConfigDialog.command"
             contextId="io.openliberty.tools.eclipse.context"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
-            sequence="M2+M3+L D">
+            sequence="M2+M3+L G">
+      </key>
+      <key
+            commandId="io.openliberty.tools.eclipse.project.debugInContainer.command"
+            contextId="io.openliberty.tools.eclipse.context"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M2+M3+L B">
       </key>
       <key
             commandId="io.openliberty.tools.eclipse.project.stop.command"
@@ -221,16 +261,34 @@
             sequence="M2+M3+L S">
       </key>
       <key
+            commandId="io.openliberty.tools.eclipse.launch.start.shortcut.debug"
+            contextId="org.eclipse.ui.contexts.window"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M2+M3+L D">
+      </key>
+      <key
             commandId="io.openliberty.tools.eclipse.launch.start.config.shortcut.run"
             contextId="org.eclipse.ui.contexts.window"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
             sequence="M2+M3+L P">
       </key>
       <key
+            commandId="io.openliberty.tools.eclipse.launch.start.config.shortcut.debug"
+            contextId="org.eclipse.ui.contexts.window"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M2+M3+L G">
+      </key>
+      <key
             commandId="io.openliberty.tools.eclipse.launch.start.container.shortcut.run"
             contextId="org.eclipse.ui.contexts.window"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
             sequence="M2+M3+L C">
+      </key>
+      <key
+            commandId="io.openliberty.tools.eclipse.launch.start.container.shortcut.debug"
+            contextId="org.eclipse.ui.contexts.window"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M2+M3+L B">
       </key>
       <key
             commandId="io.openliberty.tools.eclipse.launch.stop.shortcut.run"
@@ -345,9 +403,31 @@
           icon="icons/openLibertyLogo.png"
           id="io.openliberty.tools.eclipse.launch.start.shortcut"
           label="Liberty Start"
-          modes="run, debug"
+          modes="run"
           path="io.openliberty.tools.eclipse.launch.shortcuts.group1"
-          description="Launches the associated project on Liberty using dev mode">
+          description="Launches a request to run the associated project on Liberty using dev mode">
+          <contextualLaunch>
+              <enablement>
+                  <with variable="selection">
+                      <count value="1"/>
+                      <iterate>
+                          <and>
+                              <instanceof value="org.eclipse.core.runtime.IAdaptable"/>
+                              <test forcePluginActivation="true" property="org.eclipse.debug.ui.projectNature" value="io.openliberty.tools.eclipse.ui.libertyNature"/>
+                          </and>
+                      </iterate>
+                  </with>
+              </enablement>
+          </contextualLaunch>
+      </shortcut>
+      <shortcut
+          class="io.openliberty.tools.eclipse.ui.launch.shortcuts.StartAction"
+          icon="icons/openLibertyLogo.png"
+          id="io.openliberty.tools.eclipse.launch.start.shortcut"
+          label="Liberty Start"
+          modes="debug"
+          path="io.openliberty.tools.eclipse.launch.shortcuts.group1"
+          description="Launches a request to debug the associated project on Liberty using dev mode">
           <contextualLaunch>
               <enablement>
                   <with variable="selection">
@@ -367,9 +447,31 @@
           icon="icons/openLibertyLogo.png"
           id="io.openliberty.tools.eclipse.launch.start.config.shortcut"
           label="Liberty Start..."
-          modes="run, debug"
+          modes="run"
           path="io.openliberty.tools.eclipse.launch.shortcuts.group1"
           description="Launches the configuration dialog to run the associated project on Liberty using dev mode">
+          <contextualLaunch>
+              <enablement>
+                  <with variable="selection">
+                      <count value="1"/>
+                      <iterate>
+                          <and>
+                              <instanceof value="org.eclipse.core.runtime.IAdaptable"/>
+                              <test forcePluginActivation="true" property="org.eclipse.debug.ui.projectNature" value="io.openliberty.tools.eclipse.ui.libertyNature"/>
+                          </and>
+                      </iterate>
+                  </with>
+              </enablement>
+          </contextualLaunch>
+      </shortcut>
+      <shortcut
+          class="io.openliberty.tools.eclipse.ui.launch.shortcuts.StartConfigurationDialogAction"
+          icon="icons/openLibertyLogo.png"
+          id="io.openliberty.tools.eclipse.launch.start.config.shortcut"
+          label="Liberty Start..."
+          modes="debug"
+          path="io.openliberty.tools.eclipse.launch.shortcuts.group1"
+          description="Launches the configuration dialog to debug the associated project on Liberty using dev mode">
           <contextualLaunch>
               <enablement>
                   <with variable="selection">
@@ -389,9 +491,31 @@
           icon="icons/openLibertyLogo.png"
           id="io.openliberty.tools.eclipse.launch.start.container.shortcut"
           label="Liberty Start in Container"
-          modes="run, debug"
+          modes="run"
           path="io.openliberty.tools.eclipse.launch.shortcuts.group1"
-          description="Launches the associated project in a container on Liberty using dev mode">
+          description="Launches a request to run the associated project in a container on Liberty using dev mode">
+          <contextualLaunch>
+              <enablement>
+                  <with variable="selection">
+                      <count value="1"/>
+                      <iterate>
+                          <and>
+                              <instanceof value="org.eclipse.core.runtime.IAdaptable"/>
+                              <test forcePluginActivation="true" property="org.eclipse.debug.ui.projectNature" value="io.openliberty.tools.eclipse.ui.libertyNature"/>
+                          </and>
+                      </iterate>
+                  </with>
+              </enablement>
+          </contextualLaunch>
+      </shortcut>
+      <shortcut
+          class="io.openliberty.tools.eclipse.ui.launch.shortcuts.StartInContainerAction"
+          icon="icons/openLibertyLogo.png"
+          id="io.openliberty.tools.eclipse.launch.start.container.shortcut"
+          label="Liberty Start in Container"
+          modes="debug"
+          path="io.openliberty.tools.eclipse.launch.shortcuts.group1"
+          description="Launches a request to debug the associated project in a container on Liberty using dev mode">
           <contextualLaunch>
               <enablement>
                   <with variable="selection">

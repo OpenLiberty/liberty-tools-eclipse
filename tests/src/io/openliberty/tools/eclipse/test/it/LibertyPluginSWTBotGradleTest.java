@@ -67,7 +67,8 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
      * Expected menu items.
      */
     static String[] gradleMenuItems = new String[] { DashboardView.APP_MENU_ACTION_START, DashboardView.APP_MENU_ACTION_START_CONFIG,
-            DashboardView.APP_MENU_ACTION_START_IN_CONTAINER, DashboardView.APP_MENU_ACTION_DEBUG_CONFIG,
+            DashboardView.APP_MENU_ACTION_START_IN_CONTAINER, DashboardView.APP_MENU_ACTION_DEBUG,
+            DashboardView.APP_MENU_ACTION_DEBUG_CONFIG, DashboardView.APP_MENU_ACTION_DEBUG_IN_CONTAINER,
             DashboardView.APP_MENU_ACTION_STOP, DashboardView.APP_MENU_ACTION_RUN_TESTS,
             DashboardView.APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT };
 
@@ -75,9 +76,17 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
      * Run As configuration menu items.
      */
     static String[] runAsShortcuts = new String[] { LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START,
+            LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONFIG,
             LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONTAINER, LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_STOP,
             LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_RUN_TESTS,
             LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_GRADLE_VIEW_TEST_REPORT };
+
+    /**
+     * Debug As configuration menu items.
+     */
+    static String[] debugAsShortcuts = new String[] { LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START,
+            LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONFIG,
+            LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONTAINER };
 
     /**
      * Setup.
@@ -158,21 +167,43 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         List<String> runAsMenuItems = runAsMenu.menuItems();
         Assertions.assertTrue(runAsMenuItems != null && !runAsMenuItems.isEmpty(),
                 "The runAs menu associated with project: " + GRADLE_APP_NAME + " is null or empty.");
-        int foundItems = 0;
+        int foundRunAsItems = 0;
 
         for (String expectedItem : runAsShortcuts) {
             for (String item : runAsMenuItems) {
                 if (item.contains(expectedItem)) {
-                    foundItems++;
+                    foundRunAsItems++;
                     break;
                 }
             }
         }
 
-        Assertions.assertTrue(foundItems == runAsShortcuts.length,
+        Assertions.assertTrue(foundRunAsItems == runAsShortcuts.length,
                 "The runAs menu associated with project: " + GRADLE_APP_NAME
                         + " does not contain one or more expected entries. Expected number of entries: " + runAsShortcuts.length
-                        + "Found entry count: " + foundItems + ". Found menu entries: " + runAsMenuItems);
+                        + "Found entry count: " + foundRunAsItems + ". Found menu entries: " + runAsMenuItems);
+
+        // Check that the Debug As menu contains the expected shortcut
+        SWTBotMenu debugAsMenu = SWTBotPluginOperations.getAppDebugAsMenu(bot, GRADLE_APP_NAME);
+        Assertions.assertTrue(debugAsMenu != null, "The debugAs menu associated with project: " + GRADLE_APP_NAME + " is null.");
+        List<String> debugAsMenuItems = debugAsMenu.menuItems();
+        Assertions.assertTrue(debugAsMenuItems != null && !debugAsMenuItems.isEmpty(),
+                "The debugAs menu associated with project: " + GRADLE_APP_NAME + " is null or empty.");
+        int foundDebugAsItems = 0;
+
+        for (String expectedItem : debugAsShortcuts) {
+            for (String item : debugAsMenuItems) {
+                if (item.contains(expectedItem)) {
+                    foundDebugAsItems++;
+                    break;
+                }
+            }
+        }
+
+        Assertions.assertTrue(foundDebugAsItems == debugAsShortcuts.length,
+                "The debugAs menu associated with project: " + GRADLE_APP_NAME
+                        + " does not contain one or more expected entries. Expected number of entries: " + debugAsShortcuts.length
+                        + "Found entry count: " + foundDebugAsItems + ". Found menu entries: " + debugAsMenuItems);
 
         // Check that the Run As -> Run Configurations ... contains the Liberty entry in the menu.
         try {
@@ -222,6 +253,34 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
     }
 
     /**
+     * Tests the debug menu action on a dashboard listed application.
+     */
+    @Test
+    public void testDashboardDebugAction() {
+
+        // Start dev mode.
+        SWTBotPluginOperations.launchDebugWithDashboardAction(bot, dashboard, GRADLE_APP_NAME);
+        SWTBotView terminal = bot.viewByTitle("Terminal");
+        terminal.show();
+
+        // Validate application is up and running.
+        LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_APP_NAME, true, testAppPath + "/build");
+
+        // If there are issues with the workspace, close the error dialog.
+        SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
+
+        // Stop dev mode.
+        SWTBotPluginOperations.launchStopWithDashboardAction(bot, dashboard, GRADLE_APP_NAME);
+        terminal.show();
+
+        // Validate application stopped.
+        LibertyPluginTestUtils.validateLibertyServerStopped(testAppPath + "/build");
+
+        // Close the terminal.
+        terminal.close();
+    }
+
+    /**
      * Tests the start with parameters menu action on a dashboard listed application.
      */
     @Test
@@ -239,6 +298,53 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
 
         // Start dev mode with parms.
         SWTBotPluginOperations.launchStartConfigDialogWithDashboardAction(bot, dashboard, GRADLE_APP_NAME);
+        SWTBotPluginOperations.createNewLibertyConfiguration(bot);
+        SWTBotPluginOperations.setLibertyConfigParms(bot, "--hotTests");
+        SWTBotPluginOperations.runLibertyConfiguration(bot, mode);
+
+        SWTBotView terminal = bot.viewByTitle("Terminal");
+        terminal.show();
+
+        // Validate application is up and running.
+        LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_APP_NAME, true, testAppPath + "/build");
+
+        // If there are issues with the workspace, close the error dialog.
+        SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
+
+        try {
+            // Validate that the test reports were generated.
+            LibertyPluginTestUtils.validateTestReportExists(pathToTestReport);
+        } finally {
+            // Stop dev mode.
+            SWTBotPluginOperations.launchStopWithDashboardAction(bot, dashboard, GRADLE_APP_NAME);
+            terminal.show();
+
+            // Validate application stopped.
+            LibertyPluginTestUtils.validateLibertyServerStopped(testAppPath + "/build");
+
+            // Close the terminal.
+            terminal.close();
+        }
+    }
+
+    /**
+     * Tests the debug with parameters menu action on a dashboard listed application.
+     */
+    @Test
+    public void testDashboardDebugWithCustomConfigAction() {
+        String mode = "debug";
+
+        // Delete any previously created configs.
+        SWTBotPluginOperations.deleteLibertyToolsConfigEntries(bot, GRADLE_APP_NAME, mode);
+
+        // Delete the test report files before we start this test.
+        Path projectPath = Paths.get("resources", "applications", "gradle", "liberty-gradle-test-app");
+        Path pathToTestReport = DevModeOperations.getGradleTestReportPath(projectPath.toString());
+        boolean testReportDeleted = LibertyPluginTestUtils.deleteFile(pathToTestReport.toFile());
+        Assertions.assertTrue(testReportDeleted, () -> "File: " + pathToTestReport + " was not deleted.");
+
+        // Start dev mode with parms.
+        SWTBotPluginOperations.launchDebugConfigDialogWithDashboardAction(bot, dashboard, GRADLE_APP_NAME);
         SWTBotPluginOperations.createNewLibertyConfiguration(bot);
         SWTBotPluginOperations.setLibertyConfigParms(bot, "--hotTests");
         SWTBotPluginOperations.runLibertyConfiguration(bot, mode);
