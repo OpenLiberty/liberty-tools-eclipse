@@ -34,7 +34,9 @@
                     <useUIThread>false</useUIThread>
                     <providerHint>junit5</providerHint>
                     <systemProperties>
-                        <org.eclipse.swtbot.search.timeout>20000</org.eclipse.swtbot.search.timeout>
+                        <org.eclipse.swtbot.search.timeout>120000</org.eclipse.swtbot.search.timeout>
+                        <org.eclipse.swtbot.playback.poll.delay>1000</org.eclipse.swtbot.playback.poll.delay>
+                        <org.eclipse.swtbot.playback.delay>10</org.eclipse.swtbot.playback.delay>
                         <io.liberty.tools.eclipse.tests.mvnexecutable.path>${mvnPath}</io.liberty.tools.eclipse.tests.mvnexecutable.path>
                         <io.liberty.tools.eclipse.tests.gradleexecutable.path>${gradlePath}</io.liberty.tools.eclipse.tests.gradleexecutable.path>
                     </systemProperties>
