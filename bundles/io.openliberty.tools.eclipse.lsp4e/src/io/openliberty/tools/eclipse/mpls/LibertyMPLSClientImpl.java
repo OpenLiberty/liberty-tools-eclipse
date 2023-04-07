@@ -34,12 +34,14 @@ import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.PublishDiagnosticsParams;
 import org.eclipse.lsp4j.jsonrpc.CancelChecker;
 import org.eclipse.lsp4j.jsonrpc.CompletableFutures;
-import org.eclipse.lsp4mp.commons.CodeActionResolveData;
+import org.eclipse.lsp4mp.commons.codeaction.CodeActionResolveData;
+import org.eclipse.lsp4mp.commons.JavaCursorContextResult;
 import org.eclipse.lsp4mp.commons.JavaFileInfo;
 import org.eclipse.lsp4mp.commons.MicroProfileDefinition;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaCodeActionParams;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaCodeLensParams;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaCompletionParams;
+import org.eclipse.lsp4mp.commons.MicroProfileJavaCompletionResult;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaDefinitionParams;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaDiagnosticsParams;
 import org.eclipse.lsp4mp.commons.MicroProfileJavaFileInfoParams;
@@ -157,7 +159,15 @@ public class LibertyMPLSClientImpl extends LanguageClientImpl implements MicroPr
     }
 
     @Override
-    public CompletableFuture<ProjectLabelInfoEntry> getJavaProjectlabels(MicroProfileJavaProjectLabelsParams javaParams) {
+    public CompletableFuture<List<ProjectLabelInfoEntry>> getAllJavaProjectLabels() {
+        return CompletableFutures.computeAsync((cancelChecker) -> {
+            IProgressMonitor monitor = getProgressMonitor(cancelChecker);
+            return ProjectLabelManager.getInstance().getProjectLabelInfo();
+        });
+    }
+    
+    @Override
+    public CompletableFuture<ProjectLabelInfoEntry> getJavaProjectLabels(MicroProfileJavaProjectLabelsParams javaParams) {
         return CompletableFutures.computeAsync((cancelChecker) -> {
             IProgressMonitor monitor = getProgressMonitor(cancelChecker);
             return ProjectLabelManager.getInstance().getProjectLabelInfo(javaParams, JDTUtilsLSImpl.getInstance(), monitor);
@@ -186,11 +196,13 @@ public class LibertyMPLSClientImpl extends LanguageClientImpl implements MicroPr
     }
 
     @Override
-    public CompletableFuture<CompletionList> getJavaCompletion(MicroProfileJavaCompletionParams javaParams) {
+    public CompletableFuture<MicroProfileJavaCompletionResult> getJavaCompletion(MicroProfileJavaCompletionParams javaParams) {
         return CompletableFutures.computeAsync(cancelChecker -> {
             IProgressMonitor monitor = getProgressMonitor(cancelChecker);
             try {
-                return PropertiesManagerForJava.getInstance().completion(javaParams, JDTUtilsLSImpl.getInstance(), monitor);
+                CompletionList completionList = PropertiesManagerForJava.getInstance().completion(javaParams, JDTUtilsLSImpl.getInstance(), monitor);
+                JavaCursorContextResult javaCursorContext = PropertiesManagerForJava.getInstance().javaCursorContext(javaParams, JDTUtilsLSImpl.getInstance(), monitor);               
+                return new MicroProfileJavaCompletionResult(completionList, javaCursorContext); 
             } catch (JavaModelException e) {
                 LibertyToolsLSPlugin.logException(e.getLocalizedMessage(), e);
                 return null;
