@@ -12,13 +12,13 @@
 *******************************************************************************/
 package io.openliberty.tools.eclipse.test.it.utils;
 
-import static org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory.allOf;
-import static org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory.widgetOfType;
-
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+
+import static org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory.allOf;
+import static org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory.widgetOfType;
 
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.swt.SWT;
@@ -195,7 +195,20 @@ public class SWTBotPluginOperations {
     }
 
     /**
-     * Launches the dashoboard's start with configuration dialog associated with the input application item.
+     * Launches the dashboard's debug action associated with the input application item.
+     *
+     * @param bot The SWTWorkbenchBot instance.
+     * @param dashboard An instance representing the Open Liberty dashboard view.
+     * @param item The application name to select.
+     */
+    public static void launchDebugWithDashboardAction(SWTWorkbenchBot bot, SWTBotView dashboard, String item) {
+        SWTBotRootMenu appCtxMenu = getAppContextMenu(bot, dashboard, item);
+        SWTBotMenu debugAction = appCtxMenu.contextMenu(DashboardView.APP_MENU_ACTION_DEBUG);
+        debugAction.click();
+    }
+
+    /**
+     * Launches the dashboard's start with configuration dialog associated with the input application item.
      *
      * @param bot The SWTWorkbenchBot instance.
      * @param dashboard An instance representing the Open Liberty dashboard view.
@@ -205,6 +218,19 @@ public class SWTBotPluginOperations {
         SWTBotRootMenu appCtxMenu = getAppContextMenu(bot, dashboard, item);
         SWTBotMenu startAction = appCtxMenu.contextMenu(DashboardView.APP_MENU_ACTION_START_CONFIG);
         startAction.click();
+    }
+
+    /**
+     * Launches the dashboard's debug with configuration dialog associated with the input application item.
+     *
+     * @param bot The SWTWorkbenchBot instance.
+     * @param dashboard An instance representing the Open Liberty dashboard view.
+     * @param item The application name to select.
+     */
+    public static void launchDebugConfigDialogWithDashboardAction(SWTWorkbenchBot bot, SWTBotView dashboard, String item) {
+        SWTBotRootMenu appCtxMenu = getAppContextMenu(bot, dashboard, item);
+        SWTBotMenu debugAction = appCtxMenu.contextMenu(DashboardView.APP_MENU_ACTION_DEBUG_CONFIG);
+        debugAction.click();
     }
 
     /**
