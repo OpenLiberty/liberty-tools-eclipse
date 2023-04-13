@@ -254,6 +254,7 @@ public class SWTBotPluginOperations {
      * @param item The application name to select.
      */
     public static void launchStopWithDashboardAction(SWTWorkbenchBot bot, SWTBotView dashboard, String item) {
+        System.out.println("INFO: Launching stop with dashboard action");
         SWTBotRootMenu appCtxMenu = getAppContextMenu(bot, dashboard, item);
         SWTBotMenu stopAction = appCtxMenu.contextMenu(DashboardView.APP_MENU_ACTION_STOP);
         stopAction.click();
@@ -892,6 +893,8 @@ public class SWTBotPluginOperations {
      * @return The Open Liberty dashboard view obtained by pressing on the Open Liberty icon located on the main tool bar.
      */
     public static SWTBotView openDashboardUsingToolbar(SWTWorkbenchBot bot) {
+        bot.shell("data").activate().setFocus();
+
         SWTBotToolbarButton toolbarButton = getToolbarButtonWithToolTipPrefix(bot, TOOLBAR_OPEN_DASHBOARD_TIP);
         toolbarButton.click();
         SWTBotView dashboard = bot.viewByTitle(DASHBOARD_VIEW_TITLE);
@@ -932,6 +935,8 @@ public class SWTBotPluginOperations {
      * @param bot The SWTWorkbenchBot instance.
      */
     public static void switchToProjectExplotereView(SWTWorkbenchBot bot) {
+
+        bot.shell("data").activate().setFocus();
 
         String projExpViewName = "Project Explorer";
         bot.menu("Window").menu("Show View").menu(projExpViewName).click();

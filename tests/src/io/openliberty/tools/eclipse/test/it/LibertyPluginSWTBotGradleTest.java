@@ -235,21 +235,24 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         SWTBotView terminal = bot.viewByTitle("Terminal");
         terminal.show();
 
-        // Validate application is up and running.
-        LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_APP_NAME, true, testAppPath + "/build");
+        try {
+            // Validate application is up and running.
+            LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_APP_NAME, true, testAppPath + "/build");
 
-        // If there are issues with the workspace, close the error dialog.
-        SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
+            // If there are issues with the workspace, close the error dialog.
+            SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
 
-        // Stop dev mode.
-        SWTBotPluginOperations.launchStopWithDashboardAction(bot, dashboard, GRADLE_APP_NAME);
-        terminal.show();
+        } finally {
+            // Stop dev mode.
+            SWTBotPluginOperations.launchStopWithDashboardAction(bot, dashboard, GRADLE_APP_NAME);
+            terminal.show();
 
-        // Validate application stopped.
-        LibertyPluginTestUtils.validateLibertyServerStopped(testAppPath + "/build");
+            // Validate application stopped.
+            LibertyPluginTestUtils.validateLibertyServerStopped(testAppPath + "/build");
 
-        // Close the terminal.
-        terminal.close();
+            // Close the terminal.
+            terminal.close();
+        }
     }
 
     /**
@@ -525,21 +528,24 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         SWTBotView terminal = bot.viewByTitle("Terminal");
         terminal.show();
 
-        // Validate application is up and running.
-        LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_APP_NAME, true, testAppPath + "/build");
+        try {
+            // Validate application is up and running.
+            LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_APP_NAME, true, testAppPath + "/build");
 
-        // If there are issues with the workspace, close the error dialog.
-        SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
+            // If there are issues with the workspace, close the error dialog.
+            SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
 
-        // Stop dev mode.
-        SWTBotPluginOperations.launchStopWithRunDebugAsShortcut(bot, GRADLE_APP_NAME, "run");
-        terminal.show();
+        } finally {
+            // Stop dev mode.
+            SWTBotPluginOperations.launchStopWithRunDebugAsShortcut(bot, GRADLE_APP_NAME, "run");
+            terminal.show();
 
-        // Validate application stopped.
-        LibertyPluginTestUtils.validateLibertyServerStopped(testAppPath + "/build");
+            // Validate application stopped.
+            LibertyPluginTestUtils.validateLibertyServerStopped(testAppPath + "/build");
 
-        // Close the terminal.
-        terminal.close();
+            // Close the terminal.
+            terminal.close();
+        }
     }
 
     /**
@@ -563,13 +569,13 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         SWTBotView terminal = bot.viewByTitle("Terminal");
         terminal.show();
 
-        // Validate application is up and running.
-        LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_APP_NAME, true, testAppPath + "/build");
-
-        // If there are issues with the workspace, close the error dialog.
-        SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
-
         try {
+            // Validate application is up and running.
+            LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_APP_NAME, true, testAppPath + "/build");
+
+            // If there are issues with the workspace, close the error dialog.
+            SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
+
             // Validate that the test reports were generated.
             LibertyPluginTestUtils.validateTestReportExists(pathToTestReport);
         } finally {
@@ -694,27 +700,29 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         SWTBotView terminal = bot.viewByTitle("Terminal");
         terminal.show();
 
-        // Validate application is up and running.
-        LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_APP_NAME, true, testAppPath + "/build");
+        try {
+            // Validate application is up and running.
+            LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_APP_NAME, true, testAppPath + "/build");
 
-        // If there are issues with the workspace, close the error dialog.
-        SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
+            // If there are issues with the workspace, close the error dialog.
+            SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
 
-        // Validate that a remote java application configuration was created and is named after the application.
-        validateRemoteJavaAppCreation(GRADLE_APP_NAME);
+            // Validate that a remote java application configuration was created and is named after the application.
+            validateRemoteJavaAppCreation(GRADLE_APP_NAME);
+        } finally {
+            // Switch to the explorer view.
+            SWTBotPluginOperations.switchToProjectExplotereView(bot);
 
-        // Switch to the explorer view.
-        SWTBotPluginOperations.switchToProjectExplotereView(bot);
+            // Stop dev mode using the Run As stop command.
+            SWTBotPluginOperations.launchStopWithRunDebugAsShortcut(bot, GRADLE_APP_NAME, "run");
+            terminal.show();
 
-        // Stop dev mode using the Run As stop command.
-        SWTBotPluginOperations.launchStopWithRunDebugAsShortcut(bot, GRADLE_APP_NAME, "run");
-        terminal.show();
+            // Validate application stopped.
+            LibertyPluginTestUtils.validateLibertyServerStopped(testAppPath + "/build");
 
-        // Validate application stopped.
-        LibertyPluginTestUtils.validateLibertyServerStopped(testAppPath + "/build");
-
-        // Close the terminal.
-        terminal.close();
+            // Close the terminal.
+            terminal.close();
+        }
     }
 
     /**

@@ -287,22 +287,25 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         SWTBotView terminal = bot.viewByTitle("Terminal");
         terminal.show();
 
-        // Validate application is up and running.
-        LibertyPluginTestUtils.validateApplicationOutcome(MVN_WRAPPER_APP_NAME, true,
-                wrapperProjectPath.toAbsolutePath().toString() + "/target/liberty");
+        try {
+            // Validate application is up and running.
+            LibertyPluginTestUtils.validateApplicationOutcome(MVN_WRAPPER_APP_NAME, true,
+                    wrapperProjectPath.toAbsolutePath().toString() + "/target/liberty");
 
-        // If there are issues with the workspace, close the error dialog.
-        SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
+            // If there are issues with the workspace, close the error dialog.
+            SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
 
-        // Stop dev mode.
-        SWTBotPluginOperations.launchStopWithDashboardAction(bot, dashboard, MVN_WRAPPER_APP_NAME);
-        terminal.show();
+        } finally {
+            // Stop dev mode.
+            SWTBotPluginOperations.launchStopWithDashboardAction(bot, dashboard, MVN_WRAPPER_APP_NAME);
+            terminal.show();
 
-        // Validate application stopped.
-        LibertyPluginTestUtils.validateLibertyServerStopped(wrapperProjectPath.toAbsolutePath().toString() + "/target/liberty");
+            // Validate application stopped.
+            LibertyPluginTestUtils.validateLibertyServerStopped(wrapperProjectPath.toAbsolutePath().toString() + "/target/liberty");
 
-        // Close the terminal.
-        terminal.close();
+            // Close the terminal.
+            terminal.close();
+        }
     }
 
     /**
@@ -315,21 +318,26 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         SWTBotView terminal = bot.viewByTitle("Terminal");
         terminal.show();
 
-        // Validate application is up and running.
-        LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
+        try {
+            // Validate application is up and running.
+            LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true,
+                    projectPath.toAbsolutePath().toString() + "/target/liberty");
 
-        // If there are issues with the workspace, close the error dialog.
-        SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
+            // If there are issues with the workspace, close the error dialog.
+            SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
 
-        // Stop dev mode.
-        SWTBotPluginOperations.launchStopWithDashboardAction(bot, dashboard, MVN_APP_NAME);
-        terminal.show();
+        } finally {
 
-        // Validate application stopped.
-        LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
+            // Stop dev mode.
+            SWTBotPluginOperations.launchStopWithDashboardAction(bot, dashboard, MVN_APP_NAME);
+            terminal.show();
 
-        // Close the terminal.
-        terminal.close();
+            // Validate application stopped.
+            LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
+
+            // Close the terminal.
+            terminal.close();
+        }
     }
 
     /**
@@ -516,21 +524,25 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         SWTBotView terminal = bot.viewByTitle("Terminal");
         terminal.show();
 
-        // Validate application is up and running.
-        LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
+        try {
+            // Validate application is up and running.
+            LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true,
+                    projectPath.toAbsolutePath().toString() + "/target/liberty");
 
-        // If there are issues with the workspace, close the error dialog.
-        SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
+            // If there are issues with the workspace, close the error dialog.
+            SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
 
-        // Stop dev mode.
-        SWTBotPluginOperations.launchStopWithRunDebugAsShortcut(bot, MVN_APP_NAME, "run");
-        terminal.show();
+        } finally {
+            // Stop dev mode.
+            SWTBotPluginOperations.launchStopWithRunDebugAsShortcut(bot, MVN_APP_NAME, "run");
+            terminal.show();
 
-        // Validate application stopped.
-        LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
+            // Validate application stopped.
+            LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
 
-        // Close the terminal.
-        terminal.close();
+            // Close the terminal.
+            terminal.close();
+        }
     }
 
     /**
@@ -552,10 +564,11 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         SWTBotView terminal = bot.viewByTitle("Terminal");
         terminal.show();
 
-        // Validate application is up and running.
-        LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
-
         try {
+            // Validate application is up and running.
+            LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true,
+                    projectPath.toAbsolutePath().toString() + "/target/liberty");
+
             // Validate that the test reports were generated.
             LibertyPluginTestUtils.validateTestReportExists(pathToITReport);
         } finally {
@@ -687,27 +700,32 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         SWTBotView terminal = bot.viewByTitle("Terminal");
         terminal.show();
 
-        // Validate application is up and running.
-        LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
+        try {
+            // Validate application is up and running.
+            LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true,
+                    projectPath.toAbsolutePath().toString() + "/target/liberty");
 
-        // If there are issues with the workspace, close the error dialog.
-        SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
+            // If there are issues with the workspace, close the error dialog.
+            SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
 
-        // Validate that a remote java application configuration was created and is named after the application.
-        validateRemoteJavaAppCreation(MVN_APP_NAME);
+            // Validate that a remote java application configuration was created and is named after the application.
+            validateRemoteJavaAppCreation(MVN_APP_NAME);
 
-        // Switch to the explorer view.
-        SWTBotPluginOperations.switchToProjectExplotereView(bot);
+        } finally {
 
-        // Stop dev mode using the Run As stop command.
-        SWTBotPluginOperations.launchStopWithRunDebugAsShortcut(bot, MVN_APP_NAME, "run");
-        terminal.show();
+            // Switch to the explorer view.
+            SWTBotPluginOperations.switchToProjectExplotereView(bot);
 
-        // Validate application stopped.
-        LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
+            // Stop dev mode using the Run As stop command.
+            SWTBotPluginOperations.launchStopWithRunDebugAsShortcut(bot, MVN_APP_NAME, "run");
+            terminal.show();
 
-        // Close the terminal.
-        terminal.close();
+            // Validate application stopped.
+            LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
+
+            // Close the terminal.
+            terminal.close();
+        }
     }
 
     @Test
@@ -776,21 +794,26 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         SWTBotView terminal = bot.viewByTitle("Terminal");
         terminal.show();
 
-        // Validate application is up and running.
-        LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
+        try {
+            // Validate application is up and running.
+            LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true,
+                    projectPath.toAbsolutePath().toString() + "/target/liberty");
 
-        // If there are issues with the workspace, close the error dialog.
-        SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
+            // If there are issues with the workspace, close the error dialog.
+            SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
 
-        // Stop dev mode.
-        SWTBotPluginOperations.launchStopWithDashboardAction(bot, dashboard, MVN_APP_NAME);
-        terminal.show();
+        } finally {
 
-        // Validate application stopped.
-        LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
+            // Stop dev mode.
+            SWTBotPluginOperations.launchStopWithDashboardAction(bot, dashboard, MVN_APP_NAME);
+            terminal.show();
 
-        // Close the terminal.
-        terminal.close();
+            // Validate application stopped.
+            LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
+
+            // Close the terminal.
+            terminal.close();
+        }
     }
 
     /**

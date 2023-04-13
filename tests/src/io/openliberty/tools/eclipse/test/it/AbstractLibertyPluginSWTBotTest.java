@@ -43,6 +43,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestInfo;
 
+import io.openliberty.tools.eclipse.test.it.utils.ActiveShellUtil;
 import io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils;
 import io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations;
 import io.openliberty.tools.eclipse.test.it.utils.SWTBotTestCondition;
@@ -77,6 +78,8 @@ public abstract class AbstractLibertyPluginSWTBotTest {
             boolean success = LibertyPluginTestUtils.updateBrowserPreferences(true);
             Assertions.assertTrue(success, () -> "Unable to update browser preferences.");
         }
+
+        ActiveShellUtil.startActiveShellThread();
 
     }
 
