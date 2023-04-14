@@ -12,25 +12,29 @@
 *******************************************************************************/
 package io.openliberty.tools.eclipse.test.it.utils;
 
+import static org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory.allOf;
+import static org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory.widgetOfType;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
-import static org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory.allOf;
-import static org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory.widgetOfType;
 
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Item;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotEditor;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotView;
 import org.eclipse.swtbot.swt.finder.SWTBot;
+import org.eclipse.swtbot.swt.finder.finders.UIThreadRunnable;
 import org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory;
+import org.eclipse.swtbot.swt.finder.results.Result;
+import org.eclipse.swtbot.swt.finder.results.WidgetResult;
 import org.eclipse.swtbot.swt.finder.utils.SWTUtils;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotButton;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotCTabItem;
@@ -120,6 +124,10 @@ public class SWTBotPluginOperations {
             dashboard.show();
         }
 
+
+        SWTBotShell mainShell = bot.shell("data");
+        mainShell.activate().setFocus();
+        
         SWTBotTable dashboardTable = bot.table();
         ArrayList<String> contentList = new ArrayList<String>();
         for (int i = 0; i < dashboardTable.rowCount(); i++) {
@@ -434,6 +442,9 @@ public class SWTBotPluginOperations {
         SWTBotMenu modeAsMenu = ("run".equals(mode)) ? getAppRunAsMenu(bot, item) : getAppDebugAsMenu(bot, item);
         String configMenuText = ("run".equals(mode)) ? "Run Configurations..." : "Debug Configurations...";
 
+        
+        
+        
         SWTBotMenu runConfigMenu = modeAsMenu.menu(configMenuText);
         runConfigMenu.setFocus();
         runConfigMenu.click();
@@ -605,12 +616,13 @@ public class SWTBotPluginOperations {
      * @param parms The parameter(s) to pass to the dev mode start action.
      */
     public static void setLibertyConfigParms(SWTWorkbenchBot bot, String parms) {
+        
         SWTBotText parmTextBox = bot.textWithLabel("Start parameters:");
         parmTextBox.setFocus();
         parmTextBox.setText(parms);
         bot.waitUntil(SWTBotTestCondition.isTextPresent(parmTextBox, parms), 5000);
     }
-
+    
     /**
      * Clicks the Run/Debug button on the Main tab of the Liberty configuration. The Liberty Main tab on the Run Configurations dialog
      * must be the active view when this method is called.
@@ -879,9 +891,27 @@ public class SWTBotPluginOperations {
             dashboard.setFocus();
         }
 
-        SWTBotTable dashboardTable = bot.table();
+        SWTBotShell ss = new SWTBotShell(getShell(bot, "data"));
+        
+        SWTBotTable dashboardTable = ss.activate().bot().table();
         dashboardTable.select(item);
         return dashboardTable.contextMenu();
+    }
+    
+    public static Shell getShell(final SWTBot bot, final String shtitle) {
+        final Shell[] shells = bot.getFinder().getShells();
+        return (Shell) UIThreadRunnable.syncExec(bot.getDisplay(), new WidgetResult<Shell>() {
+            @Override
+            public Shell run() {
+                for (Shell s : shells) {
+                    String title = s.getText();
+                    if (title.contains(shtitle)){                       
+                        return s;
+                    }
+                }
+                return null;
+            }
+        });
     }
 
     /**
