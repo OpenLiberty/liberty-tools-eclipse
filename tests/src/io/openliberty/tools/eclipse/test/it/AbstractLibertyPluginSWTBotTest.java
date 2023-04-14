@@ -18,6 +18,7 @@ import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -108,13 +109,13 @@ public abstract class AbstractLibertyPluginSWTBotTest {
      * @throws InterruptedException
      * @throws CoreException
      */
-    public static void importMavenProjects(File workspaceRoot, Stream<Path> folderPaths) {
+    public static void importMavenProjects(File workspaceRoot, Path[] folderPaths) {
         Display.getDefault().syncExec(new Runnable() {
 
             @Override
             public void run() {
                 try {
-                    List<String> folders = folderPaths.map(p -> p.toString()).collect(Collectors.toList());
+                    List<String> folders = Arrays.stream(folderPaths).map(p -> p.toString()).collect(Collectors.toList());
                     
                     // Get the list of projects to install.
                     MavenModelManager modelManager = MavenPlugin.getMavenModelManager();

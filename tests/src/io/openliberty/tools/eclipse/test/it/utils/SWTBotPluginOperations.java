@@ -442,11 +442,11 @@ public class SWTBotPluginOperations {
         String configMenuText = ("run".equals(mode)) ? "Run Configurations..." : "Debug Configurations...";
 
         
-        
-        
         SWTBotMenu runConfigMenu = modeAsMenu.menu(configMenuText);
         runConfigMenu.setFocus();
         runConfigMenu.click();
+        
+        
 
         bot.waitUntil(SWTBotTestCondition.isTreeWidgetEnabled(bot, LAUNCH_CONFIG_LIBERTY_MENU_NAME), 5000);
 
@@ -891,8 +891,8 @@ public class SWTBotPluginOperations {
         }
 
         SWTBotShell ss = new SWTBotShell(getShell(bot, "data"));
-        
         SWTBotTable dashboardTable = ss.activate().bot().table();
+
         dashboardTable.select(item);
         return dashboardTable.contextMenu();
     }

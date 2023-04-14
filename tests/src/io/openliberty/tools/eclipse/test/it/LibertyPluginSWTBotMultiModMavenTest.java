@@ -18,6 +18,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotView;
@@ -68,6 +69,8 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
 
     static File workspaceRoot = ResourcesPlugin.getWorkspace().getRoot().getLocation().toFile();
 
+    static final Path[] projectArr = { project1Path.resolve("pom"), project1Path.resolve("jar"), project1Path.resolve("war1"), project1Path.resolve("war2"), project1Path };
+
     /**
      * Setup.
      */
@@ -76,18 +79,18 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
 
         commonSetup();
 
-        List<String> projectPaths = new ArrayList<String>();
-        projectPaths.add(project1Path.resolve("pom").toString());
-        projectPaths.add(project1Path.resolve("jar").toString());
-        projectPaths.add(project1Path.resolve("war1").toString());
-        projectPaths.add(project1Path.resolve("war2").toString());
+//        List<String> projectPaths = new ArrayList<String>();
+//        projectPaths.add(project1Path.resolve("pom").toString());
+//        projectPaths.add(project1Path.resolve("jar").toString());
+//        projectPaths.add(project1Path.resolve("war1").toString());
+//        projectPaths.add(project1Path.resolve("war2").toString());
 
         // Could be an interesting variation to stop with the above, which would cause the execution to run
         // in a single module context, since the aggregator POM wouldn't be present. The rest of the test class
         // isn't factored now to complete this idea, so leaving this as an idea if we want to expand in this direction later.
-        projectPaths.add(project1Path.toString());
+//        projectPaths.add(project1Path.toString());
 
-        importMavenProjects(workspaceRoot, projectPaths);
+        importMavenProjects(workspaceRoot, projectArr);
 
         // Check basic plugin artifacts are functioning before running tests.
         validateBeforeTestRun();
