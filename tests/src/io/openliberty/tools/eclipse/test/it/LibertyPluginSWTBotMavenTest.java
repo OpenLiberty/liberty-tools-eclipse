@@ -660,7 +660,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
 
         } finally {
             // Switch to the explorer view.
-            SWTBotPluginOperations.switchToProjectExplotereView(bot);
+            SWTBotPluginOperations.switchToProjectExplorerView(bot);
 
             // Stop dev mode using the Run As stop command.
             SWTBotPluginOperations.launchStopWithRunDebugAsShortcut(bot, MVN_APP_NAME, "run");
@@ -697,7 +697,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         validateRemoteJavaAppCreation(MVN_APP_NAME);
 
         // Switch to the explorer view.
-        SWTBotPluginOperations.switchToProjectExplotereView(bot);
+        SWTBotPluginOperations.switchToProjectExplorerView(bot);
 
         // Stop dev mode using the Run As stop command.
         SWTBotPluginOperations.launchStopWithRunDebugAsShortcut(bot, MVN_APP_NAME, "run");

@@ -667,7 +667,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
             validateRemoteJavaAppCreation(GRADLE_APP_NAME);
         } finally {
             // Switch to the explorer view.
-            SWTBotPluginOperations.switchToProjectExplotereView(bot);
+            SWTBotPluginOperations.switchToProjectExplorerView(bot);
 
             // Stop dev mode using the Run As stop command.
             SWTBotPluginOperations.launchStopWithRunDebugAsShortcut(bot, GRADLE_APP_NAME, "run");
@@ -704,7 +704,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         validateRemoteJavaAppCreation(GRADLE_APP_NAME);
 
         // Switch to the explorer view.
-        SWTBotPluginOperations.switchToProjectExplotereView(bot);
+        SWTBotPluginOperations.switchToProjectExplorerView(bot);
 
         // Stop dev mode using the Run As stop command.
         SWTBotPluginOperations.launchStopWithRunDebugAsShortcut(bot, GRADLE_APP_NAME, "run");
