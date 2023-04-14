@@ -23,6 +23,7 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotView;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotMenu;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -68,6 +69,8 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
 
     static File workspaceRoot = ResourcesPlugin.getWorkspace().getRoot().getLocation().toFile();
 
+    static List<String> projectPaths = new ArrayList<String>();
+
     /**
      * Setup.
      */
@@ -76,7 +79,6 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
 
         commonSetup();
 
-        List<String> projectPaths = new ArrayList<String>();
         projectPaths.add(project1Path.resolve("pom").toString());
         projectPaths.add(project1Path.resolve("jar").toString());
         projectPaths.add(project1Path.resolve("war1").toString());
@@ -87,10 +89,22 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
         // isn't factored now to complete this idea, so leaving this as an idea if we want to expand in this direction later.
         projectPaths.add(project1Path.toString());
 
+        // Maybe redundant but we really want to cleanup. We really want to
+        // avoid wasting time debugging tricky differences in behavior because of a dirty re-run
+        for (String p : projectPaths) {
+            cleanupProject(p);
+        }
         importMavenProjects(workspaceRoot, projectPaths);
 
         // Check basic plugin artifacts are functioning before running tests.
         validateBeforeTestRun();
+    }
+
+    @AfterAll
+    public static void cleanup() {
+        for (String p : projectPaths) {
+            cleanupProject(p);
+        }
     }
 
     /**
