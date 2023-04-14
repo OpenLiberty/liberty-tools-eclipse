@@ -962,7 +962,9 @@ public class SWTBotPluginOperations {
      */
     public static void switchToProjectExplorerView(SWTWorkbenchBot bot) {
 
-        SWTBotShell mainShell = bot.shell("data");
+        //SWTBotShell mainShell = bot.shell("data");
+        //mainShell.activate().setFocus();
+        SWTBotShell mainShell = new SWTBotShell(getShell(bot, "data"));
         mainShell.activate().setFocus();
 
         String projExpViewName = "Project Explorer";
