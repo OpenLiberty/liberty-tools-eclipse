@@ -14,11 +14,13 @@ package io.openliberty.tools.eclipse.test.it;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -75,6 +77,8 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
      */
     static final Path nonDfltProjectPath = Paths.get("resources", "applications", "maven", "non-dflt-server-xml-path");
 
+    static final Stream<Path> projectStream = Stream.of(projectPath, wrapperProjectPath, nonDfltProjectPath);
+    
     /**
      * Expected menu items.
      */
@@ -101,6 +105,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
             LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONFIG,
             LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONTAINER };
 
+    
     /**
      * Setup.
      */
@@ -110,11 +115,8 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         commonSetup();
 
         File workspaceRoot = ResourcesPlugin.getWorkspace().getRoot().getLocation().toFile();
-        ArrayList<String> projectPaths = new ArrayList<String>();
-        projectPaths.add(projectPath.toString());
-        projectPaths.add(wrapperProjectPath.toString());
-        projectPaths.add(nonDfltProjectPath.toString());
-        importMavenProjects(workspaceRoot, projectPaths);
+
+        importMavenProjects(workspaceRoot, projectStream);
 
         // set the preferences
         SWTBotPluginOperations.setBuildCmdPathInPreferences(bot, "Maven");
@@ -127,6 +129,15 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
     @AfterAll
     public static void cleanup() {
         SWTBotPluginOperations.unsetBuildCmdPathInPreferences(bot, "Maven");
+        
+        projectStream.forEach(p -> {
+            try {
+                Files.delete(p.resolve(".project"));
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+        }); 
     }
 
     /**

@@ -15,9 +15,12 @@ package io.openliberty.tools.eclipse.test.it;
 import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.isInternalBrowserSupportAvailable;
 
 import java.io.File;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.eclipse.buildship.core.BuildConfiguration;
 import org.eclipse.buildship.core.GradleBuild;
@@ -105,12 +108,14 @@ public abstract class AbstractLibertyPluginSWTBotTest {
      * @throws InterruptedException
      * @throws CoreException
      */
-    public static void importMavenProjects(File workspaceRoot, List<String> folders) {
+    public static void importMavenProjects(File workspaceRoot, Stream<Path> folderPaths) {
         Display.getDefault().syncExec(new Runnable() {
 
             @Override
             public void run() {
                 try {
+                    List<String> folders = folderPaths.map(p -> p.toString()).collect(Collectors.toList());
+                    
                     // Get the list of projects to install.
                     MavenModelManager modelManager = MavenPlugin.getMavenModelManager();
                     LocalProjectScanner lps = new LocalProjectScanner(folders, false, modelManager);
