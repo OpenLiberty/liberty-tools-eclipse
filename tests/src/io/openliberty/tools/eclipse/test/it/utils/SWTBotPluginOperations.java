@@ -124,8 +124,7 @@ public class SWTBotPluginOperations {
             dashboard.show();
         }
 
-
-        SWTBotShell mainShell = bot.shell("data");
+        SWTBotShell mainShell = new SWTBotShell(getShell(bot, "data"));
         mainShell.activate().setFocus();
         
         SWTBotTable dashboardTable = bot.table();
