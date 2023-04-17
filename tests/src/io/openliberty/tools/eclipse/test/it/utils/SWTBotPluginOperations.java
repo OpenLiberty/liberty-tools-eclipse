@@ -880,6 +880,7 @@ public class SWTBotPluginOperations {
         }
 
         SWTBotTable dashboardTable = bot.table();
+
         dashboardTable.select(item);
         return dashboardTable.contextMenu();
     }
@@ -931,7 +932,7 @@ public class SWTBotPluginOperations {
      *
      * @param bot The SWTWorkbenchBot instance.
      */
-    public static void switchToProjectExplotereView(SWTWorkbenchBot bot) {
+    public static void switchToProjectExplorerView(SWTWorkbenchBot bot) {
 
         String projExpViewName = "Project Explorer";
         bot.menu("Window").menu("Show View").menu(projExpViewName).click();

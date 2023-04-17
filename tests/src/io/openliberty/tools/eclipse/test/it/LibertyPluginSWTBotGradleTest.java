@@ -63,6 +63,8 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
     static String testAppPath;
     static String testWrapperAppPath;
 
+    static ArrayList<File> projectsToInstall = new ArrayList<File>();
+
     /**
      * Expected menu items.
      */
@@ -99,11 +101,17 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
 
         commonSetup();
 
-        ArrayList<File> projectsToInstall = new ArrayList<File>();
         File mainProject = Paths.get("resources", "applications", "gradle", GRADLE_APP_NAME).toFile();
         File wrapperProject = Paths.get("resources", "applications", "gradle", GRADLE_WRAPPER_APP_NAME).toFile();
         projectsToInstall.add(mainProject);
         projectsToInstall.add(wrapperProject);
+
+        // Maybe redundant but we really want to cleanup. We really want to
+        // avoid wasting time debugging tricky differences in behavior because of a dirty re-run
+        for (File p : projectsToInstall) {
+            cleanupProject(p.toString());
+        }
+
         importGradleApplications(projectsToInstall);
 
         // Check basic plugin artifacts are functioning before running tests.
@@ -117,6 +125,9 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
 
     @AfterAll
     public static void cleanup() {
+        for (File p : projectsToInstall) {
+            cleanupProject(p.toString());
+        }
         SWTBotPluginOperations.unsetBuildCmdPathInPreferences(bot, "Gradle");
     }
 
@@ -667,7 +678,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
             validateRemoteJavaAppCreation(GRADLE_APP_NAME);
         } finally {
             // Switch to the explorer view.
-            SWTBotPluginOperations.switchToProjectExplotereView(bot);
+            SWTBotPluginOperations.switchToProjectExplorerView(bot);
 
             // Stop dev mode using the Run As stop command.
             SWTBotPluginOperations.launchStopWithRunDebugAsShortcut(bot, GRADLE_APP_NAME, "run");
@@ -704,7 +715,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         validateRemoteJavaAppCreation(GRADLE_APP_NAME);
 
         // Switch to the explorer view.
-        SWTBotPluginOperations.switchToProjectExplotereView(bot);
+        SWTBotPluginOperations.switchToProjectExplorerView(bot);
 
         // Stop dev mode using the Run As stop command.
         SWTBotPluginOperations.launchStopWithRunDebugAsShortcut(bot, GRADLE_APP_NAME, "run");

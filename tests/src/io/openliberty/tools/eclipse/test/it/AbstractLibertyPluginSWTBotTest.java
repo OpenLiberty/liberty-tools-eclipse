@@ -15,6 +15,8 @@ package io.openliberty.tools.eclipse.test.it;
 import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.isInternalBrowserSupportAvailable;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -96,6 +98,18 @@ public abstract class AbstractLibertyPluginSWTBotTest {
                 "INFO: Test " + this.getClass().getSimpleName() + "#" + info.getDisplayName() + " exit: " + java.time.LocalDateTime.now());
     }
 
+    protected static void cleanupProject(String projectPathStr) {
+        // Problems on Windows deleting .settings directory so giving up for now
+        // String[] extensions = { ".project", ".classpath", ".settings" };
+        String[] extensions = { ".project", ".classpath" };
+        for (String ext : extensions) {
+            try {
+                Files.delete(Paths.get(projectPathStr, ext));
+            } catch (IOException e) {
+            }
+        }
+    }
+
     /**
      * Imports the specified list of projects.
      *
@@ -106,6 +120,7 @@ public abstract class AbstractLibertyPluginSWTBotTest {
      * @throws CoreException
      */
     public static void importMavenProjects(File workspaceRoot, List<String> folders) {
+
         Display.getDefault().syncExec(new Runnable() {
 
             @Override
