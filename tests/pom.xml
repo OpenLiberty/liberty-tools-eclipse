@@ -75,6 +75,16 @@
                                 <id>org.eclipse.m2e.core.ui</id>
                                 <versionRange>2.0.0.20220726-0935</versionRange>
                             </requirement>
+                            <requirement>
+                                <type>p2-installable-unit</type>
+                                <id>org.eclipse.m2e.jdt</id>
+                                <versionRange>2.0.1.20220901-1459</versionRange>
+                            </requirement>
+                            <requirement>
+                                <type>p2-installable-unit</type>
+                                <id>org.eclipse.m2e.jdt.ui</id>
+                                <versionRange>2.0.0.20220705-1221</versionRange>
+                            </requirement>
                         </extraRequirements>
                     </dependency-resolution>
                 </configuration>

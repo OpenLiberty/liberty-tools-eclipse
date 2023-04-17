@@ -75,6 +75,8 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
      */
     static final Path nonDfltProjectPath = Paths.get("resources", "applications", "maven", "non-dflt-server-xml-path");
 
+    static ArrayList<String> projectPaths = new ArrayList<String>();
+
     /**
      * Expected menu items.
      */
@@ -110,10 +112,16 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         commonSetup();
 
         File workspaceRoot = ResourcesPlugin.getWorkspace().getRoot().getLocation().toFile();
-        ArrayList<String> projectPaths = new ArrayList<String>();
         projectPaths.add(projectPath.toString());
         projectPaths.add(wrapperProjectPath.toString());
         projectPaths.add(nonDfltProjectPath.toString());
+
+        // Maybe redundant but we really want to cleanup. We really want to
+        // avoid wasting time debugging tricky differences in behavior because of a dirty re-run
+        for (String p : projectPaths) {
+            cleanupProject(p);
+        }
+
         importMavenProjects(workspaceRoot, projectPaths);
 
         // set the preferences
@@ -126,6 +134,9 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
 
     @AfterAll
     public static void cleanup() {
+        for (String p : projectPaths) {
+            cleanupProject(p);
+        }
         SWTBotPluginOperations.unsetBuildCmdPathInPreferences(bot, "Maven");
     }
 
@@ -673,7 +684,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
 
         } finally {
             // Switch to the explorer view.
-            SWTBotPluginOperations.switchToProjectExplotereView(bot);
+            SWTBotPluginOperations.switchToProjectExplorerView(bot);
 
             // Stop dev mode using the Run As stop command.
             SWTBotPluginOperations.launchStopWithRunDebugAsShortcut(bot, MVN_APP_NAME, "run");
@@ -710,11 +721,9 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
 
             // Validate that a remote java application configuration was created and is named after the application.
             validateRemoteJavaAppCreation(MVN_APP_NAME);
-
         } finally {
-
             // Switch to the explorer view.
-            SWTBotPluginOperations.switchToProjectExplotereView(bot);
+            SWTBotPluginOperations.switchToProjectExplorerView(bot);
 
             // Stop dev mode using the Run As stop command.
             SWTBotPluginOperations.launchStopWithRunDebugAsShortcut(bot, MVN_APP_NAME, "run");
