@@ -12,13 +12,13 @@
 *******************************************************************************/
 package io.openliberty.tools.eclipse.test.it.utils;
 
+import static org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory.allOf;
+import static org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory.widgetOfType;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
-import static org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory.allOf;
-import static org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory.widgetOfType;
 
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.swt.SWT;
@@ -894,7 +894,6 @@ public class SWTBotPluginOperations {
      * @return The Open Liberty dashboard view obtained by pressing on the Open Liberty icon located on the main tool bar.
      */
     public static SWTBotView openDashboardUsingToolbar(SWTWorkbenchBot bot) {
-        bot.shell("data").activate().setFocus();
 
         SWTBotToolbarButton toolbarButton = getToolbarButtonWithToolTipPrefix(bot, TOOLBAR_OPEN_DASHBOARD_TIP);
         toolbarButton.click();
@@ -936,8 +935,6 @@ public class SWTBotPluginOperations {
      * @param bot The SWTWorkbenchBot instance.
      */
     public static void switchToProjectExplorerView(SWTWorkbenchBot bot) {
-
-        bot.shell("data").activate().setFocus();
 
         String projExpViewName = "Project Explorer";
         bot.menu("Window").menu("Show View").menu(projExpViewName).click();

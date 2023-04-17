@@ -29,6 +29,8 @@ public class ActiveShellUtil {
      */
     public synchronized static void startActiveShellThread() {
 
+        System.out.println("INFO: Activating 'ActiveShellUtil'");
+
         if (thread == null) {
             thread = new ActiveShellThread();
             thread.start();
@@ -80,11 +82,15 @@ public class ActiveShellUtil {
                     @Override
                     public void run() {
 
+                        System.out.println("INFO: ActiveShellUtil - running cleanup");
+
                         Shell[] s = Display.getDefault().getShells();
                         for (Shell sh : s) {
 
-                            // Skip known boring shells
                             String text = sh.getText();
+                            System.out.println("INFO: ActiveShellUtil - found shell " + text);
+
+                            // Skip known boring shells
                             if (text.trim().isEmpty() || text.contains("Quick Access") || text.contains("PartRenderingEngine")) {
                                 continue;
                             }
@@ -113,6 +119,7 @@ public class ActiveShellUtil {
                     Entry<String, ShellEntry> e = it.next();
 
                     if (!e.getValue().shellSeen) {
+                        System.out.println("INFO: ActiveShellUtil - removing shell " + e.getKey());
                         it.remove();
                     }
                 }
@@ -160,11 +167,37 @@ public class ActiveShellUtil {
                     /* ignore */
                 }
 
-                // awisniew - commenting out for now
-                // CommonUtils.delay(1000);
+                delay(1000);
 
             } // end while()
 
+        }
+
+        private void delay(long waitTimeInMsecs) {
+
+            Display display = Display.getCurrent();
+
+            if (display != null) {
+                long expire = System.nanoTime() + TimeUnit.NANOSECONDS.convert(waitTimeInMsecs, TimeUnit.MILLISECONDS);
+
+                while (System.nanoTime() < expire) {
+                    try {
+                        if (!display.readAndDispatch()) {
+                            display.sleep();
+                        }
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+                display.update();
+
+            } else {
+                try {
+                    TimeUnit.MILLISECONDS.sleep(waitTimeInMsecs);
+                } catch (InterruptedException e) {
+                    /* Ignore */
+                }
+            }
         }
 
     }
