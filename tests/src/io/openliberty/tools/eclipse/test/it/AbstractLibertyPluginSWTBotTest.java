@@ -35,9 +35,9 @@ import org.eclipse.m2e.core.project.LocalProjectScanner;
 import org.eclipse.m2e.core.project.MavenProjectInfo;
 import org.eclipse.m2e.core.project.ProjectImportConfiguration;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotView;
-import org.eclipse.swtbot.swt.finder.widgets.SWTBotButton;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
@@ -46,6 +46,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestInfo;
 
 import io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils;
+import io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder;
 import io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations;
 import io.openliberty.tools.eclipse.test.it.utils.SWTBotTestCondition;
 
@@ -181,7 +182,7 @@ public abstract class AbstractLibertyPluginSWTBotTest {
      * @param projectName The project name..
      */
     public void validateRemoteJavaAppCreation(String projectName) {
-        SWTBotPluginOperations.launchConfigurationsDialog(bot, projectName, "debug");
+        Shell configShell = SWTBotPluginOperations.launchDebugConfigurationsDialog(projectName);
         SWTBotTreeItem remoteJavaAppEntry = SWTBotPluginOperations.getRemoteJavaAppConfigMenuItem(bot);
         Assertions.assertTrue((remoteJavaAppEntry != null),
                 () -> "The " + SWTBotPluginOperations.LAUNCH_CONFIG_REMOTE_JAVA_APP + " entry was not found in run Configurations dialog.");
@@ -193,9 +194,7 @@ public abstract class AbstractLibertyPluginSWTBotTest {
             configEntry.select().setFocus();
 
             if (config.startsWith(projectName)) {
-                SWTBotButton closeButton = bot.button("Close");
-                closeButton.setFocus();
-                closeButton.click();
+                MagicWidgetFinder.go("Close", configShell);
                 return;
             }
         }
