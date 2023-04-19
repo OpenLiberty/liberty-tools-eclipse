@@ -12,20 +12,21 @@
 *******************************************************************************/
 package io.openliberty.tools.eclipse.test.it.utils;
 
+import static org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory.allOf;
+import static org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory.widgetOfType;
+
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
-
-import static org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory.allOf;
-import static org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory.widgetOfType;
 
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Item;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotEditor;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotView;
@@ -40,7 +41,6 @@ import org.eclipse.swtbot.swt.finder.widgets.SWTBotRootMenu;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotShell;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotStyledText;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTable;
-import org.eclipse.swtbot.swt.finder.widgets.SWTBotText;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotToolbarButton;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotToolbarPushButton;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTree;
@@ -54,7 +54,7 @@ import org.hamcrest.Matcher;
 import org.junit.jupiter.api.Assertions;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
-import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
+import io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.Option;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher;
 
 /**
@@ -157,151 +157,34 @@ public class SWTBotPluginOperations {
      * @param bot
      */
     public static void refreshDashboard(SWTWorkbenchBot bot) {
-        SWTBotView dashboardView = openDashboardUsingToolbar(bot);
-        dashboardView.setFocus();
-        SWTBotToolbarButton refreshButton = bot.toolbarButtonWithTooltip(DASHBOARD_TOOLBAR_REFRESH_TIP);
-        refreshButton.setFocus();
-        refreshButton.click();
+        Object dashboardView = MagicWidgetFinder.findGlobal(DASHBOARD_VIEW_TITLE);
+        MagicWidgetFinder.go(DASHBOARD_TOOLBAR_REFRESH_TIP, dashboardView);
     }
 
     /**
      * Refreshes the application project through the explorer view (explorer-> right click on project -> refresh).
      * 
-     * @param bot The SWTWorkbenchBot instance.
-     * @param item The application name to select.
+     * @param appName The application name to select.
      */
-    public static void refreshProjectUsingExplorerView(SWTWorkbenchBot bot, String item) {
-        SWTBotTreeItem projectInExplorer = SWTBotPluginOperations.getInstalledProjectItem(bot, item);
-        Assertions.assertTrue(projectInExplorer != null, () -> "Could not find project " + item + " in the explorer view.");
-        bot.waitUntil(SWTBotTestCondition.isTreeItemEnabled(projectInExplorer), 5000);
-        projectInExplorer.select().setFocus();
-        SWTBotMenu refresh = projectInExplorer.contextMenu("Refresh");
-        bot.waitUntil(SWTBotTestCondition.isMenuEnabled(refresh), 5000);
-        refresh.setFocus();
-        refresh.click();
+    public static void refreshProjectUsingExplorerView(String appName) {
+        Object peView = MagicWidgetFinder.findGlobal("Project Explorer");
+        Object project = MagicWidgetFinder.find(appName, peView);
+
+        MagicWidgetFinder.context(project, "Refresh");
     }
 
     /**
-     * Launches the dashboard's start action associated with the input application item.
+     * Launches a dashboard action for the specified application name.
      *
-     * @param bot The SWTWorkbenchBot instance.
-     * @param dashboard An instance representing the Open Liberty dashboard view.
-     * @param item The application name to select.
+     * @param appName The application name to select.
+     * @param action The action to select
      */
-    public static void launchStartWithDashboardAction(SWTWorkbenchBot bot, SWTBotView dashboard, String item) {
-        SWTBotRootMenu appCtxMenu = getAppContextMenu(bot, dashboard, item);
-        SWTBotMenu startAction = appCtxMenu.contextMenu(DashboardView.APP_MENU_ACTION_START);
-        startAction.click();
-    }
+    public static void launchDashboardAction(SWTWorkbenchBot bot, String appName, String action) {
+        openDashboardUsingToolbar(bot);
 
-    /**
-     * Launches the dashboard's debug action associated with the input application item.
-     *
-     * @param bot The SWTWorkbenchBot instance.
-     * @param dashboard An instance representing the Open Liberty dashboard view.
-     * @param item The application name to select.
-     */
-    public static void launchDebugWithDashboardAction(SWTWorkbenchBot bot, SWTBotView dashboard, String item) {
-        SWTBotRootMenu appCtxMenu = getAppContextMenu(bot, dashboard, item);
-        SWTBotMenu debugAction = appCtxMenu.contextMenu(DashboardView.APP_MENU_ACTION_DEBUG);
-        debugAction.click();
-    }
-
-    /**
-     * Launches the dashboard's start with configuration dialog associated with the input application item.
-     *
-     * @param bot The SWTWorkbenchBot instance.
-     * @param dashboard An instance representing the Open Liberty dashboard view.
-     * @param item The application name to select.
-     */
-    public static void launchStartConfigDialogWithDashboardAction(SWTWorkbenchBot bot, SWTBotView dashboard, String item) {
-        SWTBotRootMenu appCtxMenu = getAppContextMenu(bot, dashboard, item);
-        SWTBotMenu startAction = appCtxMenu.contextMenu(DashboardView.APP_MENU_ACTION_START_CONFIG);
-        startAction.click();
-    }
-
-    /**
-     * Launches the dashboard's debug with configuration dialog associated with the input application item.
-     *
-     * @param bot The SWTWorkbenchBot instance.
-     * @param dashboard An instance representing the Open Liberty dashboard view.
-     * @param item The application name to select.
-     */
-    public static void launchDebugConfigDialogWithDashboardAction(SWTWorkbenchBot bot, SWTBotView dashboard, String item) {
-        SWTBotRootMenu appCtxMenu = getAppContextMenu(bot, dashboard, item);
-        SWTBotMenu debugAction = appCtxMenu.contextMenu(DashboardView.APP_MENU_ACTION_DEBUG_CONFIG);
-        debugAction.click();
-    }
-
-    /**
-     * Launches the dashboard's run test action associated with the input application item.
-     *
-     * @param bot The SWTWorkbenchBot instance.
-     * @param dashboard An instance representing the Open Liberty dashboard view.
-     * @param item The application name to select.
-     */
-    public static void launchRunTestsWithDashboardAction(SWTWorkbenchBot bot, SWTBotView dashboard, String item) {
-        SWTBotRootMenu appCtxMenu = getAppContextMenu(bot, dashboard, item);
-        SWTBotMenu runTestsAction = appCtxMenu.contextMenu(DashboardView.APP_MENU_ACTION_RUN_TESTS);
-        runTestsAction.click();
-    }
-
-    /**
-     * Launches the dashboard's stop action associated with the input application item.
-     *
-     * @param bot The SWTWorkbenchBot instance.
-     * @param dashboard An instance representing the Open Liberty dashboard view.
-     * @param item The application name to select.
-     */
-    public static void launchStopWithDashboardAction(SWTWorkbenchBot bot, SWTBotView dashboard, String item) {
-        SWTBotRootMenu appCtxMenu = getAppContextMenu(bot, dashboard, item);
-        SWTBotMenu stopAction = appCtxMenu.contextMenu(DashboardView.APP_MENU_ACTION_STOP);
-        stopAction.click();
-    }
-
-    /**
-     * Launches dashboard's view (Maven) integration test report action associated with the input application item.
-     *
-     * @param bot The SWTWorkbenchBot instance.
-     * @param dashboard An instance representing the Open Liberty dashboard view.
-     * @param item The Maven application name to select.
-     */
-    public static void launchViewITReportWithDashboardAction(SWTWorkbenchBot bot, SWTBotView dashboard, String item) {
-        SWTBotRootMenu appCtxMenu = getAppContextMenu(bot, dashboard, item);
-        SWTBotMenu itReport = appCtxMenu.contextMenu(DashboardView.APP_MENU_ACTION_VIEW_MVN_IT_REPORT);
-        itReport.click();
-
-        bot.waitUntil(SWTBotTestCondition.isEditorActive(bot, item + " " + DevModeOperations.BROWSER_MVN_IT_REPORT_NAME_SUFFIX), 5000);
-    }
-
-    /**
-     * Launches the dashboard's view (Maven) unit test report action associated with the input application item.
-     *
-     * @param bot The SWTWorkbenchBot instance.
-     * @param dashboard An instance representing the Open Liberty dashboard view.
-     * @param item The Maven application name to select.
-     */
-    public static void launchViewUTReportWithDashboardAction(SWTWorkbenchBot bot, SWTBotView dashboard, String item) {
-        SWTBotRootMenu appCtxMenu = getAppContextMenu(bot, dashboard, item);
-        SWTBotMenu utReport = appCtxMenu.contextMenu(DashboardView.APP_MENU_ACTION_VIEW_MVN_UT_REPORT);
-        utReport.click();
-
-        bot.waitUntil(SWTBotTestCondition.isEditorActive(bot, item + " " + DevModeOperations.BROWSER_MVN_UT_REPORT_NAME_SUFFIX), 5000);
-    }
-
-    /**
-     * Launches the dashboard's view (Gradle) the test report action associated with the input application item.
-     *
-     * @param bot The SWTWorkbenchBot instance.
-     * @param dashboard An instance representing the Open Liberty dashboard view.
-     * @param item The Gradle application name to select.
-     */
-    public static void launchViewTestReportWithDashboardAction(SWTWorkbenchBot bot, SWTBotView dashboard, String item) {
-        SWTBotRootMenu appCtxMenu = getAppContextMenu(bot, dashboard, item);
-        SWTBotMenu testReport = appCtxMenu.contextMenu(DashboardView.APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT);
-        testReport.click();
-
-        bot.waitUntil(SWTBotTestCondition.isEditorActive(bot, item + " " + DevModeOperations.BROWSER_GRADLE_TEST_REPORT_NAME_SUFFIX), 5000);
+        Object dashboardView = MagicWidgetFinder.findGlobal(DASHBOARD_VIEW_TITLE);
+        Object project = MagicWidgetFinder.find(appName, dashboardView);
+        MagicWidgetFinder.context(project, action);
     }
 
     /**
@@ -421,29 +304,33 @@ public class SWTBotPluginOperations {
     }
 
     /**
-     * Launches the Run/Debug configuration dialog.
+     * Launches the run configuration dialog.
      * 
-     * @param bot The SWTWorkbenchBot instance.
-     * @param item The application name.
-     * @param mode The operating mode. It can be either \"run\" or \"debug\".
+     * @param appName The application name.
      */
-    public static void launchConfigurationsDialog(SWTWorkbenchBot bot, String item, String mode) {
-        Assertions.assertTrue(("run".equals(mode) || "debug".equals(mode)),
-                () -> "Invalid configuration mode: " + mode + ". Accepted values: run, debug.");
+    public static Shell launchRunConfigurationsDialog(String appName) {
 
-        SWTBotMenu modeAsMenu = ("run".equals(mode)) ? getAppRunAsMenu(bot, item) : getAppDebugAsMenu(bot, item);
-        String configMenuText = ("run".equals(mode)) ? "Run Configurations..." : "Debug Configurations...";
+        Object peView = MagicWidgetFinder.findGlobal("Project Explorer");
+        Object project = MagicWidgetFinder.find(appName, peView);
+        MagicWidgetFinder.context(project, "Run As", "Run Configurations...");
 
-        SWTBotMenu runConfigMenu = modeAsMenu.menu(configMenuText);
-        runConfigMenu.setFocus();
-        runConfigMenu.click();
+        // Return the newly launched configurations shell
+        return (Shell) MagicWidgetFinder.findGlobal("Run Configurations", Option.factory().widgetClass(Shell.class).build());
+    }
 
-        bot.waitUntil(SWTBotTestCondition.isTreeWidgetEnabled(bot, LAUNCH_CONFIG_LIBERTY_MENU_NAME), 5000);
+    /**
+     * Launches the debug configuration dialog.
+     * 
+     * @param appName The application name.
+     */
+    public static Shell launchDebugConfigurationsDialog(String appName) {
 
-        if ("debug".equals(mode)) {
-            bot.waitUntil(SWTBotTestCondition.isTreeWidgetEnabled(bot, LAUNCH_CONFIG_REMOTE_JAVA_APP), 5000);
-        }
+        Object peView = MagicWidgetFinder.findGlobal("Project Explorer");
+        Object project = MagicWidgetFinder.find(appName, peView);
+        MagicWidgetFinder.context(project, "Debug As", "Debug Configurations...");
 
+        // Return the newly launched configurations shell
+        return (Shell) MagicWidgetFinder.findGlobal("Debug Configurations", Option.factory().widgetClass(Shell.class).build());
     }
 
     /**
@@ -454,6 +341,7 @@ public class SWTBotPluginOperations {
      * @return The object that represents the Run/Debug As->Run/Debug Configuration...->Liberty menu entry.
      */
     public static SWTBotTreeItem getLibertyToolsConfigMenuItem(SWTWorkbenchBot bot) {
+
         SWTBotTreeItem libertyToolsEntry = bot.tree().getTreeItem(LAUNCH_CONFIG_LIBERTY_MENU_NAME);
         bot.waitUntil(SWTBotTestCondition.isTreeItemEnabled(libertyToolsEntry), 10000);
         libertyToolsEntry.select().setFocus();
@@ -486,17 +374,51 @@ public class SWTBotPluginOperations {
     }
 
     /**
-     * Deletes Liberty configuration entries based on the supplied mode.
+     * Deletes Liberty run configuration entries.
      * 
-     * @param bot The SWTWorkbenchBot instance.
-     * @param item The application name.
-     * @param mode The operating mode. It can be either \"run\" or \"debug\".
+     * @param bot The SWTWorkbenchBot instance..
+     * @param appName The application name.
      */
-    public static void deleteLibertyToolsConfigEntries(SWTWorkbenchBot bot, String item, String mode) {
-        Assertions.assertTrue(("run".equals(mode) || "debug".equals(mode)),
-                () -> "Invalid configration mode: " + mode + ". Accepted values: run, debug.");
+    public static void deleteLibertyToolsRunConfigEntries(SWTWorkbenchBot bot, String appName) {
 
-        SWTBotPluginOperations.launchConfigurationsDialog(bot, item, mode);
+        Shell configShell = SWTBotPluginOperations.launchRunConfigurationsDialog(appName);
+
+        try {
+            SWTBotTreeItem libertyToolsEntry = getLibertyToolsConfigMenuItem(bot);
+            Assertions.assertTrue((libertyToolsEntry != null), () -> "The Liberty entry was not found in run Configurations dialog.");
+
+            List<String> configs = libertyToolsEntry.getNodes();
+
+            for (String config : configs) {
+                SWTBotTreeItem configEntry = libertyToolsEntry.getNode(config);
+                bot.waitUntil(SWTBotTestCondition.isTreeItemEnabled(configEntry), 10000);
+                configEntry.select().setFocus();
+
+                SWTBotToolbarButton deleteButon = bot.toolbarButtonWithTooltip("Delete selected launch configuration(s)");
+                deleteButon.setFocus();
+                deleteButon.click();
+
+                SWTBotButton deleteButton = bot.button("Delete");
+                bot.waitUntil(SWTBotTestCondition.isButtonEnabled(deleteButton), 5000);
+                deleteButton.setFocus();
+                deleteButton.click();
+            }
+        } finally {
+            // Close the configuration dialog.
+            MagicWidgetFinder.go("Close", configShell);
+        }
+    }
+
+    /**
+     * Deletes Liberty debug configuration entries.
+     * 
+     * @param bot The SWTWorkbenchBot instance..
+     * @param appName The application name.
+     */
+    public static void deleteLibertyToolsDebugConfigEntries(SWTWorkbenchBot bot, String appName) {
+
+        Shell configShell = SWTBotPluginOperations.launchRunConfigurationsDialog(appName);
+
         try {
             SWTBotTreeItem libertyToolsEntry = getLibertyToolsConfigMenuItem(bot);
             Assertions.assertTrue((libertyToolsEntry != null), () -> "The Liberty entry was not found in run Configurations dialog.");
@@ -519,165 +441,149 @@ public class SWTBotPluginOperations {
             }
 
             // Delete debug mode Remote Java Application configurations
-            if ("debug".equals(mode)) {
-                SWTBotTreeItem remoteJavaAppEntry = getRemoteJavaAppConfigMenuItem(bot);
-                Assertions.assertTrue((remoteJavaAppEntry != null),
-                        () -> "The " + LAUNCH_CONFIG_REMOTE_JAVA_APP + " entry was not found in run Configurations dialog.");
+            SWTBotTreeItem remoteJavaAppEntry = getRemoteJavaAppConfigMenuItem(bot);
+            Assertions.assertTrue((remoteJavaAppEntry != null),
+                    () -> "The " + LAUNCH_CONFIG_REMOTE_JAVA_APP + " entry was not found in run Configurations dialog.");
 
-                List<String> rjaConfigs = remoteJavaAppEntry.getNodes();
-                for (String rjaConfig : rjaConfigs) {
-                    SWTBotTreeItem configEntry = remoteJavaAppEntry.getNode(rjaConfig);
-                    bot.waitUntil(SWTBotTestCondition.isTreeItemEnabled(configEntry), 10000);
-                    configEntry.select().setFocus();
+            List<String> rjaConfigs = remoteJavaAppEntry.getNodes();
+            for (String rjaConfig : rjaConfigs) {
+                SWTBotTreeItem configEntry = remoteJavaAppEntry.getNode(rjaConfig);
+                bot.waitUntil(SWTBotTestCondition.isTreeItemEnabled(configEntry), 10000);
+                configEntry.select().setFocus();
 
-                    SWTBotToolbarButton deleteButon = bot.toolbarButtonWithTooltip("Delete selected launch configuration(s)");
-                    deleteButon.setFocus();
-                    deleteButon.click();
+                SWTBotToolbarButton deleteButon = bot.toolbarButtonWithTooltip("Delete selected launch configuration(s)");
+                deleteButon.setFocus();
+                deleteButon.click();
 
-                    SWTBotButton deleteButton = bot.button("Delete");
-                    bot.waitUntil(SWTBotTestCondition.isButtonEnabled(deleteButton), 5000);
-                    deleteButton.setFocus();
-                    deleteButton.click();
-                }
+                SWTBotButton deleteButton = bot.button("Delete");
+                bot.waitUntil(SWTBotTestCondition.isButtonEnabled(deleteButton), 5000);
+                deleteButton.setFocus();
+                deleteButton.click();
             }
         } finally {
             // Close the configuration dialog.
-            closeDialog(bot);
+            MagicWidgetFinder.go("Close", configShell);
         }
     }
 
     /**
-     * Launches dev mode start using a new Liberty configuration: project -> Run/Debug As -> Run/Debug Configurations -> Liberty ->
-     * New configuration (default) -> Run.
+     * Launches dev mode start using a new Liberty configuration: project -> Run As -> Run Configurations -> Liberty -> New
+     * configuration (default) -> Run.
      * 
-     * @param bot The SWTWorkbenchBot instance.
      * @param item The application name.
-     * @param mode The operating mode. It can be either \"run\" or \"debug\".
      */
-    public static void launchStartWithDefaultConfig(SWTWorkbenchBot bot, String item, String mode) {
-        Assertions.assertTrue(("run".equals(mode) || "debug".equals(mode)),
-                () -> "Invalid configration mode: " + mode + ". Accepted values: run, debug.");
+    public static void launchStartWithDefaultRunConfig(String appName) {
 
-        SWTBotPluginOperations.launchConfigurationsDialog(bot, item, mode);
-        SWTBotTreeItem libertyToolsEntry = getLibertyToolsConfigMenuItem(bot);
-        libertyToolsEntry.doubleClick();
+        Shell configShell = SWTBotPluginOperations.launchRunConfigurationsDialog(appName);
+        Object libertyConfigTree = MagicWidgetFinder.find(LAUNCH_CONFIG_LIBERTY_MENU_NAME, configShell);
 
-        runLibertyConfiguration(bot, mode);
+        MagicWidgetFinder.context(libertyConfigTree, "New Configuration");
+        MagicWidgetFinder.go("Run", configShell);
     }
 
     /**
-     * Launches dev mode with parms using a new Liberty configuration: project -> Run/Debug As -> Run/Debug Configurations -> Liberty
-     * -> New configuration (default) -> update parms -> Run. Note that the changes are not saved.
+     * Launches dev mode with parms using a new Liberty configuration: project -> Run As -> Run Configurations -> Liberty -> New
+     * configuration (default) -> update parms -> Run. Note that the changes are not saved.
      * 
      * @param bot The SWTWorkbenchBot instance.
      * @param item The application name.
-     * @param mode The operating mode. It can be either \"run\" or \"debug\".
      * @param parms The parameter(s) to pass to the dev mode start action.
      */
-    public static void launchStartWithCustomConfig(SWTWorkbenchBot bot, String item, String mode, String parms) {
-        Assertions.assertTrue(("run".equals(mode) || "debug".equals(mode)),
-                () -> "Invalid configration mode: " + mode + ". Accepted values: run, debug.");
+    public static void launchStartWithCustomRunConfig(SWTWorkbenchBot bot, String appName, String parms) {
 
-        SWTBotPluginOperations.launchConfigurationsDialog(bot, item, mode);
-        createNewLibertyConfiguration(bot);
+        Shell configShell = SWTBotPluginOperations.launchRunConfigurationsDialog(appName);
+        Object libertyConfigTree = MagicWidgetFinder.find(LAUNCH_CONFIG_LIBERTY_MENU_NAME, configShell);
 
-        setLibertyConfigParms(bot, parms);
-
-        runLibertyConfiguration(bot, mode);
+        MagicWidgetFinder.context(libertyConfigTree, "New Configuration");
+        MagicWidgetFinder.set("Start parameters:", parms);
+        MagicWidgetFinder.go("Run", configShell);
     }
 
     /**
-     * Creates a new Liberty configuration: <Run/Debug configurations dialog> -> Liberty -> New configuration. The Run/Debug
-     * configurations dialog containing the Liberty entry must be the active view when this method is called.
+     * Launches dev mode with parms using a new Liberty configuration: project -> Debug As -> Debug Configurations -> Liberty -> New
+     * configuration (default) -> update parms -> Debug. Note that the changes are not saved.
      * 
      * @param bot The SWTWorkbenchBot instance.
-     */
-    public static void createNewLibertyConfiguration(SWTWorkbenchBot bot) {
-        SWTBotTreeItem libertyToolsEntry = getLibertyToolsConfigMenuItem(bot);
-        libertyToolsEntry.doubleClick();
-    }
-
-    /**
-     * Updates the Start parameters entry on the Main tab of the Liberty configuration. The Liberty Main tab on the Run Configurations
-     * dialog must be the active view when this method is called.
-     * 
-     * @param bot The SWTWorkbenchBot instance.
+     * @param item The application name.
      * @param parms The parameter(s) to pass to the dev mode start action.
      */
-    public static void setLibertyConfigParms(SWTWorkbenchBot bot, String parms) {
-        SWTBotText parmTextBox = bot.textWithLabel("Start parameters:");
-        parmTextBox.setFocus();
-        parmTextBox.setText(parms);
-        bot.waitUntil(SWTBotTestCondition.isTextPresent(parmTextBox, parms), 5000);
+    public static void launchStartWithCustomDebugConfig(SWTWorkbenchBot bot, String appName, String parms) {
+
+        Shell configShell = SWTBotPluginOperations.launchDebugConfigurationsDialog(appName);
+        Object libertyConfigTree = MagicWidgetFinder.find(LAUNCH_CONFIG_LIBERTY_MENU_NAME, configShell);
+
+        MagicWidgetFinder.context(libertyConfigTree, "New Configuration");
+        MagicWidgetFinder.set("Start parameters:", parms);
+        MagicWidgetFinder.go("Debug", configShell);
     }
 
     /**
-     * Clicks the Run/Debug button on the Main tab of the Liberty configuration. The Liberty Main tab on the Run Configurations dialog
-     * must be the active view when this method is called.
+     * Launches the start action using the debug as configuration shortcut.
      * 
      * @param bot The SWTWorkbenchBot instance.
-     * @param mode The operating mode. It can be either \"run\" or \"debug\".
+     * @param appName The application name.
      */
-    public static void runLibertyConfiguration(SWTWorkbenchBot bot, String mode) {
-        SWTBotButton button = bot.button(("run".equals(mode)) ? "Run" : "Debug");
-        bot.waitUntil(SWTBotTestCondition.isButtonEnabled(button), 5000);
-        button.setFocus();
-        button.click();
+    public static void launchStartWithDebugAsShortcut(String appName) {
+
+        Object peView = MagicWidgetFinder.findGlobal("Project Explorer");
+        Object project = MagicWidgetFinder.find(appName, peView);
+
+        MagicWidgetFinder.context(project, "Debug As",
+                WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START + ".*"));
     }
 
     /**
-     * Launches the start action using the run/debug as configuration shortcut.
+     * Launches the start action using the run as configuration shortcut.
      * 
      * @param bot The SWTWorkbenchBot instance.
-     * @param item The application name.
-     * @param mode The operating mode. It can be either \"run\" or \"debug\".
+     * @param appName The application name.
      */
-    public static void launchStartWithRunDebugAsShortcut(SWTWorkbenchBot bot, String item, String mode) {
-        Assertions.assertTrue(("run".equals(mode) || "debug".equals(mode)),
-                () -> "Invalid configration mode: " + mode + ". Accepted values: run, debug.");
+    public static void launchStartWithRunAsShortcut(String appName) {
 
-        SWTBotMenu modeAsMenu = ("run".equals(mode)) ? getAppRunAsMenu(bot, item) : getAppDebugAsMenu(bot, item);
+        Object peView = MagicWidgetFinder.findGlobal("Project Explorer");
+        TreeItem project = (TreeItem) MagicWidgetFinder.find(appName, peView);
 
-        SWTBotMenu stopShortcut = modeAsMenu
-                .menu(WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START + ".*"), false, 0);
-        stopShortcut.setFocus();
-        stopShortcut.click();
+        MagicWidgetFinder.context(project, "Run As",
+                WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START + ".*"));
     }
 
     /**
-     * Launches the stop action using the run/debug as configuration shortcut.
+     * Launches the stop action using the run as configuration shortcut.
      * 
-     * @param bot The SWTWorkbenchBot instance.
-     * @param item The application name.
-     * @param mode The operating mode. It can be either \"run\" or \"debug\".
+     * @param appName The application name.
      */
-    public static void launchStopWithRunDebugAsShortcut(SWTWorkbenchBot bot, String item, String mode) {
-        Assertions.assertTrue(("run".equals(mode) || "debug".equals(mode)),
-                () -> "Invalid configration mode: " + mode + ". Accepted values: run, debug.");
+    public static void launchStopWithRunAsShortcut(String appName) {
+        Object peView = MagicWidgetFinder.findGlobal("Project Explorer");
+        TreeItem project = (TreeItem) MagicWidgetFinder.find(appName, peView);
 
-        SWTBotMenu modeAsMenu = ("run".equals(mode)) ? getAppRunAsMenu(bot, item) : getAppDebugAsMenu(bot, item);
-        SWTBotMenu stopShortcut = modeAsMenu
-                .menu(WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_STOP + ".*"), false, 0);
-        stopShortcut.setFocus();
-        stopShortcut.click();
+        MagicWidgetFinder.context(project, "Run As",
+                WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_STOP + ".*"));
     }
 
     /**
-     * Launches the run tests action using the run/debug as configuration shortcut.
+     * Launches the run tests action using the run as configuration shortcut.
      * 
-     * @param bot The SWTWorkbenchBot instance.
-     * @param item The application name.
-     * @param mode The operating mode. It can be either \"run\" or \"debug\".
+     * @param appName The application name.
      */
-    public static void launchRunTestspWithRunDebugAsShortcut(SWTWorkbenchBot bot, String item, String mode) {
-        Assertions.assertTrue(("run".equals(mode) || "debug".equals(mode)),
-                () -> "Invalid configration mode: " + mode + ". Accepted values: run, debug.");
+    public static void launchRunTestsWithRunAsShortcut(String appName) {
+        Object peView = MagicWidgetFinder.findGlobal("Project Explorer");
+        TreeItem project = (TreeItem) MagicWidgetFinder.find(appName, peView);
 
-        SWTBotMenu modeAsMenu = ("run".equals(mode)) ? getAppRunAsMenu(bot, item) : getAppDebugAsMenu(bot, item);
-        SWTBotMenu stopShortcut = modeAsMenu.menu(
-                WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_RUN_TESTS + ".*"), false, 0);
-        stopShortcut.setFocus();
-        stopShortcut.click();
+        MagicWidgetFinder.context(project, "Run As",
+                WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_RUN_TESTS + ".*"));
+    }
+
+    /**
+     * Launches the run tests action using the run as configuration shortcut.
+     * 
+     * @param appName The application name.
+     */
+    public static void launchRunTestsWithDebugAsShortcut(String appName) {
+        Object peView = MagicWidgetFinder.findGlobal("Project Explorer");
+        TreeItem project = (TreeItem) MagicWidgetFinder.find(appName, peView);
+
+        MagicWidgetFinder.context(project, "Debug As",
+                WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_RUN_TESTS + ".*"));
     }
 
     /**
@@ -732,35 +638,16 @@ public class SWTBotPluginOperations {
     }
 
     /**
-     * Returns the object representing the explorer->project->right-click->Configure.
-     * 
-     * @param bot The SWTWorkbenchBot instance.
-     * @param item The application name.
-     * 
-     * @return The object representing the explorer->project->right-click->Configure.
-     */
-    public static SWTBotMenu getExplorerConfigurationMenu(SWTWorkbenchBot bot, String item) {
-        SWTBotMenu configurationMenu = null;
-        SWTBotTreeItem project = getInstalledProjectItem(bot, item);
-        Assertions.assertTrue(project != null, () -> "Could not find active project.");
-
-        project.setFocus();
-        configurationMenu = project.contextMenu("Configure").click();
-
-        return configurationMenu;
-    }
-
-    /**
      * Enables Liberty tools on the input project by clicking on explorer->project->right-click->Configure->Enable Liberty.
      * 
-     * @param bot The SWTWorkbenchBot instance.
-     * @param item The application name.
+     * @param appName The application name.
      */
-    public static void enableLibertyTools(SWTWorkbenchBot bot, String item) {
-        SWTBotMenu configureMenu = getExplorerConfigurationMenu(bot, item);
-        SWTBotMenu runConfigMenu = configureMenu.menu(EXPLORER_CONFIGURE_MENU_ENABLE_LIBERTY_TOOLS);
-        runConfigMenu.setFocus();
-        runConfigMenu.click();
+    public static void enableLibertyTools(String appName) {
+
+        Object peView = MagicWidgetFinder.findGlobal("Project Explorer");
+        Object project = MagicWidgetFinder.find(appName, peView);
+
+        MagicWidgetFinder.context(project, "Configure", EXPLORER_CONFIGURE_MENU_ENABLE_LIBERTY_TOOLS);
     }
 
     /**
@@ -928,39 +815,6 @@ public class SWTBotPluginOperations {
     }
 
     /**
-     * Switches the perspective to Project Explorer.
-     *
-     * @param bot The SWTWorkbenchBot instance.
-     */
-    public static void switchToProjectExplorerView(SWTWorkbenchBot bot) {
-
-        String projExpViewName = "Project Explorer";
-        bot.menu("Window").menu("Show View").menu(projExpViewName).click();
-        int maxRetries = 10;
-        String activeViewTitle = null;
-
-        for (int i = 0; i < maxRetries; i++) {
-            SWTBotView activeView = bot.activeView();
-            activeViewTitle = activeView.getTitle();
-
-            if (projExpViewName.equals(activeViewTitle)) {
-                bot.waitUntil(SWTBotTestCondition.isViewActive(activeView, activeView.getTitle()), 10000);
-                return;
-            } else {
-                try {
-                    TimeUnit.MILLISECONDS.sleep(1000);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
-                continue;
-            }
-        }
-
-        Assertions.fail("Found Invalid view: " + activeViewTitle + ". Expected view: " + projExpViewName);
-    }
-
-    /**
      * Presses the Proceed button if it exists on the error in workspace dialog.
      * 
      * @param bot The SWTWorkbenchBot instance.
@@ -970,34 +824,6 @@ public class SWTBotPluginOperations {
             bot.button("Proceed").click();
         } catch (Exception e) {
             // Best effort approach.
-        }
-    }
-
-    /**
-     * Clicks the Apply button on run configuration dialog tab. A dialog containing this button must be active before making this
-     * call.
-     * 
-     * @param bot The SWTWorkbenchBot instance.
-     */
-    public static void applyDialogChanges(SWTWorkbenchBot bot) {
-        SWTBotButton applyButton = bot.button("Apply");
-        if (applyButton.isEnabled()) {
-            applyButton.setFocus();
-            applyButton.click();
-        }
-    }
-
-    /**
-     * Clicks the Close button on run configuration dialog tab. A dialog containing this button must be active before making this
-     * call.
-     * 
-     * @param bot The SWTWorkbenchBot instance.
-     */
-    public static void closeDialog(SWTWorkbenchBot bot) {
-        SWTBotButton closeButton = bot.button("Close");
-        if (closeButton.isEnabled()) {
-            closeButton.setFocus();
-            closeButton.click();
         }
     }
 

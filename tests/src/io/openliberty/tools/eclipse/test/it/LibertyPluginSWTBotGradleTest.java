@@ -22,6 +22,8 @@ import java.util.List;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotView;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotCombo;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotMenu;
@@ -36,6 +38,8 @@ import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.LibertyNature;
 import io.openliberty.tools.eclipse.Project;
 import io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils;
+import io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder;
+import io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.Option;
 import io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher;
@@ -217,21 +221,21 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
                         + "Found entry count: " + foundDebugAsItems + ". Found menu entries: " + debugAsMenuItems);
 
         // Check that the Run As -> Run Configurations ... contains the Liberty entry in the menu.
+        Shell configShell = SWTBotPluginOperations.launchRunConfigurationsDialog(GRADLE_APP_NAME);
         try {
-            SWTBotPluginOperations.launchConfigurationsDialog(bot, GRADLE_APP_NAME, "run");
             SWTBotTreeItem runAslibertyToolsEntry = SWTBotPluginOperations.getLibertyToolsConfigMenuItem(bot);
             Assertions.assertTrue(runAslibertyToolsEntry != null, "Liberty entry in Run Configurations view was not found.");
         } finally {
-            SWTBotPluginOperations.closeDialog(bot);
+            MagicWidgetFinder.go("Close", configShell);
         }
 
         // Check that the Debug As -> Debug Configurations... contains the Liberty entry in the menu.
+        Shell debugShell = SWTBotPluginOperations.launchDebugConfigurationsDialog(GRADLE_APP_NAME);
         try {
-            SWTBotPluginOperations.launchConfigurationsDialog(bot, GRADLE_APP_NAME, "debug");
             SWTBotTreeItem debugAslibertyToolsEntry = SWTBotPluginOperations.getLibertyToolsConfigMenuItem(bot);
             Assertions.assertTrue(debugAslibertyToolsEntry != null, "Liberty entry in Debug Configurations view was not found.");
         } finally {
-            SWTBotPluginOperations.closeDialog(bot);
+            MagicWidgetFinder.go("Close", debugShell);
         }
     }
 
@@ -242,7 +246,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
     public void testDashboardStartAction() {
 
         // Start dev mode.
-        SWTBotPluginOperations.launchStartWithDashboardAction(bot, dashboard, GRADLE_APP_NAME);
+        SWTBotPluginOperations.launchDashboardAction(bot, GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_START);
         SWTBotView terminal = bot.viewByTitle("Terminal");
         terminal.show();
 
@@ -253,7 +257,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
 
         // Stop dev mode.
-        SWTBotPluginOperations.launchStopWithDashboardAction(bot, dashboard, GRADLE_APP_NAME);
+        SWTBotPluginOperations.launchDashboardAction(bot, GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
         terminal.show();
 
         // Validate application stopped.
@@ -270,7 +274,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
     public void testDashboardDebugAction() {
 
         // Start dev mode.
-        SWTBotPluginOperations.launchDebugWithDashboardAction(bot, dashboard, GRADLE_APP_NAME);
+        SWTBotPluginOperations.launchDashboardAction(bot, GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_DEBUG);
         SWTBotView terminal = bot.viewByTitle("Terminal");
         terminal.show();
 
@@ -281,7 +285,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
 
         // Stop dev mode.
-        SWTBotPluginOperations.launchStopWithDashboardAction(bot, dashboard, GRADLE_APP_NAME);
+        SWTBotPluginOperations.launchDashboardAction(bot, GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
         terminal.show();
 
         // Validate application stopped.
@@ -296,10 +300,9 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
      */
     @Test
     public void testDashboardStartWithCustomConfigAction() {
-        String mode = "run";
 
         // Delete any previously created configs.
-        SWTBotPluginOperations.deleteLibertyToolsConfigEntries(bot, GRADLE_APP_NAME, mode);
+        SWTBotPluginOperations.deleteLibertyToolsRunConfigEntries(bot, GRADLE_APP_NAME);
 
         // Delete the test report files before we start this test.
         Path projectPath = Paths.get("resources", "applications", "gradle", "liberty-gradle-test-app");
@@ -308,10 +311,14 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         Assertions.assertTrue(testReportDeleted, () -> "File: " + pathToTestReport + " was not deleted.");
 
         // Start dev mode with parms.
-        SWTBotPluginOperations.launchStartConfigDialogWithDashboardAction(bot, dashboard, GRADLE_APP_NAME);
-        SWTBotPluginOperations.createNewLibertyConfiguration(bot);
-        SWTBotPluginOperations.setLibertyConfigParms(bot, "--hotTests");
-        SWTBotPluginOperations.runLibertyConfiguration(bot, mode);
+        SWTBotPluginOperations.launchDashboardAction(bot, GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_START_CONFIG);
+
+        Shell configShell = (Shell) MagicWidgetFinder.findGlobal("Run Configurations", Option.factory().widgetClass(Shell.class).build());
+        TreeItem libertyConfigTree = (TreeItem) MagicWidgetFinder.find(SWTBotPluginOperations.LAUNCH_CONFIG_LIBERTY_MENU_NAME, configShell);
+
+        MagicWidgetFinder.context(libertyConfigTree, "New Configuration");
+        MagicWidgetFinder.set("Start parameters:", "--hotTests");
+        MagicWidgetFinder.go("Run", configShell);
 
         SWTBotView terminal = bot.viewByTitle("Terminal");
         terminal.show();
@@ -327,7 +334,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
             LibertyPluginTestUtils.validateTestReportExists(pathToTestReport);
         } finally {
             // Stop dev mode.
-            SWTBotPluginOperations.launchStopWithDashboardAction(bot, dashboard, GRADLE_APP_NAME);
+            SWTBotPluginOperations.launchDashboardAction(bot, GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
             terminal.show();
 
             // Validate application stopped.
@@ -346,7 +353,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         String mode = "debug";
 
         // Delete any previously created configs.
-        SWTBotPluginOperations.deleteLibertyToolsConfigEntries(bot, GRADLE_APP_NAME, mode);
+        SWTBotPluginOperations.deleteLibertyToolsDebugConfigEntries(bot, GRADLE_APP_NAME);
 
         // Delete the test report files before we start this test.
         Path projectPath = Paths.get("resources", "applications", "gradle", "liberty-gradle-test-app");
@@ -355,10 +362,14 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         Assertions.assertTrue(testReportDeleted, () -> "File: " + pathToTestReport + " was not deleted.");
 
         // Start dev mode with parms.
-        SWTBotPluginOperations.launchDebugConfigDialogWithDashboardAction(bot, dashboard, GRADLE_APP_NAME);
-        SWTBotPluginOperations.createNewLibertyConfiguration(bot);
-        SWTBotPluginOperations.setLibertyConfigParms(bot, "--hotTests");
-        SWTBotPluginOperations.runLibertyConfiguration(bot, mode);
+        SWTBotPluginOperations.launchDashboardAction(bot, GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_DEBUG_CONFIG);
+
+        Shell configShell = (Shell) MagicWidgetFinder.findGlobal("Debug Configurations", Option.factory().widgetClass(Shell.class).build());
+        TreeItem libertyConfigTree = (TreeItem) MagicWidgetFinder.find(SWTBotPluginOperations.LAUNCH_CONFIG_LIBERTY_MENU_NAME, configShell);
+
+        MagicWidgetFinder.context(libertyConfigTree, "New Configuration");
+        MagicWidgetFinder.set("Start parameters:", "--hotTests");
+        MagicWidgetFinder.go("Debug", configShell);
 
         SWTBotView terminal = bot.viewByTitle("Terminal");
         terminal.show();
@@ -374,7 +385,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
             LibertyPluginTestUtils.validateTestReportExists(pathToTestReport);
         } finally {
             // Stop dev mode.
-            SWTBotPluginOperations.launchStopWithDashboardAction(bot, dashboard, GRADLE_APP_NAME);
+            SWTBotPluginOperations.launchDashboardAction(bot, GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
             terminal.show();
 
             // Validate application stopped.
@@ -398,7 +409,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         Assertions.assertTrue(testReportDeleted, () -> "Test report file: " + pathToTestReport + " was not be deleted.");
 
         // Start dev mode.
-        SWTBotPluginOperations.launchStartWithDashboardAction(bot, dashboard, GRADLE_APP_NAME);
+        SWTBotPluginOperations.launchDashboardAction(bot, GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
         SWTBotView terminal = bot.viewByTitle("Terminal");
         terminal.show();
 
@@ -410,16 +421,16 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
 
         try {
             // Run Tests.
-            SWTBotPluginOperations.launchRunTestsWithDashboardAction(bot, dashboard, GRADLE_APP_NAME);
+            SWTBotPluginOperations.launchDashboardAction(bot, GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_RUN_TESTS);
 
             // Validate that the reports were generated and the the browser editor was launched.
             LibertyPluginTestUtils.validateTestReportExists(pathToTestReport);
             if (LibertyPluginTestUtils.isInternalBrowserSupportAvailable()) {
-                SWTBotPluginOperations.launchViewTestReportWithDashboardAction(bot, dashboard, GRADLE_APP_NAME);
+                SWTBotPluginOperations.launchDashboardAction(bot, GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT);
             }
         } finally {
             // Stop dev mode.
-            SWTBotPluginOperations.launchStopWithDashboardAction(bot, dashboard, GRADLE_APP_NAME);
+            SWTBotPluginOperations.launchDashboardAction(bot, GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
             terminal.show();
 
             // Validate application stopped.
@@ -471,7 +482,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
 
         try {
             // Refresh the project through the explorer view to pick up the nature removal.
-            SWTBotPluginOperations.refreshProjectUsingExplorerView(bot, GRADLE_APP_NAME);
+            SWTBotPluginOperations.refreshProjectUsingExplorerView(GRADLE_APP_NAME);
 
             // Refresh the dashboard.
             SWTBotPluginOperations.refreshDashboard(bot);
@@ -489,10 +500,10 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
             Assertions.assertTrue(!gradleAppFound, () -> "Project " + projectName + " should not be listed in the dashboard.");
 
             // Add the project nature manually.
-            SWTBotPluginOperations.enableLibertyTools(bot, GRADLE_APP_NAME);
+            SWTBotPluginOperations.enableLibertyTools(GRADLE_APP_NAME);
 
             // Refresh the project through the explorer view to pick up the nature removal.
-            SWTBotPluginOperations.refreshProjectUsingExplorerView(bot, GRADLE_APP_NAME);
+            SWTBotPluginOperations.refreshProjectUsingExplorerView(GRADLE_APP_NAME);
 
             // Refresh the dashboard.
             SWTBotPluginOperations.refreshDashboard(bot);
@@ -529,10 +540,10 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
     public void testStartWithDefaultRunAsConfig() {
 
         // Delete any previously created configs.
-        SWTBotPluginOperations.deleteLibertyToolsConfigEntries(bot, GRADLE_APP_NAME, "run");
+        SWTBotPluginOperations.deleteLibertyToolsRunConfigEntries(bot, GRADLE_APP_NAME);
 
         // Start dev mode.
-        SWTBotPluginOperations.launchStartWithDefaultConfig(bot, GRADLE_APP_NAME, "run");
+        SWTBotPluginOperations.launchStartWithDefaultRunConfig(GRADLE_APP_NAME);
         SWTBotView terminal = bot.viewByTitle("Terminal");
         terminal.show();
 
@@ -543,7 +554,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
 
         // Stop dev mode.
-        SWTBotPluginOperations.launchStopWithRunDebugAsShortcut(bot, GRADLE_APP_NAME, "run");
+        SWTBotPluginOperations.launchStopWithRunAsShortcut(GRADLE_APP_NAME);
         terminal.show();
 
         // Validate application stopped.
@@ -561,7 +572,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
     public void testStartWithCustomRunAsConfig() {
 
         // Delete any previously created configs.
-        SWTBotPluginOperations.deleteLibertyToolsConfigEntries(bot, GRADLE_APP_NAME, "run");
+        SWTBotPluginOperations.deleteLibertyToolsRunConfigEntries(bot, GRADLE_APP_NAME);
 
         // Delete the test report files before we start this test.
         Path projectPath = Paths.get("resources", "applications", "gradle", "liberty-gradle-test-app");
@@ -570,7 +581,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         Assertions.assertTrue(testReportDeleted, () -> "File: " + pathToTestReport + " was not deleted.");
 
         // Start dev mode with parms.
-        SWTBotPluginOperations.launchStartWithCustomConfig(bot, GRADLE_APP_NAME, "run", "--hotTests");
+        SWTBotPluginOperations.launchStartWithCustomRunConfig(bot, GRADLE_APP_NAME, "--hotTests");
         SWTBotView terminal = bot.viewByTitle("Terminal");
         terminal.show();
 
@@ -585,7 +596,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
             LibertyPluginTestUtils.validateTestReportExists(pathToTestReport);
         } finally {
             // Stop dev mode.
-            SWTBotPluginOperations.launchStopWithRunDebugAsShortcut(bot, GRADLE_APP_NAME, "run");
+            SWTBotPluginOperations.launchStopWithRunAsShortcut(GRADLE_APP_NAME);
             terminal.show();
 
             // Validate application stopped.
@@ -603,7 +614,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
     public void testRunAsShortcutActions() {
 
         // Delete any previously created configs.
-        SWTBotPluginOperations.deleteLibertyToolsConfigEntries(bot, GRADLE_APP_NAME, "run");
+        SWTBotPluginOperations.deleteLibertyToolsRunConfigEntries(bot, GRADLE_APP_NAME);
 
         // Delete the test report files before we start this test.
         Path projectPath = Paths.get("resources", "applications", "gradle", "liberty-gradle-test-app");
@@ -612,7 +623,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         Assertions.assertTrue(testReportDeleted, () -> "Test report file: " + pathToTestReport + " was not be deleted.");
 
         // Start dev mode.
-        SWTBotPluginOperations.launchStartWithRunDebugAsShortcut(bot, GRADLE_APP_NAME, "run");
+        SWTBotPluginOperations.launchStartWithRunAsShortcut(GRADLE_APP_NAME);
         SWTBotView terminal = bot.viewByTitle("Terminal");
         terminal.show();
 
@@ -624,7 +635,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
 
         try {
             // Run Tests.
-            SWTBotPluginOperations.launchRunTestspWithRunDebugAsShortcut(bot, GRADLE_APP_NAME, "run");
+            SWTBotPluginOperations.launchRunTestsWithRunAsShortcut(GRADLE_APP_NAME);
 
             // Validate that the reports were generated and the the browser editor was launched.
             LibertyPluginTestUtils.validateTestReportExists(pathToTestReport);
@@ -633,7 +644,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
             }
         } finally {
             // Stop dev mode.
-            SWTBotPluginOperations.launchStopWithRunDebugAsShortcut(bot, GRADLE_APP_NAME, "run");
+            SWTBotPluginOperations.launchStopWithRunAsShortcut(GRADLE_APP_NAME);
             terminal.show();
 
             // Validate application stopped.
@@ -651,7 +662,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
     @Test
     public void testStartWithCustomDebugAsConfig() {
         // Delete any previously created configs.
-        SWTBotPluginOperations.deleteLibertyToolsConfigEntries(bot, GRADLE_APP_NAME, "debug");
+        SWTBotPluginOperations.deleteLibertyToolsDebugConfigEntries(bot, GRADLE_APP_NAME);
 
         // Delete the test report files before we start this test.
         Path projectPath = Paths.get("resources", "applications", "gradle", "liberty-gradle-test-app");
@@ -660,7 +671,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         Assertions.assertTrue(testReportDeleted, () -> "File: " + pathToTestReport + " was not deleted.");
 
         // Start dev mode with parms.
-        SWTBotPluginOperations.launchStartWithCustomConfig(bot, GRADLE_APP_NAME, "debug", "--hotTests");
+        SWTBotPluginOperations.launchStartWithCustomDebugConfig(bot, GRADLE_APP_NAME, "--hotTests");
         SWTBotView terminal = bot.viewByTitle("Terminal");
         terminal.show();
 
@@ -677,11 +688,8 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
             // Validate that a remote java application configuration was created and is named after the application.
             validateRemoteJavaAppCreation(GRADLE_APP_NAME);
         } finally {
-            // Switch to the explorer view.
-            SWTBotPluginOperations.switchToProjectExplorerView(bot);
-
             // Stop dev mode using the Run As stop command.
-            SWTBotPluginOperations.launchStopWithRunDebugAsShortcut(bot, GRADLE_APP_NAME, "run");
+            SWTBotPluginOperations.launchStopWithRunAsShortcut(GRADLE_APP_NAME);
             terminal.show();
 
             // Validate application stopped.
@@ -698,10 +706,10 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
     @Test
     public void testStartWithDebugAsShortcut() {
         // Delete any previously created configs.
-        SWTBotPluginOperations.deleteLibertyToolsConfigEntries(bot, GRADLE_APP_NAME, "debug");
+        SWTBotPluginOperations.deleteLibertyToolsDebugConfigEntries(bot, GRADLE_APP_NAME);
 
         // Start dev mode.
-        SWTBotPluginOperations.launchStartWithRunDebugAsShortcut(bot, GRADLE_APP_NAME, "debug");
+        SWTBotPluginOperations.launchStartWithDebugAsShortcut(GRADLE_APP_NAME);
         SWTBotView terminal = bot.viewByTitle("Terminal");
         terminal.show();
 
@@ -714,11 +722,8 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         // Validate that a remote java application configuration was created and is named after the application.
         validateRemoteJavaAppCreation(GRADLE_APP_NAME);
 
-        // Switch to the explorer view.
-        SWTBotPluginOperations.switchToProjectExplorerView(bot);
-
         // Stop dev mode using the Run As stop command.
-        SWTBotPluginOperations.launchStopWithRunDebugAsShortcut(bot, GRADLE_APP_NAME, "run");
+        SWTBotPluginOperations.launchStopWithRunAsShortcut(GRADLE_APP_NAME);
         terminal.show();
 
         // Validate application stopped.
@@ -735,11 +740,16 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
     @Test
     public void testDefaultJRECompliance() {
         // Delete any previously created configs.
-        SWTBotPluginOperations.deleteLibertyToolsConfigEntries(bot, GRADLE_APP_NAME, "run");
+        SWTBotPluginOperations.deleteLibertyToolsRunConfigEntries(bot, GRADLE_APP_NAME);
+
+        Shell configShell = SWTBotPluginOperations.launchRunConfigurationsDialog(GRADLE_APP_NAME);
 
         try {
-            SWTBotPluginOperations.launchConfigurationsDialog(bot, GRADLE_APP_NAME, "run");
-            SWTBotPluginOperations.createNewLibertyConfiguration(bot);
+            TreeItem libertyConfigTree = (TreeItem) MagicWidgetFinder.find(SWTBotPluginOperations.LAUNCH_CONFIG_LIBERTY_MENU_NAME,
+                    configShell);
+
+            MagicWidgetFinder.context(libertyConfigTree, "New Configuration");
+
             SWTBotPluginOperations.openJRETab(bot);
             String buildPathJRE = LibertyPluginTestUtils.getJREFromBuildpath(testAppPath);
 
@@ -754,8 +764,8 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
             Assertions.assertTrue(comboJREBox.isEnabled(),
                     () -> "The JRE tab box showing Java installation \" + buildPathJRE + \" is not selected.");
         } finally {
-            SWTBotPluginOperations.applyDialogChanges(bot);
-            SWTBotPluginOperations.closeDialog(bot);
+            MagicWidgetFinder.go("Apply", configShell);
+            MagicWidgetFinder.go("Close", configShell);
         }
     }
 }
