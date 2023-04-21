@@ -14,6 +14,13 @@
 -->
 <target includeMode="feature" name="target-platform.target" sequenceNumber="15">
     <locations>
+
+    <location includeAllPlatforms="false" includeMode="planner" includeSource="true" type="InstallableUnit">
+        <repository location="https://download.eclipse.org/wildwebdeveloper/releases/1.0.2/"/>
+        <unit id="org.eclipse.wildwebdeveloper.feature.feature.group" version="1.0.2.202302250247"/>
+      <unit id="org.eclipse.wildwebdeveloper.xml.feature.feature.group" version="1.0.2.202301201156"/>
+     </location>
+
         <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
             <repository location="https://download.eclipse.org/releases/2022-12/"/>
             <unit id="org.eclipse.jdt.feature.group" version="3.18.1400.v20221123-1800"/>
@@ -114,5 +121,6 @@
             <repository location="https://download.eclipse.org/lsp4jakarta/releases/0.1.0/repository"/>
             <unit id="org.eclipse.lsp4jakarta.jdt.core" version="0.0"/>
         </location>
+                
     </locations>
 </target>
