@@ -12,6 +12,10 @@
 *******************************************************************************/
 package io.openliberty.tools.eclipse.test.it.utils;
 
+import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.find;
+import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.findGlobal;
+import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.go;
+import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.goMenuItem;
 import static org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory.allOf;
 import static org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory.widgetOfType;
 
@@ -24,7 +28,9 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Item;
+import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
@@ -310,12 +316,23 @@ public class SWTBotPluginOperations {
      */
     public static Shell launchRunConfigurationsDialog(String appName) {
 
-        Object peView = MagicWidgetFinder.findGlobal("Project Explorer");
-        Object project = MagicWidgetFinder.find(appName, peView);
+        //Object windowMenu = findGlobal("Window", Option.factory().setWidgetClass(MenuItem.class).build());
+        //goMenuItem(windowMenu, "Show View", "Project Explorer");
+
+        //Object peView = findGlobal("Project Explorer");
+        //TreeItem project = (TreeItem) find(appName, peView, Option.factory().setWidgetClass(TreeItem.class).build());
+        TreeItem project = (TreeItem) findGlobal(appName, Option.factory().setWidgetClass(TreeItem.class).build());
+        go(project);
+        
+        // bot.waitUntil(SWTBotTestCondition.isTreeItemEnabled(project), 5000);
+//        bot.waitUntil(SWTBotTestCondition.isTreeItemEnabled(project), 5000);
+//        new SWTBotTableItem(project).select().setFocus();
+
         MagicWidgetFinder.context(project, "Run As", "Run Configurations...");
+        //runAsMenu = project.contextMenu("Run As");
 
         // Return the newly launched configurations shell
-        return (Shell) MagicWidgetFinder.findGlobal("Run Configurations", Option.factory().widgetClass(Shell.class).build());
+        return (Shell) findGlobal("Run Configurations", Option.factory().widgetClass(Shell.class).build());
     }
 
     /**
@@ -325,12 +342,12 @@ public class SWTBotPluginOperations {
      */
     public static Shell launchDebugConfigurationsDialog(String appName) {
 
-        Object peView = MagicWidgetFinder.findGlobal("Project Explorer");
-        Object project = MagicWidgetFinder.find(appName, peView);
+        TreeItem project = (TreeItem) findGlobal(appName, Option.factory().widgetClass(TreeItem.class).build());
+        go(project);
+
         MagicWidgetFinder.context(project, "Debug As", "Debug Configurations...");
 
-        // Return the newly launched configurations shell
-        return (Shell) MagicWidgetFinder.findGlobal("Debug Configurations", Option.factory().widgetClass(Shell.class).build());
+        return (Shell) findGlobal("Debug Configurations", Option.factory().widgetClass(Shell.class).build());
     }
 
     /**
