@@ -61,6 +61,7 @@ import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.swt.widgets.Widget;
 import org.eclipse.swtbot.swt.finder.exceptions.WidgetNotFoundException;
 import org.eclipse.swtbot.swt.finder.keyboard.Keystrokes;
+import org.eclipse.swtbot.swt.finder.utils.SWTUtils;
 import org.eclipse.swtbot.swt.finder.widgets.AbstractSWTBot;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotButton;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotCTabItem;
@@ -70,6 +71,7 @@ import org.eclipse.swtbot.swt.finder.widgets.SWTBotMenu;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotRadio;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTableItem;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotText;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotToolbarPushButton;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IViewReference;
@@ -647,7 +649,17 @@ public class MagicWidgetFinder {
             } else if (o instanceof CTabItem) {
                 SWTBotCTabItem cti = new SWTBotCTabItem((CTabItem) o);
                 cti.show();
-
+            } else if (o instanceof ToolItem) {
+            	ToolItem ti = (ToolItem)o;
+            	if (SWTUtils.hasStyle((ToolItem)o, SWT.PUSH)) {
+            		SWTBotToolbarPushButton sb = new SWTBotToolbarPushButton(ti);
+                    long expireTimeInNanos = System.nanoTime() + TimeUnit.NANOSECONDS.convert(30, TimeUnit.SECONDS);
+                    while (!sb.isEnabled() && System.nanoTime() < expireTimeInNanos) {
+                        System.out.println("Waiting for button enabled.");
+                        pause(1000);
+                    }
+                    sb.click();
+            	}                    
             } else {
                 logErr("Unrecognized tester item (3): " + o.getClass().getName(), options);
                 recognized = false;
@@ -1099,6 +1111,24 @@ public class MagicWidgetFinder {
                     }
                 }
 
+            }
+        }
+        
+        // Added for Liberty Tools Eclipse
+        if (itemInfo.getTooltipText() != null) {
+            String text = itemInfo.getTooltipText().replace("&", "");
+
+            if (options.isUseContains()) {
+
+                if (text.trim().toLowerCase().contains(matchingText.trim().toLowerCase()) && !matches.contains(n)) {
+                    return true;
+                }
+
+            } else {
+
+                if (text.trim().equalsIgnoreCase(matchingText.trim()) && !matches.contains(n)) {
+                    return true;
+                }
             }
         }
 
