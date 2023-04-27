@@ -46,6 +46,7 @@ import io.openliberty.tools.eclipse.ui.launch.shortcuts.StartConfigurationDialog
 import io.openliberty.tools.eclipse.ui.launch.shortcuts.StartInContainerAction;
 import io.openliberty.tools.eclipse.ui.launch.shortcuts.StopAction;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
+import io.openliberty.tools.eclipse.utils.Utils;
 
 /**
  * View of Liberty application projects and dev mode actions to be processed on the selected projects.
@@ -183,7 +184,7 @@ public class DashboardView extends ViewPart {
      * @param mgr The menu manager.
      */
     private void addActionsToContextMenu(IMenuManager mgr) {
-        IProject iProject = devModeOps.getSelectedDashboardProject();
+        IProject iProject = Utils.getActiveProject();
         String projectName = iProject.getName();
         Project project = devModeOps.getProjectModel().getProject(projectName);
 
