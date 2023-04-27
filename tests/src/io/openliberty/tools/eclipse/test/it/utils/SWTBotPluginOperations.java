@@ -12,10 +12,11 @@
 *******************************************************************************/
 package io.openliberty.tools.eclipse.test.it.utils;
 
-import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.find;
 import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.findGlobal;
 import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.go;
+import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.goGlobal;
 import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.goMenuItem;
+import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.set;
 import static org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory.allOf;
 import static org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory.widgetOfType;
 
@@ -28,9 +29,10 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Item;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.TableItem;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
@@ -60,6 +62,8 @@ import org.hamcrest.Matcher;
 import org.junit.jupiter.api.Assertions;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
+import io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.ControlFinder;
+import io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.ControlFinder.Direction;
 import io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.Option;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher;
 
@@ -280,18 +284,39 @@ public class SWTBotPluginOperations {
 
         String finalMvnExecutableLoc = null;
         String finalGradleExecutableLoc = null;
+    	Object locationLabel = null; 
+    	Object locationText = null;
 
         finalMvnExecutableLoc = System.getProperty("io.liberty.tools.eclipse.tests.mvnexecutable.path");
         finalGradleExecutableLoc = System.getProperty("io.liberty.tools.eclipse.tests.gradleexecutable.path");
 
+        Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
+        goMenuItem(windowMenu, "Preferences");
+
+        TreeItem liberty = (TreeItem) findGlobal("Liberty", Option.factory().widgetClass(TreeItem.class).build());
+        go(liberty);
+        if (buildTool == "Maven") {
+        	locationLabel = findGlobal("Maven Install Location:", Option.factory().widgetClass(Label.class).build());
+        	locationText = ControlFinder.findControlInRange(locationLabel, Text.class, Direction.EAST);
+        	set(locationText, finalMvnExecutableLoc);
+        } else if (buildTool == "Gradle") {
+        	locationLabel = findGlobal("Gradle Install Location:", Option.factory().widgetClass(Label.class).build());
+        	locationText = ControlFinder.findControlInRange(locationLabel, Text.class, Direction.EAST);
+        	set(locationText, finalGradleExecutableLoc);
+        }
+
+        //goGlobal("Apply and Close", Option.factory().widgetClass(Button.class).build());
+        goGlobal("Apply and Close");
+        /*
         bot.menu("Window").menu("Preferences").click();
         bot.tree().getTreeItem("Liberty").select().setFocus();
         if (buildTool == "Maven") {
-            bot.textWithLabel("&Maven Install Location:").setText(finalMvnExecutableLoc);
+            bot.textWithLabel("&Maven Install Location:").setText();
         } else if (buildTool == "Gradle") {
             bot.textWithLabel("&Gradle Install Location:").setText(finalGradleExecutableLoc);
         }
         bot.button("Apply and Close").click();
+        */
     }
 
     public static void unsetBuildCmdPathInPreferences(SWTWorkbenchBot bot, String buildTool) {
@@ -316,12 +341,12 @@ public class SWTBotPluginOperations {
      */
     public static Shell launchRunConfigurationsDialog(String appName) {
 
-        //Object windowMenu = findGlobal("Window", Option.factory().setWidgetClass(MenuItem.class).build());
+        //Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
         //goMenuItem(windowMenu, "Show View", "Project Explorer");
 
         //Object peView = findGlobal("Project Explorer");
-        //TreeItem project = (TreeItem) find(appName, peView, Option.factory().setWidgetClass(TreeItem.class).build());
-        TreeItem project = (TreeItem) findGlobal(appName, Option.factory().setWidgetClass(TreeItem.class).build());
+        //TreeItem project = (TreeItem) find(appName, peView, Option.factory().widgetClass(TreeItem.class).build());
+        TreeItem project = (TreeItem) findGlobal(appName, Option.factory().widgetClass(TreeItem.class).build());
         go(project);
         
         // bot.waitUntil(SWTBotTestCondition.isTreeItemEnabled(project), 5000);
