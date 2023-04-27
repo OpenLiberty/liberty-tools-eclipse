@@ -29,6 +29,7 @@ import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.Table;
 import org.eclipse.ui.contexts.IContextService;
 import org.eclipse.ui.handlers.IHandlerService;
 import org.eclipse.ui.part.ViewPart;
@@ -491,7 +492,7 @@ public class DashboardView extends ViewPart {
     public void setInput(List<String> sortedDashboardProjectList) {
         if (viewer != null) {
             viewer.setInput(sortedDashboardProjectList);
-        }
+        }        
     }
 
     /**
@@ -509,5 +510,10 @@ public class DashboardView extends ViewPart {
             ErrorHandler.processErrorMessage(msg, e, reportError);
             return;
         }
+    }
+    
+    //TODO - restrict to test-only
+    public Table getTable() {
+    	return viewer.getTable();
     }
 }
