@@ -157,17 +157,17 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
      * </pre>
      */
     public static final void validateBeforeTestRun() {
-        dashboard = SWTBotPluginOperations.openDashboardUsingToolbar(bot);
+        SWTBotPluginOperations.openDashboardUsingToolbar(bot);
 
         // Give the app some time to be imported (especially on Windows GHA runs)
         try {
-            Thread.sleep(40000);
+            Thread.sleep(Integer.parseInt(System.getProperty("LPSBMT.sleep","0")));
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
 
         // Check that the dashboard can be opened and its content retrieved.
-        List<String> projectList = SWTBotPluginOperations.getDashboardContent(bot, dashboard);
+        List<String> projectList = SWTBotPluginOperations.getDashboardContent();
 
         // Check that dashboard contains the expected applications.
         boolean foundApp = false;

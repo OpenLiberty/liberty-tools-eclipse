@@ -32,6 +32,7 @@ import org.eclipse.swt.widgets.Item;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.swt.widgets.TreeItem;
@@ -65,6 +66,7 @@ import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.ControlFinder;
 import io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.ControlFinder.Direction;
 import io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.Option;
+import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher;
 
 /**
@@ -131,6 +133,11 @@ public class SWTBotPluginOperations {
         }
 
         SWTBotTable dashboardTable = bot.table();
+        
+        return getDashboardTableNamesFromTable(dashboardTable);
+    }
+    
+    private static List<String> getDashboardTableNamesFromTable(SWTBotTable dashboardTable) {
         ArrayList<String> contentList = new ArrayList<String>();
         for (int i = 0; i < dashboardTable.rowCount(); i++) {
             contentList.add(dashboardTable.getTableItem(i).getText());
@@ -138,6 +145,17 @@ public class SWTBotPluginOperations {
 
         return contentList;
     }
+    
+	public static SWTBotTable getDashboardTable() {
+        Object dashboardView = findGlobal(DASHBOARD_VIEW_TITLE);
+        Table table = ((DashboardView)dashboardView).getTable();
+        return new SWTBotTable(table);
+	}
+
+	public static List<String> getDashboardContent() {
+		SWTBotTable dashboardTable = getDashboardTable();
+		return getDashboardTableNamesFromTable(dashboardTable);
+	}
 
     /**
      * Returns a list of menu actions associated with the input application item.
@@ -167,8 +185,8 @@ public class SWTBotPluginOperations {
      * @param bot
      */
     public static void refreshDashboard(SWTWorkbenchBot bot) {
-        Object dashboardView = MagicWidgetFinder.findGlobal(DASHBOARD_VIEW_TITLE);
-        MagicWidgetFinder.go(DASHBOARD_TOOLBAR_REFRESH_TIP, dashboardView);
+        Object dashboardView = findGlobal(DASHBOARD_VIEW_TITLE);
+        go(DASHBOARD_TOOLBAR_REFRESH_TIP, dashboardView);
     }
 
     /**
@@ -822,12 +840,16 @@ public class SWTBotPluginOperations {
      * @return The Open Liberty dashboard view obtained by pressing on the Open Liberty icon located on the main tool bar.
      */
     public static SWTBotView openDashboardUsingToolbar(SWTWorkbenchBot bot) {
+    	/*
         SWTBotToolbarButton toolbarButton = getToolbarButtonWithToolTipPrefix(bot, TOOLBAR_OPEN_DASHBOARD_TIP);
         toolbarButton.click();
-        SWTBotView dashboard = bot.viewByTitle(DASHBOARD_VIEW_TITLE);
-        dashboard.show();
-        bot.waitUntil(SWTBotTestCondition.isViewActive(dashboard, DASHBOARD_VIEW_TITLE), 5000);
-        return dashboard;
+        */
+    	goGlobal(TOOLBAR_OPEN_DASHBOARD_TIP, Option.factory().widgetClass(ToolItem.class).useContains(true).build());
+//        SWTBotView dashboard = bot.viewByTitle(DASHBOARD_VIEW_TITLE);
+//        dashboard.show();
+//        bot.waitUntil(SWTBotTestCondition.isViewActive(dashboard, DASHBOARD_VIEW_TITLE), 5000);
+//        return dashboard;
+    	return null;
     }
 
     /**
@@ -951,4 +973,6 @@ public class SWTBotPluginOperations {
             return matchFound;
         }
     }
+
+
 }
