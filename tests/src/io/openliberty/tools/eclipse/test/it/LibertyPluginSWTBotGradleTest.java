@@ -584,7 +584,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         Assertions.assertTrue(testReportDeleted, () -> "File: " + pathToTestReport + " was not deleted.");
 
         // Start dev mode with parms.
-        SWTBotPluginOperations.launchStartWithCustomRunConfig(bot, GRADLE_APP_NAME, "--hotTests");
+        SWTBotPluginOperations.launchStartWithCustomRunConfig(GRADLE_APP_NAME, "--hotTests");
         SWTBotView terminal = bot.viewByTitle("Terminal");
         terminal.show();
 
@@ -674,7 +674,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         Assertions.assertTrue(testReportDeleted, () -> "File: " + pathToTestReport + " was not deleted.");
 
         // Start dev mode with parms.
-        SWTBotPluginOperations.launchStartWithCustomDebugConfig(bot, GRADLE_APP_NAME, "--hotTests");
+        SWTBotPluginOperations.launchStartWithCustomDebugConfig(GRADLE_APP_NAME, "--hotTests");
         SWTBotView terminal = bot.viewByTitle("Terminal");
         terminal.show();
 
