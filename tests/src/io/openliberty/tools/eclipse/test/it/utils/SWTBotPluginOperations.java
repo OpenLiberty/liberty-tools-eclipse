@@ -417,28 +417,8 @@ public class SWTBotPluginOperations {
 //        return libertyToolsEntry;
 //    }
 
-    /**
-     * Returns the object that represents the Debug As->Debug Configuration...->Remote Java Application menu entry.
-     * 
-     * @param bot The SWTWorkbenchBot instance..
-     * 
-     * @return The object that represents the Run/Debug As->Run/Debug Configuration...->Liberty menu entry.
-     */
-    public static SWTBotTreeItem getRemoteJavaAppConfigMenuItem(SWTWorkbenchBot bot) {
-        SWTBotTreeItem remoteJavaApp = null;
-
-        SWTBotTreeItem[] treeItems = bot.tree().getAllItems();
-        for (SWTBotTreeItem treeItem : treeItems) {
-            if (treeItem.getText().equals(LAUNCH_CONFIG_REMOTE_JAVA_APP)) {
-                remoteJavaApp = treeItem;
-
-                bot.waitUntil(SWTBotTestCondition.isTreeItemEnabled(remoteJavaApp), 10000);
-                remoteJavaApp.select().setFocus();
-                break;
-            }
-        }
-
-        return remoteJavaApp;
+    public static SWTBotTreeItem getRemoteJavaAppConfigMenuItem(Shell shell) {
+    	return new SWTBotTreeItem((TreeItem)find(LAUNCH_CONFIG_REMOTE_JAVA_APP, shell));
     }
 
     /**
@@ -492,47 +472,28 @@ public class SWTBotPluginOperations {
             SWTBotTreeItem libertyToolsEntry = getLibertyTreeItem(configShell);
             Assertions.assertTrue((libertyToolsEntry != null), () -> "The Liberty entry was not found in run Configurations dialog.");
 
-            List<String> configs = libertyToolsEntry.getNodes();
-
-            for (String config : configs) {
-                SWTBotTreeItem configEntry = libertyToolsEntry.getNode(config);
-                bot.waitUntil(SWTBotTestCondition.isTreeItemEnabled(configEntry), 10000);
-                configEntry.select().setFocus();
-
-                SWTBotToolbarButton deleteButon = bot.toolbarButtonWithTooltip("Delete selected launch configuration(s)");
-                deleteButon.setFocus();
-                deleteButon.click();
-
-                SWTBotButton deleteButton = bot.button("Delete");
-                bot.waitUntil(SWTBotTestCondition.isButtonEnabled(deleteButton), 5000);
-                deleteButton.setFocus();
-                deleteButton.click();
+            for (String config : libertyToolsEntry.getNodes()) {
+            	deleteRunDebugConfigEntry(libertyToolsEntry, config);
             }
 
             // Delete debug mode Remote Java Application configurations
-            SWTBotTreeItem remoteJavaAppEntry = getRemoteJavaAppConfigMenuItem(bot);
+            SWTBotTreeItem remoteJavaAppEntry = getRemoteJavaAppConfigMenuItem(configShell);           
             Assertions.assertTrue((remoteJavaAppEntry != null),
                     () -> "The " + LAUNCH_CONFIG_REMOTE_JAVA_APP + " entry was not found in run Configurations dialog.");
 
-            List<String> rjaConfigs = remoteJavaAppEntry.getNodes();
-            for (String rjaConfig : rjaConfigs) {
-                SWTBotTreeItem configEntry = remoteJavaAppEntry.getNode(rjaConfig);
-                bot.waitUntil(SWTBotTestCondition.isTreeItemEnabled(configEntry), 10000);
-                configEntry.select().setFocus();
-
-                SWTBotToolbarButton deleteButon = bot.toolbarButtonWithTooltip("Delete selected launch configuration(s)");
-                deleteButon.setFocus();
-                deleteButon.click();
-
-                SWTBotButton deleteButton = bot.button("Delete");
-                bot.waitUntil(SWTBotTestCondition.isButtonEnabled(deleteButton), 5000);
-                deleteButton.setFocus();
-                deleteButton.click();
+            for (String config : remoteJavaAppEntry.getNodes()) {
+            	deleteRunDebugConfigEntry(libertyToolsEntry, config);
             }
         } finally {
             // Close the configuration dialog.
             MagicWidgetFinder.go("Close", configShell);
         }
+    }
+    
+    private static void deleteRunDebugConfigEntry(SWTBotTreeItem parentTree, String configName) {
+    	go(configName, parentTree);
+    	goGlobal("Delete selected launch configuration(s)", Option.factory().widgetClass(ToolItem.class).useContains(true).build());
+    	go("Delete", parentTree);
     }
 
     /**

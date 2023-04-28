@@ -183,7 +183,7 @@ public abstract class AbstractLibertyPluginSWTBotTest {
      */
     public void validateRemoteJavaAppCreation(String projectName) {
         Shell configShell = SWTBotPluginOperations.launchDebugConfigurationsDialog(projectName);
-        SWTBotTreeItem remoteJavaAppEntry = SWTBotPluginOperations.getRemoteJavaAppConfigMenuItem(bot);
+        SWTBotTreeItem remoteJavaAppEntry = SWTBotPluginOperations.getRemoteJavaAppConfigMenuItem(configShell);
         Assertions.assertTrue((remoteJavaAppEntry != null),
                 () -> "The " + SWTBotPluginOperations.LAUNCH_CONFIG_REMOTE_JAVA_APP + " entry was not found in run Configurations dialog.");
 
