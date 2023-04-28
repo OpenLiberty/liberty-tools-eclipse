@@ -32,6 +32,9 @@ import org.junit.jupiter.api.Test;
 import io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils;
 import io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder;
 import io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations;
+
+import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.find;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.*;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher;
 
@@ -175,15 +178,15 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
 
         // Check that the Run As -> Run Configurations... contains the Liberty entry in the menu.
         Shell configShell = SWTBotPluginOperations.launchRunConfigurationsDialog(MVN_APP_NAME);
-        SWTBotTreeItem runAslibertyToolsEntry = SWTBotPluginOperations.getLibertyToolsConfigMenuItem(bot);
+        SWTBotTreeItem runAslibertyToolsEntry = getLibertyTreeItem(configShell);
         Assertions.assertTrue(runAslibertyToolsEntry != null, "Liberty entry in Run Configurations view was not found.");
         MagicWidgetFinder.go("Close", configShell);
 
         // Check that the Debug As -> Debug Configurations... contains the Liberty entry in the menu.
-        configShell = SWTBotPluginOperations.launchDebugConfigurationsDialog(MVN_APP_NAME);
-        SWTBotTreeItem debugAslibertyToolsEntry = SWTBotPluginOperations.getLibertyToolsConfigMenuItem(bot);
+        Shell debugShell = SWTBotPluginOperations.launchDebugConfigurationsDialog(MVN_APP_NAME);
+        SWTBotTreeItem debugAslibertyToolsEntry = getLibertyTreeItem(debugShell);
         Assertions.assertTrue(debugAslibertyToolsEntry != null, "Liberty entry in Debug Configurations view was not found.");
-        MagicWidgetFinder.go("Close", configShell);
+        MagicWidgetFinder.go("Close", debugShell);
     }
 
     /**

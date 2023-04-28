@@ -41,6 +41,9 @@ import io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils;
 import io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder;
 import io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.Option;
 import io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations;
+
+import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.find;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.*;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher;
 
@@ -221,9 +224,9 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
                         + "Found entry count: " + foundDebugAsItems + ". Found menu entries: " + debugAsMenuItems);
 
         // Check that the Run As -> Run Configurations ... contains the Liberty entry in the menu.
-        Shell configShell = SWTBotPluginOperations.launchRunConfigurationsDialog(GRADLE_APP_NAME);
+        Shell configShell = launchRunConfigurationsDialog(GRADLE_APP_NAME);
         try {
-            SWTBotTreeItem runAslibertyToolsEntry = SWTBotPluginOperations.getLibertyToolsConfigMenuItem(bot);
+            SWTBotTreeItem runAslibertyToolsEntry = getLibertyTreeItem(configShell);
             Assertions.assertTrue(runAslibertyToolsEntry != null, "Liberty entry in Run Configurations view was not found.");
         } finally {
             MagicWidgetFinder.go("Close", configShell);
@@ -232,7 +235,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         // Check that the Debug As -> Debug Configurations... contains the Liberty entry in the menu.
         Shell debugShell = SWTBotPluginOperations.launchDebugConfigurationsDialog(GRADLE_APP_NAME);
         try {
-            SWTBotTreeItem debugAslibertyToolsEntry = SWTBotPluginOperations.getLibertyToolsConfigMenuItem(bot);
+            SWTBotTreeItem debugAslibertyToolsEntry = getLibertyTreeItem(debugShell);
             Assertions.assertTrue(debugAslibertyToolsEntry != null, "Liberty entry in Debug Configurations view was not found.");
         } finally {
             MagicWidgetFinder.go("Close", debugShell);

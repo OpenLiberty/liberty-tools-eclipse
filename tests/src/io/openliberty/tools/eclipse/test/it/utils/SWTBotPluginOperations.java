@@ -12,11 +12,13 @@
 *******************************************************************************/
 package io.openliberty.tools.eclipse.test.it.utils;
 
+import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.find;
 import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.findGlobal;
 import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.go;
 import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.goGlobal;
 import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.goMenuItem;
 import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.set;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.LAUNCH_CONFIG_LIBERTY_MENU_NAME;
 import static org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory.allOf;
 import static org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory.widgetOfType;
 
@@ -393,6 +395,12 @@ public class SWTBotPluginOperations {
         return (Shell) findGlobal("Debug Configurations", Option.factory().widgetClass(Shell.class).build());
     }
 
+
+    public static SWTBotTreeItem getLibertyTreeItem(Shell shell) {
+    	return new SWTBotTreeItem((TreeItem)find(LAUNCH_CONFIG_LIBERTY_MENU_NAME, shell));
+    }
+
+    
     /**
      * Returns the object that represents the Run/Debug As->Run/Debug Configuration...->Liberty menu entry.
      * 
@@ -400,14 +408,14 @@ public class SWTBotPluginOperations {
      * 
      * @return The object that represents the Run/Debug As->Run/Debug Configuration...->Liberty menu entry.
      */
-    public static SWTBotTreeItem getLibertyToolsConfigMenuItem(SWTWorkbenchBot bot) {
-
-        SWTBotTreeItem libertyToolsEntry = bot.tree().getTreeItem(LAUNCH_CONFIG_LIBERTY_MENU_NAME);
-        bot.waitUntil(SWTBotTestCondition.isTreeItemEnabled(libertyToolsEntry), 10000);
-        libertyToolsEntry.select().setFocus();
-
-        return libertyToolsEntry;
-    }
+//    public static SWTBotTreeItem getLibertyToolsConfigMenuItem(SWTWorkbenchBot bot) {
+//
+//        SWTBotTreeItem libertyToolsEntry = bot.tree().getTreeItem(LAUNCH_CONFIG_LIBERTY_MENU_NAME);
+//        bot.waitUntil(SWTBotTestCondition.isTreeItemEnabled(libertyToolsEntry), 10000);
+//        libertyToolsEntry.select().setFocus();
+//
+//        return libertyToolsEntry;
+//    }
 
     /**
      * Returns the object that represents the Debug As->Debug Configuration...->Remote Java Application menu entry.
@@ -441,10 +449,11 @@ public class SWTBotPluginOperations {
      */
     public static void deleteLibertyToolsRunConfigEntries(SWTWorkbenchBot bot, String appName) {
 
-        Shell configShell = SWTBotPluginOperations.launchRunConfigurationsDialog(appName);
+    	Shell configShell = launchRunConfigurationsDialog(appName);
 
         try {
-            SWTBotTreeItem libertyToolsEntry = getLibertyToolsConfigMenuItem(bot);
+            SWTBotTreeItem libertyToolsEntry = getLibertyTreeItem(configShell);
+            
             Assertions.assertTrue((libertyToolsEntry != null), () -> "The Liberty entry was not found in run Configurations dialog.");
 
             List<String> configs = libertyToolsEntry.getNodes();
@@ -477,10 +486,10 @@ public class SWTBotPluginOperations {
      */
     public static void deleteLibertyToolsDebugConfigEntries(SWTWorkbenchBot bot, String appName) {
 
-        Shell configShell = SWTBotPluginOperations.launchRunConfigurationsDialog(appName);
+    	Shell configShell = launchDebugConfigurationsDialog(appName);
 
         try {
-            SWTBotTreeItem libertyToolsEntry = getLibertyToolsConfigMenuItem(bot);
+            SWTBotTreeItem libertyToolsEntry = getLibertyTreeItem(configShell);
             Assertions.assertTrue((libertyToolsEntry != null), () -> "The Liberty entry was not found in run Configurations dialog.");
 
             List<String> configs = libertyToolsEntry.getNodes();
