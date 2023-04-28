@@ -12,13 +12,7 @@
 *******************************************************************************/
 package io.openliberty.tools.eclipse.test.it.utils;
 
-import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.find;
-import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.findGlobal;
-import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.go;
-import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.goGlobal;
-import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.goMenuItem;
-import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.set;
-import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.LAUNCH_CONFIG_LIBERTY_MENU_NAME;
+import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.*;
 import static org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory.allOf;
 import static org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory.widgetOfType;
 
@@ -29,6 +23,7 @@ import java.util.List;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Combo;
+import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Item;
 import org.eclipse.swt.widgets.Label;
@@ -504,47 +499,46 @@ public class SWTBotPluginOperations {
      */
     public static void launchStartWithDefaultRunConfig(String appName) {
 
-        Shell configShell = SWTBotPluginOperations.launchRunConfigurationsDialog(appName);
-        Object libertyConfigTree = MagicWidgetFinder.find(LAUNCH_CONFIG_LIBERTY_MENU_NAME, configShell);
+        Shell shell = SWTBotPluginOperations.launchRunConfigurationsDialog(appName);
+        Object libertyConfigTree = MagicWidgetFinder.find(LAUNCH_CONFIG_LIBERTY_MENU_NAME, shell);
 
         MagicWidgetFinder.context(libertyConfigTree, "New Configuration");
-        MagicWidgetFinder.go("Run", configShell);
+        MagicWidgetFinder.go("Run", shell);
     }
 
     /**
      * Launches dev mode with parms using a new Liberty configuration: project -> Run As -> Run Configurations -> Liberty -> New
      * configuration (default) -> update parms -> Run. Note that the changes are not saved.
      * 
-     * @param bot The SWTWorkbenchBot instance.
-     * @param item The application name.
-     * @param parms The parameter(s) to pass to the dev mode start action.
+     * @param appName The application name.
+     * @param customParms The parameter(s) to pass to the dev mode start action.
      */
-    public static void launchStartWithCustomRunConfig(SWTWorkbenchBot bot, String appName, String parms) {
-
-        Shell configShell = SWTBotPluginOperations.launchRunConfigurationsDialog(appName);
-        Object libertyConfigTree = MagicWidgetFinder.find(LAUNCH_CONFIG_LIBERTY_MENU_NAME, configShell);
-
-        MagicWidgetFinder.context(libertyConfigTree, "New Configuration");
-        MagicWidgetFinder.set("Start parameters:", parms);
-        MagicWidgetFinder.go("Run", configShell);
+    public static void launchStartWithCustomRunConfig(String appName, String customParms) {
+        Shell shell = SWTBotPluginOperations.launchRunConfigurationsDialog(appName);
+        launchStartWithCustomConfig(shell, customParms);
     }
 
     /**
      * Launches dev mode with parms using a new Liberty configuration: project -> Debug As -> Debug Configurations -> Liberty -> New
      * configuration (default) -> update parms -> Debug. Note that the changes are not saved.
-     * 
-     * @param bot The SWTWorkbenchBot instance.
-     * @param item The application name.
-     * @param parms The parameter(s) to pass to the dev mode start action.
+     *     
+     * @param appName The application name.
+     * @param customParms The parameter(s) to pass to the dev mode start action.
      */
-    public static void launchStartWithCustomDebugConfig(SWTWorkbenchBot bot, String appName, String parms) {
-
+    public static void launchStartWithCustomDebugConfig(String appName, String customParms) {
         Shell configShell = SWTBotPluginOperations.launchDebugConfigurationsDialog(appName);
-        Object libertyConfigTree = MagicWidgetFinder.find(LAUNCH_CONFIG_LIBERTY_MENU_NAME, configShell);
+        launchStartWithCustomConfig(configShell, customParms);
+    }
+    
+    public static void launchStartWithCustomConfig(Shell shell, String customParms) {
 
-        MagicWidgetFinder.context(libertyConfigTree, "New Configuration");
-        MagicWidgetFinder.set("Start parameters:", parms);
-        MagicWidgetFinder.go("Debug", configShell);
+        Object libertyConfigTree = find(LAUNCH_CONFIG_LIBERTY_MENU_NAME, shell);
+
+        context(libertyConfigTree, "New Configuration");
+        Object parmLabel = find("Start parameters:", shell, Option.factory().widgetClass(Label.class).build());
+        Control parmText = ControlFinder.findControlInRange(parmLabel, Text.class, Direction.EAST);
+        set(parmText, customParms);
+        go("Debug", shell);
     }
 
     /**

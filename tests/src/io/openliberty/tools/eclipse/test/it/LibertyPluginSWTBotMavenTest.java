@@ -577,7 +577,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         Assertions.assertTrue(testReportDeleted, () -> "File: " + pathToITReport + " was not be deleted.");
 
         // Start dev mode with parms.
-        SWTBotPluginOperations.launchStartWithCustomRunConfig(bot, MVN_APP_NAME, "-DhotTests=true");
+        SWTBotPluginOperations.launchStartWithCustomRunConfig(MVN_APP_NAME, "-DhotTests=true");
         SWTBotView terminal = bot.viewByTitle("Terminal");
         terminal.show();
 
@@ -670,7 +670,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         Assertions.assertTrue(testReportDeleted, () -> "File: " + pathToITReport + " was not be deleted.");
 
         // Start dev mode with parms.
-        SWTBotPluginOperations.launchStartWithCustomDebugConfig(bot, MVN_APP_NAME, "-DhotTests=true");
+        SWTBotPluginOperations.launchStartWithCustomDebugConfig(MVN_APP_NAME, "-DhotTests=true");
         SWTBotView terminal = bot.viewByTitle("Terminal");
         terminal.show();
 
