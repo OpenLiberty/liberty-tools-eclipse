@@ -595,7 +595,7 @@ public class SWTBotPluginOperations {
     public static void launchStartWithDebugAsShortcut(String appName) {
 
         Object peView = MagicWidgetFinder.findGlobal("Project Explorer");
-        Object project = MagicWidgetFinder.find(appName, peView);
+        TreeItem project = (TreeItem)MagicWidgetFinder.find(appName, peView, Option.factory().widgetClass(TreeItem.class).build());
 
         MagicWidgetFinder.context(project, "Debug As",
                 WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START + ".*"));
@@ -610,7 +610,7 @@ public class SWTBotPluginOperations {
     public static void launchStartWithRunAsShortcut(String appName) {
 
         Object peView = MagicWidgetFinder.findGlobal("Project Explorer");
-        TreeItem project = (TreeItem) MagicWidgetFinder.find(appName, peView);
+        TreeItem project = (TreeItem) MagicWidgetFinder.find(appName, peView, Option.factory().widgetClass(TreeItem.class).build());
 
         MagicWidgetFinder.context(project, "Run As",
                 WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START + ".*"));
@@ -623,7 +623,7 @@ public class SWTBotPluginOperations {
      */
     public static void launchStopWithRunAsShortcut(String appName) {
         Object peView = MagicWidgetFinder.findGlobal("Project Explorer");
-        TreeItem project = (TreeItem) MagicWidgetFinder.find(appName, peView);
+        TreeItem project = (TreeItem) MagicWidgetFinder.find(appName, peView, Option.factory().widgetClass(TreeItem.class).build());
 
         MagicWidgetFinder.context(project, "Run As",
                 WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_STOP + ".*"));
@@ -636,7 +636,7 @@ public class SWTBotPluginOperations {
      */
     public static void launchRunTestsWithRunAsShortcut(String appName) {
         Object peView = MagicWidgetFinder.findGlobal("Project Explorer");
-        TreeItem project = (TreeItem) MagicWidgetFinder.find(appName, peView);
+        TreeItem project = (TreeItem) MagicWidgetFinder.find(appName, peView, Option.factory().widgetClass(TreeItem.class).build());
 
         MagicWidgetFinder.context(project, "Run As",
                 WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_RUN_TESTS + ".*"));
