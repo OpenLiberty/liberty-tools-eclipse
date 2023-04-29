@@ -540,6 +540,14 @@ public class SWTBotPluginOperations {
         go("Debug", shell);
     }
 
+    public static Object getAppInProjectExplorerTree(String appName) {
+        Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
+    	goMenuItem(windowMenu, "Show View", "Project Explorer");
+        Object peView = MagicWidgetFinder.findGlobal("Project Explorer");
+        
+        return MagicWidgetFinder.find(appName, peView, Option.factory().useContains(true).widgetClass(TreeItem.class).build());
+    }
+
     /**
      * Launches the start action using the debug as configuration shortcut.
      * 
@@ -547,10 +555,7 @@ public class SWTBotPluginOperations {
      * @param appName The application name.
      */
     public static void launchStartWithDebugAsShortcut(String appName) {
-
-        Object peView = MagicWidgetFinder.findGlobal("Project Explorer");
-        TreeItem project = (TreeItem)MagicWidgetFinder.find(appName, peView, Option.factory().widgetClass(TreeItem.class).build());
-
+    	Object project = getAppInProjectExplorerTree(appName);
         MagicWidgetFinder.context(project, "Debug As",
                 WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START + ".*"));
     }
@@ -562,10 +567,7 @@ public class SWTBotPluginOperations {
      * @param appName The application name.
      */
     public static void launchStartWithRunAsShortcut(String appName) {
-
-        Object peView = MagicWidgetFinder.findGlobal("Project Explorer");
-        TreeItem project = (TreeItem) MagicWidgetFinder.find(appName, peView, Option.factory().widgetClass(TreeItem.class).build());
-
+    	Object project = getAppInProjectExplorerTree(appName);
         MagicWidgetFinder.context(project, "Run As",
                 WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START + ".*"));
     }
@@ -576,18 +578,9 @@ public class SWTBotPluginOperations {
      * @param appName The application name.
      */
     public static void launchStopWithRunAsShortcut(String appName) {
-
-        Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
-    	goMenuItem(windowMenu, "Show View", "Project Explorer");
-        Object peView = MagicWidgetFinder.findGlobal("Project Explorer");
-        
-        TreeItem project = (TreeItem) MagicWidgetFinder.find(appName, peView, Option.factory().useContains(true).widgetClass(TreeItem.class).build());
-
-        //TreeItem project = (TreeItem) find(appName, Option.factory().widgetClass(TreeItem.class).build());
-
+    	Object project = getAppInProjectExplorerTree(appName);
         MagicWidgetFinder.context(project, "Run As",
                 WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_STOP + ".*"));
-        //MagicWidgetFinder.context(project, "Run As", LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_STOP);
     }
 
 
@@ -597,9 +590,7 @@ public class SWTBotPluginOperations {
      * @param appName The application name.
      */
     public static void launchRunTestsWithRunAsShortcut(String appName) {
-        Object peView = MagicWidgetFinder.findGlobal("Project Explorer");
-        TreeItem project = (TreeItem) MagicWidgetFinder.find(appName, peView, Option.factory().widgetClass(TreeItem.class).build());
-
+    	Object project = getAppInProjectExplorerTree(appName);
         MagicWidgetFinder.context(project, "Run As",
                 WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_RUN_TESTS + ".*"));
     }
@@ -610,9 +601,7 @@ public class SWTBotPluginOperations {
      * @param appName The application name.
      */
     public static void launchRunTestsWithDebugAsShortcut(String appName) {
-        Object peView = MagicWidgetFinder.findGlobal("Project Explorer");
-        TreeItem project = (TreeItem) MagicWidgetFinder.find(appName, peView);
-
+    	Object project = getAppInProjectExplorerTree(appName);
         MagicWidgetFinder.context(project, "Debug As",
                 WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_RUN_TESTS + ".*"));
     }

@@ -465,6 +465,9 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         try {
             // Validate that the test reports were generated.
             LibertyPluginTestUtils.validateTestReportExists(pathToITReport);
+        } catch(Exception e) {
+        	 System.out.println( "Caught exception: " + e);
+        	throw new RuntimeException(e);
         } finally {
             // Stop dev mode.
             SWTBotPluginOperations.launchDashboardAction(bot, MVN_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
