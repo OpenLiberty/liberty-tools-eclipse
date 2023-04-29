@@ -686,7 +686,9 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
 
             // Validate that a remote java application configuration was created and is named after the application.
             validateRemoteJavaAppCreation(MVN_APP_NAME);
-
+        } catch (Exception e) {
+        	 System.out.println( "Caught exception: " + e);
+        	throw new RuntimeException(e);
         } finally {
             // Stop dev mode using the Run As stop command.
             SWTBotPluginOperations.launchStopWithRunAsShortcut(MVN_APP_NAME);

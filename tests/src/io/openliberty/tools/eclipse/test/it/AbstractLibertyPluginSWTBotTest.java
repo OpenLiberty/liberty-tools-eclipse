@@ -13,6 +13,8 @@
 package io.openliberty.tools.eclipse.test.it;
 
 import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.isInternalBrowserSupportAvailable;
+import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.find;
+import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.go;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,6 +38,7 @@ import org.eclipse.m2e.core.project.MavenProjectInfo;
 import org.eclipse.m2e.core.project.ProjectImportConfiguration;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotView;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
@@ -46,9 +49,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestInfo;
 
 import io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils;
-import io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder;
+import io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.Option;
 import io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations;
-import io.openliberty.tools.eclipse.test.it.utils.SWTBotTestCondition;
 
 public abstract class AbstractLibertyPluginSWTBotTest {
 
@@ -187,16 +189,12 @@ public abstract class AbstractLibertyPluginSWTBotTest {
         Assertions.assertTrue((remoteJavaAppEntry != null),
                 () -> "The " + SWTBotPluginOperations.LAUNCH_CONFIG_REMOTE_JAVA_APP + " entry was not found in run Configurations dialog.");
 
-        List<String> configs = remoteJavaAppEntry.getNodes();
-        for (String config : configs) {
-            SWTBotTreeItem configEntry = remoteJavaAppEntry.getNode(config);
-            bot.waitUntil(SWTBotTestCondition.isTreeItemEnabled(configEntry), 10000);
-            configEntry.select().setFocus();
-
-            if (config.startsWith(projectName)) {
-                MagicWidgetFinder.go("Close", configShell);
-                return;
-            }
+        // Use contains since the name will include the project name plus something parent-related.
+        Object runConfig = find(projectName, remoteJavaAppEntry,  Option.factory().widgetClass(TreeItem.class).useContains(true).build());
+        
+        if (runConfig != null) {
+            go("Close", configShell);
+            return;
         }
 
         Assertions.fail("The remote java application configuration did not contain project name " + projectName);
