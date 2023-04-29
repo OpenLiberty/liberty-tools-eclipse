@@ -342,11 +342,14 @@ public class SWTBotPluginOperations {
         if (Platform.getOS().equals(Platform.OS_MACOSX)) {
             return;
         }
+        
+        Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
+        goMenuItem(windowMenu, "Preferences");
 
-        bot.menu("Window").menu("Preferences").click();
-        bot.tree().getTreeItem("Liberty").select().setFocus();
-        bot.button("Restore Defaults").click();
-        bot.button("Apply and Close").click();
+        TreeItem liberty = (TreeItem) findGlobal("Liberty", Option.factory().widgetClass(TreeItem.class).build());
+  
+        goGlobal("Restore Defaults");
+        goGlobal("Apply and Close");
     }
 
     /**
