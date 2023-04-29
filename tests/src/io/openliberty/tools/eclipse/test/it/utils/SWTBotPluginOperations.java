@@ -381,12 +381,8 @@ public class SWTBotPluginOperations {
      * @param appName The application name.
      */
     public static Shell launchDebugConfigurationsDialog(String appName) {
-
-        TreeItem project = (TreeItem) findGlobal(appName, Option.factory().widgetClass(TreeItem.class).build());
-        go(project);
-
-        MagicWidgetFinder.context(project, "Debug As", "Debug Configurations...");
-
+        Object windowMenu = findGlobal("Run", Option.factory().widgetClass(MenuItem.class).build());
+        goMenuItem(windowMenu, "Debug Configurations...");
         return (Shell) findGlobal("Debug Configurations", Option.factory().widgetClass(Shell.class).build());
     }
 
@@ -577,8 +573,8 @@ public class SWTBotPluginOperations {
      * @param appName The application name.
      */
     public static void launchStopWithRunAsShortcut(String appName) {
-        Object peView = MagicWidgetFinder.findGlobal("Project Explorer");
-        TreeItem project = (TreeItem) MagicWidgetFinder.find(appName, peView, Option.factory().widgetClass(TreeItem.class).build());
+        Object peView = findGlobal("Project Explorer");
+        TreeItem project = (TreeItem)find(appName, peView, Option.factory().widgetClass(TreeItem.class).build());
 
         MagicWidgetFinder.context(project, "Run As",
                 WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_STOP + ".*"));
