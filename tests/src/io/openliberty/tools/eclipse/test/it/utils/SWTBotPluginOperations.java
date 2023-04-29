@@ -573,12 +573,20 @@ public class SWTBotPluginOperations {
      * @param appName The application name.
      */
     public static void launchStopWithRunAsShortcut(String appName) {
-        Object peView = findGlobal("Project Explorer");
-        TreeItem project = (TreeItem)find(appName, peView, Option.factory().widgetClass(TreeItem.class).build());
+
+        Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
+    	goMenuItem(windowMenu, "Show View", "Project Explorer");
+        Object peView = MagicWidgetFinder.findGlobal("Project Explorer");
+        
+        TreeItem project = (TreeItem) MagicWidgetFinder.find(appName, peView, Option.factory().useContains(true).widgetClass(TreeItem.class).build());
+
+        //TreeItem project = (TreeItem) find(appName, Option.factory().widgetClass(TreeItem.class).build());
 
         MagicWidgetFinder.context(project, "Run As",
                 WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_STOP + ".*"));
+        //MagicWidgetFinder.context(project, "Run As", LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_STOP);
     }
+
 
     /**
      * Launches the run tests action using the run as configuration shortcut.
