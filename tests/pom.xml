@@ -23,6 +23,10 @@
     <artifactId>io.openliberty.tools.eclipse.tests</artifactId>
     <packaging>eclipse-test-plugin</packaging>
 
+    <properties>
+        <mvnImportWait>12000</mvnImportWait>
+    </properties>
+
     <build>
         <plugins>
             <plugin>

@@ -55,6 +55,7 @@ import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.WorkbenchException;
+import org.eclipse.ui.part.ViewPart;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -150,7 +151,7 @@ public class SWTBotPluginOperations {
     }
     
 	public static SWTBotTable getDashboardTable() {
-        Object dashboardView = findGlobal(DASHBOARD_VIEW_TITLE);
+        Object dashboardView = findGlobal(DASHBOARD_VIEW_TITLE, Option.factory().widgetClass(ViewPart.class).build());
         Table table = ((DashboardView)dashboardView).getTable();
         return new SWTBotTable(table);
 	}
