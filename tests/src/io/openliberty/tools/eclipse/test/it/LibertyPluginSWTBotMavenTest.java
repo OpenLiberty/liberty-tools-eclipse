@@ -432,7 +432,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
     public void testDashboardDebugWithCustomConfigAction() {
 
         // Delete any previously created configs.
-        SWTBotPluginOperations.deleteLibertyToolsDebugConfigEntries(bot, MVN_APP_NAME);
+        deleteLibertyToolsDebugConfigEntriesFromMenu();
 
         // Delete the test report files before we start this test.
         Path pathToITReport = Paths.get(projectPath.toString(), "target", "site", "failsafe-report.html");
@@ -539,8 +539,8 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
      */
     @Test
     public void testStartWithDefaultRunAsConfig() {
-        // Delete any previously created configs.
-        SWTBotPluginOperations.deleteLibertyToolsRunConfigEntriesFromAppRunAs(bot, MVN_APP_NAME);
+
+        deleteLibertyToolsDebugConfigEntriesFromMenu();
 
         // Start dev mode.
         SWTBotPluginOperations.launchStartWithDefaultRunConfigFromAppRunAs(MVN_APP_NAME);
@@ -663,8 +663,8 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
      */
     @Test
     public void testStartWithCustomDebugAsConfig() {
-        // Delete any previously created configs.
-        SWTBotPluginOperations.deleteLibertyToolsDebugConfigEntries(bot, MVN_APP_NAME);
+    	
+    	deleteLibertyToolsDebugConfigEntriesFromMenu();
 
         // Delete the test report files before we start this test.
         Path pathToITReport = Paths.get(projectPath.toString(), "target", "site", "failsafe-report.html");
@@ -711,8 +711,9 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
      */
     @Test
     public void testStartWithDebugAsShortcut() {
+
         // Delete any previously created configs.
-        SWTBotPluginOperations.deleteLibertyToolsDebugConfigEntries(bot, MVN_APP_NAME);
+        deleteLibertyToolsDebugConfigEntriesFromMenu();
 
         // Start dev mode.
         SWTBotPluginOperations.launchStartWithDebugAsShortcut(MVN_APP_NAME);
