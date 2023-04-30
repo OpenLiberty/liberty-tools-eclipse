@@ -12,8 +12,6 @@
 *******************************************************************************/
 package io.openliberty.tools.eclipse.test.it;
 
-import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.find;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -24,7 +22,10 @@ import java.util.List;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotView;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotCombo;
@@ -41,7 +42,10 @@ import io.openliberty.tools.eclipse.CommandBuilder.CommandNotFoundException;
 import io.openliberty.tools.eclipse.test.it.utils.DisabledOnMac;
 import io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils;
 import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.*;
+
+import io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.ControlFinder;
 import io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.Option;
+import io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.ControlFinder.Direction;
 import io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.*;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
@@ -438,12 +442,15 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         // Start dev mode with parms.
         SWTBotPluginOperations.launchDashboardAction(bot, MVN_APP_NAME, DashboardView.APP_MENU_ACTION_DEBUG_CONFIG);
 
-        Shell configShell = (Shell) findGlobal("Run Configurations", Option.factory().widgetClass(Shell.class).build());
+        Shell configShell = (Shell) findGlobal("Debug Configurations", Option.factory().widgetClass(Shell.class).build());
         TreeItem libertyConfigTree = (TreeItem) find(SWTBotPluginOperations.LAUNCH_CONFIG_LIBERTY_MENU_NAME, configShell);
 
         context(libertyConfigTree, "New Configuration");
-        set("Start parameters:", "-DhotTests=true");
-        go("Run", configShell);
+
+        Object parmLabel = find("Start parameters:", libertyConfigTree, Option.factory().widgetClass(Label.class).build());
+        Control parmText = ControlFinder.findControlInRange(parmLabel, Text.class, Direction.EAST);
+        set(parmText, "-DhotTests=true");
+        go("Debug", configShell);
 
         SWTBotView terminal = bot.viewByTitle("Terminal");
         terminal.show();
