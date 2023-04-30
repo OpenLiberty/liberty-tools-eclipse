@@ -512,7 +512,6 @@ public class DashboardView extends ViewPart {
         }
     }
     
-    //TODO - restrict to test-only
     public Table getTable() {
     	return viewer.getTable();
     }
