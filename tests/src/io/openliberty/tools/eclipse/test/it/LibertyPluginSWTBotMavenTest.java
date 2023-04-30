@@ -711,8 +711,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         // Start dev mode.
         SWTBotPluginOperations.launchStartWithDebugAsShortcut(MVN_APP_NAME);
 
-        SWTBotView terminal = bot.viewByTitle("Terminal");
-        terminal.show();
+        goGlobal("Terminal");
 
         // Validate application is up and running.
         LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
@@ -725,13 +724,14 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
 
         // Stop dev mode using the Run As stop command.
         SWTBotPluginOperations.launchStopWithRunAsShortcut(MVN_APP_NAME);
-        terminal.show();
+
+        //terminal.show();
 
         // Validate application stopped.
         LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
 
         // Close the terminal.
-        terminal.close();
+        //terminal.close();
     }
 
     @Test
