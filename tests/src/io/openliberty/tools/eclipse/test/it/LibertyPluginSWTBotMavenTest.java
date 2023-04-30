@@ -891,11 +891,11 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         // Add the project nature manually.
         SWTBotPluginOperations.enableLibertyTools(NON_DFLT_NAME);
 
-        // Refresh the project through the explorer view to pick up the nature removal.
-        SWTBotPluginOperations.refreshProjectUsingExplorerView(NON_DFLT_NAME);
-
-        // Dashboard refresh should happen automatically, right?
-        // SWTBotPluginOperations.refreshDashboard(bot);
+//        // Refresh the project through the explorer view to pick up the nature removal.
+//        SWTBotPluginOperations.refreshProjectUsingExplorerView(NON_DFLT_NAME);
+//
+//        // Dashboard refresh should happen automatically, right?
+//        // SWTBotPluginOperations.refreshDashboard(bot);
 
         // Make sure the application is listed in the dashboard.
         List<String> newProjectList = SWTBotPluginOperations.getDashboardContent(bot, dashboard);

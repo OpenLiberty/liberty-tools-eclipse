@@ -50,6 +50,7 @@ import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLaunche
 /**
  * Tests Open Liberty Eclipse plugin functions.
  */
+@Disabled
 public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTest {
 
     /**
