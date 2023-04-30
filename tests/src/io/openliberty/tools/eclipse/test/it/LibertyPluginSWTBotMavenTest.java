@@ -263,7 +263,9 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
      */
     @Test
     public void testLibertyConfigurationTabsExist() {
-        Shell configShell = SWTBotPluginOperations.launchRunConfigurationsDialogFromAppRunAs(MVN_APP_NAME);
+
+        Shell configShell = launchRunConfigurationsDialogFromMenu();
+
         try {
             TreeItem libertyConfigTree = (TreeItem) find(SWTBotPluginOperations.LAUNCH_CONFIG_LIBERTY_MENU_NAME,
                     configShell);
@@ -607,8 +609,9 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
      */
     @Test
     public void testRunAsShortcutActions() {
+
         // Delete any previously created configs.
-        SWTBotPluginOperations.deleteLibertyToolsRunConfigEntriesFromAppRunAs(bot, MVN_APP_NAME);
+    	deleteLibertyToolsDebugConfigEntriesFromMenu();
 
         // Delete the test report files before we start this test.
         Path pathToITReport = Paths.get(projectPath.toString(), "target", "site", "failsafe-report.html");
