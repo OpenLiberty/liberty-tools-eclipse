@@ -50,7 +50,6 @@ import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLaunche
 /**
  * Tests Open Liberty Eclipse plugin functions.
  */
-@Disabled
 public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTest {
 
     /**
@@ -413,9 +412,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         Assertions.assertTrue(testReportDeleted, () -> "Test report file: " + pathToTestReport + " was not be deleted.");
 
         // Start dev mode.
-        SWTBotPluginOperations.launchDashboardAction(bot, GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
-        SWTBotView terminal = bot.viewByTitle("Terminal");
-        terminal.show();
+        SWTBotPluginOperations.launchDashboardAction(bot, GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_START);
 
         // Validate application is up and running.
         LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_APP_NAME, true, testAppPath + "/build");
@@ -435,13 +432,13 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         } finally {
             // Stop dev mode.
             SWTBotPluginOperations.launchDashboardAction(bot, GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
-            terminal.show();
+//            terminal.show();
 
             // Validate application stopped.
             LibertyPluginTestUtils.validateLibertyServerStopped(testAppPath + "/build");
 
             // Close the terminal.
-            terminal.close();
+ //           terminal.close();
         }
     }
 
