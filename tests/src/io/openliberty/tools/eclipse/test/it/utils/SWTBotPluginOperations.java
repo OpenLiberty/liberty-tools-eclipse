@@ -12,7 +12,14 @@
 *******************************************************************************/
 package io.openliberty.tools.eclipse.test.it.utils;
 
-import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.*;
+import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.context;
+import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.expandTreeItem;
+import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.find;
+import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.findGlobal;
+import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.go;
+import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.goGlobal;
+import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.goMenuItem;
+import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.set;
 import static org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory.allOf;
 import static org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory.widgetOfType;
 
@@ -27,6 +34,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Item;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
@@ -38,9 +46,9 @@ import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotEditor;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotView;
 import org.eclipse.swtbot.swt.finder.SWTBot;
+import org.eclipse.swtbot.swt.finder.exceptions.WidgetNotFoundException;
 import org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory;
 import org.eclipse.swtbot.swt.finder.utils.SWTUtils;
-import org.eclipse.swtbot.swt.finder.widgets.SWTBotButton;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotCTabItem;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotCombo;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotMenu;
@@ -118,7 +126,12 @@ public class SWTBotPluginOperations {
 
     public static void openJavaPerspectiveViaMenu() {
     	Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
-    	goMenuItem(windowMenu, "Perspective", "Open Perspective", "Java");
+    	
+    	if (new SWTWorkbenchBot().activePerspective().getLabel().equals("Java")) {
+    		return;
+    	} else {
+    	    goMenuItem(windowMenu, "Perspective", "Open Perspective", "Java");
+    	}
     }
 
     /**
@@ -393,7 +406,7 @@ public class SWTBotPluginOperations {
         return (Shell) findGlobal("Debug Configurations", Option.factory().widgetClass(Shell.class).build());
     }
 
-    /**
+    
 
     /**
      * Launches the debug configuration dialog.
@@ -448,7 +461,7 @@ public class SWTBotPluginOperations {
      * @param bot The SWTWorkbenchBot instance..
      * @param appName The application name.
      */
-    public static void deleteLibertyToolsRunConfigEntriesFromAppRunAs(SWTWorkbenchBot bot, String appName) {
+    public static void deleteLibertyToolsRunConfigEntriesFromAppRunAs(String appName) {
 
     	Shell configShell = launchRunConfigurationsDialogFromAppRunAs(appName);
 
@@ -569,6 +582,7 @@ public class SWTBotPluginOperations {
     }
 
     public static Object getAppInPackageExplorerTree(String appName) {
+    	openJavaPerspectiveViaMenu();
         Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
     	goMenuItem(windowMenu, "Show View", "Package Explorer");
         Object peView = MagicWidgetFinder.findGlobal("Package Explorer");
@@ -692,10 +706,10 @@ public class SWTBotPluginOperations {
      */
     public static void enableLibertyTools(String appName) {
 
-        Object peView = MagicWidgetFinder.findGlobal("Project Explorer");
-        Object project = MagicWidgetFinder.find(appName, peView);
+        Object project = getAppInPackageExplorerTree(appName);
 
-        MagicWidgetFinder.context(project, "Configure", EXPLORER_CONFIGURE_MENU_ENABLE_LIBERTY_TOOLS);
+        context(project, "Configure", 
+                WidgetMatcherFactory.withRegex(".*" + EXPLORER_CONFIGURE_MENU_ENABLE_LIBERTY_TOOLS + ".*"));
     }
 
     /**

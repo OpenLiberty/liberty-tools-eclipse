@@ -38,6 +38,9 @@
                     <useUIThread>false</useUIThread>
                     <providerHint>junit5</providerHint>
                     <trimStackTrace>false</trimStackTrace>
+                    <!--
+                    <runOrder>alphabetical</runOrder>
+                    -->
                     <systemProperties>
                         <org.eclipse.swtbot.search.timeout>20000</org.eclipse.swtbot.search.timeout>
                         <io.liberty.tools.eclipse.tests.mvnexecutable.path>${mvnPath}</io.liberty.tools.eclipse.tests.mvnexecutable.path>
