@@ -473,7 +473,7 @@ public class SWTBotPluginOperations {
      * @param bot The SWTWorkbenchBot instance..
      * @param appName The application name.
      */
-    public static void deleteLibertyToolsDebugConfigEntries(SWTWorkbenchBot bot, String appName) {
+    public static void deleteLibertyToolsDebugConfigEntriesFromMenu() {
 
     	Shell configShell = launchDebugConfigurationsDialogFromMenu();
 
