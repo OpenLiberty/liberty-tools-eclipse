@@ -177,13 +177,13 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
                         + "Found entry count: " + foundItems + ". Found menu entries: " + runAsMenuItems);
 
         // Check that the Run As -> Run Configurations... contains the Liberty entry in the menu.
-        Shell configShell = SWTBotPluginOperations.launchRunConfigurationsDialog(MVN_APP_NAME);
+        Shell configShell = launchRunConfigurationsDialogFromMenu();
         SWTBotTreeItem runAslibertyToolsEntry = getLibertyTreeItem(configShell);
         Assertions.assertTrue(runAslibertyToolsEntry != null, "Liberty entry in Run Configurations view was not found.");
         MagicWidgetFinder.go("Close", configShell);
 
         // Check that the Debug As -> Debug Configurations... contains the Liberty entry in the menu.
-        Shell debugShell = SWTBotPluginOperations.launchDebugConfigurationsDialog(MVN_APP_NAME);
+        Shell debugShell = launchDebugConfigurationsDialogFromMenu();
         SWTBotTreeItem debugAslibertyToolsEntry = getLibertyTreeItem(debugShell);
         Assertions.assertTrue(debugAslibertyToolsEntry != null, "Liberty entry in Debug Configurations view was not found.");
         MagicWidgetFinder.go("Close", debugShell);

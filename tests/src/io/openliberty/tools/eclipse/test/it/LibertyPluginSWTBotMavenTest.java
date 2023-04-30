@@ -40,7 +40,7 @@ import io.openliberty.tools.eclipse.CommandBuilder;
 import io.openliberty.tools.eclipse.CommandBuilder.CommandNotFoundException;
 import io.openliberty.tools.eclipse.test.it.utils.DisabledOnMac;
 import io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils;
-import io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder;
+import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.*;
 import io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.Option;
 import io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.*;
@@ -234,22 +234,22 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
                         + "Found entry count: " + foundDebugAsItems + ". Found menu entries: " + debugAsMenuItems);
 
         // Check that the Run As -> Run Configurations... contains the Liberty entry in the menu.
-        Shell configShell = SWTBotPluginOperations.launchRunConfigurationsDialog(MVN_APP_NAME);
+        Shell configShell = launchRunConfigurationsDialogFromAppRunAs(MVN_APP_NAME);
         try {
             SWTBotTreeItem runAslibertyToolsEntry = getLibertyTreeItem(configShell);
             Assertions.assertTrue(runAslibertyToolsEntry != null, "Liberty entry in Run Configurations view was not found.");
         } finally {
-            MagicWidgetFinder.go("Close", configShell);
+            go("Close", configShell);
 
         }
 
         // Check that the Debug As -> Debug Configurations... contains the Liberty entry in the menu.
-        Shell debugShell = SWTBotPluginOperations.launchDebugConfigurationsDialog(MVN_APP_NAME);
+        Shell debugShell = SWTBotPluginOperations.launchDebugConfigurationsDialogFromMenu();
         try {
             SWTBotTreeItem debugAslibertyToolsEntry = getLibertyTreeItem(debugShell);
             Assertions.assertTrue(debugAslibertyToolsEntry != null, "Liberty entry in Debug Configurations view was not found.");
         } finally {
-            MagicWidgetFinder.go("Close", debugShell);
+            go("Close", debugShell);
 
         }
     }
@@ -259,16 +259,16 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
      */
     @Test
     public void testLibertyConfigurationTabsExist() {
-        Shell configShell = SWTBotPluginOperations.launchRunConfigurationsDialog(MVN_APP_NAME);
+        Shell configShell = SWTBotPluginOperations.launchRunConfigurationsDialogFromAppRunAs(MVN_APP_NAME);
         try {
-            TreeItem libertyConfigTree = (TreeItem) MagicWidgetFinder.find(SWTBotPluginOperations.LAUNCH_CONFIG_LIBERTY_MENU_NAME,
+            TreeItem libertyConfigTree = (TreeItem) find(SWTBotPluginOperations.LAUNCH_CONFIG_LIBERTY_MENU_NAME,
                     configShell);
-            MagicWidgetFinder.context(libertyConfigTree, "New Configuration");
+            context(libertyConfigTree, "New Configuration");
 
             Assertions.assertTrue(bot.cTabItem("Start").isVisible(), "Liberty Start tab not visible.");
             Assertions.assertTrue(bot.cTabItem("JRE").isVisible(), "Liberty JRE tab not visible.");
         } finally {
-            MagicWidgetFinder.go("Close", configShell);
+            go("Close", configShell);
         }
     }
 
@@ -396,13 +396,9 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
 
         // Start dev mode with parms.
         SWTBotPluginOperations.launchDashboardAction(bot, MVN_APP_NAME, DashboardView.APP_MENU_ACTION_START_CONFIG);
-
-        Shell configShell = (Shell) MagicWidgetFinder.findGlobal("Run Configurations", Option.factory().widgetClass(Shell.class).build());
-        TreeItem libertyConfigTree = (TreeItem) MagicWidgetFinder.find(SWTBotPluginOperations.LAUNCH_CONFIG_LIBERTY_MENU_NAME, configShell);
-
-        MagicWidgetFinder.context(libertyConfigTree, "New Configuration");
-        MagicWidgetFinder.set("Start parameters:", "-DhotTests=true");
-        MagicWidgetFinder.go("Run", configShell);
+        Shell configShell = launchRunConfigurationsDialogFromMenu();
+        
+        launchStartWithExistingCustomConfig(configShell, MVN_APP_NAME, "-DhotTests=true");
 
         SWTBotView terminal = bot.viewByTitle("Terminal");
         terminal.show();
@@ -446,12 +442,12 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         // Start dev mode with parms.
         SWTBotPluginOperations.launchDashboardAction(bot, MVN_APP_NAME, DashboardView.APP_MENU_ACTION_DEBUG_CONFIG);
 
-        Shell configShell = (Shell) MagicWidgetFinder.findGlobal("Run Configurations", Option.factory().widgetClass(Shell.class).build());
-        TreeItem libertyConfigTree = (TreeItem) MagicWidgetFinder.find(SWTBotPluginOperations.LAUNCH_CONFIG_LIBERTY_MENU_NAME, configShell);
+        Shell configShell = (Shell) findGlobal("Run Configurations", Option.factory().widgetClass(Shell.class).build());
+        TreeItem libertyConfigTree = (TreeItem) find(SWTBotPluginOperations.LAUNCH_CONFIG_LIBERTY_MENU_NAME, configShell);
 
-        MagicWidgetFinder.context(libertyConfigTree, "New Configuration");
-        MagicWidgetFinder.set("Start parameters:", "-DhotTests=true");
-        MagicWidgetFinder.go("Run", configShell);
+        context(libertyConfigTree, "New Configuration");
+        set("Start parameters:", "-DhotTests=true");
+        go("Run", configShell);
 
         SWTBotView terminal = bot.viewByTitle("Terminal");
         terminal.show();
@@ -580,7 +576,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         Assertions.assertTrue(testReportDeleted, () -> "File: " + pathToITReport + " was not be deleted.");
 
         // Start dev mode with parms.
-        SWTBotPluginOperations.launchStartWithCustomRunConfig(MVN_APP_NAME, "-DhotTests=true");
+        SWTBotPluginOperations.launchStartWithNewCustomRunConfig(MVN_APP_NAME, "-DhotTests=true");
         SWTBotView terminal = bot.viewByTitle("Terminal");
         terminal.show();
 
@@ -673,9 +669,8 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         Assertions.assertTrue(testReportDeleted, () -> "File: " + pathToITReport + " was not be deleted.");
 
         // Start dev mode with parms.
-        SWTBotPluginOperations.launchStartWithCustomDebugConfig(MVN_APP_NAME, "-DhotTests=true");
-        SWTBotView terminal = bot.viewByTitle("Terminal");
-        terminal.show();
+        launchStartWithNewCustomDebugConfig(MVN_APP_NAME, "-DhotTests=true");
+        goGlobal("Terminal");
 
         // Validate application is up and running.
         LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
@@ -695,13 +690,13 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         } finally {
             // Stop dev mode using the Run As stop command.
             SWTBotPluginOperations.launchStopWithRunAsShortcut(MVN_APP_NAME);
-            terminal.show();
+            //terminal.show();
 
             // Validate application stopped.
             LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
 
             // Close the terminal.
-            terminal.close();
+            //terminal.close();
         }
     }
 
@@ -831,12 +826,12 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         // Delete any previously created configs.
         SWTBotPluginOperations.deleteLibertyToolsRunConfigEntries(bot, MVN_APP_NAME);
 
-        Shell configShell = SWTBotPluginOperations.launchRunConfigurationsDialog(MVN_APP_NAME);
+        Shell configShell = launchRunConfigurationsDialogFromAppRunAs(MVN_APP_NAME);
         try {
-            TreeItem libertyConfigTree = (TreeItem) MagicWidgetFinder.find(SWTBotPluginOperations.LAUNCH_CONFIG_LIBERTY_MENU_NAME,
+            TreeItem libertyConfigTree = (TreeItem) find(SWTBotPluginOperations.LAUNCH_CONFIG_LIBERTY_MENU_NAME,
                     configShell);
 
-            MagicWidgetFinder.context(libertyConfigTree, "New Configuration");
+            context(libertyConfigTree, "New Configuration");
             SWTBotPluginOperations.openJRETab(bot);
             String buildPathJRE = LibertyPluginTestUtils.getJREFromBuildpath(projectPath.toString());
 
@@ -851,8 +846,8 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
             Assertions.assertTrue(comboJREBox.isEnabled(),
                     () -> "The JRE tab box showing Java installation \" + buildPathJRE + \" is not selected.");
         } finally {
-            MagicWidgetFinder.go("Apply", configShell);
-            MagicWidgetFinder.go("Close", configShell);
+            go("Apply", configShell);
+            go("Close", configShell);
         }
     }
 
