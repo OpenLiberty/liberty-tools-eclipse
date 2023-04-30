@@ -688,6 +688,9 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         	 System.out.println( "Caught exception: " + e);
         	throw new RuntimeException(e);
         } finally {
+        	
+            SWTBotPluginOperations.openJavaPerspectiveViaMenu();
+        	
             // Stop dev mode using the Run As stop command.
             SWTBotPluginOperations.launchStopWithRunAsShortcut(MVN_APP_NAME);
             //terminal.show();
