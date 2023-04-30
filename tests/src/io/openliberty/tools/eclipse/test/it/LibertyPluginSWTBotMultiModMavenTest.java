@@ -233,13 +233,13 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
     public void testStartWithDefaultRunAsConfig() {
 
         // set the preferences
-        SWTBotPluginOperations.setBuildCmdPathInPreferences(bot, "Maven");
+        setBuildCmdPathInPreferences(bot, "Maven");
 
         // Delete any previously created configs.
-        SWTBotPluginOperations.deleteLibertyToolsRunConfigEntries(bot, MVN_APP_NAME);
+        deleteLibertyToolsRunConfigEntries(bot, MVN_APP_NAME);
 
         // Start dev mode.
-        SWTBotPluginOperations.launchStartWithDefaultRunConfig(MVN_APP_NAME);
+        launchStartWithDefaultRunConfig(MVN_APP_NAME);
         SWTBotView terminal = bot.viewByTitle("Terminal");
         terminal.show();
 

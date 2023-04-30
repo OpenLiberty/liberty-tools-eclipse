@@ -305,8 +305,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         // Start dev mode.
         SWTBotPluginOperations.launchDashboardAction(bot, MVN_WRAPPER_APP_NAME, DashboardView.APP_MENU_ACTION_START);
 
-        SWTBotView terminal = bot.viewByTitle("Terminal");
-        terminal.show();
+        goGlobal("Terminal");
 
         // Validate application is up and running.
         LibertyPluginTestUtils.validateApplicationOutcome(MVN_WRAPPER_APP_NAME, true,
@@ -317,13 +316,13 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
 
         // Stop dev mode.
         SWTBotPluginOperations.launchDashboardAction(bot, MVN_WRAPPER_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
-        terminal.show();
+        //terminal.show();
 
         // Validate application stopped.
         LibertyPluginTestUtils.validateLibertyServerStopped(wrapperProjectPath.toAbsolutePath().toString() + "/target/liberty");
 
         // Close the terminal.
-        terminal.close();
+        //terminal.close();
     }
 
     /**
@@ -333,8 +332,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
     public void testDashboardStartAction() {
         // Start dev mode.
         SWTBotPluginOperations.launchDashboardAction(bot, MVN_APP_NAME, DashboardView.APP_MENU_ACTION_START);
-        SWTBotView terminal = bot.viewByTitle("Terminal");
-        terminal.show();
+        goGlobal("Terminal");
 
         // Validate application is up and running.
         LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
@@ -344,13 +342,11 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
 
         // Stop dev mode.
         SWTBotPluginOperations.launchDashboardAction(bot, MVN_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
-        terminal.show();
 
         // Validate application stopped.
         LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
 
-        // Close the terminal.
-        terminal.close();
+        //terminal.close();
     }
 
     /**
@@ -689,7 +685,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         	throw new RuntimeException(e);
         } finally {
         	
-            SWTBotPluginOperations.openJavaPerspectiveViaMenu();
+            openJavaPerspectiveViaMenu();
         	
             // Stop dev mode using the Run As stop command.
             SWTBotPluginOperations.launchStopWithRunAsShortcut(MVN_APP_NAME);
@@ -724,6 +720,9 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
 
         // Validate that a remote java application configuration was created and is named after the application.
         validateRemoteJavaAppCreation(MVN_APP_NAME);
+
+        // Switch back to Java so we can find Pkg Explorer
+        openJavaPerspectiveViaMenu();
 
         // Stop dev mode using the Run As stop command.
         SWTBotPluginOperations.launchStopWithRunAsShortcut(MVN_APP_NAME);

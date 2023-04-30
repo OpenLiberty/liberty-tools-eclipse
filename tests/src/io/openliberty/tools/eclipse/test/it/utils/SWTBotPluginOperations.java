@@ -404,7 +404,11 @@ public class SWTBotPluginOperations {
     }
 
     public static SWTBotTreeItem getLibertyTreeItem(Shell shell) {
-    	return new SWTBotTreeItem((TreeItem)find(LAUNCH_CONFIG_LIBERTY_MENU_NAME, shell));
+    	TreeItem ti = (TreeItem)find(LAUNCH_CONFIG_LIBERTY_MENU_NAME, shell);
+    	// Without doing this the children might not have their names materialize
+    	//go(LAUNCH_CONFIG_LIBERTY_MENU_NAME, shell);
+    	expandTreeItem(ti);
+    	return new SWTBotTreeItem(ti);
     }
 
     
