@@ -383,7 +383,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
     public void testDashboardStartWithCustomConfigAction() {
 
         // Delete any previously created configs.
-        SWTBotPluginOperations.deleteLibertyToolsRunConfigEntries(bot, MVN_APP_NAME);
+        SWTBotPluginOperations.deleteLibertyToolsRunConfigEntriesFromAppRunAs(bot, MVN_APP_NAME);
 
         // Delete the test report files before we start this test.
         Path pathToITReport = Paths.get(projectPath.toString(), "target", "site", "failsafe-report.html");
@@ -533,10 +533,10 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
     @Test
     public void testStartWithDefaultRunAsConfig() {
         // Delete any previously created configs.
-        SWTBotPluginOperations.deleteLibertyToolsRunConfigEntries(bot, MVN_APP_NAME);
+        SWTBotPluginOperations.deleteLibertyToolsRunConfigEntriesFromAppRunAs(bot, MVN_APP_NAME);
 
         // Start dev mode.
-        SWTBotPluginOperations.launchStartWithDefaultRunConfig(MVN_APP_NAME);
+        SWTBotPluginOperations.launchStartWithDefaultRunConfigFromAppRunAs(MVN_APP_NAME);
         SWTBotView terminal = bot.viewByTitle("Terminal");
         terminal.show();
 
@@ -564,7 +564,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
     @Test
     public void testStartWithCustomRunAsConfig() {
         // Delete any previously created configs.
-        SWTBotPluginOperations.deleteLibertyToolsRunConfigEntries(bot, MVN_APP_NAME);
+        SWTBotPluginOperations.deleteLibertyToolsRunConfigEntriesFromAppRunAs(bot, MVN_APP_NAME);
 
         // Delete the test report files before we start this test.
         Path pathToITReport = Paths.get(projectPath.toString(), "target", "site", "failsafe-report.html");
@@ -601,7 +601,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
     @Test
     public void testRunAsShortcutActions() {
         // Delete any previously created configs.
-        SWTBotPluginOperations.deleteLibertyToolsRunConfigEntries(bot, MVN_APP_NAME);
+        SWTBotPluginOperations.deleteLibertyToolsRunConfigEntriesFromAppRunAs(bot, MVN_APP_NAME);
 
         // Delete the test report files before we start this test.
         Path pathToITReport = Paths.get(projectPath.toString(), "target", "site", "failsafe-report.html");
@@ -826,7 +826,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
     @Test
     public void testDefaultJRECompliance() {
         // Delete any previously created configs.
-        SWTBotPluginOperations.deleteLibertyToolsRunConfigEntries(bot, MVN_APP_NAME);
+        SWTBotPluginOperations.deleteLibertyToolsRunConfigEntriesFromAppRunAs(bot, MVN_APP_NAME);
 
         Shell configShell = launchRunConfigurationsDialogFromAppRunAs(MVN_APP_NAME);
         try {

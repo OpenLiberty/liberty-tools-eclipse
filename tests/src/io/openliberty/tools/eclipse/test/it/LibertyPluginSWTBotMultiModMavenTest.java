@@ -236,10 +236,10 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
         setBuildCmdPathInPreferences(bot, "Maven");
 
         // Delete any previously created configs.
-        deleteLibertyToolsRunConfigEntries(bot, MVN_APP_NAME);
+        deleteLibertyToolsRunConfigEntriesFromAppRunAs(bot, MVN_APP_NAME);
 
         // Start dev mode.
-        launchStartWithDefaultRunConfig(MVN_APP_NAME);
+        launchStartWithDefaultRunConfigFromAppRunAs(MVN_APP_NAME);
         SWTBotView terminal = bot.viewByTitle("Terminal");
         terminal.show();
 
@@ -248,17 +248,17 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
                 "Height in feet and inches", serverModule1Path + "/target/liberty");
 
         // If there are issues with the workspace, close the error dialog.
-        SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
+        pressWorkspaceErrorDialogProceedButton(bot);
 
         // Stop dev mode.
-        SWTBotPluginOperations.launchStopWithRunAsShortcut(MVN_APP_NAME);
+        launchStopWithRunAsShortcut(MVN_APP_NAME);
         terminal.show();
 
         // Validate application stopped.
         LibertyPluginTestUtils.validateLibertyServerStopped(serverModule1Path + "/target/liberty");
 
         // unset the preferences
-        SWTBotPluginOperations.unsetBuildCmdPathInPreferences(bot, "Maven");
+        unsetBuildCmdPathInPreferences(bot, "Maven");
 
         // Close the terminal.
         terminal.close();
