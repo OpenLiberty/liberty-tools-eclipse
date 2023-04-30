@@ -30,6 +30,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.swt.widgets.TreeItem;
@@ -208,7 +209,7 @@ public class SWTBotPluginOperations {
         openDashboardUsingToolbar(bot);
 
         Object dashboardView = MagicWidgetFinder.findGlobal(DASHBOARD_VIEW_TITLE);
-        Object project = MagicWidgetFinder.find(appName, dashboardView);
+        Object project = MagicWidgetFinder.find(appName, dashboardView, Option.factory().widgetClass(TableItem.class).build());
         MagicWidgetFinder.context(project, action);
     }
 
@@ -346,7 +347,7 @@ public class SWTBotPluginOperations {
         Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
         goMenuItem(windowMenu, "Preferences");
 
-        TreeItem liberty = (TreeItem) findGlobal("Liberty", Option.factory().widgetClass(TreeItem.class).build());
+        findGlobal("Liberty", Option.factory().widgetClass(TreeItem.class).build());
   
         goGlobal("Restore Defaults");
         goGlobal("Apply and Close");
@@ -357,38 +358,45 @@ public class SWTBotPluginOperations {
      * 
      * @param appName The application name.
      */
-    public static Shell launchRunConfigurationsDialog(String appName) {
+    public static Shell launchRunConfigurationsDialogFromAppRunAs(String appName) {
 
-        //Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
-        //goMenuItem(windowMenu, "Show View", "Project Explorer");
-
-        //Object peView = findGlobal("Project Explorer");
-        //TreeItem project = (TreeItem) find(appName, peView, Option.factory().widgetClass(TreeItem.class).build());
         TreeItem project = (TreeItem) findGlobal(appName, Option.factory().widgetClass(TreeItem.class).build());
-        go(project);
         
-        // bot.waitUntil(SWTBotTestCondition.isTreeItemEnabled(project), 5000);
-//        bot.waitUntil(SWTBotTestCondition.isTreeItemEnabled(project), 5000);
-//        new SWTBotTableItem(project).select().setFocus();
-
         MagicWidgetFinder.context(project, "Run As", "Run Configurations...");
-        //runAsMenu = project.contextMenu("Run As");
 
         // Return the newly launched configurations shell
         return (Shell) findGlobal("Run Configurations", Option.factory().widgetClass(Shell.class).build());
     }
+    
+    public static Shell launchDebugConfigurationsDialogFromAppRunAs(String appName) {
+
+        TreeItem project = (TreeItem) findGlobal(appName, Option.factory().widgetClass(TreeItem.class).build());
+        
+        MagicWidgetFinder.context(project, "Debug As", "Debug Configurations...");
+
+        // Return the newly launched configurations shell
+        return (Shell) findGlobal("Debug Configurations", Option.factory().widgetClass(Shell.class).build());
+    }
+
+    /**
 
     /**
      * Launches the debug configuration dialog.
-     * 
-     * @param appName The application name.
      */
-    public static Shell launchDebugConfigurationsDialog(String appName) {
+    public static Shell launchDebugConfigurationsDialogFromMenu() {
         Object windowMenu = findGlobal("Run", Option.factory().widgetClass(MenuItem.class).build());
         goMenuItem(windowMenu, "Debug Configurations...");
         return (Shell) findGlobal("Debug Configurations", Option.factory().widgetClass(Shell.class).build());
     }
 
+    /**
+     * Launches the debug configuration dialog.
+     */
+    public static Shell launchRunConfigurationsDialogFromMenu() {
+        Object windowMenu = findGlobal("Run", Option.factory().widgetClass(MenuItem.class).build());
+        goMenuItem(windowMenu, "Run Configurations...");
+        return (Shell) findGlobal("Run Configurations", Option.factory().widgetClass(Shell.class).build());
+    }
 
     public static SWTBotTreeItem getLibertyTreeItem(Shell shell) {
     	return new SWTBotTreeItem((TreeItem)find(LAUNCH_CONFIG_LIBERTY_MENU_NAME, shell));
@@ -423,7 +431,7 @@ public class SWTBotPluginOperations {
      */
     public static void deleteLibertyToolsRunConfigEntries(SWTWorkbenchBot bot, String appName) {
 
-    	Shell configShell = launchRunConfigurationsDialog(appName);
+    	Shell configShell = launchRunConfigurationsDialogFromAppRunAs(appName);
 
         try {
             SWTBotTreeItem libertyToolsEntry = getLibertyTreeItem(configShell);
@@ -460,7 +468,7 @@ public class SWTBotPluginOperations {
      */
     public static void deleteLibertyToolsDebugConfigEntries(SWTWorkbenchBot bot, String appName) {
 
-    	Shell configShell = launchDebugConfigurationsDialog(appName);
+    	Shell configShell = launchDebugConfigurationsDialogFromMenu();
 
         try {
             SWTBotTreeItem libertyToolsEntry = getLibertyTreeItem(configShell);
@@ -498,7 +506,7 @@ public class SWTBotPluginOperations {
      */
     public static void launchStartWithDefaultRunConfig(String appName) {
 
-        Shell shell = SWTBotPluginOperations.launchRunConfigurationsDialog(appName);
+        Shell shell = launchRunConfigurationsDialogFromAppRunAs(appName);
         Object libertyConfigTree = MagicWidgetFinder.find(LAUNCH_CONFIG_LIBERTY_MENU_NAME, shell);
 
         MagicWidgetFinder.context(libertyConfigTree, "New Configuration");
@@ -512,9 +520,10 @@ public class SWTBotPluginOperations {
      * @param appName The application name.
      * @param customParms The parameter(s) to pass to the dev mode start action.
      */
-    public static void launchStartWithCustomRunConfig(String appName, String customParms) {
-        Shell shell = SWTBotPluginOperations.launchRunConfigurationsDialog(appName);
-        launchStartWithCustomConfig(shell, customParms);
+    public static void launchStartWithNewCustomRunConfig(String appName, String customParms) {
+        Shell shell = launchRunConfigurationsDialogFromAppRunAs(appName);
+        createAndSetNewCustomConfig(shell, customParms);
+        go("Run", shell);
     }
 
     /**
@@ -524,12 +533,13 @@ public class SWTBotPluginOperations {
      * @param appName The application name.
      * @param customParms The parameter(s) to pass to the dev mode start action.
      */
-    public static void launchStartWithCustomDebugConfig(String appName, String customParms) {
-        Shell configShell = SWTBotPluginOperations.launchDebugConfigurationsDialog(appName);
-        launchStartWithCustomConfig(configShell, customParms);
+    public static void launchStartWithNewCustomDebugConfig(String appName, String customParms) {
+        Shell shell = launchDebugConfigurationsDialogFromAppRunAs(appName);
+        createAndSetNewCustomConfig(shell, customParms);
+        go("Debug", shell);
     }
     
-    public static void launchStartWithCustomConfig(Shell shell, String customParms) {
+    public static void createAndSetNewCustomConfig(Shell shell, String customParms) {
 
         Object libertyConfigTree = find(LAUNCH_CONFIG_LIBERTY_MENU_NAME, shell);
 
@@ -537,7 +547,16 @@ public class SWTBotPluginOperations {
         Object parmLabel = find("Start parameters:", shell, Option.factory().widgetClass(Label.class).build());
         Control parmText = ControlFinder.findControlInRange(parmLabel, Text.class, Direction.EAST);
         set(parmText, customParms);
-        go("Debug", shell);
+    }
+    
+    public static void launchStartWithExistingCustomConfig(Shell shell, String appName, String customParms) {
+        Object libertyConfigTree = find(LAUNCH_CONFIG_LIBERTY_MENU_NAME, shell);
+
+        Object debugConfig = find(appName, libertyConfigTree, Option.factory().useContains(true).widgetClass(TreeItem.class).build());
+        Object parmLabel = find("Start parameters:", debugConfig, Option.factory().widgetClass(Label.class).build());
+        Control parmText = ControlFinder.findControlInRange(parmLabel, Text.class, Direction.EAST);
+        set(parmText, customParms);
+        go("Run", shell);
     }
 
     public static Object getAppInProjectExplorerTree(String appName) {
