@@ -361,11 +361,13 @@ public class SWTBotPluginOperations {
     /**
      * Launches the run configuration dialog.
      * 
+     * Prereq:  assumes the Package Explorer is open
+     * 
      * @param appName The application name.
      */
     public static Shell launchRunConfigurationsDialogFromAppRunAs(String appName) {
 
-        TreeItem project = (TreeItem) findGlobal(appName, Option.factory().widgetClass(TreeItem.class).build());
+    	Object project = getAppInPackageExplorerTree(appName);
         
         MagicWidgetFinder.context(project, "Run As", "Run Configurations...");
 
@@ -373,9 +375,16 @@ public class SWTBotPluginOperations {
         return (Shell) findGlobal("Run Configurations", Option.factory().widgetClass(Shell.class).build());
     }
     
+    /**
+     * Launches the run configuration dialog.
+     * 
+     * Prereq:  assumes the Package Explorer is open
+     * 
+     * @param appName The application name.
+     */
     public static Shell launchDebugConfigurationsDialogFromAppRunAs(String appName) {
 
-        TreeItem project = (TreeItem) findGlobal(appName, Option.factory().widgetClass(TreeItem.class).build());
+    	Object project = getAppInPackageExplorerTree(appName);
         
         MagicWidgetFinder.context(project, "Debug As", "Debug Configurations...");
 
@@ -438,7 +447,7 @@ public class SWTBotPluginOperations {
      * @param bot The SWTWorkbenchBot instance..
      * @param appName The application name.
      */
-    public static void deleteLibertyToolsRunConfigEntries(SWTWorkbenchBot bot, String appName) {
+    public static void deleteLibertyToolsRunConfigEntriesFromAppRunAs(SWTWorkbenchBot bot, String appName) {
 
     	Shell configShell = launchRunConfigurationsDialogFromAppRunAs(appName);
 
@@ -497,18 +506,16 @@ public class SWTBotPluginOperations {
     }
 
     /**
-     * Launches dev mode start using a new Liberty configuration: project -> Run As -> Run Configurations -> Liberty -> New
-     * configuration (default) -> Run.
+     * Launches dev mode start using a new Liberty configuration: project -> Run As -> Liberty Start
      * 
      * @param item The application name.
      */
-    public static void launchStartWithDefaultRunConfig(String appName) {
+    public static void launchStartWithDefaultRunConfigFromAppRunAs(String appName) {
 
-        Shell shell = launchRunConfigurationsDialogFromAppRunAs(appName);
-        Object libertyConfigTree = MagicWidgetFinder.find(LAUNCH_CONFIG_LIBERTY_MENU_NAME, shell);
-
-        MagicWidgetFinder.context(libertyConfigTree, "New Configuration");
-        MagicWidgetFinder.go("Run", shell);
+    	Object project = getAppInPackageExplorerTree(appName);
+        context(project, "Run As", 
+                WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START + ".*"));
+ 
     }
 
     /**
