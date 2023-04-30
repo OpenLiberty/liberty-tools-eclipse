@@ -115,6 +115,11 @@ public class SWTBotPluginOperations {
         Display.getDefault().syncExec(runnable);
     }
 
+    public static void openJavaPerspectiveViaMenu() {
+    	Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
+    	goMenuItem(windowMenu, "Perspective", "Open Perspective", "Java");
+    }
+
     /**
      * Returns a list of entries on the Open Liberty dashboard.
      *
@@ -441,18 +446,7 @@ public class SWTBotPluginOperations {
             List<String> configs = libertyToolsEntry.getNodes();
 
             for (String config : configs) {
-                SWTBotTreeItem configEntry = libertyToolsEntry.getNode(config);
-                bot.waitUntil(SWTBotTestCondition.isTreeItemEnabled(configEntry), 10000);
-                configEntry.select().setFocus();
-
-                SWTBotToolbarButton deleteButon = bot.toolbarButtonWithTooltip("Delete selected launch configuration(s)");
-                deleteButon.setFocus();
-                deleteButon.click();
-
-                SWTBotButton deleteButton = bot.button("Delete");
-                bot.waitUntil(SWTBotTestCondition.isButtonEnabled(deleteButton), 5000);
-                deleteButton.setFocus();
-                deleteButton.click();
+            	deleteRunDebugConfigEntry(libertyToolsEntry, config);
             }
         } finally {
             // Close the configuration dialog.
@@ -562,10 +556,10 @@ public class SWTBotPluginOperations {
         go("Run", shell);
     }
 
-    public static Object getAppInProjectExplorerTree(String appName) {
+    public static Object getAppInPackageExplorerTree(String appName) {
         Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
-    	goMenuItem(windowMenu, "Show View", "Project Explorer");
-        Object peView = MagicWidgetFinder.findGlobal("Project Explorer");
+    	goMenuItem(windowMenu, "Show View", "Package Explorer");
+        Object peView = MagicWidgetFinder.findGlobal("Package Explorer");
         
         return MagicWidgetFinder.find(appName, peView, Option.factory().useContains(true).widgetClass(TreeItem.class).build());
     }
@@ -577,7 +571,7 @@ public class SWTBotPluginOperations {
      * @param appName The application name.
      */
     public static void launchStartWithDebugAsShortcut(String appName) {
-    	Object project = getAppInProjectExplorerTree(appName);
+    	Object project = getAppInPackageExplorerTree(appName);
         MagicWidgetFinder.context(project, "Debug As",
                 WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START + ".*"));
     }
@@ -589,7 +583,7 @@ public class SWTBotPluginOperations {
      * @param appName The application name.
      */
     public static void launchStartWithRunAsShortcut(String appName) {
-    	Object project = getAppInProjectExplorerTree(appName);
+    	Object project = getAppInPackageExplorerTree(appName);
         MagicWidgetFinder.context(project, "Run As",
                 WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START + ".*"));
     }
@@ -600,7 +594,7 @@ public class SWTBotPluginOperations {
      * @param appName The application name.
      */
     public static void launchStopWithRunAsShortcut(String appName) {
-    	Object project = getAppInProjectExplorerTree(appName);
+    	Object project = getAppInPackageExplorerTree(appName);
         MagicWidgetFinder.context(project, "Run As",
                 WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_STOP + ".*"));
     }
@@ -612,7 +606,7 @@ public class SWTBotPluginOperations {
      * @param appName The application name.
      */
     public static void launchRunTestsWithRunAsShortcut(String appName) {
-    	Object project = getAppInProjectExplorerTree(appName);
+    	Object project = getAppInPackageExplorerTree(appName);
         MagicWidgetFinder.context(project, "Run As",
                 WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_RUN_TESTS + ".*"));
     }
@@ -623,7 +617,7 @@ public class SWTBotPluginOperations {
      * @param appName The application name.
      */
     public static void launchRunTestsWithDebugAsShortcut(String appName) {
-    	Object project = getAppInProjectExplorerTree(appName);
+    	Object project = getAppInPackageExplorerTree(appName);
         MagicWidgetFinder.context(project, "Debug As",
                 WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_RUN_TESTS + ".*"));
     }
