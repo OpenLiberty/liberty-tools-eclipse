@@ -51,6 +51,7 @@ import org.junit.jupiter.api.TestInfo;
 import io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils;
 import io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.Option;
 import io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.*;
 
 public abstract class AbstractLibertyPluginSWTBotTest {
 
@@ -184,7 +185,8 @@ public abstract class AbstractLibertyPluginSWTBotTest {
      * @param projectName The project name..
      */
     public void validateRemoteJavaAppCreation(String projectName) {
-        Shell configShell = SWTBotPluginOperations.launchDebugConfigurationsDialogFromMenu();
+        //Shell configShell = SWTBotPluginOperations.launchDebugConfigurationsDialogFromMenu();
+        Shell configShell = launchDebugConfigurationsDialogFromAppRunAs(projectName);
         SWTBotTreeItem remoteJavaAppEntry = SWTBotPluginOperations.getRemoteJavaAppConfigMenuItem(configShell);
         Assertions.assertTrue((remoteJavaAppEntry != null),
                 () -> "The " + SWTBotPluginOperations.LAUNCH_CONFIG_REMOTE_JAVA_APP + " entry was not found in run Configurations dialog.");

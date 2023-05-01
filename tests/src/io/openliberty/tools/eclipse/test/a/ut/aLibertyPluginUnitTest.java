@@ -10,7 +10,7 @@
 * Contributors:
 *     IBM Corporation - initial implementation
 *******************************************************************************/
-package io.openliberty.tools.eclipse.test.ut;
+package io.openliberty.tools.eclipse.test.a.ut;
 
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -33,6 +33,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
@@ -44,7 +45,7 @@ import io.openliberty.tools.eclipse.ui.launch.StartTab;
 /**
  * Unit tests.
  */
-public class LibertyPluginUnitTest {
+public class aLibertyPluginUnitTest {
 
     /** Temporary directory name. */
     public static String TEMP_DIR_NAME = "tempDir";

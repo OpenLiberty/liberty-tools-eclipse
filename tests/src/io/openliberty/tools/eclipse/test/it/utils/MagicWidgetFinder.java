@@ -728,6 +728,30 @@ public class MagicWidgetFinder {
 
     }
 
+    
+    
+    
+	public static Shell activeShell() {
+
+		final Shell shell[] = new Shell[1];
+		Display.getDefault().syncExec(new Runnable() {
+			public void run() {
+				shell[0] = Display.getDefault().getActiveShell();
+				
+				if(shell[0] == null) {
+					Shell[] shells = Display.getDefault().getShells();
+					if(shells.length == 1) {
+						shell[0] = shells[1];
+					}
+				}
+				
+			}
+		});
+		return shell[0];
+	}
+
+	
+
     public static void debugDumpNodes(Node n, int depth, OutputStream s) throws IOException {
         for (int x = 0; x < depth; x++) {
             s.write("  ".getBytes());

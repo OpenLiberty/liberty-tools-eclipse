@@ -34,6 +34,7 @@ import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Item;
 import org.eclipse.swt.widgets.Label;
+import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Table;
@@ -404,7 +405,7 @@ public class SWTBotPluginOperations {
         return (Shell) findGlobal("Debug Configurations", Option.factory().widgetClass(Shell.class).build());
     }
 
-    /**
+    
 
     /**
      * Launches the debug configuration dialog.
@@ -459,7 +460,7 @@ public class SWTBotPluginOperations {
      * @param bot The SWTWorkbenchBot instance..
      * @param appName The application name.
      */
-    public static void deleteLibertyToolsRunConfigEntriesFromAppRunAs(SWTWorkbenchBot bot, String appName) {
+    public static void deleteLibertyToolsRunConfigEntriesFromAppRunAs(String appName) {
 
     	Shell configShell = launchRunConfigurationsDialogFromAppRunAs(appName);
 

@@ -20,7 +20,7 @@ import io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations;
 /**
  * Tests Open Liberty Eclipse plugin functions.
  */
-public class LibertyPluginSWTBotDashboardTest extends AbstractLibertyPluginSWTBotTest {
+public class eLibertyPluginSWTBotDashboardTest extends AbstractLibertyPluginSWTBotTest {
 
     /**
      * Setup.

@@ -12,6 +12,14 @@
  *******************************************************************************/
 package io.openliberty.tools.eclipse.test.it;
 
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.deleteLibertyToolsRunConfigEntriesFromAppRunAs;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getLibertyTreeItem;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.*;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.setBuildCmdPathInPreferences;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.unsetBuildCmdPathInPreferences;
+import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.*;
+
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -27,21 +35,19 @@ import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 
 import io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils;
 import io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder;
 import io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations;
-
-import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.find;
-import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.*;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher;
 
 /**
  * Tests Open Liberty Eclipse plugin functions.
  */
-public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginSWTBotTest {
+public class bLibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginSWTBotTest {
 
     /**
      * Application name.
@@ -177,13 +183,14 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
                         + "Found entry count: " + foundItems + ". Found menu entries: " + runAsMenuItems);
 
         // Check that the Run As -> Run Configurations... contains the Liberty entry in the menu.
-        Shell configShell = launchRunConfigurationsDialogFromMenu();
+        Shell configShell = launchRunConfigurationsDialogFromAppRunAs(MVN_APP_NAME);
         SWTBotTreeItem runAslibertyToolsEntry = getLibertyTreeItem(configShell);
         Assertions.assertTrue(runAslibertyToolsEntry != null, "Liberty entry in Run Configurations view was not found.");
         MagicWidgetFinder.go("Close", configShell);
 
+        System.out.println("SKSK: activeShell =" + activeShell());
         // Check that the Debug As -> Debug Configurations... contains the Liberty entry in the menu.
-        Shell debugShell = launchDebugConfigurationsDialogFromMenu();
+        Shell debugShell = launchDebugConfigurationsDialogFromAppRunAs(MVN_APP_NAME);
         SWTBotTreeItem debugAslibertyToolsEntry = getLibertyTreeItem(debugShell);
         Assertions.assertTrue(debugAslibertyToolsEntry != null, "Liberty entry in Debug Configurations view was not found.");
         MagicWidgetFinder.go("Close", debugShell);
@@ -236,7 +243,7 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
         setBuildCmdPathInPreferences(bot, "Maven");
 
         // Delete any previously created configs.
-        deleteLibertyToolsRunConfigEntriesFromAppRunAs(bot, MVN_APP_NAME);
+        deleteLibertyToolsRunConfigEntriesFromAppRunAs(MVN_APP_NAME);
 
         // Start dev mode.
         launchStartWithDefaultRunConfigFromAppRunAs(MVN_APP_NAME);

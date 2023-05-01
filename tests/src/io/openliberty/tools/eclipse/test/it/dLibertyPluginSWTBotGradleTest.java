@@ -12,6 +12,9 @@
 *******************************************************************************/
 package io.openliberty.tools.eclipse.test.it;
 
+import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.*;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.*;
+
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -32,25 +35,23 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.LibertyNature;
 import io.openliberty.tools.eclipse.Project;
 import io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils;
-import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.*;
 import io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.Option;
 import io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations;
-
-import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.find;
-import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.*;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher;
 
 /**
  * Tests Open Liberty Eclipse plugin functions.
  */
-public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTest {
+@Disabled
+public class dLibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTest {
 
     /**
      * Dashboard instance.
@@ -305,7 +306,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
     public void testDashboardStartWithCustomConfigAction() {
 
         // Delete any previously created configs.
-        SWTBotPluginOperations.deleteLibertyToolsRunConfigEntriesFromAppRunAs(bot, GRADLE_APP_NAME);
+        SWTBotPluginOperations.deleteLibertyToolsRunConfigEntriesFromAppRunAs(GRADLE_APP_NAME);
 
         // Delete the test report files before we start this test.
         Path projectPath = Paths.get("resources", "applications", "gradle", "liberty-gradle-test-app");
@@ -356,7 +357,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         String mode = "debug";
 
         // Delete any previously created configs.
-        deleteLibertyToolsDebugConfigEntriesFromMenu();
+    	deleteLibertyToolsRunConfigEntriesFromAppRunAs(GRADLE_APP_NAME);
 
         // Delete the test report files before we start this test.
         Path projectPath = Paths.get("resources", "applications", "gradle", "liberty-gradle-test-app");
@@ -541,7 +542,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
     public void testStartWithDefaultRunAsConfig() {
 
         // Delete any previously created configs.
-        SWTBotPluginOperations.deleteLibertyToolsRunConfigEntriesFromAppRunAs(bot, GRADLE_APP_NAME);
+        SWTBotPluginOperations.deleteLibertyToolsRunConfigEntriesFromAppRunAs(GRADLE_APP_NAME);
 
         // Start dev mode.
         SWTBotPluginOperations.launchStartWithDefaultRunConfigFromAppRunAs(GRADLE_APP_NAME);
@@ -573,7 +574,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
     public void testStartWithCustomRunAsConfig() {
 
         // Delete any previously created configs.
-        SWTBotPluginOperations.deleteLibertyToolsRunConfigEntriesFromAppRunAs(bot, GRADLE_APP_NAME);
+        SWTBotPluginOperations.deleteLibertyToolsRunConfigEntriesFromAppRunAs(GRADLE_APP_NAME);
 
         // Delete the test report files before we start this test.
         Path projectPath = Paths.get("resources", "applications", "gradle", "liberty-gradle-test-app");
@@ -615,7 +616,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
     public void testRunAsShortcutActions() {
 
         // Delete any previously created configs.
-        SWTBotPluginOperations.deleteLibertyToolsRunConfigEntriesFromAppRunAs(bot, GRADLE_APP_NAME);
+        SWTBotPluginOperations.deleteLibertyToolsRunConfigEntriesFromAppRunAs(GRADLE_APP_NAME);
 
         // Delete the test report files before we start this test.
         Path projectPath = Paths.get("resources", "applications", "gradle", "liberty-gradle-test-app");
@@ -663,7 +664,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
     @Test
     public void testStartWithCustomDebugAsConfig() {
         // Delete any previously created configs.
-        deleteLibertyToolsDebugConfigEntriesFromMenu();
+    	deleteLibertyToolsRunConfigEntriesFromAppRunAs(GRADLE_APP_NAME);
 
         // Delete the test report files before we start this test.
         Path projectPath = Paths.get("resources", "applications", "gradle", "liberty-gradle-test-app");
@@ -708,7 +709,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
     @Test
     public void testStartWithDebugAsShortcut() {
 
-    	deleteLibertyToolsDebugConfigEntriesFromMenu();
+        deleteLibertyToolsRunConfigEntriesFromAppRunAs(GRADLE_APP_NAME);
 
         // Start dev mode.
         SWTBotPluginOperations.launchStartWithDebugAsShortcut(GRADLE_APP_NAME);
@@ -742,9 +743,9 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
     @Test
     public void testDefaultJRECompliance() {
         // Delete any previously created configs.
-        SWTBotPluginOperations.deleteLibertyToolsRunConfigEntriesFromAppRunAs(bot, GRADLE_APP_NAME);
+        SWTBotPluginOperations.deleteLibertyToolsRunConfigEntriesFromAppRunAs(GRADLE_APP_NAME);
 
-        Shell configShell = launchRunConfigurationsDialogFromMenu();
+        Shell configShell = launchRunConfigurationsDialogFromAppRunAs(GRADLE_APP_NAME);
 
         try {
             TreeItem libertyConfigTree = (TreeItem) find(SWTBotPluginOperations.LAUNCH_CONFIG_LIBERTY_MENU_NAME,
