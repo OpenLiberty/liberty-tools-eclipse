@@ -233,7 +233,7 @@ public class dLibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotT
         }
 
         // Check that the Debug As -> Debug Configurations... contains the Liberty entry in the menu.
-        Shell debugShell = launchDebugConfigurationsDialogFromMenu();
+        Shell debugShell = launchDebugConfigurationsDialogFromAppRunAs(GRADLE_APP_NAME);
         try {
             SWTBotTreeItem debugAslibertyToolsEntry = getLibertyTreeItem(debugShell);
             Assertions.assertTrue(debugAslibertyToolsEntry != null, "Liberty entry in Debug Configurations view was not found.");
