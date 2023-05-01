@@ -586,7 +586,9 @@ public class SWTBotPluginOperations {
     	goMenuItem(windowMenu, "Show View", "Package Explorer");
         Object peView = MagicWidgetFinder.findGlobal("Package Explorer");
         
-        return MagicWidgetFinder.find(appName, peView, Option.factory().useContains(true).widgetClass(TreeItem.class).build());
+        Object project = MagicWidgetFinder.find(appName, peView, Option.factory().useContains(true).widgetClass(TreeItem.class).build());
+        go(project);
+        return project;
     }
 
     /**
