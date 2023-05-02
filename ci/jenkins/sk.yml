@@ -5,7 +5,7 @@ pipeline {
         jdk 'jdk-17'
         xvfb 'gui-test'
         maven 'maven-3.8.6'
-        gradle 'gradle'
+        gradle 'gradle-7.6.1'
     }
     
     stages {
@@ -15,9 +15,9 @@ pipeline {
                 sh 'git config --global user.email "wasdevb1@us.ibm.com"'
 
                 sh 'which gradle'
+                sh 'gradle -v'
                 sh 'which mvn'
-                sh 'echo Gradle path = `which gradle`'
-                sh 'echo Maven path = `which mvn`'
+                sh 'mvn -v'
             }
         }
         stage('Clone') {
