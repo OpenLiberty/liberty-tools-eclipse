@@ -202,19 +202,19 @@ public class cLibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTe
                 "The runAs menu associated with project: " + MVN_APP_NAME + " is null or empty.");
         int foundItems = 0;
 
-//        for (String expectedItem : runAsShortcuts) {
-//            for (String item : runAsMenuItems) {
-//                if (item.contains(expectedItem)) {
-//                    foundItems++;
-//                    break;
-//                }
-//            }
-//        }
-//
-//        Assertions.assertTrue(foundItems == runAsShortcuts.length,
-//                "The runAs menu associated with project: " + MVN_APP_NAME
-//                        + " does not contain one or more expected entries. Expected number of entries: " + runAsShortcuts.length
-//                        + "Found entry count: " + foundItems + ". Found menu entries: " + runAsMenuItems);
+        for (String expectedItem : runAsShortcuts) {
+            for (String item : runAsMenuItems) {
+                if (item.contains(expectedItem)) {
+                    foundItems++;
+                    break;
+                }
+            }
+        }
+
+        Assertions.assertTrue(foundItems == runAsShortcuts.length,
+                "The runAs menu associated with project: " + MVN_APP_NAME
+                        + " does not contain one or more expected entries. Expected number of entries: " + runAsShortcuts.length
+                        + "Found entry count: " + foundItems + ". Found menu entries: " + runAsMenuItems);
 
         // Check that the Debug As menu contains the expected shortcut
         SWTBotMenu debugAsMenu = SWTBotPluginOperations.getAppDebugAsMenu(bot, MVN_APP_NAME);
@@ -223,8 +223,22 @@ public class cLibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTe
         Assertions.assertTrue(debugAsMenuItems != null && !debugAsMenuItems.isEmpty(),
                 "The debugAs menu associated with project: " + MVN_APP_NAME + " is null or empty.");
         int foundDebugAsItems = 0;
+        
+        for (String expectedItem : debugAsShortcuts) {
+        	for (String item : debugAsMenuItems) {
+        		if (item.contains(expectedItem)) {
+        			foundDebugAsItems++;
+        			break;
+        		}
+        	}
+        }
+        
+        Assertions.assertTrue(foundDebugAsItems == debugAsShortcuts.length,
+        	"The debugAs menu associated with project: " + MVN_APP_NAME
+        	+ " does not contain one or more expected entries. Expected number of entries: " + debugAsShortcuts.length
+        	+ "Found entry count: " + foundDebugAsItems + ". Found menu entries: " + debugAsMenuItems);
 
-//         // Check that the Run As -> Run Configurations... contains the Liberty entry in the menu.
+         // Check that the Run As -> Run Configurations... contains the Liberty entry in the menu.
         Shell configShell = launchRunConfigurationsDialogFromAppRunAs(MVN_APP_NAME);
         try {
             SWTBotTreeItem runAslibertyToolsEntry = getLibertyTreeItem(configShell);
