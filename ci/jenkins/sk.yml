@@ -60,7 +60,7 @@ pipeline {
                             try {
                                 wrap([$class: 'Xvfb', installationName: 'gui-test', autoDisplayName: true, debug: true, parallelBuild: true, screen: '1680x1050x24']) {
                                     sh "metacity --sm-disable --replace &"
-                                    sh "mvn verify -Dtycho.disableP2Mirrors=true -DmvnImportWait=60000 -DgradlePath=/home/jenkins/agent/tools/hudson.plugins.gradle.GradleInstallation/gradle -DmvnPath=/home/jenkins/agent/tools/hudson.tasks.Maven_MavenInstallation/maven-3.8.6 -Declipse.target=4Q2022 -Dosgi.debug=./tests/resources/ci/debug.opts -Dtycho.showEclipseLog -e"
+                                    sh "mvn verify -Dtycho.disableP2Mirrors=true -DmvnImportWait=60000 -DmvnPath=/home/jenkins/agent/tools/hudson.tasks.Maven_MavenInstallation/maven-3.8.6 -Declipse.target=4Q2022 -Dosgi.debug=./tests/resources/ci/debug.opts -Dtycho.showEclipseLog -e"
                                 }
                             } finally {
                                 sh "cd tests/target/surefire-reports && zip -r 4Q2022-test-reports.zip ."
