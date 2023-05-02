@@ -18,6 +18,8 @@ pipeline {
                 sh 'gradle -v'
                 sh 'which mvn'
                 sh 'mvn -v'
+                sh 'which java'
+                sh 'java -version'
             }
         }
         stage('Clone') {
