@@ -22,20 +22,20 @@
      </location>
 
         <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-            <repository location="https://download.eclipse.org/releases/2022-12/"/>
-            <unit id="org.eclipse.jdt.feature.group" version="3.18.1400.v20221123-1800"/>
+            <repository location="https://download.eclipse.org/releases/2023-03/"/>
+            <unit id="org.eclipse.jdt.feature.group" version="3.19.0.v20230302-0300"/>
             <unit id="org.eclipse.lsp4e" version="0.15.0.202211292024"/>
             <unit id="org.eclipse.ui.trace" version="1.2.200.v20220310-2159"/>
             <unit id="org.eclipse.lsp4e.jdt" version="0.10.2.202205031750"/>
-            <unit id="org.eclipse.emf.sdk.feature.group" version="2.32.0.v20221121-1400"/>
-            <unit id="org.eclipse.equinox.sdk.feature.group" version="3.23.600.v20221116-1440"/>
-            <unit id="org.eclipse.m2e.wtp.feature.feature.group" version="1.5.2.20220906-1452"/>
-            <unit id="org.eclipse.platform.sdk" version="4.26.0.I20221123-1800"/>
+            <unit id="org.eclipse.emf.sdk.feature.group" version="2.33.0.v20230226-0921"/>
+            <unit id="org.eclipse.equinox.sdk.feature.group" version="3.23.700.v20230220-1352"/>
+            <unit id="org.eclipse.m2e.wtp.feature.feature.group" version="1.6.0.20230118-0812"/>
+            <unit id="org.eclipse.platform.sdk" version="4.27.0.I20230302-0300"/>
             <unit id="org.eclipse.ui.trace" version="1.2.200.v20220310-2159"/>
             <unit id="org.hamcrest.core" version="1.3.0.v20180420-1519"/>
             <unit id="org.junit" version="4.13.2.v20211018-1956"/>
-            <unit id="junit-jupiter-api" version="5.9.1"/>
-            <unit id="junit-jupiter-engine" version="5.9.1"/>
+            <unit id="junit-jupiter-api" version="5.9.2"/>
+            <unit id="junit-jupiter-engine" version="5.9.2"/>
         </location>
         <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
             <repository location="https://download.eclipse.org/tools/orbit/downloads/drops/R20220531185310/repository"/>
