@@ -26,10 +26,9 @@ pipeline {
             steps {
                 dir('liberty-tools-eclipse') {
                     // Clone git repo
-                    git branch: 'widget_finder',
-                       credentialsId: 'wasdev.github.ibm.ssh.key',
-                       // url: 'https://github.ibm.com/skurz/lte-mwf-test'
-                       url: 'git@github.ibm.com:skurz/lte-mwf-test.git'
+                    git branch: 'magic-widget-finder-rework',
+                       credentialsId: 'wasdev.github.ssh.key',
+                       url: 'git@github.com:scottkurz/liberty-tools-eclipse.git'
                 }
             }
         }
@@ -54,7 +53,7 @@ pipeline {
             }
         }
         
-        stage('Test on Eclipse 4Q2022') {
+        stage('Test on Eclipse 1Q2023') {
             steps {
                 dir('liberty-tools-eclipse') {
                     catchError(buildResult: 'SUCCESS', stageResult: 'FAILURE') {
@@ -62,14 +61,14 @@ pipeline {
                             try {
                                 wrap([$class: 'Xvfb', installationName: 'gui-test', autoDisplayName: true, debug: true, parallelBuild: true, screen: '1680x1050x24']) {
                                     sh "metacity --sm-disable --replace &"
-                                    sh "mvn verify -Dtycho.disableP2Mirrors=true -DmvnImportWait=60000 -DmvnPath=/home/jenkins/agent/tools/hudson.tasks.Maven_MavenInstallation/maven-3.8.6 -Declipse.target=4Q2022 -Dosgi.debug=./tests/resources/ci/debug.opts -Dtycho.showEclipseLog -e"
+                                    sh "mvn verify -Dtycho.disableP2Mirrors=true -DmvnImportWait=60000 -DmvnPath=/home/jenkins/agent/tools/hudson.tasks.Maven_MavenInstallation/maven-3.8.6 -Declipse.target=1Q2023 -Dosgi.debug=./tests/resources/ci/debug.opts -Dtycho.showEclipseLog -e"
                                 }
                             } finally {
-                                sh "cd tests/target/surefire-reports && zip -r 4Q2022-test-reports.zip ."
-                                archiveArtifacts artifacts: 'tests/target/surefire-reports/4Q2022-test-reports.zip', fingerprint: true
+                                sh "cd tests/target/surefire-reports && zip -r 1Q2023-test-reports.zip ."
+                                archiveArtifacts artifacts: 'tests/target/surefire-reports/1Q2023-test-reports.zip', fingerprint: true
                                 
-                                sh "cd releng/io.openliberty.tools.update/target/repository && zip -r repository4Q.zip *"
-                                archiveArtifacts artifacts: 'releng/io.openliberty.tools.update/target/repository/repository4Q.zip', fingerprint: true
+                                sh "cd releng/io.openliberty.tools.update/target/repository && zip -r repository1Q2023.zip *"
+                                archiveArtifacts artifacts: 'releng/io.openliberty.tools.update/target/repository/repository1Q2023.zip', fingerprint: true
                             }
                         }
                     }
