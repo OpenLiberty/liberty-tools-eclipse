@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2022 IBM Corporation and others.
+ * Copyright (c) 2022, 2023 IBM Corporation and others.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -205,7 +205,7 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
         SWTBotPluginOperations.setBuildCmdPathInPreferences(bot, "Maven");
 
         // Start dev mode.
-        SWTBotPluginOperations.launchDashboardAction(bot, MVN_APP_NAME, DashboardView.APP_MENU_ACTION_START);
+        SWTBotPluginOperations.launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_START);
         SWTBotView terminal = bot.viewByTitle("Terminal");
         terminal.show();
 
@@ -218,7 +218,7 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
         SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
 
         // Stop dev mode.
-        SWTBotPluginOperations.launchDashboardAction(bot, MVN_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
+        SWTBotPluginOperations.launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
         terminal.show();
 
         // Validate application stopped.
