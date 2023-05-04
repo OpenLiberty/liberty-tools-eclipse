@@ -234,6 +234,8 @@ public class LibertyPluginTestUtils {
 
             return;
         }
+        
+        throw new IllegalStateException("Timed out waiting for test report: " + pathToTestReport + " file to be created.");
     }
 
     /**

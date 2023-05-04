@@ -505,18 +505,25 @@ public class SWTBotPluginOperations {
         set(parmText, customParms);
     }
     
+    public static void launchDebugWithExistingCustomConfig(Shell shell, String appName, String customParms) {
+    	launchStartWithExistingCustomConfig(shell, appName, customParms);
+        go("Debug", shell);
+    }
+
+    public static void launchRunWithExistingCustomConfig(Shell shell, String appName, String customParms) {
+    	launchStartWithExistingCustomConfig(shell, appName, customParms);
+        go("Run", shell);
+    }
+
     public static void launchStartWithExistingCustomConfig(Shell shell, String appName, String customParms) {
     	
         Object libertyConfigTree = getLibertyTreeItem(shell); 
 
         go(appName, libertyConfigTree, Option.factory().useContains(true).widgetClass(TreeItem.class).build());
-
         Object parmLabel = find("Start parameters:", libertyConfigTree, Option.factory().widgetClass(Label.class).build());
 
         Control parmText = ControlFinder.findControlInRange(parmLabel, Text.class, Direction.EAST);
         set(parmText, customParms);
-        go("Run", shell);
-        go("Close", shell);        
     }
 
     public static Object getAppInPackageExplorerTree(String appName) {

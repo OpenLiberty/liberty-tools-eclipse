@@ -315,7 +315,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         launchDashboardAction(GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_START_CONFIG);
 
         Shell configShell = launchRunConfigurationsDialogFromAppRunAs(GRADLE_APP_NAME);
-        launchStartWithExistingCustomConfig(configShell, GRADLE_APP_NAME, "-DhotTests=true");
+        launchRunWithExistingCustomConfig(configShell, GRADLE_APP_NAME, "--hotTests=true");
         
         goGlobal("Terminal");
 
@@ -356,7 +356,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         launchDashboardAction(GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_DEBUG_CONFIG);
 
         Shell configShell = launchDebugConfigurationsDialogFromAppRunAs(GRADLE_APP_NAME);
-        launchStartWithExistingCustomConfig(configShell, GRADLE_APP_NAME, "-DhotTests=true");
+        launchDebugWithExistingCustomConfig(configShell, GRADLE_APP_NAME, "--hotTests=true");
         
         goGlobal("Terminal");
 

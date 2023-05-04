@@ -387,7 +387,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_START_CONFIG);
         Shell configShell = launchRunConfigurationsDialogFromAppRunAs(MVN_APP_NAME);
         
-        launchStartWithExistingCustomConfig(configShell, MVN_APP_NAME, "-DhotTests=true");
+        launchRunWithExistingCustomConfig(configShell, MVN_APP_NAME, "-DhotTests=true");
 
         goGlobal("Terminal");
 
@@ -427,7 +427,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_DEBUG_CONFIG);
 
         Shell configShell = launchDebugConfigurationsDialogFromAppRunAs(MVN_APP_NAME);
-        launchStartWithExistingCustomConfig(configShell, MVN_APP_NAME, "-DhotTests=true");
+        launchDebugWithExistingCustomConfig(configShell, MVN_APP_NAME, "-DhotTests=true");
  
         goGlobal("Terminal");
 
