@@ -506,16 +506,17 @@ public class SWTBotPluginOperations {
     }
     
     public static void launchStartWithExistingCustomConfig(Shell shell, String appName, String customParms) {
-        Object libertyConfigTree = find(LAUNCH_CONFIG_LIBERTY_MENU_NAME, shell);
+    	
+        Object libertyConfigTree = getLibertyTreeItem(shell); 
 
         go(appName, libertyConfigTree, Option.factory().useContains(true).widgetClass(TreeItem.class).build());
 
-        // TODO - How do we know we're finding the label associated with the config associated with the app name?
         Object parmLabel = find("Start parameters:", libertyConfigTree, Option.factory().widgetClass(Label.class).build());
 
         Control parmText = ControlFinder.findControlInRange(parmLabel, Text.class, Direction.EAST);
         set(parmText, customParms);
         go("Run", shell);
+        go("Close", shell);        
     }
 
     public static Object getAppInPackageExplorerTree(String appName) {

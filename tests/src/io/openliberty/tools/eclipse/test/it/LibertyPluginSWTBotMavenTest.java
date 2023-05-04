@@ -426,16 +426,9 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         // Start dev mode with parms.
         launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_DEBUG_CONFIG);
 
-        Shell configShell = (Shell) findGlobal("Debug Configurations", Option.factory().widgetClass(Shell.class).build());
-        TreeItem libertyConfigTree = (TreeItem) find(SWTBotPluginOperations.LAUNCH_CONFIG_LIBERTY_MENU_NAME, configShell);
-
-        context(libertyConfigTree, "New Configuration");
-
-        Object parmLabel = find("Start parameters:", libertyConfigTree, Option.factory().widgetClass(Label.class).build());
-        Control parmText = ControlFinder.findControlInRange(parmLabel, Text.class, Direction.EAST);
-        set(parmText, "-DhotTests=true");
-        go("Debug", configShell);
-
+        Shell configShell = launchDebugConfigurationsDialogFromAppRunAs(MVN_APP_NAME);
+        launchStartWithExistingCustomConfig(configShell, MVN_APP_NAME, "-DhotTests=true");
+ 
         goGlobal("Terminal");
 
         // Validate application is up and running.
