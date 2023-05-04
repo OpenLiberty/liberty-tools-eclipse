@@ -1,11 +1,15 @@
 /**
-* IBM Confidential
-* OCO Source Materials
-* (C) Copyright IBM Corp. 2011, 2016 All Rights Reserved.
-* The source code for this program is not published or otherwise
-* divested of its trade secrets, irrespective of what has
-* been deposited with the U.S. Copyright Office.
-*/
+ * Copyright (c) 2011, 2023 IBM Corporation and others.
+ *
+ * This program and the accompanying materials are made available under the
+ * terms of the Eclipse Public License v. 2.0 which is available at
+ * http://www.eclipse.org/legal/epl-2.0.
+ *
+ * SPDX-License-Identifier: EPL-2.0
+ *
+ * Contributors:
+ *     IBM Corporation - initial implementation
+ *******************************************************************************/
 package io.openliberty.tools.eclipse.test.it.utils;
 
 import java.io.IOException;
@@ -85,19 +89,6 @@ import org.eclipse.ui.navigator.CommonNavigator;
 import org.eclipse.ui.part.ViewPart;
 import org.hamcrest.Matcher;
 
-/**
- * ----------------------------------------------------
- * 
- * @author Jonathan West (jgwest@ca.ibm.com)
- * 
- * @version 1.4.0 ----------------------------------------------------- Use this class with static imports, by adding the
- *          following Favourite to Eclipse; this makes static import simple: Preferences > Java > Editor > Content Assist >
- *          Favourites - select 'New Type', then put in: - (package where you put MagicalWidgetFinder).MagicWidgetFinder -
- *          example: com.ibm.ast.ws.ui.tests.MagicWidgetFinder This way, you don't have to keep typing
- *          MagicWidgetFinder.action(...) or using the static instance. To bring up one of the MWF methods, use CTRL-SPACE, along
- *          with the initial action: go/set/find/get/context Documentation for the class and latest version available from:
- *          https://github.ibm.com/was-wdt-infrastructure/infrastructure-docs/blob/master/utilities/MagicWidgetFinder.md
- */
 @SuppressWarnings("restriction")
 public class MagicWidgetFinder {
 
