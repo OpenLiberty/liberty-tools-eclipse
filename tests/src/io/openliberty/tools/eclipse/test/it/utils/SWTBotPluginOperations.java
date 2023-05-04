@@ -133,45 +133,27 @@ public class SWTBotPluginOperations {
     	    goMenuItem(windowMenu, "Perspective", "Open Perspective", "Java");
     	}
     }
+    
+	public static SWTBotTable getDashboardTable() {
+        openDashboardUsingToolbar();
+        Object dashboardView = findGlobal(DASHBOARD_VIEW_TITLE, Option.factory().widgetClass(ViewPart.class).build());
+        Table table = ((DashboardView)dashboardView).getTable();
+        return new SWTBotTable(table);
+	}
 
     /**
      * Returns a list of entries on the Open Liberty dashboard.
-     *
-     * @param bot The SWTWorkbenchBot instance.
-     * @param dashboard An instance representing the Open Liberty dashboard view.
-     *
      * @return A list of entries on the Open Liberty dashboard.
      */
-    public static List<String> getDashboardContent(SWTWorkbenchBot bot, SWTBotView dashboard) {
-        if (dashboard == null) {
-            SWTBotPluginOperations.openDashboardUsingToolbar(bot);
-        } else {
-            dashboard.show();
-        }
+	public static List<String> getDashboardContent() {
+		SWTBotTable dashboardTable = getDashboardTable();
 
-        SWTBotTable dashboardTable = bot.table();
-        
-        return getDashboardTableNamesFromTable(dashboardTable);
-    }
-    
-    private static List<String> getDashboardTableNamesFromTable(SWTBotTable dashboardTable) {
         ArrayList<String> contentList = new ArrayList<String>();
         for (int i = 0; i < dashboardTable.rowCount(); i++) {
             contentList.add(dashboardTable.getTableItem(i).getText());
         }
 
         return contentList;
-    }
-    
-	public static SWTBotTable getDashboardTable() {
-        Object dashboardView = findGlobal(DASHBOARD_VIEW_TITLE, Option.factory().widgetClass(ViewPart.class).build());
-        Table table = ((DashboardView)dashboardView).getTable();
-        return new SWTBotTable(table);
-	}
-
-	public static List<String> getDashboardContent() {
-		SWTBotTable dashboardTable = getDashboardTable();
-		return getDashboardTableNamesFromTable(dashboardTable);
 	}
 
     /**
@@ -183,14 +165,9 @@ public class SWTBotPluginOperations {
      *
      * @return A list of menu actions for the input application item.
      */
-    public static List<String> getDashboardItemMenuActions(SWTWorkbenchBot bot, SWTBotView dashboard, String item) {
-        if (dashboard == null) {
-            SWTBotPluginOperations.openDashboardUsingToolbar(bot);
-        } else {
-            dashboard.show();
-        }
+    public static List<String> getDashboardItemMenuActions(String item) {
 
-        SWTBotTable dashboardTable = bot.table();
+        SWTBotTable dashboardTable = getDashboardTable();
         dashboardTable.select(item);
         SWTBotRootMenu appCtxMenu = dashboardTable.contextMenu();
         return appCtxMenu.menuItems();
@@ -225,7 +202,7 @@ public class SWTBotPluginOperations {
      * @param action The action to select
      */
     public static void launchDashboardAction(SWTWorkbenchBot bot, String appName, String action) {
-        openDashboardUsingToolbar(bot);
+        openDashboardUsingToolbar();
 
         Object dashboardView = MagicWidgetFinder.findGlobal(DASHBOARD_VIEW_TITLE);
         Object project = MagicWidgetFinder.find(appName, dashboardView, Option.factory().widgetClass(TableItem.class).build());
@@ -816,22 +793,13 @@ public class SWTBotPluginOperations {
     /**
      * Returns the context menu object associated with the input application item.
      *
-     * @param bot The SWTWorkbenchBot instance.
-     * @param dashboard An instance representing the Open Liberty dashboard view.
      * @param item The application name to select.
      *
      * @return The context menu object associated with the input application item.
      */
-    public static SWTBotRootMenu getAppContextMenu(SWTWorkbenchBot bot, SWTBotView dashboard, String item) {
-        if (dashboard == null) {
-            SWTBotPluginOperations.openDashboardUsingToolbar(bot);
-        } else {
-            dashboard.show();
-            dashboard.setFocus();
-        }
+    public static SWTBotRootMenu getAppContextMenu(String item) {
 
-        SWTBotTable dashboardTable = bot.table();
-
+        SWTBotTable dashboardTable = getDashboardTable();
         dashboardTable.select(item);
         return dashboardTable.contextMenu();
     }
@@ -843,17 +811,8 @@ public class SWTBotPluginOperations {
      *
      * @return The Open Liberty dashboard view obtained by pressing on the Open Liberty icon located on the main tool bar.
      */
-    public static SWTBotView openDashboardUsingToolbar(SWTWorkbenchBot bot) {
-    	/*
-        SWTBotToolbarButton toolbarButton = getToolbarButtonWithToolTipPrefix(bot, TOOLBAR_OPEN_DASHBOARD_TIP);
-        toolbarButton.click();
-        */
+    public static void openDashboardUsingToolbar() {
     	goGlobal(TOOLBAR_OPEN_DASHBOARD_TIP, Option.factory().widgetClass(ToolItem.class).useContains(true).build());
-//        SWTBotView dashboard = bot.viewByTitle(DASHBOARD_VIEW_TITLE);
-//        dashboard.show();
-//        bot.waitUntil(SWTBotTestCondition.isViewActive(dashboard, DASHBOARD_VIEW_TITLE), 5000);
-//        return dashboard;
-    	return null;
     }
 
     /**
@@ -891,7 +850,7 @@ public class SWTBotPluginOperations {
         try {
             bot.button("Proceed").click();
         } catch (Exception e) {
-            // Best effort approach.
+            // Not a problem if error wasn't generated.  Continue...
         }
     }
 

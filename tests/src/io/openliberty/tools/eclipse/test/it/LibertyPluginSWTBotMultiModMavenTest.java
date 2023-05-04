@@ -132,7 +132,6 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
      * </pre>
      */
     public static final void validateBeforeTestRun() {
-        dashboard = SWTBotPluginOperations.openDashboardUsingToolbar(bot);
 
         // Give the app some time to be imported (especially on Windows GHA runs)
         try {
@@ -142,7 +141,7 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
         }
 
         // Check that the dashboard can be opened and its content retrieved.
-        List<String> projectList = SWTBotPluginOperations.getDashboardContent(bot, dashboard);
+        List<String> projectList = getDashboardContent();
 
         // Check that dashboard contains the expected applications.
         boolean foundApp = false;
@@ -155,7 +154,7 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
         Assertions.assertTrue(foundApp, () -> "The dashboard does not contain expected application: " + MVN_APP_NAME);
 
         // Check that the menu that the application in the dashboard contains the required actions.
-        List<String> menuItems = SWTBotPluginOperations.getDashboardItemMenuActions(bot, dashboard, MVN_APP_NAME);
+        List<String> menuItems = getDashboardItemMenuActions(MVN_APP_NAME);
         Assertions.assertTrue(menuItems.size() == mvnMenuItems.length,
                 () -> "Maven application " + MVN_APP_NAME + " does not contain the expected number of menu items: " + mvnMenuItems.length);
         Assertions.assertTrue(menuItems.containsAll(Arrays.asList(mvnMenuItems)),
@@ -187,14 +186,13 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
         Shell configShell = launchRunConfigurationsDialogFromAppRunAs(MVN_APP_NAME);
         SWTBotTreeItem runAslibertyToolsEntry = getLibertyTreeItem(configShell);
         Assertions.assertTrue(runAslibertyToolsEntry != null, "Liberty entry in Run Configurations view was not found.");
-        MagicWidgetFinder.go("Close", configShell);
+        go("Close", configShell);
 
-        System.out.println("SKSK: activeShell =" + activeShell());
         // Check that the Debug As -> Debug Configurations... contains the Liberty entry in the menu.
         Shell debugShell = launchDebugConfigurationsDialogFromAppRunAs(MVN_APP_NAME);
         SWTBotTreeItem debugAslibertyToolsEntry = getLibertyTreeItem(debugShell);
         Assertions.assertTrue(debugAslibertyToolsEntry != null, "Liberty entry in Debug Configurations view was not found.");
-        MagicWidgetFinder.go("Close", debugShell);
+        go("Close", debugShell);
     }
 
     /**

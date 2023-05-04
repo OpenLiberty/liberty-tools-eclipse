@@ -50,7 +50,6 @@ import org.junit.jupiter.api.TestInfo;
 
 import io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils;
 import io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.Option;
-import io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.*;
 
 public abstract class AbstractLibertyPluginSWTBotTest {
@@ -77,7 +76,7 @@ public abstract class AbstractLibertyPluginSWTBotTest {
 
     protected static void commonSetup() {
         bot = new SWTWorkbenchBot();
-        SWTBotPluginOperations.closeWelcomePage(bot);
+        closeWelcomePage(bot);
         // Update browser preferences.
         if (isInternalBrowserSupportAvailable()) {
             boolean success = LibertyPluginTestUtils.updateBrowserPreferences(true);
@@ -185,13 +184,12 @@ public abstract class AbstractLibertyPluginSWTBotTest {
      * @param projectName The project name..
      */
     public void validateRemoteJavaAppCreation(String projectName) {
-        //Shell configShell = SWTBotPluginOperations.launchDebugConfigurationsDialogFromMenu();
         Shell configShell = launchDebugConfigurationsDialogFromAppRunAs(projectName);
-        SWTBotTreeItem remoteJavaAppEntry = SWTBotPluginOperations.getRemoteJavaAppConfigMenuItem(configShell);
+        SWTBotTreeItem remoteJavaAppEntry = getRemoteJavaAppConfigMenuItem(configShell);
         Assertions.assertTrue((remoteJavaAppEntry != null),
-                () -> "The " + SWTBotPluginOperations.LAUNCH_CONFIG_REMOTE_JAVA_APP + " entry was not found in run Configurations dialog.");
+                () -> "The " + LAUNCH_CONFIG_REMOTE_JAVA_APP + " entry was not found in run Configurations dialog.");
 
-        // Use contains since the name will include the project name plus something parent-related.
+        // Use 'contains' since the name will include the project name plus something parent-related.
         Object runConfig = find(projectName, remoteJavaAppEntry,  Option.factory().widgetClass(TreeItem.class).useContains(true).build());
         
         if (runConfig != null) {

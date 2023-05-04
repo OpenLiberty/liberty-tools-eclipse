@@ -15,7 +15,7 @@ package io.openliberty.tools.eclipse.test.it;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.*;
 
 /**
  * Tests Open Liberty Eclipse plugin functions.
@@ -35,8 +35,7 @@ public class LibertyPluginSWTBotDashboardTest extends AbstractLibertyPluginSWTBo
      */
     @Test
     public void testOpenDashboardWithToolbarIcon() {
-        // Open the dashboard view.
-        SWTBotPluginOperations.openDashboardUsingToolbar(bot);
+        openDashboardUsingToolbar();
     }
 
 }

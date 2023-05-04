@@ -165,7 +165,6 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
      * </pre>
      */
     public static final void validateBeforeTestRun() {
-        SWTBotPluginOperations.openDashboardUsingToolbar(bot);
 
         // Give the app some time to be imported (especially on Windows GHA runs)
         try {
@@ -175,7 +174,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         }
 
         // Check that the dashboard can be opened and its content retrieved.
-        List<String> projectList = SWTBotPluginOperations.getDashboardContent();
+        List<String> projectList = getDashboardContent();
 
         // Check that dashboard contains the expected applications.
         boolean foundApp = false;
@@ -188,7 +187,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         Assertions.assertTrue(foundApp, () -> "The dashboard does not contain expected application: " + MVN_APP_NAME);
 
         // Check that the menu that the application in the dashboard contains the required actions.
-        List<String> menuItems = SWTBotPluginOperations.getDashboardItemMenuActions(bot, dashboard, MVN_APP_NAME);
+        List<String> menuItems = getDashboardItemMenuActions(MVN_APP_NAME);
         Assertions.assertTrue(menuItems.size() == mvnMenuItems.length,
                 () -> "Maven application " + MVN_APP_NAME + " does not contain the expected number of menu items: " + mvnMenuItems.length);
         Assertions.assertTrue(menuItems.containsAll(Arrays.asList(mvnMenuItems)),
@@ -892,7 +891,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         String projectName = iProject.getName();
 
         // Make sure the application is no longer listed in the dashboard.
-        List<String> projectList = SWTBotPluginOperations.getDashboardContent(bot, dashboard);
+        List<String> projectList = getDashboardContent();
         boolean mavenAppFound = false;
         for (String project : projectList) {
             if (NON_DFLT_NAME.equals(project)) {
@@ -906,14 +905,8 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         // Add the project nature manually.
         SWTBotPluginOperations.enableLibertyTools(NON_DFLT_NAME);
 
-//        // Refresh the project through the explorer view to pick up the nature removal.
-//        SWTBotPluginOperations.refreshProjectUsingExplorerView(NON_DFLT_NAME);
-//
-//        // Dashboard refresh should happen automatically, right?
-//        // SWTBotPluginOperations.refreshDashboard(bot);
-
         // Make sure the application is listed in the dashboard.
-        List<String> newProjectList = SWTBotPluginOperations.getDashboardContent(bot, dashboard);
+        List<String> newProjectList = getDashboardContent();
         boolean newMavenAppFound = false;
         for (String project : newProjectList) {
             if (NON_DFLT_NAME.equals(project)) {

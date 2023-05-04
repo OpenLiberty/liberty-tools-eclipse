@@ -157,10 +157,9 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
 
         testAppPath = Paths.get(projectFile.getPath()).toAbsolutePath().toString();
         testWrapperAppPath = Paths.get(projectFile.getPath()).toAbsolutePath().toString();
-        dashboard = SWTBotPluginOperations.openDashboardUsingToolbar(bot);
 
         // Check that the dashboard can be opened and its content retrieved.
-        List<String> projectList = SWTBotPluginOperations.getDashboardContent(bot, dashboard);
+        List<String> projectList = SWTBotPluginOperations.getDashboardContent();
 
         // Check that dashboard contains the expected applications.
         boolean foundApp = false;
@@ -173,7 +172,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         Assertions.assertTrue(foundApp, () -> "The dashboard does not contain expected application: " + GRADLE_APP_NAME);
 
         // Check that the menu for the expected application contains the required actions.
-        List<String> menuItems = SWTBotPluginOperations.getDashboardItemMenuActions(bot, dashboard, GRADLE_APP_NAME);
+        List<String> menuItems = getDashboardItemMenuActions(GRADLE_APP_NAME);
         Assertions.assertTrue(menuItems.size() == gradleMenuItems.length, () -> "Gradle application " + GRADLE_APP_NAME
                 + " does not contain the expected number of menu items: " + gradleMenuItems.length);
         Assertions.assertTrue(menuItems.containsAll(Arrays.asList(gradleMenuItems)),
@@ -483,13 +482,13 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
 
         try {
             // Refresh the project through the explorer view to pick up the nature removal.
-            SWTBotPluginOperations.refreshProjectUsingExplorerView(GRADLE_APP_NAME);
+            refreshProjectUsingExplorerView(GRADLE_APP_NAME);
 
             // Refresh the dashboard.
-            SWTBotPluginOperations.refreshDashboard(bot);
+            refreshDashboard(bot);
 
             // Make sure the application is no longer listed in the dashboard.
-            List<String> projectList = SWTBotPluginOperations.getDashboardContent(bot, dashboard);
+            List<String> projectList = getDashboardContent();
             boolean gradleAppFound = false;
             for (String project : projectList) {
                 if (GRADLE_APP_NAME.equals(project)) {
@@ -501,16 +500,16 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
             Assertions.assertTrue(!gradleAppFound, () -> "Project " + projectName + " should not be listed in the dashboard.");
 
             // Add the project nature manually.
-            SWTBotPluginOperations.enableLibertyTools(GRADLE_APP_NAME);
+            enableLibertyTools(GRADLE_APP_NAME);
 
             // Refresh the project through the explorer view to pick up the nature removal.
-            SWTBotPluginOperations.refreshProjectUsingExplorerView(GRADLE_APP_NAME);
+            refreshProjectUsingExplorerView(GRADLE_APP_NAME);
 
             // Refresh the dashboard.
-            SWTBotPluginOperations.refreshDashboard(bot);
+            refreshDashboard(bot);
 
             // Make sure the application is listed in the dashboard.
-            List<String> newProjectList = SWTBotPluginOperations.getDashboardContent(bot, dashboard);
+            List<String> newProjectList = getDashboardContent();
             boolean newGradleAppFound = false;
             for (String project : newProjectList) {
                 if (GRADLE_APP_NAME.equals(project)) {
