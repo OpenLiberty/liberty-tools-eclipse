@@ -315,7 +315,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         launchDashboardAction(GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_START_CONFIG);
 
         Shell configShell = launchRunConfigurationsDialogFromAppRunAs(GRADLE_APP_NAME);
-        launchRunWithExistingCustomConfig(configShell, GRADLE_APP_NAME, "--hotTests=true");
+        launchRunWithExistingCustomConfig(configShell, GRADLE_APP_NAME, "--hotTests");
         
         goGlobal("Terminal");
 
@@ -356,7 +356,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         launchDashboardAction(GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_DEBUG_CONFIG);
 
         Shell configShell = launchDebugConfigurationsDialogFromAppRunAs(GRADLE_APP_NAME);
-        launchDebugWithExistingCustomConfig(configShell, GRADLE_APP_NAME, "--hotTests=true");
+        launchDebugWithExistingCustomConfig(configShell, GRADLE_APP_NAME, "--hotTests");
         
         goGlobal("Terminal");
 
@@ -703,7 +703,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         Shell configShell = launchRunConfigurationsDialogFromAppRunAs(GRADLE_APP_NAME);
 
         try {
-            SWTBotTreeItem libertyConfigTree = getLibertyTreeItem(configShell);
+            Object libertyConfigTree = getLibertyTreeItemNoBot(configShell);
 
             context(libertyConfigTree, "New Configuration");
 

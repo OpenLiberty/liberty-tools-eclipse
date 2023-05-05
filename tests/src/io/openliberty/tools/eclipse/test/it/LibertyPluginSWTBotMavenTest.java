@@ -266,7 +266,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         Shell configShell = launchRunConfigurationsDialogFromAppRunAs(MVN_APP_NAME);
 
         try {
-            SWTBotTreeItem libertyConfigTree = getLibertyTreeItem(configShell);
+            TreeItem libertyConfigTree = getLibertyTreeItemNoBot(configShell);
             context(libertyConfigTree, "New Configuration");
 
             Assertions.assertTrue(bot.cTabItem("Start").isVisible(), "Liberty Start tab not visible.");
@@ -792,7 +792,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
 
         Shell configShell = launchRunConfigurationsDialogFromAppRunAs(MVN_APP_NAME);
         try {
-            SWTBotTreeItem libertyConfigTree = getLibertyTreeItem(configShell);
+            TreeItem libertyConfigTree = getLibertyTreeItemNoBot(configShell);
 
             context(libertyConfigTree, "New Configuration");
             openJRETab(bot);

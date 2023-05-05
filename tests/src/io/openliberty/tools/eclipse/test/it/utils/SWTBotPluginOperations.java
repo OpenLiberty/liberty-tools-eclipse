@@ -383,11 +383,15 @@ public class SWTBotPluginOperations {
     }
 
     public static SWTBotTreeItem getLibertyTreeItem(Shell shell) {
-        TreeItem ti = (TreeItem)find(LAUNCH_CONFIG_LIBERTY_MENU_NAME, shell);
-        expandTreeItem(ti);
-        return new SWTBotTreeItem(ti);
+        return new SWTBotTreeItem(getLibertyTreeItemNoBot(shell));
     }
 
+    public static TreeItem getLibertyTreeItemNoBot(Shell shell) {
+        TreeItem ti = (TreeItem)find(LAUNCH_CONFIG_LIBERTY_MENU_NAME, shell);
+        expandTreeItem(ti);
+        return ti;
+    }
+    
     public static SWTBotTreeItem getRemoteJavaAppConfigMenuItem(Shell shell) {
         return new SWTBotTreeItem((TreeItem)find(LAUNCH_CONFIG_REMOTE_JAVA_APP, shell));
     }
