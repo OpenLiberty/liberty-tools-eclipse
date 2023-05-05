@@ -383,11 +383,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         boolean testReportDeleted = LibertyPluginTestUtils.deleteFile(pathToITReport.toFile());
         Assertions.assertTrue(testReportDeleted, () -> "File: " + pathToITReport + " was not be deleted.");
 
-        // Start dev mode with parms.
-        launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_START_CONFIG);
-        Shell configShell = launchRunConfigurationsDialogFromAppRunAs(MVN_APP_NAME);
-        
-        launchRunWithExistingCustomConfig(configShell, MVN_APP_NAME, "-DhotTests=true");
+        launchCustomRunFromDashboard(MVN_APP_NAME, "-DhotTests=true");
 
         goGlobal("Terminal");
 
@@ -423,11 +419,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         boolean testReportDeleted = LibertyPluginTestUtils.deleteFile(pathToITReport.toFile());
         Assertions.assertTrue(testReportDeleted, () -> "File: " + pathToITReport + " was not be deleted.");
 
-        // Start dev mode with parms.
-        launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_DEBUG_CONFIG);
-
-        Shell configShell = launchDebugConfigurationsDialogFromAppRunAs(MVN_APP_NAME);
-        launchDebugWithExistingCustomConfig(configShell, MVN_APP_NAME, "-DhotTests=true");
+        launchCustomDebugFromDashboard(MVN_APP_NAME, "-DhotTests=true");
  
         goGlobal("Terminal");
 

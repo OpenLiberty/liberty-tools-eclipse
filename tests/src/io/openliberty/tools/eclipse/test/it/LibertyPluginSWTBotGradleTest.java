@@ -311,11 +311,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         boolean testReportDeleted = LibertyPluginTestUtils.deleteFile(pathToTestReport.toFile());
         Assertions.assertTrue(testReportDeleted, () -> "File: " + pathToTestReport + " was not deleted.");
 
-        // Start dev mode with parms.
-        launchDashboardAction(GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_START_CONFIG);
-
-        Shell configShell = launchRunConfigurationsDialogFromAppRunAs(GRADLE_APP_NAME);
-        launchRunWithExistingCustomConfig(configShell, GRADLE_APP_NAME, "--hotTests");
+        launchCustomRunFromDashboard(GRADLE_APP_NAME, "--hotTests");
         
         goGlobal("Terminal");
 
@@ -351,12 +347,8 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         Path pathToTestReport = DevModeOperations.getGradleTestReportPath(projectPath.toString());
         boolean testReportDeleted = LibertyPluginTestUtils.deleteFile(pathToTestReport.toFile());
         Assertions.assertTrue(testReportDeleted, () -> "File: " + pathToTestReport + " was not deleted.");
-
-        // Start dev mode with parms.
-        launchDashboardAction(GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_DEBUG_CONFIG);
-
-        Shell configShell = launchDebugConfigurationsDialogFromAppRunAs(GRADLE_APP_NAME);
-        launchDebugWithExistingCustomConfig(configShell, GRADLE_APP_NAME, "--hotTests");
+        
+        launchCustomDebugFromDashboard(GRADLE_APP_NAME, "--hotTests");
         
         goGlobal("Terminal");
 

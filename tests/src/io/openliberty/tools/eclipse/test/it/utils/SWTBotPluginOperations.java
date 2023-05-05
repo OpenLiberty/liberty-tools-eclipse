@@ -509,21 +509,34 @@ public class SWTBotPluginOperations {
         set(parmText, customParms);
     }
     
-    public static void launchDebugWithExistingCustomConfig(Shell shell, String appName, String customParms) {
-    	launchStartWithExistingCustomConfig(shell, appName, customParms);
+    public static Shell getDebugConfigurationsShell() {
+    	return (Shell) findGlobal("Debug Configurations", Option.factory().widgetClass(Shell.class).build());
+    }
+    
+    public static Shell getRunConfigurationsShell() {
+    	return (Shell) findGlobal("Run Configurations", Option.factory().widgetClass(Shell.class).build());
+    }
+    
+    public static void launchCustomDebugFromDashboard(String appName, String customParms) {
+    	launchDashboardAction(appName, DashboardView.APP_MENU_ACTION_DEBUG_CONFIG);
+        Shell shell = getDebugConfigurationsShell();
+        setCustomStartParmsFromShell(shell, appName, customParms);
         go("Debug", shell);
     }
 
-    public static void launchRunWithExistingCustomConfig(Shell shell, String appName, String customParms) {
-    	launchStartWithExistingCustomConfig(shell, appName, customParms);
+    public static void launchCustomRunFromDashboard(String appName, String customParms) {
+    	launchDashboardAction(appName, DashboardView.APP_MENU_ACTION_START_CONFIG);
+        Shell shell = getRunConfigurationsShell();
+        setCustomStartParmsFromShell(shell, appName, customParms);
         go("Run", shell);
     }
 
-    public static void launchStartWithExistingCustomConfig(Shell shell, String appName, String customParms) {
+    
+    public static void setCustomStartParmsFromShell(Shell shell, String runDebugConfigName, String customParms) {
     	
         Object libertyConfigTree = getLibertyTreeItem(shell); 
 
-        go(appName, libertyConfigTree, Option.factory().useContains(true).widgetClass(TreeItem.class).build());
+        go(runDebugConfigName, libertyConfigTree, Option.factory().useContains(true).widgetClass(TreeItem.class).build());
         Object parmLabel = find("Start parameters:", libertyConfigTree, Option.factory().widgetClass(Label.class).build());
 
         Control parmText = ControlFinder.findControlInRange(parmLabel, Text.class, Direction.EAST);
