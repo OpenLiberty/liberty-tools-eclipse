@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2022 IBM Corporation and others.
+ * Copyright (c) 2022, 2023 IBM Corporation and others.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -29,6 +29,7 @@ import org.eclipse.jface.viewers.TableViewer;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Menu;
+import org.eclipse.swt.widgets.Table;
 import org.eclipse.ui.contexts.IContextService;
 import org.eclipse.ui.handlers.IHandlerService;
 import org.eclipse.ui.part.ViewPart;
@@ -46,6 +47,7 @@ import io.openliberty.tools.eclipse.ui.launch.shortcuts.StartConfigurationDialog
 import io.openliberty.tools.eclipse.ui.launch.shortcuts.StartInContainerAction;
 import io.openliberty.tools.eclipse.ui.launch.shortcuts.StopAction;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
+import io.openliberty.tools.eclipse.utils.Utils;
 
 /**
  * View of Liberty application projects and dev mode actions to be processed on the selected projects.
@@ -183,7 +185,7 @@ public class DashboardView extends ViewPart {
      * @param mgr The menu manager.
      */
     private void addActionsToContextMenu(IMenuManager mgr) {
-        IProject iProject = devModeOps.getSelectedDashboardProject();
+        IProject iProject = Utils.getActiveProject();
         String projectName = iProject.getName();
         Project project = devModeOps.getProjectModel().getProject(projectName);
 
@@ -490,7 +492,7 @@ public class DashboardView extends ViewPart {
     public void setInput(List<String> sortedDashboardProjectList) {
         if (viewer != null) {
             viewer.setInput(sortedDashboardProjectList);
-        }
+        }        
     }
 
     /**
@@ -508,5 +510,9 @@ public class DashboardView extends ViewPart {
             ErrorHandler.processErrorMessage(msg, e, reportError);
             return;
         }
+    }
+    
+    public Table getTable() {
+    	return viewer.getTable();
     }
 }

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2022 IBM Corporation and others.
+ * Copyright (c) 2022, 2023 IBM Corporation and others.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -12,6 +12,14 @@
  *******************************************************************************/
 package io.openliberty.tools.eclipse.test.it;
 
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.deleteLibertyToolsRunConfigEntriesFromAppRunAs;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getLibertyTreeItem;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.*;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.setBuildCmdPathInPreferences;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.unsetBuildCmdPathInPreferences;
+import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.*;
+
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -20,15 +28,19 @@ import java.util.Arrays;
 import java.util.List;
 
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotView;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotMenu;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 
 import io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils;
+import io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder;
 import io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher;
@@ -120,17 +132,16 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
      * </pre>
      */
     public static final void validateBeforeTestRun() {
-        dashboard = SWTBotPluginOperations.openDashboardUsingToolbar(bot);
 
         // Give the app some time to be imported (especially on Windows GHA runs)
         try {
-            Thread.sleep(60000);
+            Thread.sleep(Integer.parseInt(System.getProperty("io.liberty.tools.eclipse.tests.mvn.import.wait","0")));
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
 
         // Check that the dashboard can be opened and its content retrieved.
-        List<String> projectList = SWTBotPluginOperations.getDashboardContent(bot, dashboard);
+        List<String> projectList = getDashboardContent();
 
         // Check that dashboard contains the expected applications.
         boolean foundApp = false;
@@ -143,7 +154,7 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
         Assertions.assertTrue(foundApp, () -> "The dashboard does not contain expected application: " + MVN_APP_NAME);
 
         // Check that the menu that the application in the dashboard contains the required actions.
-        List<String> menuItems = SWTBotPluginOperations.getDashboardItemMenuActions(bot, dashboard, MVN_APP_NAME);
+        List<String> menuItems = getDashboardItemMenuActions(MVN_APP_NAME);
         Assertions.assertTrue(menuItems.size() == mvnMenuItems.length,
                 () -> "Maven application " + MVN_APP_NAME + " does not contain the expected number of menu items: " + mvnMenuItems.length);
         Assertions.assertTrue(menuItems.containsAll(Arrays.asList(mvnMenuItems)),
@@ -172,16 +183,16 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
                         + "Found entry count: " + foundItems + ". Found menu entries: " + runAsMenuItems);
 
         // Check that the Run As -> Run Configurations... contains the Liberty entry in the menu.
-        SWTBotPluginOperations.launchConfigurationsDialog(bot, MVN_APP_NAME, "run");
-        SWTBotTreeItem runAslibertyToolsEntry = SWTBotPluginOperations.getLibertyToolsConfigMenuItem(bot);
+        Shell configShell = launchRunConfigurationsDialogFromAppRunAs(MVN_APP_NAME);
+        SWTBotTreeItem runAslibertyToolsEntry = getLibertyTreeItem(configShell);
         Assertions.assertTrue(runAslibertyToolsEntry != null, "Liberty entry in Run Configurations view was not found.");
-        bot.button("Close").click();
+        go("Close", configShell);
 
         // Check that the Debug As -> Debug Configurations... contains the Liberty entry in the menu.
-        SWTBotPluginOperations.launchConfigurationsDialog(bot, MVN_APP_NAME, "debug");
-        SWTBotTreeItem debugAslibertyToolsEntry = SWTBotPluginOperations.getLibertyToolsConfigMenuItem(bot);
+        Shell debugShell = launchDebugConfigurationsDialogFromAppRunAs(MVN_APP_NAME);
+        SWTBotTreeItem debugAslibertyToolsEntry = getLibertyTreeItem(debugShell);
         Assertions.assertTrue(debugAslibertyToolsEntry != null, "Liberty entry in Debug Configurations view was not found.");
-        bot.button("Close").click();
+        go("Close", debugShell);
     }
 
     /**
@@ -194,7 +205,7 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
         SWTBotPluginOperations.setBuildCmdPathInPreferences(bot, "Maven");
 
         // Start dev mode.
-        SWTBotPluginOperations.launchStartWithDashboardAction(bot, dashboard, MVN_APP_NAME);
+        SWTBotPluginOperations.launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_START);
         SWTBotView terminal = bot.viewByTitle("Terminal");
         terminal.show();
 
@@ -207,7 +218,7 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
         SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
 
         // Stop dev mode.
-        SWTBotPluginOperations.launchStopWithDashboardAction(bot, dashboard, MVN_APP_NAME);
+        SWTBotPluginOperations.launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
         terminal.show();
 
         // Validate application stopped.
@@ -228,13 +239,13 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
     public void testStartWithDefaultRunAsConfig() {
 
         // set the preferences
-        SWTBotPluginOperations.setBuildCmdPathInPreferences(bot, "Maven");
+        setBuildCmdPathInPreferences(bot, "Maven");
 
         // Delete any previously created configs.
-        SWTBotPluginOperations.deleteLibertyToolsConfigEntries(bot, MVN_APP_NAME, "run");
+        deleteLibertyToolsRunConfigEntriesFromAppRunAs(MVN_APP_NAME);
 
         // Start dev mode.
-        SWTBotPluginOperations.launchStartWithDefaultConfig(bot, MVN_APP_NAME, "run");
+        launchStartWithDefaultRunConfigFromAppRunAs(MVN_APP_NAME);
         SWTBotView terminal = bot.viewByTitle("Terminal");
         terminal.show();
 
@@ -243,17 +254,17 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
                 "Height in feet and inches", serverModule1Path + "/target/liberty");
 
         // If there are issues with the workspace, close the error dialog.
-        SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
+        pressWorkspaceErrorDialogProceedButton(bot);
 
         // Stop dev mode.
-        SWTBotPluginOperations.launchStopWithRunDebugAsShortcut(bot, MVN_APP_NAME, "run");
+        launchStopWithRunAsShortcut(MVN_APP_NAME);
         terminal.show();
 
         // Validate application stopped.
         LibertyPluginTestUtils.validateLibertyServerStopped(serverModule1Path + "/target/liberty");
 
         // unset the preferences
-        SWTBotPluginOperations.unsetBuildCmdPathInPreferences(bot, "Maven");
+        unsetBuildCmdPathInPreferences(bot, "Maven");
 
         // Close the terminal.
         terminal.close();

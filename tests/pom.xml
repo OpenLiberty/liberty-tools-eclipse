@@ -23,6 +23,10 @@
     <artifactId>io.openliberty.tools.eclipse.tests</artifactId>
     <packaging>eclipse-test-plugin</packaging>
 
+    <properties>
+        <mvnImportWait>12000</mvnImportWait>
+    </properties>
+
     <build>
         <plugins>
             <plugin>
@@ -34,9 +38,13 @@
                     <useUIThread>false</useUIThread>
                     <providerHint>junit5</providerHint>
                     <trimStackTrace>false</trimStackTrace>
+                    <!--
+                    <runOrder>alphabetical</runOrder>
+                    -->
                     <systemProperties>
                         <org.eclipse.swtbot.search.timeout>20000</org.eclipse.swtbot.search.timeout>
                         <io.liberty.tools.eclipse.tests.mvnexecutable.path>${mvnPath}</io.liberty.tools.eclipse.tests.mvnexecutable.path>
+                        <io.liberty.tools.eclipse.tests.mvn.import.wait>${mvnImportWait}</io.liberty.tools.eclipse.tests.mvn.import.wait>
                         <io.liberty.tools.eclipse.tests.gradleexecutable.path>${gradlePath}</io.liberty.tools.eclipse.tests.gradleexecutable.path>
                     </systemProperties>
                 </configuration>

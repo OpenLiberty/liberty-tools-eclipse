@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2022 IBM Corporation and others.
+* Copyright (c) 2022, 2023 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -15,7 +15,7 @@ package io.openliberty.tools.eclipse.test.it;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.*;
 
 /**
  * Tests Open Liberty Eclipse plugin functions.
@@ -35,8 +35,7 @@ public class LibertyPluginSWTBotDashboardTest extends AbstractLibertyPluginSWTBo
      */
     @Test
     public void testOpenDashboardWithToolbarIcon() {
-        // Open the dashboard view.
-        SWTBotPluginOperations.openDashboardUsingToolbar(bot);
+        openDashboardUsingToolbar();
     }
 
 }
