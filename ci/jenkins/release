@@ -1,0 +1,160 @@
+pipeline {
+    agent any
+
+    tools {
+        jdk 'java17-semeru'
+        maven 'maven-3.8.6'
+    }
+
+    stages {
+        stage('Clone') {
+            steps {
+                dir('liberty-tools-eclipse') {
+                    // Clone git repo
+                    git branch: 'main',
+                        url: 'https://github.com/OpenLiberty/liberty-tools-eclipse.git'
+                }
+            }
+        }
+        
+        stage('Build') {
+            steps {
+                dir('liberty-tools-eclipse') {
+                    sh "mvn clean install -DskipTests"
+                }
+            }
+        }
+        
+        stage('Sign') {
+            steps {
+                dir('liberty-tools-eclipse/releng/io.openliberty.tools.update/target/repository') {
+                    // Get jar file names
+                    script {
+                        FEATURE_JAR = sh (
+                                        script: "cd features && ls io.openliberty.tools.eclipse_*.jar",
+                                        returnStdout: true
+                                    ).trim()
+                        echo "${FEATURE_JAR}"
+                        LS_JAR = sh (
+                                        script: "cd plugins && ls io.openliberty.tools.eclipse.lsp4e*.jar",
+                                        returnStdout: true
+                                    ).trim()
+                        UI_JAR = sh (
+                                        script: "cd plugins && ls io.openliberty.tools.eclipse.ui*.jar",
+                                        returnStdout: true
+                                    ).trim()
+                        PRODUCT_JAR = sh (
+                                        script: "cd plugins && ls io.openliberty.tools.eclipse.product*.jar",
+                                        returnStdout: true
+                                    ).trim()
+                    }
+                    
+                    // Get gsa credentials and sign jars            
+                    withCredentials([usernamePassword(credentialsId: 'wasdevb1-gsa-certsign', usernameVariable: 'user', passwordVariable: 'password')]) {
+               
+                        // Tooling on the GSA signing server requires directory names to be valid commits in the LT github repo.
+                        // These must be unique and not reused. We need to check if the last commit is free to use by seeing if a directory 
+                        // with that name already exists in the "signed" dir. If not free, try the next commit. 
+                        script {
+                            echo "Finding available commit to use on signing server."
+                            LAST_COMMIT = sh (
+                                    script: "git show HEAD --pretty=format:\"%H\" --no-patch",
+                                    returnStdout: true
+                                ).trim()
+                                echo "Checking ${LAST_COMMIT}"
+                            waitUntil {
+                                // NOTE: We are using curl rsther than sftp directly because curl will allow you to specify a password in one command. 
+                                def rc = sh(script: "curl -k sftp://rtpgsa.ibm.com/projects/c/certsign/liberty_tools/signed/${LAST_COMMIT}/ --user '$user:$password'", returnStatus:true)
+                                if(rc != 0) {
+                                    return(true)
+                                }
+                                LAST_COMMIT = sh (
+                                    script: "git show ${LAST_COMMIT}~1 --pretty=format:\"%H\" --no-patch",
+                                    returnStdout: true
+                                ).trim()
+                                echo "Checking ${LAST_COMMIT}"
+                                return(false)
+                            }
+                            echo "Using commit ${LAST_COMMIT}"
+                        }
+                        
+                        // Make new dir in "incomming"
+                        sh "curl -k sftp://rtpgsa.ibm.com/projects/c/certsign/liberty_tools/incoming/ -Q \"-MKDIR /projects/c/certsign/liberty_tools/incoming/${LAST_COMMIT}\" --ftp-create-dirs --user '$user:$password'"
+                        
+                        // Upload jars to "incomming" dir
+                        sh "cd features && curl -k sftp://rtpgsa.ibm.com/projects/c/certsign/liberty_tools/incoming/${LAST_COMMIT}/ -T \"${FEATURE_JAR}\" --user '$user:$password'"
+                        sh "cd plugins && curl -k sftp://rtpgsa.ibm.com/projects/c/certsign/liberty_tools/incoming/${LAST_COMMIT}/ -T \"${LS_JAR}\" --user '$user:$password'"
+                        sh "cd plugins && curl -k sftp://rtpgsa.ibm.com/projects/c/certsign/liberty_tools/incoming/${LAST_COMMIT}/ -T \"${UI_JAR}\" --user '$user:$password'"
+                        sh "cd plugins && curl -k sftp://rtpgsa.ibm.com/projects/c/certsign/liberty_tools/incoming/${LAST_COMMIT}/ -T \"${PRODUCT_JAR}\" --user '$user:$password'"
+    
+                        // Upload "done" file
+                        sh "echo  >> done"
+                        sh "curl -k sftp://rtpgsa.ibm.com/projects/c/certsign/liberty_tools/incoming/${LAST_COMMIT}/ -T \"done\" --user '$user:$password'"
+                        sh "rm -f done"
+                        
+                        // Loop and wait for dir to appear in "signed"
+                        script {
+                            timeout(5) {
+                                waitUntil {
+                                    println "Waiting for jars to be signed..."
+                                    def rc = sh(script: "curl -k sftp://rtpgsa.ibm.com/projects/c/certsign/liberty_tools/signed/${LAST_COMMIT}/ --user '$user:$password'", returnStatus:true)
+                                    if(rc == 0) {
+                                        return(true)
+                                    }
+                                    return(false)
+                                }
+                            }
+                        }
+                        
+                        // Download signed jars
+                        sh "cd features && curl -k sftp://rtpgsa.ibm.com/projects/c/certsign/liberty_tools/signed/${LAST_COMMIT}/${FEATURE_JAR} -o ${FEATURE_JAR} --user '$user:$password'"
+                        sh "cd plugins && curl -k sftp://rtpgsa.ibm.com/projects/c/certsign/liberty_tools/signed/${LAST_COMMIT}/${LS_JAR} -o ${LS_JAR} --user '$user:$password'"
+                        sh "cd plugins && curl -k sftp://rtpgsa.ibm.com/projects/c/certsign/liberty_tools/signed/${LAST_COMMIT}/${UI_JAR} -o ${UI_JAR} --user '$user:$password'"
+                        sh "cd plugins && curl -k sftp://rtpgsa.ibm.com/projects/c/certsign/liberty_tools/signed/${LAST_COMMIT}/${PRODUCT_JAR} -o ${PRODUCT_JAR} --user '$user:$password'"
+                    }  
+                }
+                
+                dir('liberty-tools-eclipse') {
+                    // Run Tycho plugin to recreate artifacts conten
+                    sh "mvn -pl releng tycho-p2-repository:fix-artifacts-metadata -Drepository.home=io.openliberty.tools.update"
+                }
+            }
+        }
+        
+        // The Install stage was added to verify the user will not be prompted with "Accepting unsigned content"; however, this stage
+        // passes whether or not the plugin jars are signed. Commenting this out until we have a better way to verify.
+        
+        // stage('Install') {
+        //     steps {
+        //         dir('install-test') {
+        //             sh "curl https://download.eclipse.org/technology/epp/downloads/release/2022-09/R/eclipse-jee-2022-09-R-linux-gtk-x86_64.tar.gz --output eclipse.tar.gz"
+        //             sh "tar -xf eclipse.tar.gz"
+        //         }
+        //         dir('install-test/eclipse') {
+        //             script {
+        //                 WORKING_DIR = sh (
+        //                                 script: "pwd",
+        //                                 returnStdout: true
+        //                             ).trim()
+        //             }
+        //             sh "./eclipse -nosplash -application org.eclipse.equinox.p2.director -repository file:///${WORKING_DIR}/../../liberty-tools-eclipse/releng/io.openliberty.tools.update/target/repository,https://raw.githubusercontent.com/eclipse/lsp4jakarta/build-p2-update-site-0.0.1,http://download.eclipse.org/lsp4mp/releases/0.5.0/repository/,https://download.eclipse.org/releases/2022-09/,https://download.eclipse.org/jdtls/snapshots/repository/latest/ -installIU io.openliberty.tools.eclipse.feature.group > install-plugin-console-output.txt"
+        //             archiveArtifacts artifacts: 'install-plugin-console-output.txt', fingerprint: true
+        //         }
+        //     }
+        // }
+                
+        stage('Export') {
+            steps {
+                dir('liberty-tools-eclipse/releng/io.openliberty.tools.update/target') {
+                    
+                    // Zip repository directory
+                    sh "cd repository && zip -r repository.zip * && mv repository.zip .."
+                    
+                    archiveArtifacts artifacts: 'repository/**/*.*', fingerprint: true
+                    archiveArtifacts artifacts: 'repository.zip', fingerprint: true
+                }
+            }
+            
+        }
+    }
+}
