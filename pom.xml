@@ -1,276 +1,110 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!--
-  Copyright (c) 2022 IBM Corporation and others.
-
-  This program and the accompanying materials are made available under the
-  terms of the Eclipse Public License v. 2.0 which is available at
-  http://www.eclipse.org/legal/epl-2.0.
-
-  SPDX-License-Identifier: EPL-2.0
-
-  Contributors:
-      IBM Corporation - initial implementation
--->
-<project>
-	<modelVersion>4.0.0</modelVersion>
+<project
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
+    xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <modelVersion>4.0.0</modelVersion>
+    
 	<groupId>io.openliberty.tools.eclipse</groupId>
-	<artifactId>parent</artifactId>
-	<version>0.9.0-SNAPSHOT</version>
-	<packaging>pom</packaging>
-    <licenses>
-      <license>
-        <name>Eclipse Public License Version 2.0</name>
-        <url>http://www.eclipse.org/legal/epl-v20.html</url>
-      </license>
-    </licenses>
-
-	<properties>
-
-		<!-- Tycho version (<https://github.com/eclipse/tycho/blob/master/RELEASE_NOTES.md>) specified in:
-		     - .mvn/extensions.xml
-		     - and here: -->
-		<tycho.version>3.0.1</tycho.version>
-
-		<!-- To skip integration tests use: mvn verify -Dskip.ui-tests=true -->
-		<skip.ui-tests>false</skip.ui-tests>
-
-		<!-- Skip the deployment here, submodules can override this property -->
-		<!--maven.deploy.skip>true</maven.deploy.skip-->
-
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <repository.home>${project.basedir}</repository.home>
-        
-        <!-- default version of the eclipse IDE to run tests against -->
-        <!-- must be one of the target platform files defined in this project under releng -->
-        <eclipse.target>1Q2023</eclipse.target>
-            
-	</properties>
+    <artifactId>io.openliberty.tools.eclipse.lsp4e</artifactId>
+    <version>0.4.0-SNAPSHOT</version>
 	
-	<repositories>
-			<repository>
-		  <id>lsp4mp-snapshots</id>
-		  <url>https://repo.eclipse.org/content/repositories/lsp4mp-snapshots</url>
-		  <releases>
-		    <enabled>false</enabled>
-		  </releases>
-		  <snapshots>
-		    <enabled>true</enabled>
-		  </snapshots>
-		</repository>		
-		<repository>
-		  <id>lsp4mp-releases</id>
-		  <url>https://repo.eclipse.org/content/repositories/lsp4mp-releases</url>
-		  <releases>
-		    <enabled>true</enabled>
-	      </releases>
-		  <snapshots>
-		    <enabled>false</enabled>
-		  </snapshots>
-		</repository>		
-		<repository>
-            <id>sonatype-nexus-snapshots</id>
-            <name>Sonatype Nexus Snapshots</name>
-            <url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-            <releases>
-                <enabled>false</enabled>
-            </releases>
-        </repository>
-        <repository>
-          <id>lsp4jakarta-snapshots</id>
-          <url>https://repo.eclipse.org/content/repositories/lsp4jakarta-snapshots</url>
-          <releases>
-            <enabled>false</enabled>
-          </releases>
-          <snapshots>
-            <enabled>true</enabled>
-          </snapshots>
-        </repository>
-        <repository>
-          <id>lsp4jakarta-releases</id>
-          <url>https://repo.eclipse.org/content/repositories/lsp4jakarta-releases</url>
-          <releases>
-            <enabled>true</enabled>
-          </releases>
-          <snapshots>
-            <enabled>false</enabled>
-          </snapshots>
-        </repository>
-	</repositories>
+    <dependencies>
+       <dependency>
+          <groupId>org.eclipse</groupId>
+		  <artifactId>ui</artifactId>
+		  <version>3.3.0-I20070614-0800</version>  
+       </dependency>
+	   <!--
+       <dependency>
+          <groupId>org.eclipse.jdt</groupId>
+		  <artifactId>org.eclipse.jdt.ui</artifactId>
+		  <version>3.26.0</version>
+       </dependency>
+	   -->
 
-	<build>
-		<pluginManagement>
-			<plugins>
-			<!-- Not strictly necessary since we could pick up Java level from Bundle-RequiredExecutionEnvironment, but clearer to make explicit here -->
-				<plugin>
-					<groupId>org.eclipse.tycho</groupId>
-					<artifactId>tycho-compiler-plugin</artifactId>
-					<version>${tycho.version}</version>
-					<configuration>
-						<target>17</target>
-					</configuration>
-				</plugin>
-				<plugin>
-					<groupId>org.eclipse.tycho</groupId>
-					<artifactId>tycho-p2-director-plugin</artifactId>
-					<version>${tycho.version}</version>
-				</plugin>
-				<!--This plugin's configuration is used to store Eclipse m2e settings only. It has no influence on the Maven build itself.-->
-				<plugin>
-					<groupId>org.eclipse.m2e</groupId>
-					<artifactId>lifecycle-mapping</artifactId>
-					<version>1.0.0</version>
-					<configuration>
-						<lifecycleMappingMetadata>
-							<pluginExecutions>
-								<pluginExecution>
-									<pluginExecutionFilter>
-										<groupId>
-											org.eclipse.tycho
-										</groupId>
-										<artifactId>
-											target-platform-configuration
-										</artifactId>
-										<versionRange>
-											[2.6.0,)
-										</versionRange>
-										<goals>
-											<goal>target-platform</goal>
-										</goals>
-									</pluginExecutionFilter>
-									<action>
-										<ignore></ignore>
-									</action>
-								</pluginExecution>
-							</pluginExecutions>
-						</lifecycleMappingMetadata>
-					</configuration>
-				</plugin>                           		
-			</plugins>
-		</pluginManagement>
-		<plugins>
-			<!--Enable the replacement of the SNAPSHOT version based on the last commit-->
-            <!--
-			<plugin>
-				<groupId>org.eclipse.tycho</groupId>
-				<artifactId>tycho-packaging-plugin</artifactId>
-				<version>${tycho.version}</version>
-				<dependencies>
-					<dependency>
-						<groupId>org.eclipse.tycho.extras</groupId>
-						<artifactId>tycho-buildtimestamp-jgit</artifactId>
-						<version>${tycho.version}</version>
-					</dependency>
-				</dependencies>
-				<configuration>
-					<timestampProvider>jgit</timestampProvider>
-					<jgit.ignore>pom.xml</jgit.ignore>
-					<jgit.dirtyWorkingTree>ignore</jgit.dirtyWorkingTree>
-				</configuration>
-			</plugin>
-            -->
-			<!-- Skip the install, since we do not need the artifacts in our local mvn repo -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-install-plugin</artifactId>
-				<version>2.5.2</version>
-				<configuration>
-					<skip>true</skip>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.eclipse.tycho</groupId>
-				<artifactId>tycho-maven-plugin</artifactId>
-				<version>${tycho.version}</version>
-				<extensions>true</extensions>
-			</plugin>
-			<plugin>
-				<groupId>org.eclipse.tycho</groupId>
-				<artifactId>target-platform-configuration</artifactId>
-				<version>${tycho.version}</version>
-				<configuration>
-				    <executionEnvironment>JavaSE-17</executionEnvironment>
-					<target>
-						<artifact>
-							<groupId>io.openliberty.tools.eclipse</groupId>
-							<artifactId>target-platform-${eclipse.target}</artifactId>
-							<version>0.9.0-SNAPSHOT</version>
-							<file>target-platform-${eclipse.target}</file>
-						</artifact>
-					</target>
-					<environments>
-						<environment>
-							<os>linux</os>
-							<ws>gtk</ws>
-							<arch>x86_64</arch>
-						</environment>
-						<environment>
-							<os>win32</os>
-							<ws>win32</ws>
-							<arch>x86_64</arch>
-						</environment>
-						<environment>
-							<os>macosx</os>
-							<ws>cocoa</ws>
-							<arch>x86_64</arch>
-						</environment>
-					</environments>
-				</configuration>
-			</plugin>
-			<!-- enable source feature generation -->
-			<!--plugin>
-                <groupId>org.eclipse.tycho.extras</groupId>
-                <artifactId>tycho-source-feature-plugin</artifactId>
-                <version>${tycho.version}</version>
-                <executions>
-                    <execution>
-                        <id>source-feature</id>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>source-feature</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.eclipse.tycho</groupId>
-                <artifactId>tycho-source-plugin</artifactId>
-                <version>${tycho.version}</version>
-                <executions>
-                    <execution>
-                        <id>plugin-source</id>
-                        <goals>
-                            <goal>plugin-source</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin-->
-            <plugin>
-                <groupId>org.eclipse.tycho</groupId>
-                <artifactId>tycho-p2-repository-plugin</artifactId>
-                <version>${tycho.version}</version>
-                <configuration>
-                    <repositoryLocation>${repository.home}/target/repository</repositoryLocation>
-                </configuration>
-            </plugin>
-			<plugin>
-				<groupId>com.github.spotbugs</groupId>
-				<artifactId>spotbugs-maven-plugin</artifactId>
-				<version>3.1.3</version>
-				<configuration>
-					<effort>Max</effort>
-					<threshold>Low</threshold>
-					<failOnError>false</failOnError>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
-	<modules>
-		<module>bundles</module>
-		<module>features</module>
-		<module>releng</module>
-		<module>tests</module>
-	</modules>
+<dependency>
+    <groupId>org.eclipse.core</groupId>
+<artifactId>runtime</artifactId>
+<version>3.10.0-v20140318-2214</version>
+</dependency>
+<dependency>
+    <groupId>org.eclipse.jface</groupId>
+<artifactId>text</artifactId>
+<version>3.2.1-r321_v20060810</version>
+</dependency>
+
+<dependency>
+    <groupId>org.eclipse.ui</groupId>
+<artifactId>editors</artifactId>
+<version>3.2.1-r321_v20060721</version>
+</dependency>
+<dependency>
+    <groupId>org.eclipse.lsp4j</groupId>
+    <artifactId>org.eclipse.lsp4j</artifactId>
+    <version>0.15.0</version>
+</dependency>
+<dependency>
+    <groupId>org.eclipse.lsp4j</groupId>
+    <artifactId>org.eclipse.lsp4j.jsonrpc</artifactId>
+    <version>0.15.0</version>
+</dependency>
+<dependency>
+    <groupId>org.eclipse.jdt</groupId>
+    <artifactId>core</artifactId>
+    <version>3.3.0-v_771</version>
+</dependency>
+<dependency>
+    <groupId>org.eclipse.jdt</groupId>
+    <artifactId>ui</artifactId>
+    <version>3.3.0-v20070607-0010</version>
+</dependency>
+<!--
+<dependency>
+    <groupId>org.eclipse.jdt.ls</groupId>
+    <artifactId>org.eclipse.jdt.ls.core</artifactId>
+    <version>1.15.0.20220831170028</version>
+</dependency>
+-->
+<dependency>
+    <groupId>org.eclipse.ui</groupId>
+    <artifactId>workbench</artifactId>
+    <version>3.3.0-I20070608-1100</version>
+    <scope>provided</scope>
+</dependency>
+
+<dependency>
+  <groupId>org.eclipse.platform</groupId>
+  <artifactId>org.eclipse.core.commands</artifactId>
+  <version>3.10.200</version>
+</dependency>
+<dependency>
+<groupId>org.eclipse.platform</groupId>
+<artifactId>org.eclipse.core.expressions</artifactId>
+<version>3.8.200</version>
+</dependency>
+<dependency>
+<groupId>org.eclipse.platform</groupId>
+<artifactId>org.eclipse.core.resources</artifactId>
+<version>3.18.0</version>
+</dependency>
+<dependency>
+<groupId>org.eclipse.platform</groupId>
+<artifactId>org.eclipse.debug.core</artifactId>
+<version>3.20.0</version>
+</dependency>
+<dependency>
+<groupId>org.eclipse.platform</groupId>
+<artifactId>org.eclipse.swt</artifactId>
+<version>3.121.0</version>
+</dependency>
+
+<!--
+<dependency>
+<groupId>org.eclipse.platform</groupId>
+<artifactId>org.eclipse.debug.ui</artifactId>
+<version>3.17.0</version>
+</dependency>
+-->
+
+</dependencies>
 </project>
