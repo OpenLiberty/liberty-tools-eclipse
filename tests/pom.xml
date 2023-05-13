@@ -60,38 +60,47 @@
                     <!-- to run them. This instance does not have the higher level Eclipse functions that the features   -->
                     <!-- being tested require.                                                                           -->
                     <dependency-resolution>
-                        <!-- Dependency versions should be consistent with the versions in target-platform.target        -->
                         <extraRequirements>
                             <!-- Required for Run As configuration launcher.                                             -->
                             <requirement>
                                 <type>p2-installable-unit</type>
                                 <id>org.eclipse.platform.sdk</id>
-                                <versionRange>4.25.0.I20220831-1800</versionRange>
+                                <versionRange>0.0.0</versionRange>
                             </requirement>
                             <requirement>
                                 <type>p2-installable-unit</type>
                                 <id>org.eclipse.jdt.feature.group</id>
-                                <versionRange>3.18.1300.v20220831-1800</versionRange>
+                                <versionRange>0.0.0</versionRange>
                             </requirement>
                             <requirement>
                                 <type>p2-installable-unit</type>
                                 <id>org.eclipse.buildship.ui</id>
-                                <versionRange>3.1.6.v20220511-1359</versionRange>
+                                <versionRange>0.0.0</versionRange>
                             </requirement>
                             <requirement>
                                 <type>p2-installable-unit</type>
                                 <id>org.eclipse.m2e.core.ui</id>
-                                <versionRange>2.0.0.20220726-0935</versionRange>
+                                <versionRange>0.0.0</versionRange>
                             </requirement>
                             <requirement>
                                 <type>p2-installable-unit</type>
                                 <id>org.eclipse.m2e.jdt</id>
-                                <versionRange>2.0.1.20220901-1459</versionRange>
+                                <versionRange>0.0.0</versionRange>
                             </requirement>
                             <requirement>
                                 <type>p2-installable-unit</type>
                                 <id>org.eclipse.m2e.jdt.ui</id>
-                                <versionRange>2.0.0.20220705-1221</versionRange>
+                                <versionRange>0.0.0</versionRange>
+                            </requirement>
+                            <requirement>
+                                <type>p2-installable-unit</type>
+                                <id>org.eclipse.lsp4e</id>
+                                <versionRange>0.0.0</versionRange>
+                            </requirement>
+                            <requirement>
+                                <type>p2-installable-unit</type>
+                                <id>org.eclipse.lsp4e.jdt</id>
+                                <versionRange>0.0.0</versionRange>
                             </requirement>
                         </extraRequirements>
                     </dependency-resolution>
