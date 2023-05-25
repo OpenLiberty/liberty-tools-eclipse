@@ -34,7 +34,7 @@ This guide provides detailed instructions on how to use Liberty Tools for the Ec
 ### Software requirements
 
 - **Eclipse IDE:**
-    - Releases: Tested on Eclipse versions 4.25 (2022-09) and 4.26 (2022-12).
+    - Releases: Tested on Eclipse version 4.27 (2023-03).
     - Packages: Tested with `Eclipse IDE for Enterprise Java and Web Developers` and `Eclipse IDE for Java Developers` packages
 
 - **Java:**  The Eclipse IDE itself requires Java 17.   As noted [in this guide](#start-with-configuration) the application runtime, however, can be run with other versions of Java , as long as they are supported by Liberty.
