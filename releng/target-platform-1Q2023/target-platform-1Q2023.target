@@ -78,8 +78,8 @@
             <unit id="org.eclipse.lsp4mp.jdt.core" version="0.7.0.20230403-1449"/>
         </location>
         <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-            <repository location="https://download.eclipse.org/jdtls/milestones/1.5.0/repository/"/>
-            <unit id="org.eclipse.jdt.ls.core" version="1.5.0.202110191539"/>
+            <repository location="https://download.eclipse.org/jdtls/milestones/1.22.0/repository/"/>
+            <unit id="org.eclipse.jdt.ls.core" version="0.0.0"/>
         </location>
         <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
             <repository location="https://download.eclipse.org/buildship/updates/e423/releases/3.x/3.1.6.v20220511-1359/"/>
@@ -120,7 +120,7 @@
             </dependencies>
         </location>
         <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-            <repository location="https://download.eclipse.org/lsp4jakarta/releases/0.1.0/repository"/>
+            <repository location="https://download.eclipse.org/lsp4jakarta/snapshots/0.1.1/repository"/>
             <unit id="org.eclipse.lsp4jakarta.jdt.core" version="0.0"/>
         </location>
                 
