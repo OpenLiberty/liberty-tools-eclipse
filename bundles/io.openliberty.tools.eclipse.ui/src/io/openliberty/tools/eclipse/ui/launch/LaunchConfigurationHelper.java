@@ -75,7 +75,9 @@ public class LaunchConfigurationHelper {
             ILaunchConfigurationWorkingCopy workingCopy = iLaunchConfigType.newInstance(null, newName);
             workingCopy.setAttribute(StartTab.PROJECT_NAME, iProject.getName());
             workingCopy.setAttribute(StartTab.PROJECT_START_PARM, devModeOps.getProjectModel().getDefaultStartParameters(iProject));
-            workingCopy.setAttribute(StartTab.PROJECT_RUN_IN_CONTAINER, false);
+            //default to 'false', no container
+            boolean runInContainer = runtimeEnv.equals(RuntimeEnv.CONTAINER);
+            workingCopy.setAttribute(StartTab.PROJECT_RUN_IN_CONTAINER, runInContainer);
 
             String defaultJavaDef = JRETab.getDefaultJavaFromBuildPath(iProject);
             if (defaultJavaDef != null) {
