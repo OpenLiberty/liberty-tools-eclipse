@@ -3,7 +3,7 @@ Bundle-Copyright: Copyright (c) 2022 IBM Corporation and others.
 Bundle-ManifestVersion: 2
 Bundle-Name: Tests Plug-in
 Bundle-SymbolicName: io.openliberty.tools.eclipse.tests
-Bundle-Version: 0.9.1.qualifier
+Bundle-Version: 0.9.2.qualifier
 Bundle-RequiredExecutionEnvironment: JavaSE-17
 Require-Bundle: junit-jupiter-api;bundle-version="[5.8.0,6.0.0)",
  org.eclipse.ui,
