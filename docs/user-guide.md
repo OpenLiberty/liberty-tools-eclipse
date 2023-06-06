@@ -1,3 +1,7 @@
+# User Guide
+
+This guide provides detailed instructions on how to use Liberty Tools for the Eclipse IDE
+
 - [User Guide](#user-guide)
   * [Before you begin](#before-you-begin)
     + [Software requirements](#software-requirements)
@@ -23,9 +27,11 @@
   * [Developing with MicroProfile](#developing-with-microprofile)
   * [Developing with Jakarta EE](#developing-with-jakarta-ee)
   * [Importing Gradle projects](#importing-gradle-projects)
-  * [Maven multi-module projects](#maven-multi-module-projects)
+  * [Multi-module](#multi-module)
+  * [Known Problems and Limitations](#known-problems-and-limitations)
 
 <small><i><a href='http://ecotrust-canada.github.io/markdown-toc/'>Table of contents generated with markdown-toc</a></i></small>
+
 
 ## Before you begin
 
@@ -283,7 +289,7 @@ Liberty Tools editing assistance provides code completion, diagnostics, and quic
 
 ![Jakarta EE quick-dix](images/jakarta-ee-ls-quick-fix.png)
 
-Jakarta EE API configuration assistance is offered through Eclipse LSP4Jakarta, the Language Server for Jakarta EE. For more information, see the [project documentation in GitHub](https://github.com/eclipse/lsp4jakarta#eclipse-lsp4jakarta).1G
+Jakarta EE API configuration assistance is offered through Eclipse LSP4Jakarta, the Language Server for Jakarta EE. For more information, see the [project documentation in GitHub](https://github.com/eclipse/lsp4jakarta#eclipse-lsp4jakarta).
 
 ## Importing Gradle projects
 
@@ -299,7 +305,12 @@ One approach for resolving this incompatibility is to configure the preference a
 More generally the Gradle Eclipse preferences and project Java requirements must be compatible.
 
 
-## Maven multi-module projects
+## Multi-module 
 
+There is no support for Gradle, multi-project builds at this time.
 
+We do offer a level of support for Maven, multi-module projects.  Rather than attempt to fully model the multi-project build, we make a heuristic "best guess" at the project structure, and allow the user to edit and customize the start command used.   We also may offer a choice of dashboard entries, one for the top-level, aggregate module and one for a specific server module.  The top-level module dashboard entry may not be usable in the case that Liberty dev mode is not able to guess the right starting module on its own, (see [here](https://github.com/OpenLiberty/ci.maven/blob/main/docs/dev.md#multiple-modules) for more info), in which case the server module entry should provide a useful starting point instead.
 
+## Known Problems and Limitations
+
+For an updated list see [here](https://github.com/OpenLiberty/liberty-tools-eclipse/wiki/Known-Problems-and-Limitations).
