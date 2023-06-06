@@ -9,6 +9,13 @@ stop, or interact with [Liberty dev mode](https://openliberty.io/docs/latest/dev
 and [Liberty Gradle](https://github.com/OpenLiberty/ci.gradle/blob/master/docs/libertyDev.md) projects in your
 workspace.
 
+---
+- [Quick start](#quick-start)
+- [Features](#features)
+- [Action Commands](#action-commands)
+- [Contributing](#contributing)
+- [Issues](#issues)
+
 ### Liberty dashboard
 
 Maven Projects             | Gradle Projects
