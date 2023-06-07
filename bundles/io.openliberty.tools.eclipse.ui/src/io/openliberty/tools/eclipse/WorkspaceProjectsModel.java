@@ -142,7 +142,7 @@ public class WorkspaceProjectsModel {
             }
 
         } catch (Exception e) {
-            String msg = "An error occurred while analyzing projects in the workspace.";
+            String msg = "An error occurred when the projects in the workspace were analyzed.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " Workspace projects: " + projectsByLocation.values(), e);
             }

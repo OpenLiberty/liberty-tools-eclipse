@@ -131,7 +131,7 @@ public class DevModeOperations {
         }
 
         if (iProject == null) {
-            String msg = "An error was detected while processing the start request. The object representing the selected project could not be found.";
+            String msg = "An error was detected when the start request was processed. The object that represents the selected project was not found.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op.");
             }
@@ -163,7 +163,7 @@ public class DevModeOperations {
                             + ". No-op. ProjectTabController: " + projectTabController);
                 }
                 ErrorHandler.processErrorMessage("The start request was already issued on project " + projectName
-                        + ". Use the stop action prior to selecting the start action.", true);
+                        + ". Use the stop action before you select the start action.", true);
                 return;
             }
         }
@@ -220,7 +220,7 @@ public class DevModeOperations {
             }
             return;
         } catch (Exception e) {
-            String msg = "An error was detected while performing the start request on project " + projectName;
+            String msg = "An error was detected during the start request on project " + projectName;
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
             }
@@ -248,7 +248,7 @@ public class DevModeOperations {
         }
 
         if (iProject == null) {
-            String msg = "An error was detected while processing the start in container request. The object representing the selected project could not be found.";
+            String msg = "An error was detected when the start in container request was processed. The object that represents the selected project was not found.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op.");
             }
@@ -280,7 +280,7 @@ public class DevModeOperations {
                             + ". No-op. ProjectTabController: " + projectTabController);
                 }
                 ErrorHandler.processErrorMessage("The start in container request was already issued on project " + projectName
-                        + ". Use the stop action prior to selecting the start action.", true);
+                        + ". Use the stop action before you select the start action.", true);
                 return;
             }
         }
@@ -331,7 +331,7 @@ public class DevModeOperations {
             // Start a terminal and run the application in dev mode.
             startDevMode(cmd, projectName, projectPath, javaHomePath);
         } catch (Exception e) {
-            String msg = "An error was detected while performing the start in container request on project " + projectName;
+            String msg = "An error was detected during the start in container request on project " + projectName;
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
             }
@@ -362,7 +362,7 @@ public class DevModeOperations {
         }
 
         if (iProject == null) {
-            String msg = "An error was detected while processing the stop request. The object representing the selected project could not be found. When using the Run Configuration launcher, be sure to select a project or project content first.";
+            String msg = "An error was detected when the stop request was processed. The object that represents the selected project was not found. When using the Run Configuration launcher, be sure to select a project or project content first.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op.");
             }
@@ -374,9 +374,9 @@ public class DevModeOperations {
 
         // Check if the stop action has already been issued of if a start action was never issued before.
         if (projectTabController.getProjectConnector(projectName) == null) {
-            String msg = "Either a start request was not issued previously by Liberty Tools, or a stop request has already been issued on project "
+            String msg = "Either Liberty Tools did not previously issue a start request, or a stop request was already issued on project "
                     + projectName
-                    + ".  To stop an application/server that was started outside of the current Liberty Tools session, you must use another method: e.g. open a new terminal inside or outside of Eclipse and issue 'mvn liberty:stop' or 'gradle libertyStop'.";
+                    + ".  To stop an application or server that was started outside of the current Liberty Tools session, you must use another method. For example, open a new terminal inside or outside of Eclipse and issue the 'mvn liberty:stop' or 'gradle libertyStop' command.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op. ProjectTabController: " + projectTabController);
             }
@@ -389,10 +389,10 @@ public class DevModeOperations {
         // there was an unexpected case that caused the terminal process to end. Note that objects associated with the previous
         // start attempt will be cleaned up on the next restart attempt.
         if (projectTabController.isProjectTabMarkedClosed(projectName)) {
-            String msg = "The terminal tab running project " + projectName
+            String msg = "The terminal tab that is running project " + projectName
                     + " is not active due to an unexpected error or external action. Review the terminal output for more details. "
                     + "Once the circumstance that caused the terminal tab to be inactive is determined and resolved, "
-                    + "issue a start request prior to issuing the stop request.";
+                    + "issue a start request before you issue the stop request.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op. ProjectTabController: " + projectTabController);
             }
@@ -418,7 +418,7 @@ public class DevModeOperations {
             projectTabController.processTerminalTabCleanup(projectName);
 
         } catch (Exception e) {
-            String msg = "An error was detected while processing the stop request on project " + projectName + ".";
+            String msg = "An error was detected when the stop request was processed on project " + projectName + ".";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
             }
@@ -449,7 +449,7 @@ public class DevModeOperations {
         }
 
         if (iProject == null) {
-            String msg = "An error was detected while processing the run tests request. The object representing the selected project could not be found. When using the Run Configuration launcher, be sure to select a project or project content first.";
+            String msg = "An error was detected when the run tests request was processed. The object that represents the selected project was not found. When you use the Run Configuration launcher, be sure to select a project or project content first.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op.");
             }
@@ -461,8 +461,8 @@ public class DevModeOperations {
 
         // Check if the stop action has already been issued of if a start action was never issued before.
         if (projectTabController.getProjectConnector(projectName) == null) {
-            String msg = "The start request was not issued first or the stop request has already been issued on project " + projectName
-                    + ". Issue a start request prior to issuing the run tests request.";
+            String msg = "No start request was issued first or the stop request was already issued on project " + projectName
+                    + ". Issue a start request before you issue the run tests request.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op. ProjectTabController: " + projectTabController);
             }
@@ -475,10 +475,10 @@ public class DevModeOperations {
         // there was an unexpected case that caused the terminal process to end. Note that objects associated with the previous
         // start attempt will be cleaned up on the next restart attempt.
         if (projectTabController.isProjectTabMarkedClosed(projectName)) {
-            String msg = "The terminal tab running project " + projectName
+            String msg = "The terminal tab that is running project " + projectName
                     + " is not active due to an unexpected error or external action. Review the terminal output for more details. "
                     + "Once the circumstance that caused the terminal tab to be inactive is determined and resolved, "
-                    + "issue a start request prior to issuing the run tests request.";
+                    + "issue a start request before you issue the run tests request.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op. ProjectTabController: " + projectTabController);
             }
@@ -490,7 +490,7 @@ public class DevModeOperations {
             // Issue the command on the terminal.
             projectTabController.writeToTerminalStream(projectName, DEVMODE_COMMAND_RUN_TESTS.getBytes());
         } catch (Exception e) {
-            String msg = "An error was detected while processing the run tests request on project " + projectName + ".";
+            String msg = "An error was detected when the run tests request was processed on project " + projectName + ".";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
             }
@@ -521,7 +521,7 @@ public class DevModeOperations {
         }
 
         if (iProject == null) {
-            String msg = "An error was detected while processing the view integration test report request. The object representing the selected project could not be found. When using the Run Configuration launcher, be sure to select a project or project content first.";
+            String msg = "An error was detected when the view integration test report request was processed. The object that represents the selected project was not found. When you use the Run Configuration launcher, be sure to select a project or project content first.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op.");
             }
@@ -547,8 +547,8 @@ public class DevModeOperations {
             // Get the path to the test report.
             Path path = getMavenIntegrationTestReportPath(projectPath);
             if (!path.toFile().exists()) {
-                String msg = "Integration test results were not found for project " + projectName + ". Select \""
-                        + DashboardView.APP_MENU_ACTION_RUN_TESTS + "\" prior to selecting \""
+                String msg = "No integration test results were found for project " + projectName + ". Select \""
+                        + DashboardView.APP_MENU_ACTION_RUN_TESTS + "\" before you select \""
                         + DashboardView.APP_MENU_ACTION_VIEW_MVN_IT_REPORT + "\" on the menu.";
                 if (Trace.isEnabled()) {
                     Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op. Path: " + path);
@@ -561,7 +561,8 @@ public class DevModeOperations {
             String browserTabTitle = projectName + " " + BROWSER_MVN_IT_REPORT_NAME_SUFFIX;
             openTestReport(projectName, path, path.toString(), browserTabTitle, browserTabTitle);
         } catch (Exception e) {
-            String msg = "An error was detected while processing the view integration test report request on project " + projectName + ".";
+            String msg = "An error was detected when the view integration test report request was processed on project " + projectName
+                    + ".";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
             }
@@ -594,7 +595,7 @@ public class DevModeOperations {
         }
 
         if (iProject == null) {
-            String msg = "An error was detected while processing the view unit test report request. The object representing the selected project could not be found. When using the Run Configuration launcher, be sure to select a project or project content first.";
+            String msg = "An error was detected when the view unit test report request was processed. The object representing the selected project could not be found. When using the Run Configuration launcher, be sure to select a project or project content first.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op.");
             }
@@ -619,8 +620,8 @@ public class DevModeOperations {
             // Get the path to the test report.
             Path path = getMavenUnitTestReportPath(projectPath);
             if (!path.toFile().exists()) {
-                String msg = "Unit test results were not found for project " + projectName + ". Select \""
-                        + DashboardView.APP_MENU_ACTION_RUN_TESTS + "\" prior to selecting \""
+                String msg = "No unit test results were found for project " + projectName + ". Select \""
+                        + DashboardView.APP_MENU_ACTION_RUN_TESTS + "\" before you select \""
                         + DashboardView.APP_MENU_ACTION_VIEW_MVN_UT_REPORT + "\" on the menu.";
                 if (Trace.isEnabled()) {
                     Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op. Path: " + path);
@@ -633,7 +634,7 @@ public class DevModeOperations {
             String browserTabTitle = projectName + " " + BROWSER_MVN_UT_REPORT_NAME_SUFFIX;
             openTestReport(projectName, path, path.toString(), browserTabTitle, browserTabTitle);
         } catch (Exception e) {
-            String msg = "An error was detected while processing the view unit test report request on project " + projectName + ".";
+            String msg = "An error was detected when the view unit test report request was processed on project " + projectName + ".";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
             }
@@ -664,7 +665,7 @@ public class DevModeOperations {
         }
 
         if (iProject == null) {
-            String msg = "An error was detected while processing the view test report request. The object representing the selected project could not be found. When using the Run Configuration launcher, be sure to select a project or project content first.";
+            String msg = "An error was detected when the view test report request was processed. The object representing the selected project could not be found. When using the Run Configuration launcher, be sure to select a project or project content first.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op.");
             }
@@ -690,8 +691,8 @@ public class DevModeOperations {
             // Get the path to the test report.
             Path path = getGradleTestReportPath(projectPath);
             if (!path.toFile().exists()) {
-                String msg = "Test results were not found for project " + projectName + ". Select \""
-                        + DashboardView.APP_MENU_ACTION_RUN_TESTS + "\" prior to selecting \""
+                String msg = "No test results were found for project " + projectName + ". Select \""
+                        + DashboardView.APP_MENU_ACTION_RUN_TESTS + "\" before you select \""
                         + DashboardView.APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT + "\" on the menu.";
                 if (Trace.isEnabled()) {
                     Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op. Path: " + path);
@@ -704,7 +705,7 @@ public class DevModeOperations {
             String browserTabTitle = projectName + " " + BROWSER_GRADLE_TEST_REPORT_NAME_SUFFIX;
             openTestReport(projectName, path, path.toString(), browserTabTitle, browserTabTitle);
         } catch (Exception e) {
-            String msg = "An error was detected while processing the view test report request on project " + projectName + ".";
+            String msg = "An error was detected when the view test report request was processed on project " + projectName + ".";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
             }

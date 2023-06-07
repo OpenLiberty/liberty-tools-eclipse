@@ -382,8 +382,8 @@ public class DebugModeHandler {
                     }
                     return null;
                 } else {
-                    String msg = "More than one server.env files were found for project " + projectName
-                            + ". Unable to determine the server.env file to use.";
+                    String msg = "More than one server.env file was found for project " + projectName
+                            + ". Unable to determine which server.env file to use.";
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg);
                     }
@@ -573,12 +573,12 @@ public class DebugModeHandler {
         if (project.isParentOfServerModule()) {
             List<Project> mmps = project.getChildLibertyServerProjects();
             switch (mmps.size()) {
-            case 0:
-                throw new Exception("Unable to find a child project that contains the Liberty server configuration.");
-            case 1:
-                return mmps.get(0);
-            default:
-                throw new Exception("Multiple child projects containing Liberty server configuration were found.");
+                case 0:
+                    throw new Exception("Unable to find a child project that contains the Liberty server configuration.");
+                case 1:
+                    return mmps.get(0);
+                default:
+                    throw new Exception("Multiple child projects containing Liberty server configuration were found.");
             }
         }
 

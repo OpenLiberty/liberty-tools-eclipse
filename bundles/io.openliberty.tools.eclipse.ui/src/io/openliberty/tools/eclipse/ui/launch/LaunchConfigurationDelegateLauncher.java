@@ -81,7 +81,7 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
                     StartAction.run(configProject, configuration, mode);
 
                 } catch (Exception e) {
-                    String msg = "An error was detected while launching configuration " + configuration.getName() + ".";
+                    String msg = "An error was detected when configuration was launched" + configuration.getName() + ".";
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
                     }
