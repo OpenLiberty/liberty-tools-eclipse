@@ -26,7 +26,7 @@ Maven Projects             | Gradle Projects
 
 ![Dashboard context menu view](docs/images/maven-RunAsConfigShortcutsExplorerMenuShown.png) 
 
-## Quick Start
+## Quick start
 
 - Understand the [prerequisites](docs/user-guide.md#before-you-begin)
 - [Install Liberty Tools](docs/installation.md).
@@ -75,9 +75,9 @@ Editing assistance for configuration and application files is provided through t
 - MicroProfile APIs in `microprofile-config.properties` and Java files: [Eclipse LSP4MP](https://github.com/eclipse/lsp4mp#eclipse-lsp4mp---language-server-for-microprofile), the Language Server for MicroProfile.
 
 
-## Action Commands
+## Action commands
 
-| Action Command                       | Description                                                                                                                                                                                                                                                                                                                  |
+| Action command                       | Description                                                                                                                                                                                                                                                                                                                  |
 | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Start                                | Starts dev mode.                                                                                                                                                                                                                                                                                                             |
 | Start in container                   | Starts dev mode with the server in a container.
