@@ -33,7 +33,7 @@ This guide provides detailed instructions on how to use Liberty Tools for the Ec
 
 ## Before you begin
 
-### Software requirements (for Liberty Tools v23.0.6)
+### Software requirements for Liberty Tools v23.0.6
 
 - **Eclipse IDE:**
     - Releases: Tested on Eclipse version 4.27 (2023-03).
