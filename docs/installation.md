@@ -17,7 +17,7 @@ You can install Liberty Tools as new software by one of the following methods:
 
 ## Using the Eclipse Marketplace client
 
-1. From the Eclipse menu in your IDE, select **Help** > **Eclipse Marketplace** and type **"Liberty Tools"** and then <kbd>Enter</kbd>.   
+1. From the menu bar in your IDE, select **Help** > **Eclipse Marketplace** and type **"Liberty Tools"** and then <kbd>Enter</kbd>.
 
 2. Under the **Liberty Tools <X.Y.Z>** entry, click the **Install** button.
 
@@ -27,7 +27,7 @@ You can install Liberty Tools as new software by one of the following methods:
 
 You can use the **Install New Software** option in the Eclipse **Help** menu to install Liberty Tools by using an update site or through an archive.
 
-1. From the Eclipse menu in your IDE, select **Help** > **Install New Software**.
+1. From the menu bar in your IDE, select **Help** > **Install New Software**.
 
 ![Step 1. New software installation](images/install-installNewSotwareEntry.png)
 
@@ -37,7 +37,7 @@ You can use the **Install New Software** option in the Eclipse **Help** menu to 
 
     Find the update site URL for your chosen release from the entry in the Releases list. For example, the URL for the [0.7.0 release](https://github.com/OpenLiberty/liberty-tools-eclipse/releases/tag/liberty-tools-0.7.0.202212141445) is https://public.dhe.ibm.com/ibmdl/export/pub/software/openliberty/liberty-tools-eclipse/0.7.0/repository/.
 
-    Click the **Add...** button to open the **Add Repository** view. Specify a name, copy and paste the update site URL as the location, and click the **Add** button. 
+    Click the **Add...** button to open the **Add Repository** view. Copy and paste the update site URL as the **Location**, specify an (optional) **Name** if desired, and click the **Add** button.
 
     ![Step 2a. Add repository](images/install-addRepoSite.png)
  
@@ -47,11 +47,11 @@ You can use the **Install New Software** option in the Eclipse **Help** menu to 
 
     Download this zip to your local workstation and copy the path to the downloaded archive.
 
-    Click on the **Add...** button to open the **Add Repository** view. Specify a name, paste the location of the downloaded archive, and click the **Add** button. 
+    Click on the **Add...** button to open the **Add Repository** view. Specify a name, paste the location of the downloaded archive, and click the **Add** button.
 
     ![Step 2b. Add repository](images/install-addRepoArchive.png)
 
-3. Select the Liberty tools software and click **Next**.
+3. Select the **Liberty Tools** software and click **Next**.
 
 ![Step 3. Select Software to install](images/install-selectLibertyToolsFromSite.png)
 
@@ -67,4 +67,4 @@ You can use the **Install New Software** option in the Eclipse **Help** menu to 
 
 ### Next steps
 
-FOr detailed information about using Liberty Tools, see the [User Guide](../user-guide.md).
+For detailed information about using Liberty Tools, see the [User Guide](../user-guide.md).
