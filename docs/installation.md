@@ -59,7 +59,7 @@ You can use the **Install New Software** option in the Eclipse **Help** menu to 
 
 5. Review and accept the license agreement and click **Finish**.
 
-6. Trust - Depending on your original IDE package, you might be required to accept trust of **org.apache.commons3.lang**, a prerequisite of the LSP4Jakarta component used by Liberty Tools.
+6. Trust - Depending on your original IDE package, you might be required to accept trust of one or more open source packages serving as prerequisites of Liberty Tools.
 
 7. Restart Eclipse at the prompt.
 
