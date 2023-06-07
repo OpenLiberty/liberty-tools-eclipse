@@ -573,12 +573,12 @@ public class DebugModeHandler {
         if (project.isParentOfServerModule()) {
             List<Project> mmps = project.getChildLibertyServerProjects();
             switch (mmps.size()) {
-                case 0:
-                    throw new Exception("Unable to find a child project that contains the Liberty server configuration.");
-                case 1:
-                    return mmps.get(0);
-                default:
-                    throw new Exception("Multiple child projects containing Liberty server configuration were found.");
+            case 0:
+                throw new Exception("Unable to find a child project that contains the Liberty server configuration.");
+            case 1:
+                return mmps.get(0);
+            default:
+                throw new Exception("Multiple child projects containing Liberty server configuration were found.");
             }
         }
 
