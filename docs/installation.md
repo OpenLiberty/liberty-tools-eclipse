@@ -23,7 +23,7 @@ You can install Liberty Tools as new software by one of the following methods:
 
 ## Using Help -> Install New Software
 
-You can use the **Install New Software** option to install Liberty Tools by using an update site or through an archive.
+You can use the **Install New Software** option in the Eclipse **Help** menu to install Liberty Tools by using an update site or through an archive.
 
 1. From the Eclipse menu in your IDE, select **Help** > **Install New Software**.
 
