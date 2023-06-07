@@ -248,7 +248,7 @@ public class DashboardView extends ViewPart {
                 try {
                     StartAction.run(iProject, null, ILaunchManager.RUN_MODE);
                 } catch (Exception e) {
-                    String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_START + " action.";
+                    String msg = "An error was detected during the " + DashboardView.APP_MENU_ACTION_START + " action.";
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
                     }
@@ -271,7 +271,7 @@ public class DashboardView extends ViewPart {
                 try {
                     StartConfigurationDialogAction.run(iProject, ILaunchManager.RUN_MODE);
                 } catch (Exception e) {
-                    String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_START_CONFIG + " action.";
+                    String msg = "An error was detected during the " + DashboardView.APP_MENU_ACTION_START_CONFIG + " action.";
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
                     }
@@ -292,7 +292,7 @@ public class DashboardView extends ViewPart {
                 try {
                     StartInContainerAction.run(iProject, null, ILaunchManager.RUN_MODE);
                 } catch (Exception e) {
-                    String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_START_IN_CONTAINER
+                    String msg = "An error was detected during the " + DashboardView.APP_MENU_ACTION_START_IN_CONTAINER
                             + " action.";
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
@@ -314,7 +314,7 @@ public class DashboardView extends ViewPart {
                 try {
                     StartInContainerAction.run(iProject, null, ILaunchManager.DEBUG_MODE);
                 } catch (Exception e) {
-                    String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_DEBUG_IN_CONTAINER
+                    String msg = "An error was detected during the " + DashboardView.APP_MENU_ACTION_DEBUG_IN_CONTAINER
                             + " action.";
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
@@ -336,7 +336,7 @@ public class DashboardView extends ViewPart {
                 try {
                     StartAction.run(iProject, null, ILaunchManager.DEBUG_MODE);
                 } catch (Exception e) {
-                    String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_DEBUG + " action.";
+                    String msg = "An error was detected during the " + DashboardView.APP_MENU_ACTION_DEBUG + " action.";
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
                     }
@@ -358,7 +358,7 @@ public class DashboardView extends ViewPart {
                 try {
                     StartConfigurationDialogAction.run(iProject, ILaunchManager.DEBUG_MODE);
                 } catch (Exception e) {
-                    String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_DEBUG_CONFIG + " action.";
+                    String msg = "An error was detected during the " + DashboardView.APP_MENU_ACTION_DEBUG_CONFIG + " action.";
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
                     }
@@ -379,7 +379,7 @@ public class DashboardView extends ViewPart {
                 try {
                     StopAction.run(iProject);
                 } catch (Exception e) {
-                    String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_STOP + " action.";
+                    String msg = "An error was detected during the " + DashboardView.APP_MENU_ACTION_STOP + " action.";
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
                     }
@@ -400,7 +400,7 @@ public class DashboardView extends ViewPart {
                 try {
                     RunTestsAction.run(iProject);
                 } catch (Exception e) {
-                    String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_RUN_TESTS + " action.";
+                    String msg = "An error was detected during the " + DashboardView.APP_MENU_ACTION_RUN_TESTS + " action.";
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
                     }
@@ -421,7 +421,7 @@ public class DashboardView extends ViewPart {
                 try {
                     OpenMavenITestReportAction.run(iProject);
                 } catch (Exception e) {
-                    String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_VIEW_MVN_IT_REPORT
+                    String msg = "An error was detected during the " + DashboardView.APP_MENU_ACTION_VIEW_MVN_IT_REPORT
                             + " action.";
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
@@ -443,7 +443,7 @@ public class DashboardView extends ViewPart {
                 try {
                     OpenMavenUTestReportAction.run(iProject);
                 } catch (Exception e) {
-                    String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_VIEW_MVN_UT_REPORT
+                    String msg = "An error was detected during the " + DashboardView.APP_MENU_ACTION_VIEW_MVN_UT_REPORT
                             + " action.";
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
@@ -465,7 +465,7 @@ public class DashboardView extends ViewPart {
                 try {
                     OpenGradleTestReportAction.run(iProject);
                 } catch (Exception e) {
-                    String msg = "An error was detected while performing the " + DashboardView.APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT
+                    String msg = "An error was detected during the " + DashboardView.APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT
                             + " action.";
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
@@ -492,7 +492,7 @@ public class DashboardView extends ViewPart {
     public void setInput(List<String> sortedDashboardProjectList) {
         if (viewer != null) {
             viewer.setInput(sortedDashboardProjectList);
-        }        
+        }
     }
 
     /**
@@ -503,7 +503,7 @@ public class DashboardView extends ViewPart {
             projectModel.createNewCompleteWorkspaceModelWithClassify();
             setInput(projectModel.getSortedDashboardProjectList());
         } catch (Exception e) {
-            String msg = "An error was detected while refreshing the Liberty dashboard content.";
+            String msg = "An error was detected when the Liberty dashboard content was refreshed.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }
@@ -511,8 +511,8 @@ public class DashboardView extends ViewPart {
             return;
         }
     }
-    
+
     public Table getTable() {
-    	return viewer.getTable();
+        return viewer.getTable();
     }
 }

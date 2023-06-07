@@ -414,7 +414,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
             }
         } catch (Exception e) {
             // Report the issue and continue without a initial start command.
-            String msg = "An error was detected while retrieving the default start parameters.";
+            String msg = "An error was detected when the default start parameters were retrieved.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }

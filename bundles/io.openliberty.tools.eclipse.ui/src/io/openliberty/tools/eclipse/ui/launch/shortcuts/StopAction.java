@@ -42,8 +42,8 @@ public class StopAction implements ILaunchShortcut {
         try {
             run(iProject);
         } catch (Exception e) {
-            String msg = "An error was detected while processing the \"" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_STOP
-                    + "\" launch shortcut.";
+            String msg = "An error was detected when the \"" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_STOP
+                    + "\" launch shortcut was processed.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }

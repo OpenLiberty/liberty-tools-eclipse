@@ -42,8 +42,8 @@ public class OpenGradleTestReportAction implements ILaunchShortcut {
         try {
             run(iProject);
         } catch (Exception e) {
-            String msg = "An error was detected while processing the \""
-                    + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_GRADLE_VIEW_TEST_REPORT + "\" launch shortcut.";
+            String msg = "An error was detected when the \""
+                    + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_GRADLE_VIEW_TEST_REPORT + "\" launch shortcut was processed.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }
@@ -70,8 +70,8 @@ public class OpenGradleTestReportAction implements ILaunchShortcut {
         try {
             run(iProject);
         } catch (Exception e) {
-            String msg = "An error was detected while processing the \""
-                    + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_GRADLE_VIEW_TEST_REPORT + "\" launch shortcut.";
+            String msg = "An error was detected when the \""
+                    + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_GRADLE_VIEW_TEST_REPORT + "\" launch shortcut was processed.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }

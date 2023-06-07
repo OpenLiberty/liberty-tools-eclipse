@@ -382,8 +382,8 @@ public class DebugModeHandler {
                     }
                     return null;
                 } else {
-                    String msg = "More than one server.env files were found for project " + projectName
-                            + ". Unable to determine the server.env file to use.";
+                    String msg = "More than one server.env file was found for project " + projectName
+                            + ". Unable to determine which server.env file to use.";
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg);
                     }

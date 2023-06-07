@@ -56,8 +56,8 @@ public class StartConfigurationDialogAction implements ILaunchShortcut {
         try {
             run(iProject, mode);
         } catch (Exception e) {
-            String msg = "An error was detected while processing the \"" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONFIG
-                    + "\" launch shortcut.";
+            String msg = "An error was detected when the \"" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONFIG
+                    + "\" launch shortcut was processed.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }
@@ -84,8 +84,8 @@ public class StartConfigurationDialogAction implements ILaunchShortcut {
         try {
             run(iProject, mode);
         } catch (Exception e) {
-            String msg = "An error was detected while processing the \"" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONFIG
-                    + "\" launch shortcut.";
+            String msg = "An error was detected when the \"" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONFIG
+                    + "\" launch shortcut was processed.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }
