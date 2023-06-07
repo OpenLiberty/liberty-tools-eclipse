@@ -1,63 +1,65 @@
-# Install Guide
+# Installation guide
 
 ## Prerequisites
-See [here](user-guide.md#before-you-begin) for install requirements
+See the [user guide](user-guide.md#before-you-begin) for install requirements
 
-## Install Options
-The Liberty Tools feature can be installed as new software either by:
+## Installation options
+You can install Liberty Tools as new software by one of the following methods:
 
-*  using the Eclipse Marketplace, OR
-*  configuring an update site, OR
-*  downloading the artifacts and installing using the archive
+*  Using the Eclipse Marketplace
+*  Configuring an update site
+*  Downloading the artifacts and installing them by using the archive
 
 ## Using Eclipse Marketplace
 
 1. Point your browser to the Liberty Tools marketplace entry: https://marketplace.eclipse.org/content/liberty-tools
-2. Drag the "Install" button to the toolbar of your Eclipse IDE
+2. Drag the **Install** button to the toolbar of your Eclipse IDE
 
-## Using Eclipse Marketplace client
+## Using the Eclipse Marketplace client
 
-1. Go to menu:  `Help`->`Eclipse Marketplace` and type **"Liberty Tools"**.
+1. From the menu bar in your IDE, select **Help** > **Eclipse Marketplace** and type **"Liberty Tools"** and then <kbd>Enter</kbd>.
 
-    **NOTE:** Do NOT select the "IBM Liberty Developer Tools" selection, which is an earlier, different set of IDE features/plugins, though with the similar name.
+2. Locate the **Liberty Tools <*version*>** entry and click the **Install** button.
+
+    **NOTE:** Do NOT be confused and select to install the "IBM Liberty Developer Tools" entry.  This is an earlier, different set of IDE features/plugins, though with the similar name.
 
 ## Using Help -> Install New Software
 
-The Liberty Tools feature can be installed using the artifacts provided in the form of an update site or through an archive.
+You can use the **Install New Software** option in the Eclipse **Help** menu to install Liberty Tools by using an update site or through an archive.
 
-1. Go to menu: `Help`->`Install New Software`.
+1. From the menu bar in your IDE, select **Help** > **Install New Software**.
 
 ![Step 1. New software installation](images/install-installNewSotwareEntry.png)
 
-2. For a given release selected from the [Releases](https://github.com/OpenLiberty/liberty-tools-eclipse/releases) list, the installation artifacts can be added in one of two ways (the specific release page shows the URLs for each):
+2. For any release in the [Releases](https://github.com/OpenLiberty/liberty-tools-eclipse/releases) list, you can add the installation artifacts either from an update site or from a downloadable archive. The entry for each release page includes the URLs for both options.
     
-    a. **UPDATE SITE** 
+    a. Install by using an update site URL. 
 
-    Find the update site URL.  E.g. for the [0.7.0 release](https://github.com/OpenLiberty/liberty-tools-eclipse/releases/tag/liberty-tools-0.7.0.202212141445), the URL would be: https://public.dhe.ibm.com/ibmdl/export/pub/software/openliberty/liberty-tools-eclipse/0.7.0/repository/
+    Find the update site URL for your chosen release from the entry in the Releases list. For example, the URL for the [0.7.0 release](https://github.com/OpenLiberty/liberty-tools-eclipse/releases/tag/liberty-tools-0.7.0.202212141445) is https://public.dhe.ibm.com/ibmdl/export/pub/software/openliberty/liberty-tools-eclipse/0.7.0/repository/.
 
-    Click on the `Add...` button to open the `Add Repository` view. Specify a name, copy/paste the URL above as the location, and click on the `Add` button. 
+    Click the **Add...** button to open the **Add Repository** view. Copy and paste the update site URL as the **Location**, specify a **Name** of your choice (optional), and click the **Add** button.
 
     ![Step 2a. Add repository](images/install-addRepoSite.png)
  
-    b. **ARCHIVE** 
+    b. Install by using an archive site URL.
 
-    Find the URL for the archive zip. E.g. for the 0.7.0 release, the URL would be: https://public.dhe.ibm.com/ibmdl/export/pub/software/openliberty/liberty-tools-eclipse/0.7.0/repository.zip
+    Find the URL for the archive zip for your chosen release from the entry in the Releases list. For example, the URL for the 0.7.0 release is https://public.dhe.ibm.com/ibmdl/export/pub/software/openliberty/liberty-tools-eclipse/0.7.0/repository.zip
 
     Download this zip to your local workstation and copy the path to the downloaded archive.
 
-    Click on the `Add...` button to open the `Add Repository` view. Specify a name, paste the location of the downloaded archive, and click on the `Add` button. 
+    Click on the **Add...** button to open the **Add Repository** view. Specify a **Name** of your choice (optional), and click the **Add** button. paste the location of the downloaded archive, and click the **Add** button.
 
     ![Step 2b. Add repository](images/install-addRepoArchive.png)
 
-3. Select the Liberty tools software and click `Next`.
+3. Select the **Liberty Tools** software and click **Next**.
 
 ![Step 3. Select Software to install](images/install-selectLibertyToolsFromSite.png)
 
-4. Review the installation details and click `Next`.
+4. Review the installation details and click **Next**.
 
-5. Review/Accept the License agreement and click `Finish`.
+5. Review and accept the license agreement and click **Finish**.
 
-6. Trust - Depending on your original IDE package you may be required to accept trust of **org.apache.commons3.lang**, a prerequisite of the LSP4Jakarta component used by Liberty Tools.
+6. Trust - Depending on your original IDE package, you might be required to accept trust of one or more open source packages serving as prerequisites of Liberty Tools.
 
 7. Restart Eclipse at the prompt.
 
@@ -65,4 +67,4 @@ The Liberty Tools feature can be installed using the artifacts provided in the f
 
 ### Next steps
 
-See: [User Guide](../user-guide.md)
+For detailed information about using Liberty Tools, see the [User Guide](../user-guide.md).
