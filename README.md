@@ -12,7 +12,7 @@ workspace.
 ---
 - [Quick start](#quick-start)
 - [Features](#features)
-- [Action Commands](#action-commands)
+- [Action commands](#action-commands)
 - [Contributing](#contributing)
 - [Issues](#issues)
 
