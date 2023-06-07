@@ -17,9 +17,11 @@ You can install Liberty Tools as new software by one of the following methods:
 
 ## Using the Eclipse Marketplace client
 
-1. From the Eclipse menu in your IDE, select **Help** > **Eclipse Marketplace** and type **"Liberty Tools"**.
+1. From the Eclipse menu in your IDE, select **Help** > **Eclipse Marketplace** and type **"Liberty Tools"** and then <kbd>Enter</kbd>.   
 
-    **NOTE:** Do NOT select the "IBM Liberty Developer Tools" selection, which is an earlier, different set of IDE features/plugins, though with the similar name.
+2. Under the **Liberty Tools <X.Y.Z>** entry, click the **Install** button.
+
+    **NOTE:** Do NOT be confused and select to install the "IBM Liberty Developer Tools" entry.  This is an earlier, different set of IDE features/plugins, though with the similar name.
 
 ## Using Help -> Install New Software
 
