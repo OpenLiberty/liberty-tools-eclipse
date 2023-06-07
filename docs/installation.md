@@ -19,7 +19,7 @@ You can install Liberty Tools as new software by one of the following methods:
 
 1. From the menu bar in your IDE, select **Help** > **Eclipse Marketplace** and type **"Liberty Tools"** and then <kbd>Enter</kbd>.
 
-2. Under the **Liberty Tools <X.Y.Z>** entry, click the **Install** button.
+2. Locate the **Liberty Tools <*version*>** entry and click the **Install** button.
 
     **NOTE:** Do NOT be confused and select to install the "IBM Liberty Developer Tools" entry.  This is an earlier, different set of IDE features/plugins, though with the similar name.
 
@@ -37,7 +37,7 @@ You can use the **Install New Software** option in the Eclipse **Help** menu to 
 
     Find the update site URL for your chosen release from the entry in the Releases list. For example, the URL for the [0.7.0 release](https://github.com/OpenLiberty/liberty-tools-eclipse/releases/tag/liberty-tools-0.7.0.202212141445) is https://public.dhe.ibm.com/ibmdl/export/pub/software/openliberty/liberty-tools-eclipse/0.7.0/repository/.
 
-    Click the **Add...** button to open the **Add Repository** view. Copy and paste the update site URL as the **Location**, specify an (optional) **Name** if desired, and click the **Add** button.
+    Click the **Add...** button to open the **Add Repository** view. Copy and paste the update site URL as the **Location**, specify a **Name** of your choice (optional), and click the **Add** button.
 
     ![Step 2a. Add repository](images/install-addRepoSite.png)
  
@@ -47,7 +47,7 @@ You can use the **Install New Software** option in the Eclipse **Help** menu to 
 
     Download this zip to your local workstation and copy the path to the downloaded archive.
 
-    Click on the **Add...** button to open the **Add Repository** view. Specify a name, paste the location of the downloaded archive, and click the **Add** button.
+    Click on the **Add...** button to open the **Add Repository** view. Specify a **Name** of your choice (optional), and click the **Add** button. paste the location of the downloaded archive, and click the **Add** button.
 
     ![Step 2b. Add repository](images/install-addRepoArchive.png)
 
