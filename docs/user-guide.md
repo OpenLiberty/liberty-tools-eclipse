@@ -97,13 +97,13 @@ If you add new projects or make changes, and you need to refresh the dashboard, 
 ![Dashboard Refresh highlighted](images/dashboardToolbarRefresh.png)
 
 
-## Accessing Liberty Tools Operations
+## Accessing Liberty Tools operations
 
 Liberty Tools provides a series of operations to speed up application development.  These operations can be launched either through the **Liberty Dashboard** view or through the Project Explorer (or Package Explorer) views.  The multiple views can be mixed and matched, for example a run configuration created and customized through the **Liberty Dashboard** can later be launched through the Project Explorer context menu.  Another example is that an application started through the Project Explorer can be stopped through the **Liberty Dashboard** operation.
 
 ### Using the Liberty dashboard view
 
-The Liberty dashboard provides a context menu to the Liberty projects in it. 
+The Liberty dashboard provides a context menu to help run, test, and debug any configured Liberty projects. 
 
 Maven Projects             | Gradle Projects
 :-------------------------:|:-------------------------:
@@ -121,7 +121,7 @@ Maven Projects             | Gradle Projects
 
 ## Running your application on Liberty using dev mode
 
-3 options are available to start your Liberty application in dev mode
+Three options are available to start your Liberty application in dev mode: Start, Start with configuration, or Start in a container.
 
 ### Start
 
