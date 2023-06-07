@@ -31,7 +31,7 @@ You can use the **Install New Software** option in the Eclipse **Help** menu to 
 
 2. For any release in the [Releases](https://github.com/OpenLiberty/liberty-tools-eclipse/releases) list, you can add the installation artifacts either from an update site or from a downloadable archive. The entry for each release page includes the URLs for both options.
     
-    a. **UPDATE SITE** 
+    a. Install by using an update site URL. 
 
     Find the update site URL for your chosen release from the entry in the Releases list. For example, the URL for the [0.7.0 release](https://github.com/OpenLiberty/liberty-tools-eclipse/releases/tag/liberty-tools-0.7.0.202212141445) is https://public.dhe.ibm.com/ibmdl/export/pub/software/openliberty/liberty-tools-eclipse/0.7.0/repository/.
 
@@ -39,7 +39,7 @@ You can use the **Install New Software** option in the Eclipse **Help** menu to 
 
     ![Step 2a. Add repository](images/install-addRepoSite.png)
  
-    b. **ARCHIVE** 
+    b. Install by using an archive site URL.
 
     Find the URL for the archive zip for your chosen release from the entry in the Releases list. For example, the URL for the 0.7.0 release is https://public.dhe.ibm.com/ibmdl/export/pub/software/openliberty/liberty-tools-eclipse/0.7.0/repository.zip
 
