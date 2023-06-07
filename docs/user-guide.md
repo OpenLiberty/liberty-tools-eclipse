@@ -4,7 +4,7 @@ This guide provides detailed instructions on how to use Liberty Tools for the Ec
 
 - [User Guide](#user-guide)
   * [Before you begin](#before-you-begin)
-    + [Software requirements (for Liberty Tools v23.0.6)](#software-requirements--for-liberty-tools-v2306-)
+    + [Software requirements for Liberty Tools v23.0.6](#software-requirements-for-liberty-tools-v2306)
     + [Application requirements](#application-requirements)
     + [Maven and Gradle](#maven-and-gradle)
     + [Docker](#docker)
