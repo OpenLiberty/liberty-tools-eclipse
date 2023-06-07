@@ -376,7 +376,7 @@ public class DevModeOperations {
         if (projectTabController.getProjectConnector(projectName) == null) {
             String msg = "Either Liberty Tools did not previously issue a start request, or a stop request was already issued on project "
                     + projectName
-                    + ".  To stop an application or server that was started outside of the current Liberty Tools session, you must use another method. For example, open a new terminal inside or outside of Eclipse and issue the 'mvn liberty:stop' or 'gradle libertyStop' command.";
+                    + ".  To stop a server that was started outside of the current Liberty Tools session, you must use another method. For example, open a new terminal inside or outside of Eclipse and issue the 'mvn liberty:stop' or 'gradle libertyStop' command.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op. ProjectTabController: " + projectTabController);
             }
