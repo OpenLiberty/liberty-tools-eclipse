@@ -4,21 +4,22 @@ This guide provides detailed instructions on how to use Liberty Tools for the Ec
 
 - [User Guide](#user-guide)
   * [Before you begin](#before-you-begin)
-    + [Software requirements](#software-requirements)
+    + [Software requirements (for Liberty Tools v23.0.6)](#software-requirements--for-liberty-tools-v2306-)
     + [Application requirements](#application-requirements)
     + [Maven and Gradle](#maven-and-gradle)
     + [Docker](#docker)
   * [Opening the Liberty dashboard view](#opening-the-liberty-dashboard-view)
-  * [Running your application on Liberty using dev mode](#running-your-application-on-liberty-using-dev-mode)
+  * [Accessing Liberty Tools Operations](#accessing-liberty-tools-operations)
     + [Using the Liberty dashboard view](#using-the-liberty-dashboard-view)
     + [Using the Project Explorer view](#using-the-project-explorer-view)
+  * [Running your application on Liberty using dev mode](#running-your-application-on-liberty-using-dev-mode-1)
     + [Start](#start)
     + [Start with Configuration](#start-with-configuration)
     + [Start in container](#start-in-container)
   * [Running tests](#running-tests)
   * [Viewing test reports](#viewing-test-reports)
-    + [Maven built application](#maven-built-application)
-    + [Gradle built application](#gradle-built-application)
+    + [Maven-built applications](#maven-built-applications)
+    + [Gradle-built applications](#gradle-built-applications)
   * [Stopping your application](#stopping-your-application)
   * [Debugging your application](#debugging-your-application)
   * [Manually adding the Liberty nature to a project](#manually-adding-the-liberty-nature-to-a-project)
@@ -28,12 +29,11 @@ This guide provides detailed instructions on how to use Liberty Tools for the Ec
   * [Developing with Jakarta EE](#developing-with-jakarta-ee)
   * [Importing Gradle projects](#importing-gradle-projects)
   * [Multi-module](#multi-module)
-  * [Known Problems and Limitations](#known-problems-and-limitations)
-
+  * [Common Issues](#common-issues)
 
 ## Before you begin
 
-### Software requirements
+### Software requirements (for Liberty Tools v23.0.6)
 
 - **Eclipse IDE:**
     - Releases: Tested on Eclipse version 4.27 (2023-03).
@@ -41,7 +41,7 @@ This guide provides detailed instructions on how to use Liberty Tools for the Ec
 
 - **Java:**  The Eclipse IDE itself requires Java 17. However, the application runtime [can be run with other versions of Java](#start-with-configuration), as long as they are supported by Liberty.
 
-- [Liberty Tools](installation.md).
+- [Liberty Tools](installation.md)
 
 ### Application requirements
 
@@ -66,21 +66,21 @@ Since Liberty dev mode uses the Liberty Maven or Gradle plugins to manage a Mave
       - `mvn wrapper:wrapper`
       - `gradle wrapper`
 
-2. If a Maven/Gradle wrapper is not found, Liberty Tools uses a **Liberty preference** to find the Maven and Gradle installations. It does not use the preferences of the Maven/Gradle m2e/buildship Eclipse tooling:
+2. If a Maven/Gradle wrapper is not found, Liberty Tools uses a **Liberty** preference to find the Maven and Gradle installations. It does not use the preferences of the Maven/Gradle m2e/buildship Eclipse tooling:
 
    - [Open the Liberty preferences dialog on your Eclipse IDE](#setting-preferences)
    - Set the Maven/Gradle installation to use.
    - click on **Apply and Close** to save your changes.
 
-3. If a Maven/Gradle installation is still not found, Liberty Tools looks on the PATH environment variable.  See [the following section](#Docker) for instructions.
+3. If a Maven/Gradle installation is still not found, Liberty Tools looks at the PATH environment variable for install locations.  See the instructions in [the following section](#Docker) which can also apply to finding Maven or Gradle executables.
 
 ### Docker
 
-If using the dev mode in containers (devc) function, you must add the 'docker' executable to the PATH environment variable for the Eclipse IDE process, for example : 
+If using the dev mode in containers (devc) function, you must add the 'docker' executable to the PATH environment variable for the Eclipse IDE process, for example by doing one of the following options:
 * On MacOS, start you eclipse IDE through Finder:
     - right-click your application and choose **Show Package Contents**.
     - Enter the newly displayed Contents folder, select MacOS, and then run Eclipse by clicking the displayed executable.
-* RUn the following command: `export PATH=$PATH:../path/to/docker`
+* Run the following command: `export PATH=$PATH:../path/to/docker`
 * launch Eclipse by running the following command  `PATH=$PATH:../path/to/docker eclipse.exe ...`
 
    
@@ -97,13 +97,13 @@ If you add new projects or make changes, and you need to refresh the dashboard, 
 ![Dashboard Refresh highlighted](images/dashboardToolbarRefresh.png)
 
 
-## Running your application on Liberty using dev mode
+## Accessing Liberty Tools Operations
 
-3 options are avaialble to start your Liberty application in dev mode by using the menu actions provided through the Liberty dashboard view or the Eclipse IDE explorer view.
+Liberty Tools provides a series of operations to speed up application development.  These operations can be launched either through the **Liberty Dashboard** view or through the Project Explorer (or Package Explorer) views.  The multiple views can be mixed and matched, for example a run configuration created and customized through the **Liberty Dashboard** can later be launched through the Project Explorer context menu.  Another example is that an application started through the Project Explorer can be stopped through the **Liberty Dashboard** operation.
 
 ### Using the Liberty dashboard view
 
-The Liberty dashboard provides a context menu to the Liberty projects in it. Users can choose the menu contents to perform a series of operations that can speed up application development.
+The Liberty dashboard provides a context menu to the Liberty projects in it. 
 
 Maven Projects             | Gradle Projects
 :-------------------------:|:-------------------------:
@@ -111,12 +111,17 @@ Maven Projects             | Gradle Projects
 
 ### Using the Project Explorer view
 
-The Liberty Tools plugin provides a set of launch shortcut actions to the Liberty projects shown in the explorer view. Users can choose these actions to perform a series of operations that can speed up application development.
+The Liberty Tools plugin provides a set of launch shortcut actions to the Liberty projects shown in the explorer view. 
 
 Maven Projects             | Gradle Projects
 :-------------------------:|:-------------------------:
 ![Dashboard context menu Gradle](images/maven-explorerViewContextMenu.png) | ![Dashboard context menu Maven](images/gradle-explorerViewContextMenu.png)
 
+(Note the Package Explorer view provides similar capabilities as Project Explorer.)
+
+## Running your application on Liberty using dev mode
+
+3 options are available to start your Liberty application in dev mode
 
 ### Start
 
@@ -134,7 +139,7 @@ Use the **Start** tab to customize how and where dev mode is run. On this tab, y
 
 ![Liberty configuration dialog start tab](images/maven-runConfigurationsDialogStartTab.png)
 
-Use the **JRE** tab to customize the Java installation to use when you run dev mode. On this tab, you can specify an alternate java installation, an execution environment that points to the java installation of your choice. If neither of these options are specified, the workspace-configured java installation is used by default.
+Use the **JRE** tab to customize the Java installation to use when you run dev mode. On this tab, you can specify an alternate Java installation, an execution environment that points to the Java installation of your choice. If neither of these options are specified, the workspace-configured Java installation is used by default.
 
 ![Liberty configuration dialog JRE tab](images/maven-runConfigurationsDialogJRETab.png)
 
@@ -218,7 +223,7 @@ When you finish with the customizations, click the **Debug** button to launch de
 
 ![Debugger Attached](images/maven-DebuggerAttachedToJVMBreakpoint.png)
 
-When the debugger is attached to the Liberty server JVM, a `Remote Java Application` configuration is created. This configuration reflects the debug port number the JVM is listening on. 
+When the debugger is attached to the Liberty server JVM, a `Remote Java Application` configuration is created (or updated) and reflects the debug port number the JVM is listening on. 
 
 ![Debug As launch shortcuts](images/maven-RemoteJavaApplicationConfiguration.png)
 
@@ -234,7 +239,7 @@ After the project is classified as a Liberty project, the project is automatical
 
 ## Setting preferences
 You can set some preferences through the Liberty Tools for Eclipse preference panel.
-To set these preferences, open the preference dialog, and click   **Liberty** from the dialog sidebar menu.
+To set these preferences, open the preference dialog, and click **Liberty** from the dialog sidebar menu.
 
 ![Preferences dialog](images/preferencesDialog.png)
 
@@ -247,7 +252,7 @@ Liberty configuration assistance provides editing assistance, such as [code comp
 
 1. Start the project in dev mode using one of the previously described dashboard start commands.  These commands install the Liberty features required for your app and allow the generation of a corresponding `server.xml` XSD schema file.
 
-2. Open any of the supported Liberty configuration files using the Eclipse Generic Text Editor.
+2. Open any of the supported Liberty configuration files using the **Generic Text Editor**.
 
 3. To use content assist enter <kbd>Ctrl</kbd> + <kbd>Space</kbd> at any point within the document.
 
@@ -305,8 +310,8 @@ More generally, the Gradle Eclipse preferences and project Java requirements mus
 ## Multi-module 
 Gradle multi-project builds are not supported at this time.
 
-Liberty Tools does offer a level of support for Maven, multi-module projects.  Rather than attempt to fully model the multi-project build, we make a heuristic "best guess" at the project structure, and allow the user to edit and customize the start command used.  Liberty Tols also might offer a choice of dashboard entries, one for the top-level, aggregate module and one for a specific server module.  The top-level module dashboard entry might not be usable in the case that Liberty dev mode is not able to guess the right starting module on its own, in which case the server module entry can provide a useful starting point instead. For more information, see the [Liberty Maven plugin multi-module documentation ](https://github.com/OpenLiberty/ci.maven/blob/main/docs/dev.md#multiple-modules).
+Liberty Tools does offer a level of support for Maven, multi-module projects.  Rather than attempt to fully model the multi-project build, we make a heuristic "best guess" at the project structure, and allow the user to edit and customize the start command used.  Liberty Tools also might offer a choice of dashboard entries, one for the top-level, aggregate module and one for a specific server module.  The top-level module dashboard entry might not be usable in the case that Liberty dev mode is not able to guess the right starting module on its own, in which case the server module entry can provide a useful starting point instead. For more information, see the [Liberty Maven plugin multi-module documentation ](https://github.com/OpenLiberty/ci.maven/blob/main/docs/dev.md#multiple-modules).
 
-## Known problems and limitations
+## Common Issues
 
-For an updated list of known problems and limitations, see [this wiki article](https://github.com/OpenLiberty/liberty-tools-eclipse/wiki/Known-Problems-and-Limitations).
+For an updated list of commonly-seen issues, see [this wiki article](https://github.com/OpenLiberty/liberty-tools-eclipse/wiki/Common-Issues).
