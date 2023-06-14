@@ -4,7 +4,7 @@ This guide provides detailed instructions on how to use Liberty Tools for the Ec
 
 - [User Guide](#user-guide)
   * [Before you begin](#before-you-begin)
-    + [Software requirements for Liberty Tools v23.0.6](#software-requirements-for-liberty-tools-v2306)
+    + [Software requirements](#software-requirements)
     + [Application requirements](#application-requirements)
     + [Maven and Gradle](#maven-and-gradle)
     + [Docker](#docker)
@@ -33,15 +33,21 @@ This guide provides detailed instructions on how to use Liberty Tools for the Ec
 
 ## Before you begin
 
-### Software requirements for Liberty Tools v23.0.6
+### Software requirements
 
-- **Eclipse IDE:**
-    - Releases: Tested on Eclipse version 4.27 (2023-03).
-    - Packages: Tested with `Eclipse IDE for Enterprise Java and Web Developers` and `Eclipse IDE for Java Developers` packages
+1. **Eclipse IDE:**
 
-- **Java:**  The Eclipse IDE itself requires Java 17. However, the application runtime [can be run with other versions of Java](#start-with-configuration), as long as they are supported by Liberty.
 
-- [Liberty Tools](installation.md)
+| Liberty Tools Eclipse version 	| Targeted Eclipse IDE version       	|
+|:---------------------------------:|:----------:|
+|  23.0.6     	| 2023-03 - Eclipse v4.27 |
+
+**NOTE:** Tested with each of the `Eclipse IDE for Enterprise Java and Web Developers` and `Eclipse IDE for Java Developers` packages
+
+
+2. **Java:**  The Eclipse IDE itself requires Java 17. However, the application runtime [can be run with other versions of Java](#start-with-configuration), as long as they are supported by Liberty.
+3. [**Liberty Tools**](installation.md)
+
 
 ### Application requirements
 
