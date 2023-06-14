@@ -20,15 +20,16 @@
     <parent>
         <groupId>io.openliberty.tools.eclipse</groupId>
         <artifactId>parent</artifactId>
-        <version>0.9.2-SNAPSHOT</version>
+        <version>23.0.6-SNAPSHOT</version>
         <relativePath>../../pom.xml</relativePath>
     </parent>
     
     <properties>
-        <liberty.ls.version>1.0-SNAPSHOT</liberty.ls.version>
-        <jakarta.ls.version>0.1.1-SNAPSHOT</jakarta.ls.version>
+        <liberty.ls.version>1.0</liberty.ls.version>
+        <jakarta.ls.version>0.1.1</jakarta.ls.version>
         <mp.ls.version>0.7.0</mp.ls.version>
     </properties>
+
     <artifactId>io.openliberty.tools.eclipse.lsp4e</artifactId>
     
     <packaging>eclipse-plugin</packaging>
