@@ -67,4 +67,4 @@ You can use the **Install New Software** option in the Eclipse **Help** menu to 
 
 ### Next steps
 
-For detailed information about using Liberty Tools, see the [User Guide](../user-guide.md).
+For detailed information about using Liberty Tools, see the [User Guide](user-guide.md#before-you-begin).
