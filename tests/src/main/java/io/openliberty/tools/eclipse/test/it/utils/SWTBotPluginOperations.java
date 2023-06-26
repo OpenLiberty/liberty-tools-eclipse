@@ -934,6 +934,8 @@ public class SWTBotPluginOperations {
      */
     public static void createNewClass(SWTWorkbenchBot bot, String appName, String className, boolean clearContent) {
 
+        System.out.println("INFO: Creating new Java class: " + className);
+
         Object project = getAppInPackageExplorerTree(appName);
         context(project, "New", "Class");
 
@@ -967,6 +969,9 @@ public class SWTBotPluginOperations {
      */
     public static List<String> getTypeAheadList(SWTWorkbenchBot bot, String editorFileName, String insertText, int cursorRow,
             int cursorColumn) {
+
+        System.out.println("INFO: Getting type-ahead list");
+
         SWTBotPreferences.PLAYBACK_DELAY = 1000;
 
         SWTBotEditor editor = searchForEditor(bot, editorFileName);
@@ -992,6 +997,9 @@ public class SWTBotPluginOperations {
      */
     public static void selectTypeAheadOption(SWTWorkbenchBot bot, String editorFileName, String option, int cursorRow,
             int cursorColumn) {
+
+        System.out.println("INFO: Selecting type-ahead option: " + option);
+
         SWTBotPreferences.PLAYBACK_DELAY = 1000;
         SWTBotEditor editor = searchForEditor(bot, editorFileName);
         SWTBotEclipseEditor e = editor.toTextEditor();
@@ -1009,6 +1017,8 @@ public class SWTBotPluginOperations {
      * @return
      */
     public static List<String> getQuickFixList(SWTWorkbenchBot bot, String editorFileName) {
+        System.out.println("INFO: Getting quick-fix list for class: " + editorFileName);
+
         SWTBotPreferences.PLAYBACK_DELAY = 1000;
 
         SWTBotEditor editor = searchForEditor(bot, editorFileName);

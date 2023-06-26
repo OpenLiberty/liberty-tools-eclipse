@@ -13,7 +13,7 @@
 -->
 <server description="Sample Servlet server">
     <featureManager>
-        <feature>jakartaee-10.0</feature>
+        <feature>jsp-3.1</feature>
     </featureManager>
     
     <httpEndpoint  host="*" httpPort="9080" httpsPort="9443" id="defaultHttpEndpoint" />

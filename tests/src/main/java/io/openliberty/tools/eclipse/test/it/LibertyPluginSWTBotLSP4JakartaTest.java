@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2022, 2023 IBM Corporation and others.
+* Copyright (c) 2023 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -13,6 +13,7 @@
 package io.openliberty.tools.eclipse.test.it;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -74,9 +75,11 @@ public class LibertyPluginSWTBotLSP4JakartaTest extends AbstractLibertyPluginSWT
 
     /**
      * Setup.
+     * 
+     * @throws Exception
      */
     @BeforeAll
-    public static void setup() {
+    public static void setup() throws Exception {
 
         commonSetup();
 
@@ -111,6 +114,7 @@ public class LibertyPluginSWTBotLSP4JakartaTest extends AbstractLibertyPluginSWT
 
             // Get type-ahead list
             List<String> typeAheadOptions = SWTBotPluginOperations.getTypeAheadList(bot, "MyClass.java", "", 0, 0);
+            System.out.println("INFO: Type-ahead options found = " + Arrays.toString(typeAheadOptions.toArray()));
 
             boolean allFound = true;
             List<String> missingOptions = new ArrayList<String>();
@@ -123,10 +127,14 @@ public class LibertyPluginSWTBotLSP4JakartaTest extends AbstractLibertyPluginSWT
 
             assertTrue(allFound, "Missing type-ahead options: " + Arrays.toString(missingOptions.toArray()));
 
+        } catch (Exception e) {
+            fail("Unexpected exception was thrown: " + e);
         } finally {
 
             // Delete new file
+            System.out.println("INFO: Deleting MyClass.java file");
             LibertyPluginTestUtils.deleteFile(new File(wrapperProjectPath + "/src/main/java/test/maven/liberty/web/app/MyClass.java"));
+
         }
     }
 
@@ -142,6 +150,7 @@ public class LibertyPluginSWTBotLSP4JakartaTest extends AbstractLibertyPluginSWT
 
             // Get type-ahead list
             List<String> typeAheadOptions = SWTBotPluginOperations.getTypeAheadList(bot, "MyClass.java", "", 3, 0);
+            System.out.println("INFO: Type-ahead options found = " + Arrays.toString(typeAheadOptions.toArray()));
 
             boolean allFound = true;
             List<String> missingOptions = new ArrayList<String>();
@@ -154,9 +163,12 @@ public class LibertyPluginSWTBotLSP4JakartaTest extends AbstractLibertyPluginSWT
 
             assertTrue(allFound, "Missing type-ahead options: " + Arrays.toString(missingOptions.toArray()));
 
+        } catch (Exception e) {
+            fail("Unexpected exception was thrown: " + e);
         } finally {
 
             // Delete new file
+            System.out.println("INFO: Deleting MyClass.java file");
             LibertyPluginTestUtils.deleteFile(new File(wrapperProjectPath + "/src/main/java/test/maven/liberty/web/app/MyClass.java"));
         }
     }
@@ -193,9 +205,12 @@ public class LibertyPluginSWTBotLSP4JakartaTest extends AbstractLibertyPluginSWT
 
             assertTrue(allFound, "Missing quick-fixes: " + Arrays.toString(missingFixes.toArray()));
 
+        } catch (Exception e) {
+            fail("Unexpected exception was thrown: " + e);
         } finally {
 
             // Delete new file
+            System.out.println("INFO: Deleting MyClass.java file");
             LibertyPluginTestUtils.deleteFile(new File(wrapperProjectPath + "/src/main/java/test/maven/liberty/web/app/MyClass.java"));
         }
     }
