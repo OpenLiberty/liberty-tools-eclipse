@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2022 IBM Corporation and others.
+* Copyright (c) 2022, 2023 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -86,6 +86,30 @@ public class ErrorHandler {
     }
 
     /**
+     * Logs a message to the platform log and opens the error dialog, if indicated.
+     *
+     * @param message The message to display.
+     * @param displayDialog The indicator to open a dialog.
+     * @param buttonLabels The array of button labels to be display on the dialog.
+     * @param defaultButton The index number representing the button to be selected as default.
+     * 
+     * @return The index number representing the button that the user selected.
+     */
+    public static Integer processErrorMessage(String message, boolean displayDialog, String[] buttonLabels, int defaultButton) {
+        Integer response = null;
+        Logger.logError(message);
+
+        if (displayDialog) {
+            Shell shell = Display.getCurrent().getActiveShell();
+            MessageDialog dialog = new MessageDialog(shell, TITLE, null, message, MessageDialog.ERROR, buttonLabels, defaultButton);
+            response = Integer.valueOf(dialog.open());
+        }
+
+        return response;
+
+    }
+
+    /**
      * Logs a message to the platform log.
      *
      * @param message The message to display.
@@ -139,7 +163,7 @@ public class ErrorHandler {
             dialog.open();
         }
     }
-    
+
     /**
      * Logs a message to the platform log and opens the error dialog, if indicated.
      *

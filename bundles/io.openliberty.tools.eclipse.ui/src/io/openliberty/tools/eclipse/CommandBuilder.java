@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2022 IBM Corporation and others.
+* Copyright (c) 2022, 2023 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -50,28 +50,28 @@ public class CommandBuilder {
      * 
      * @throws CommandNotFoundException
      */
-    public static String getMavenCommandLine(String projectPath, String cmdArgs, String pathEnv)
+    public static String getMavenCommandLine(String projectPath, String cmdArgs, String pathEnv, boolean printCmd)
             throws CommandBuilder.CommandNotFoundException {
         if (Trace.isEnabled()) {
             Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { projectPath, cmdArgs });
         }
         CommandBuilder builder = new CommandBuilder(projectPath, pathEnv, true);
         String cmd = builder.getCommand();
-        String cmdLine = builder.getCommandLineFromArgs(cmd, cmdArgs);
+        String cmdLine = builder.getCommandLineFromArgs(cmd, cmdArgs, printCmd);
         if (Trace.isEnabled()) {
             Trace.getTracer().traceExit(Trace.TRACE_TOOLS, cmdLine);
         }
         return cmdLine;
     }
 
-    public static String getGradleCommandLine(String projectPath, String cmdArgs, String pathEnv)
+    public static String getGradleCommandLine(String projectPath, String cmdArgs, String pathEnv, boolean printCmd)
             throws CommandBuilder.CommandNotFoundException {
         if (Trace.isEnabled()) {
             Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { projectPath, cmdArgs });
         }
         CommandBuilder builder = new CommandBuilder(projectPath, pathEnv, false);
         String cmd = builder.getCommand();
-        String cmdLine = builder.getCommandLineFromArgs(cmd, cmdArgs);
+        String cmdLine = builder.getCommandLineFromArgs(cmd, cmdArgs, printCmd);
         if (Trace.isEnabled()) {
             Trace.getTracer().traceExit(Trace.TRACE_TOOLS, cmdLine);
         }
@@ -186,17 +186,19 @@ public class CommandBuilder {
         return foundCmd;
     }
 
-    private String getCommandLineFromArgs(String cmd, String cmdArgs) {
+    private String getCommandLineFromArgs(String cmd, String cmdArgs, boolean printCmd) {
         // Put it all together.
         StringBuilder sb = new StringBuilder();
         if (cmd != null) {
-            if (Utils.isWindows()) {
-                sb.append("/c ");
-                sb.append("echo && ");
-                sb.append("echo Liberty Tools running command: " + cmd + " " + cmdArgs);
-                sb.append(" from directory: " + projectPath + " && ");
-            } else {
-                sb.append(" -x ");
+            if (printCmd) {
+                if (Utils.isWindows()) {
+                    sb.append("/c ");
+                    sb.append("echo && ");
+                    sb.append("echo Liberty Tools running command: " + cmd + " " + cmdArgs);
+                    sb.append(" from directory: " + projectPath + " && ");
+                } else {
+                    sb.append(" -x ");
+                }
             }
             sb.append(cmd).append(" ").append(cmdArgs);
         }
