@@ -12,14 +12,19 @@
 *******************************************************************************/
 package io.openliberty.tools.eclipse;
 
+import java.io.File;
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.debug.core.ILaunchManager;
+import org.eclipse.jdt.launching.JavaRuntime;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.ui.ISelectionService;
@@ -198,11 +203,11 @@ public class DevModeOperations {
             BuildType buildType = project.getBuildType();
             if (buildType == Project.BuildType.MAVEN) {
                 cmd = CommandBuilder.getMavenCommandLine(projectPath, "io.openliberty.tools:liberty-maven-plugin:dev " + startParms,
-                        pathEnv);
+                        pathEnv, true);
             } else if (buildType == Project.BuildType.GRADLE) {
-                cmd = CommandBuilder.getGradleCommandLine(projectPath, "libertyDev " + startParms, pathEnv);
+                cmd = CommandBuilder.getGradleCommandLine(projectPath, "libertyDev " + startParms, pathEnv, true);
             } else {
-                throw new Exception("Unexpected project build type: " + buildType + ". Project" + projectName
+                throw new Exception("Unexpected project build type: " + buildType + ". Project " + projectName
                         + "does not appear to be a Maven or Gradle built project.");
             }
 
@@ -315,11 +320,11 @@ public class DevModeOperations {
             BuildType buildType = project.getBuildType();
             if (buildType == Project.BuildType.MAVEN) {
                 cmd = CommandBuilder.getMavenCommandLine(projectPath, "io.openliberty.tools:liberty-maven-plugin:devc " + startParms,
-                        pathEnv);
+                        pathEnv, true);
             } else if (buildType == Project.BuildType.GRADLE) {
-                cmd = CommandBuilder.getGradleCommandLine(projectPath, "libertyDevc " + startParms, pathEnv);
+                cmd = CommandBuilder.getGradleCommandLine(projectPath, "libertyDevc " + startParms, pathEnv, true);
             } else {
-                throw new Exception("Unexpected project build type: " + buildType + ". Project" + projectName
+                throw new Exception("Unexpected project build type: " + buildType + ". Project " + projectName
                         + "does not appear to be a Maven or Gradle built project.");
             }
 
@@ -374,29 +379,22 @@ public class DevModeOperations {
 
         // Check if the stop action has already been issued of if a start action was never issued before.
         if (projectTabController.getProjectConnector(projectName) == null) {
-            String msg = "Either Liberty Tools did not previously issue a start request, or a stop request was already issued on project "
-                    + projectName
-                    + ".  To stop a server that was started outside of the current Liberty Tools session, you must use another method. For example, open a new terminal inside or outside of Eclipse and issue the 'mvn liberty:stop' or 'gradle libertyStop' command.";
-            if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op. ProjectTabController: " + projectTabController);
-            }
-            ErrorHandler.processErrorMessage(msg, true);
+            String msg = "Unable to process the stop request on project " + projectName
+                    + " because either Liberty Tools did not previously issue a start request, or a stop request was already issued.";
+            handleStopActionError(projectName, msg);
+
             return;
         }
 
         // Check if the terminal tab associated with this call was marked as closed. This scenario may occur if a previous
-        // attempt to start the server in dev mode was issued successfully, but there was a failure in the process or
-        // there was an unexpected case that caused the terminal process to end. Note that objects associated with the previous
-        // start attempt will be cleaned up on the next restart attempt.
+        // attempt to start the server in dev mode failed due to an invalid custom start parameter, dev mode was terminated manually,
+        // dev mode is already running outside of the Liberty Tools session, or there was an unexpected case that caused
+        // the terminal process to end. Note that objects associated with the previous start attempt will be cleaned up on
+        // the next restart attempt.
         if (projectTabController.isProjectTabMarkedClosed(projectName)) {
-            String msg = "The terminal tab that is running project " + projectName
-                    + " is not active due to an unexpected error or external action. Review the terminal output for more details. "
-                    + "Once the circumstance that caused the terminal tab to be inactive is determined and resolved, "
-                    + "issue a start request before you issue the stop request.";
-            if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op. ProjectTabController: " + projectTabController);
-            }
-            ErrorHandler.processErrorMessage(msg, true);
+            String msg = "The terminal tab associated with project " + projectName + " is not active.";
+            handleStopActionError(projectName, msg);
+
             return;
         }
 
@@ -419,10 +417,8 @@ public class DevModeOperations {
 
         } catch (Exception e) {
             String msg = "An error was detected when the stop request was processed on project " + projectName + ".";
-            if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
-            }
-            ErrorHandler.processErrorMessage(msg, e, true);
+            handleStopActionError(projectName, msg);
+
             return;
         }
 
@@ -761,6 +757,100 @@ public class DevModeOperations {
         envs.add("JAVA_HOME=" + javaInstallPath);
 
         projectTabController.runOnTerminal(projectName, projectPath, cmd, envs);
+    }
+
+    /**
+     * Informs the users of the error and prompts them to chose whether or not to allow the Liberty plugin stop command to be issued
+     * for the specified project.
+     * 
+     * @param projectName The name of the project for which the the Liberty plugin stop command is issued.
+     * @param baseMsg The base message to display.
+     */
+    private void handleStopActionError(String projectName, String baseMsg) {
+        String msg = baseMsg
+                + "\n\nWould you like to issue the Liberty plugin stop command for this project to stop a Liberty server that may still be running the project outside of the Liberty Tools session?";
+        Integer response = ErrorHandler.processErrorMessage(msg, true, new String[] { "Yes", "No" }, 0);
+        if (response != null && response == 0) {
+            issueLPStopCommand(projectName);
+        }
+    }
+
+    /**
+     * Issues the Liberty plugin stop command to stop the Liberty server associated with the specified project.
+     * 
+     * @param projectName The name of the project for which the the Liberty plugin stop command is issued.
+     */
+    private void issueLPStopCommand(String projectName) {
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, projectName);
+        }
+
+        try {
+            // Get the internal object representing the input project name.
+            Project project = projectModel.getProject(projectName);
+            if (project == null) {
+                throw new Exception("Unable to find internal the instance of project " + projectName);
+            }
+
+            // Get the absolute path to the application project.
+            String projectPath = project.getPath();
+            if (projectPath == null) {
+                throw new Exception("Unable to find the path associated with project " + projectName);
+            }
+
+            // Build the command.
+            String cmd = "";
+            BuildType buildType = project.getBuildType();
+            if (buildType == Project.BuildType.MAVEN) {
+                cmd = CommandBuilder.getMavenCommandLine(projectPath, "io.openliberty.tools:liberty-maven-plugin:stop", pathEnv, false);
+            } else if (buildType == Project.BuildType.GRADLE) {
+                cmd = CommandBuilder.getGradleCommandLine(projectPath, "libertyStop", pathEnv, false);
+            } else {
+                throw new Exception("Unexpected project build type: " + buildType + ". Project " + projectName
+                        + "does not appear to be a Maven or Gradle built project.");
+            }
+
+            // Issue the command.
+            String[] cmdParts = cmd.split(" ");
+            ProcessBuilder pb = new ProcessBuilder(cmdParts);
+            pb.directory(new File(projectPath));
+            pb.redirectErrorStream(true);
+            
+            pb.environment().put("JAVA_HOME", JavaRuntime.getDefaultVMInstall().getInstallLocation().getAbsolutePath());
+        
+            Process p = pb.start();
+            boolean completed = p.waitFor(30, TimeUnit.SECONDS);
+            
+            BufferedReader reader = 
+                    new BufferedReader(new InputStreamReader(p.getInputStream()));
+    StringBuilder builder = new StringBuilder();
+    String line = null;
+    while ( (line = reader.readLine()) != null) {
+       builder.append(line);
+       builder.append(System.getProperty("line.separator"));
+    }
+    String result = builder.toString();
+    System.out.println("SKSK: " + result);
+            
+            if (!completed) {
+                String msg = "The Liberty plugin stop command issued for project " + projectName + " timed out after 30 seconds.";
+                if (Trace.isEnabled()) {
+                    Trace.getTracer().trace(Trace.TRACE_TOOLS, msg);
+                }
+                ErrorHandler.processErrorMessage(msg, false);
+            }
+        } catch (Exception e) {
+            String msg = "An error was detected while processing the Liberty plugin stop command on project " + projectName;
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
+            }
+            ErrorHandler.processErrorMessage(msg, e, false);
+            return;
+        }
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, projectName);
+        }
     }
 
     /**
