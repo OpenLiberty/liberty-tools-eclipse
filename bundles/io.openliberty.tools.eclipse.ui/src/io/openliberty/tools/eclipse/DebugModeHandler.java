@@ -502,7 +502,8 @@ public class DebugModeHandler {
 
         remoteJavaAppConfigWCopy.doSave();
 
-        return remoteJavaAppConfigWCopy.launch(ILaunchManager.DEBUG_MODE, monitor);
+        // Use original to launch so changes get persisted in metadata file store
+        return remoteJavaAppConfigWCopy.getOriginal().launch(ILaunchManager.DEBUG_MODE, monitor);
     }
 
     /**
