@@ -325,7 +325,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
     private void createInputParmText(Composite parent) {
         Label inputParmLabel = new Label(parent, SWT.NONE);
         inputParmLabel.setFont(font);
-        inputParmLabel.setText("Start parameters:");
+        inputParmLabel.setText("Start &parameters:");
         GridDataFactory.swtDefaults().indent(20, 0).applyTo(inputParmLabel);
 
         startParmText = new Text(parent, SWT.BORDER);
@@ -376,7 +376,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
      */
     private void createRunInContainerButton(Composite parent) {
         runInContainerCheckBox = new Button(parent, SWT.CHECK);
-        runInContainerCheckBox.setText("Run in Container");
+        runInContainerCheckBox.setText("Run in &Container");
         runInContainerCheckBox.setSelection(false);
         runInContainerCheckBox.setFont(font);
         runInContainerCheckBox.addSelectionListener(new SelectionAdapter() {
