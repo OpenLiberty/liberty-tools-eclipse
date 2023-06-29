@@ -500,9 +500,17 @@ public class DebugModeHandler {
         remoteJavaAppConfigWCopy.setAttribute(IJavaLaunchConfigurationConstants.ATTR_CONNECT_MAP, connectMap);
         remoteJavaAppConfigWCopy.setAttribute(StartTab.PROJECT_RUN_TIME, String.valueOf(System.currentTimeMillis()));
 
-        remoteJavaAppConfigWCopy.doSave();
-
-        return remoteJavaAppConfigWCopy.launch(ILaunchManager.DEBUG_MODE, monitor);
+        //
+        // Fixed issue:  https://github.com/OpenLiberty/liberty-tools-eclipse/issues/372
+        // by launching with the return value of remoteJavaAppConfigWCopy.doSave(), rather than the
+        // object (the "working copy") itself.
+        // 
+        // Debated calling launch() with the doSave() return value vs. the value of  
+        // remoteJavaAppConfigWCopy.getOriginal().  Decided on the former which
+        // seemed to be the more common usage pattern, though not entirely clear which is better.
+        //  
+        ILaunchConfiguration updatedConfig = remoteJavaAppConfigWCopy.doSave();
+        return updatedConfig.launch(ILaunchManager.DEBUG_MODE, monitor);
     }
 
     /**
