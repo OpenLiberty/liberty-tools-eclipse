@@ -94,6 +94,7 @@ public class LibertyDevPlugin extends AbstractUIPlugin {
 
     @Override
     public void stop(BundleContext context) throws Exception {
+        DevModeOperations.getInstance().cancelRunningJobs();
         unregisterListeners();
         plugin = null;
         super.stop(context);

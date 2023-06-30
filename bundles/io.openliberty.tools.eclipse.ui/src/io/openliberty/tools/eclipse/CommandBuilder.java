@@ -99,7 +99,7 @@ public class CommandBuilder {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, errorMsg);
             }
 
-            ErrorHandler.processPreferenceWarningMessage(errorMsg, true);
+            ErrorHandler.processPreferenceErrorMessage(errorMsg, true);
 
             throw new CommandNotFoundException(errorMsg);
         }
