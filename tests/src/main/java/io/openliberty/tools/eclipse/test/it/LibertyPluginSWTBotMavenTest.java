@@ -12,8 +12,37 @@
 *******************************************************************************/
 package io.openliberty.tools.eclipse.test.it;
 
-import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.*;
-import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.*;
+import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.context;
+import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.go;
+import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.goGlobal;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.deleteLibertyToolsRunConfigEntriesFromAppRunAs;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.enableLibertyTools;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getAppDebugAsMenu;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getAppRunAsMenu;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getComboTextBoxWithTextPrefix;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getDashboardContent;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getDashboardItemMenuActions;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getLibertyTreeItem;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getLibertyTreeItemNoBot;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchCustomDebugFromDashboard;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchCustomRunFromDashboard;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchDashboardAction;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchDebugConfigurationsDialogFromAppRunAs;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchRunConfigurationsDialogFromAppRunAs;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchRunTestsWithRunAsShortcut;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchStartWithDebugAsShortcut;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchStartWithDefaultRunConfigFromAppRunAs;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchStartWithNewCustomDebugConfig;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchStartWithNewCustomRunConfig;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchStartWithRunAsShortcut;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchStopWithRunAsShortcut;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchViewITReportWithRunDebugAsShortcut;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchViewUTReportWithRunDebugAsShortcut;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.openJRETab;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.openJavaPerspectiveViaMenu;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.setBuildCmdPathInPreferences;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.unsetBuildCmdPathInPreferences;
 
 import java.io.File;
 import java.io.IOException;
@@ -22,13 +51,12 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.swt.widgets.Control;
-import org.eclipse.swt.widgets.Label;
+import org.eclipse.jdt.launching.JavaRuntime;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotView;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotCombo;
@@ -38,17 +66,12 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 
 import io.openliberty.tools.eclipse.CommandBuilder;
 import io.openliberty.tools.eclipse.CommandBuilder.CommandNotFoundException;
 import io.openliberty.tools.eclipse.test.it.utils.DisabledOnMac;
 import io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils;
-import io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.ControlFinder;
-import io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.ControlFinder.Direction;
-import io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.Option;
-import io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher;
 
@@ -168,7 +191,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
 
         // Give the app some time to be imported (especially on Windows GHA runs)
         try {
-            Thread.sleep(Integer.parseInt(System.getProperty("io.liberty.tools.eclipse.tests.mvn.import.wait","0")));
+            Thread.sleep(Integer.parseInt(System.getProperty("io.liberty.tools.eclipse.tests.mvn.import.wait", "0")));
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -222,22 +245,22 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         Assertions.assertTrue(debugAsMenuItems != null && !debugAsMenuItems.isEmpty(),
                 "The debugAs menu associated with project: " + MVN_APP_NAME + " is null or empty.");
         int foundDebugAsItems = 0;
-        
+
         for (String expectedItem : debugAsShortcuts) {
             for (String item : debugAsMenuItems) {
-        	    if (item.contains(expectedItem)) {
-        		    foundDebugAsItems++;
+                if (item.contains(expectedItem)) {
+                    foundDebugAsItems++;
                     break;
                 }
             }
         }
-        
-        Assertions.assertTrue(foundDebugAsItems == debugAsShortcuts.length,
-            "The debugAs menu associated with project: " + MVN_APP_NAME
-            + " does not contain one or more expected entries. Expected number of entries: " + debugAsShortcuts.length
-            + "Found entry count: " + foundDebugAsItems + ". Found menu entries: " + debugAsMenuItems);
 
-         // Check that the Run As -> Run Configurations... contains the Liberty entry in the menu.
+        Assertions.assertTrue(foundDebugAsItems == debugAsShortcuts.length,
+                "The debugAs menu associated with project: " + MVN_APP_NAME
+                        + " does not contain one or more expected entries. Expected number of entries: " + debugAsShortcuts.length
+                        + "Found entry count: " + foundDebugAsItems + ". Found menu entries: " + debugAsMenuItems);
+
+        // Check that the Run As -> Run Configurations... contains the Liberty entry in the menu.
         Shell configShell = launchRunConfigurationsDialogFromAppRunAs(MVN_APP_NAME);
         try {
             SWTBotTreeItem runAslibertyToolsEntry = getLibertyTreeItem(configShell);
@@ -348,6 +371,42 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
     }
 
     /**
+     * Tests stop of a server started outside of the current Liberty Tools Eclipse session
+     * 
+     * @throws CommandNotFoundException
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    @Test
+    public void testDashboardStopExternalServer() throws CommandNotFoundException, IOException, InterruptedException {
+
+        Path projAbsolutePath = wrapperProjectPath.toAbsolutePath();
+
+        // Doing a 'clean' first in case server was started previously and terminated abruptly. App tests may fail,
+        // making it look like an "outer", actual test is failing, so we skip the tests.
+        String cmd = CommandBuilder.getMavenCommandLine(projAbsolutePath.toString(),
+                "clean io.openliberty.tools:liberty-maven-plugin:dev -DskipITs=true", null, false);
+        String[] cmdParts = cmd.split(" ");
+        ProcessBuilder pb = new ProcessBuilder(cmdParts).inheritIO().directory(projAbsolutePath.toFile()).redirectErrorStream(true);
+        pb.environment().put("JAVA_HOME", JavaRuntime.getDefaultVMInstall().getInstallLocation().getAbsolutePath());
+
+        Process p = pb.start();
+        p.waitFor(3, TimeUnit.SECONDS);
+
+        // Validate application is up and running.
+        LibertyPluginTestUtils.validateApplicationOutcome(MVN_WRAPPER_APP_NAME, true,
+                wrapperProjectPath.toAbsolutePath().toString() + "/target/liberty");
+
+        // Stop dev mode.
+        launchDashboardAction(MVN_WRAPPER_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
+
+        bot.button("Yes").click();
+
+        // Validate application stopped.
+        LibertyPluginTestUtils.validateLibertyServerStopped(wrapperProjectPath.toAbsolutePath().toString() + "/target/liberty");
+    }
+
+    /**
      * Tests the start menu action on a dashboard listed application.
      */
     @Test
@@ -412,7 +471,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
     public void testDashboardDebugWithCustomConfigAction() {
 
         // Delete any previously created configs.
-    	deleteLibertyToolsRunConfigEntriesFromAppRunAs(MVN_APP_NAME);
+        deleteLibertyToolsRunConfigEntriesFromAppRunAs(MVN_APP_NAME);
 
         // Delete the test report files before we start this test.
         Path pathToITReport = Paths.get(projectPath.toString(), "target", "site", "failsafe-report.html");
@@ -420,7 +479,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         Assertions.assertTrue(testReportDeleted, () -> "File: " + pathToITReport + " was not be deleted.");
 
         launchCustomDebugFromDashboard(MVN_APP_NAME, "-DhotTests=true");
- 
+
         goGlobal("Terminal");
 
         // Validate application is up and running.
@@ -432,9 +491,9 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         try {
             // Validate that the test reports were generated.
             LibertyPluginTestUtils.validateTestReportExists(pathToITReport);
-        } catch(Exception e) {
-        	 System.out.println( "Caught exception: " + e);
-        	throw new RuntimeException(e);
+        } catch (Exception e) {
+            System.out.println("Caught exception: " + e);
+            throw new RuntimeException(e);
         } finally {
             // Stop dev mode.
             launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
@@ -559,7 +618,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
     public void testRunAsShortcutActions() {
 
         // Delete any previously created configs.
-    	deleteLibertyToolsRunConfigEntriesFromAppRunAs(MVN_APP_NAME);
+        deleteLibertyToolsRunConfigEntriesFromAppRunAs(MVN_APP_NAME);
 
         // Delete the test report files before we start this test.
         Path pathToITReport = Paths.get(projectPath.toString(), "target", "site", "failsafe-report.html");
@@ -609,8 +668,8 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
      */
     @Test
     public void testStartWithCustomDebugAsConfig() {
-    	
-    	deleteLibertyToolsRunConfigEntriesFromAppRunAs(MVN_APP_NAME);
+
+        deleteLibertyToolsRunConfigEntriesFromAppRunAs(MVN_APP_NAME);
 
         // Delete the test report files before we start this test.
         Path pathToITReport = Paths.get(projectPath.toString(), "target", "site", "failsafe-report.html");
@@ -634,21 +693,21 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
             // Validate that a remote java application configuration was created and is named after the application.
             validateRemoteJavaAppCreation(MVN_APP_NAME);
         } catch (Exception e) {
-        	 System.out.println( "Caught exception: " + e);
-        	throw new RuntimeException(e);
+            System.out.println("Caught exception: " + e);
+            throw new RuntimeException(e);
         } finally {
-        	
+
             openJavaPerspectiveViaMenu();
-        	
+
             // Stop dev mode using the Run As stop command.
             launchStopWithRunAsShortcut(MVN_APP_NAME);
-            //terminal.show();
+            // terminal.show();
 
             // Validate application stopped.
             LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
 
             // Close the terminal.
-            //terminal.close();
+            // terminal.close();
         }
     }
 
@@ -659,7 +718,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
     public void testStartWithDebugAsShortcut() {
 
         // Delete any previously created configs.
-    	deleteLibertyToolsRunConfigEntriesFromAppRunAs(MVN_APP_NAME);
+        deleteLibertyToolsRunConfigEntriesFromAppRunAs(MVN_APP_NAME);
 
         // Start dev mode.
         launchStartWithDebugAsShortcut(MVN_APP_NAME);
@@ -681,13 +740,13 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         // Stop dev mode using the Run As stop command.
         launchStopWithRunAsShortcut(MVN_APP_NAME);
 
-        //terminal.show();
+        // terminal.show();
 
         // Validate application stopped.
         LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
 
         // Close the terminal.
-        //terminal.close();
+        // terminal.close();
     }
 
     @Test

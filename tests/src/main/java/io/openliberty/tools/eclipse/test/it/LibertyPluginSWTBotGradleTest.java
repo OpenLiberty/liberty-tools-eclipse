@@ -12,21 +12,52 @@
 *******************************************************************************/
 package io.openliberty.tools.eclipse.test.it;
 
-import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.*;
-import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.*;
+import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.context;
+import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.go;
+import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.goGlobal;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.deleteLibertyToolsRunConfigEntriesFromAppRunAs;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.enableLibertyTools;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getAppDebugAsMenu;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getAppRunAsMenu;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getComboTextBoxWithTextPrefix;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getDashboardContent;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getDashboardItemMenuActions;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getLibertyTreeItem;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getLibertyTreeItemNoBot;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchCustomDebugFromDashboard;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchCustomRunFromDashboard;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchDashboardAction;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchDebugConfigurationsDialogFromAppRunAs;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchRunConfigurationsDialogFromAppRunAs;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchRunTestsWithRunAsShortcut;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchStartWithDebugAsShortcut;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchStartWithDefaultRunConfigFromAppRunAs;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchStartWithNewCustomDebugConfig;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchStartWithNewCustomRunConfig;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchStartWithRunAsShortcut;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchStopWithRunAsShortcut;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchViewTestReportWithRunDebugAsShortcut;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.openJRETab;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.refreshDashboard;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.refreshProjectUsingExplorerView;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.setBuildCmdPathInPreferences;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.unsetBuildCmdPathInPreferences;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.jdt.launching.JavaRuntime;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotView;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotCombo;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotMenu;
@@ -37,12 +68,12 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
+import io.openliberty.tools.eclipse.CommandBuilder;
+import io.openliberty.tools.eclipse.CommandBuilder.CommandNotFoundException;
 import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.LibertyNature;
 import io.openliberty.tools.eclipse.Project;
 import io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils;
-import io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.Option;
-import io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher;
 
@@ -297,6 +328,40 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
     }
 
     /**
+     * Tests stop of a server started outside of the current Liberty Tools Eclipse session
+     * 
+     * @throws CommandNotFoundException
+     * @throws IOException
+     * @throws InterruptedException
+     */
+    @Test
+    public void testDashboardStopExternalServer() throws CommandNotFoundException, IOException, InterruptedException {
+
+        Path wrapperProject = Paths.get("resources", "applications", "gradle", GRADLE_WRAPPER_APP_NAME).toAbsolutePath();
+
+        // Doing a 'clean' first in case server was started previously and terminated abruptly
+        String cmd = CommandBuilder.getGradleCommandLine(wrapperProject.toString(), "clean libertyDev", null, false);
+        String[] cmdParts = cmd.split(" ");
+        ProcessBuilder pb = new ProcessBuilder(cmdParts).inheritIO().directory(wrapperProject.toFile()).redirectErrorStream(true);
+        pb.environment().put("JAVA_HOME", JavaRuntime.getDefaultVMInstall().getInstallLocation().getAbsolutePath());
+
+        Process p = pb.start();
+        p.waitFor(3, TimeUnit.SECONDS);
+
+        // Validate application is up and running.
+        LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_WRAPPER_APP_NAME, true, wrapperProject.toString() + "/target/liberty");
+
+        // Stop dev mode.
+        launchDashboardAction(GRADLE_WRAPPER_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
+
+        bot.button("Yes").click();
+
+        // Validate application stopped.
+        LibertyPluginTestUtils.validateLibertyServerStopped(wrapperProject.toString() + "/build");
+
+    }
+
+    /**
      * Tests the start with parameters menu action on a dashboard listed application.
      */
     @Test
@@ -312,7 +377,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         Assertions.assertTrue(testReportDeleted, () -> "File: " + pathToTestReport + " was not deleted.");
 
         launchCustomRunFromDashboard(GRADLE_APP_NAME, "--hotTests");
-        
+
         goGlobal("Terminal");
 
         // Validate application is up and running.
@@ -340,16 +405,16 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
     public void testDashboardDebugWithCustomConfigAction() {
 
         // Delete any previously created configs.
-    	deleteLibertyToolsRunConfigEntriesFromAppRunAs(GRADLE_APP_NAME);
+        deleteLibertyToolsRunConfigEntriesFromAppRunAs(GRADLE_APP_NAME);
 
         // Delete the test report files before we start this test.
         Path projectPath = Paths.get("resources", "applications", "gradle", "liberty-gradle-test-app");
         Path pathToTestReport = DevModeOperations.getGradleTestReportPath(projectPath.toString());
         boolean testReportDeleted = LibertyPluginTestUtils.deleteFile(pathToTestReport.toFile());
         Assertions.assertTrue(testReportDeleted, () -> "File: " + pathToTestReport + " was not deleted.");
-        
+
         launchCustomDebugFromDashboard(GRADLE_APP_NAME, "--hotTests");
-        
+
         goGlobal("Terminal");
 
         // Validate application is up and running.
@@ -621,7 +686,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
     @Test
     public void testStartWithCustomDebugAsConfig() {
         // Delete any previously created configs.
-    	deleteLibertyToolsRunConfigEntriesFromAppRunAs(GRADLE_APP_NAME);
+        deleteLibertyToolsRunConfigEntriesFromAppRunAs(GRADLE_APP_NAME);
 
         // Delete the test report files before we start this test.
         Path projectPath = Paths.get("resources", "applications", "gradle", "liberty-gradle-test-app");
