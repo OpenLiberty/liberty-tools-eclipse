@@ -51,6 +51,9 @@ public class StartTab extends AbstractLaunchConfigurationTab {
     /** Configuration map key with a value representing the dev mode start parameter. */
     public static final String PROJECT_START_PARM = "io.openliberty.tools.eclipse.launch.start.parm";
 
+    /** Configuration map key with a value representing the pre-start goals. */
+    public static final String PROJECT_PRE_START_GOALS = "io.openliberty.tools.eclipse.launch.pre.start.goals";
+
     /** Configuration map key with a value representing the last project name associated with the configuration. */
     public static final String PROJECT_NAME = "io.openliberty.tools.eclipse.launch.project.name";
 
@@ -67,6 +70,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
     public static final String TAB_NAME = "Start";
 
     private static final String EXAMPLE_START_PARMS = "Example: -DhotTests=true";
+    private static final String EXAMPLE_PRE_START_GOAL = "Example: clean";
 
     /** The font to use for the contents of this Tab. */
     private Font font;
@@ -76,6 +80,9 @@ public class StartTab extends AbstractLaunchConfigurationTab {
 
     /** Holds the start parameter text configuration. */
     private Text startParmText;
+
+    /** Holds the pre-start goals text configuration. */
+    private Text preStartGoalsText;
 
     /** Holds the project name associated with the configuration being displayed. */
     private Label projectNameLabel;
@@ -108,6 +115,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
 
         // Parameter group composite.
         Composite parmsGroupComposite = createGroupComposite(mainComposite, "", 2);
+        createPreLaunchGoalText(parmsGroupComposite);
         createInputParmText(parmsGroupComposite);
         createRunInContainerButton(parmsGroupComposite);
 
@@ -152,8 +160,11 @@ public class StartTab extends AbstractLaunchConfigurationTab {
         // Initialize the configuration view with previously saved values.
         try {
 
-            String consoleText = configuration.getAttribute(PROJECT_START_PARM, (String) null);
-            startParmText.setText(consoleText);
+            String savedStartParms = configuration.getAttribute(PROJECT_START_PARM, (String) null);
+            startParmText.setText(savedStartParms);
+
+            String savedPreStartGoals = configuration.getAttribute(PROJECT_PRE_START_GOALS, (String) null);
+            preStartGoalsText.setText(savedPreStartGoals);
 
             boolean runInContainer = configuration.getAttribute(PROJECT_RUN_IN_CONTAINER, false);
             runInContainerCheckBox.setSelection(runInContainer);
@@ -233,10 +244,13 @@ public class StartTab extends AbstractLaunchConfigurationTab {
     public void performApply(ILaunchConfigurationWorkingCopy configuration) {
 
         String startParamStr = startParmText.getText();
+        String preStartGoalsStr = preStartGoalsText.getText();
 
         boolean runInContainerBool = runInContainerCheckBox.getSelection();
 
         configuration.setAttribute(PROJECT_RUN_IN_CONTAINER, runInContainerBool);
+
+        configuration.setAttribute(PROJECT_PRE_START_GOALS, preStartGoalsStr);
 
         configuration.setAttribute(PROJECT_START_PARM, startParamStr);
 
@@ -345,6 +359,36 @@ public class StartTab extends AbstractLaunchConfigurationTab {
 
         });
         GridDataFactory.fillDefaults().grab(true, false).applyTo(startParmText);
+    }
+
+    /**
+     * Creates the labeled input text entry that allows users to enter parameters used to run dev mode.
+     * 
+     * @param parent The parent composite.
+     */
+    private void createPreLaunchGoalText(Composite parent) {
+        Label inputParmLabel = new Label(parent, SWT.NONE);
+        inputParmLabel.setFont(font);
+        inputParmLabel.setText("Pre-start &goals:");
+        GridDataFactory.swtDefaults().indent(20, 0).applyTo(inputParmLabel);
+
+        preStartGoalsText = new Text(parent, SWT.BORDER);
+        preStartGoalsText.setFont(font);
+        preStartGoalsText.setMessage(EXAMPLE_PRE_START_GOAL);
+        preStartGoalsText.addModifyListener(new ModifyListener() {
+
+            /**
+             * {@inheritDoc}
+             */
+            @Override
+            public void modifyText(ModifyEvent e) {
+                checkForIncorrectTerms();
+                setDirty(true);
+                updateLaunchConfigurationDialog();
+            }
+
+        });
+        GridDataFactory.fillDefaults().grab(true, false).applyTo(preStartGoalsText);
     }
 
     /**

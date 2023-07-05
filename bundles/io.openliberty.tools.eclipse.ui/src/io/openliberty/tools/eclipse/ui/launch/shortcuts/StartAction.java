@@ -119,14 +119,15 @@ public class StartAction implements ILaunchShortcut {
 
         // Retrieve configuration data.
         boolean runInContainer = configuration.getAttribute(StartTab.PROJECT_RUN_IN_CONTAINER, false);
+        String preStartGoals = configuration.getAttribute(StartTab.PROJECT_PRE_START_GOALS, (String) null);
         String configParms = configuration.getAttribute(StartTab.PROJECT_START_PARM, (String) null);
         String javaHomePath = JRETab.resolveJavaHome(configuration);
 
         // Process the action.
         if (runInContainer) {
-            devModeOps.startInContainer(iProject, configParms, javaHomePath, mode);
+            devModeOps.startInContainer(iProject, preStartGoals, configParms, javaHomePath, mode);
         } else {
-            devModeOps.start(iProject, configParms, javaHomePath, mode);
+            devModeOps.start(iProject, preStartGoals, configParms, javaHomePath, mode);
         }
 
         if (Trace.isEnabled()) {

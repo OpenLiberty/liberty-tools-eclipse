@@ -149,10 +149,10 @@ public class DevModeOperations {
      * @param javaHomePath The configuration java installation home to be set in the terminal running dev mode.
      * @param mode The configuration mode.
      */
-    public void start(IProject iProject, String parms, String javaHomePath, String mode) {
+    public void start(IProject iProject, String preStartGoals, String parms, String javaHomePath, String mode) {
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { iProject, parms, javaHomePath, mode });
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { iProject, preStartGoals, parms, javaHomePath, mode });
         }
 
         if (iProject == null) {
@@ -207,6 +207,8 @@ public class DevModeOperations {
                 throw new Exception("Unable to find the path to selected project " + projectName);
             }
 
+            String userPreStartGoals = (preStartGoals == null) ? "" : preStartGoals.trim();
+
             // If in debug mode, adjust the start parameters.
             String userParms = (parms == null) ? "" : parms.trim();
             String startParms = null;
@@ -222,7 +224,8 @@ public class DevModeOperations {
             String cmd = "";
             BuildType buildType = project.getBuildType();
             if (buildType == Project.BuildType.MAVEN) {
-                cmd = CommandBuilder.getMavenCommandLine(projectPath, "io.openliberty.tools:liberty-maven-plugin:dev " + startParms,
+                cmd = CommandBuilder.getMavenCommandLine(projectPath, userPreStartGoals.trim() +
+                        " io.openliberty.tools:liberty-maven-plugin:dev " + startParms,
                         pathEnv, true);
             } else if (buildType == Project.BuildType.GRADLE) {
                 cmd = CommandBuilder.getGradleCommandLine(projectPath, "libertyDev " + startParms, pathEnv, true);
@@ -266,7 +269,7 @@ public class DevModeOperations {
      * @param javaHomePath The configuration java installation home to be set in the terminal running dev mode.
      * @param mode The configuration mode.
      */
-    public void startInContainer(IProject iProject, String parms, String javaHomePath, String mode) {
+    public void startInContainer(IProject iProject, String preStartGoals, String parms, String javaHomePath, String mode) {
 
         if (Trace.isEnabled()) {
             Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { iProject, parms, javaHomePath, mode });
@@ -339,7 +342,8 @@ public class DevModeOperations {
             String cmd = "";
             BuildType buildType = project.getBuildType();
             if (buildType == Project.BuildType.MAVEN) {
-                cmd = CommandBuilder.getMavenCommandLine(projectPath, "io.openliberty.tools:liberty-maven-plugin:devc " + startParms,
+                cmd = CommandBuilder.getMavenCommandLine(projectPath,
+                        preStartGoals.trim() + " io.openliberty.tools:liberty-maven-plugin:devc " + startParms,
                         pathEnv, true);
             } else if (buildType == Project.BuildType.GRADLE) {
                 cmd = CommandBuilder.getGradleCommandLine(projectPath, "libertyDevc " + startParms, pathEnv, true);
