@@ -78,6 +78,42 @@ public class CommandBuilder {
         return cmdLine;
     }
 
+    public static String getMavenExecutable(String projectPath, String pathEnv) throws CommandBuilder.CommandNotFoundException {
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { projectPath, pathEnv });
+        }
+        CommandBuilder builder = new CommandBuilder(projectPath, pathEnv, true);
+        String fullExecutablePath = builder.getCommand();
+
+        File file = new File(fullExecutablePath);
+
+        String executable = file.getName();
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, executable);
+        }
+
+        return executable;
+    }
+
+    public static String getGradleExecutable(String projectPath, String pathEnv) throws CommandBuilder.CommandNotFoundException {
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { projectPath, pathEnv });
+        }
+        CommandBuilder builder = new CommandBuilder(projectPath, pathEnv, false);
+        String fullExecutablePath = builder.getCommand();
+
+        File file = new File(fullExecutablePath);
+
+        String executable = file.getName();
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, executable);
+        }
+
+        return executable;
+    }
+
     private String getCommand() throws CommandBuilder.CommandNotFoundException {
         String cmd = getCommandFromWrapper();
         if (cmd == null) {

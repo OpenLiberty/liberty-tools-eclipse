@@ -860,7 +860,6 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
             Assertions.assertTrue(comboJREBox.isEnabled(),
                     () -> "The JRE tab box showing Java installation \" + buildPathJRE + \" is not selected.");
         } finally {
-            go("Apply", configShell);
             go("Close", configShell);
         }
     }

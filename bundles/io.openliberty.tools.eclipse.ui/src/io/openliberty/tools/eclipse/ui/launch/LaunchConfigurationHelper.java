@@ -69,31 +69,37 @@ public class LaunchConfigurationHelper {
         List<ILaunchConfiguration> matchingConfigList = filterLaunchConfigurations(existingConfigs, iProject.getName(), runtimeEnv);
 
         switch (matchingConfigList.size()) {
-        case 0:
-            // Create a new configuration.
-            String newName = iLaunchMgr.generateLaunchConfigurationName(iProject.getName());
-            ILaunchConfigurationWorkingCopy workingCopy = iLaunchConfigType.newInstance(null, newName);
-            workingCopy.setAttribute(StartTab.PROJECT_NAME, iProject.getName());
-            workingCopy.setAttribute(StartTab.PROJECT_START_PARM, devModeOps.getProjectModel().getDefaultStartParameters(iProject));
-            //default to 'false', no container
-            boolean runInContainer = runtimeEnv.equals(RuntimeEnv.CONTAINER);
-            workingCopy.setAttribute(StartTab.PROJECT_RUN_IN_CONTAINER, runInContainer);
+            case 0:
+                // Create a new configuration.
+                String newName = iLaunchMgr.generateLaunchConfigurationName(iProject.getName());
+                ILaunchConfigurationWorkingCopy workingCopy = iLaunchConfigType.newInstance(null, newName);
+                workingCopy.setAttribute(StartTab.PROJECT_NAME, iProject.getName());
+                workingCopy.setAttribute(StartTab.PROJECT_START_PARM, devModeOps.getProjectModel().getDefaultStartParameters(iProject));
+                workingCopy.setAttribute(StartTab.PROJECT_PRE_START_GOALS, (String) null);
 
-            String defaultJavaDef = JRETab.getDefaultJavaFromBuildPath(iProject);
-            if (defaultJavaDef != null) {
-                workingCopy.setAttribute(IJavaLaunchConfigurationConstants.ATTR_JRE_CONTAINER_PATH, defaultJavaDef);
-            }
+                workingCopy.setAttribute(StartTab.PROJECT_LAUNCH_COMMAND,
+                        devModeOps.getProjectModel().getDefaultStartCommand(iProject, runtimeEnv) + " "
+                                + devModeOps.getProjectModel().getDefaultStartParameters(iProject));
 
-            configuration = workingCopy.doSave();
-            break;
-        case 1:
-            // Return the found configuration.
-            configuration = matchingConfigList.get(0);
-            break;
-        default:
-            // Return the configuration that was run last.
-            configuration = getLastRunConfiguration(matchingConfigList);
-            break;
+                // default to 'false', no container
+                boolean runInContainer = runtimeEnv.equals(RuntimeEnv.CONTAINER);
+                workingCopy.setAttribute(StartTab.PROJECT_RUN_IN_CONTAINER, runInContainer);
+
+                String defaultJavaDef = JRETab.getDefaultJavaFromBuildPath(iProject);
+                if (defaultJavaDef != null) {
+                    workingCopy.setAttribute(IJavaLaunchConfigurationConstants.ATTR_JRE_CONTAINER_PATH, defaultJavaDef);
+                }
+
+                configuration = workingCopy.doSave();
+                break;
+            case 1:
+                // Return the found configuration.
+                configuration = matchingConfigList.get(0);
+                break;
+            default:
+                // Return the configuration that was run last.
+                configuration = getLastRunConfiguration(matchingConfigList);
+                break;
         }
 
         return configuration;

@@ -116,8 +116,8 @@ public class StartInContainerAction implements ILaunchShortcut {
         launchConfigHelper.saveConfigProcessingTime(configuration);
 
         // Process the action.
-        String configParms = configuration.getAttribute(StartTab.PROJECT_START_PARM, (String) null);
+        String launchCommand = configuration.getAttribute(StartTab.PROJECT_LAUNCH_COMMAND, (String) null);
         String javaHomePath = JRETab.resolveJavaHome(configuration);
-        devModeOps.startInContainer(iProject, configParms, javaHomePath, mode);
+        devModeOps.startInContainer(iProject, launchCommand, javaHomePath, mode);
     }
 }

@@ -25,7 +25,9 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 
+import io.openliberty.tools.eclipse.Project.BuildType;
 import io.openliberty.tools.eclipse.logging.Trace;
+import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher.RuntimeEnv;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
 
 /**
@@ -243,6 +245,44 @@ public class WorkspaceProjectsModel {
             retVal = "";
         }
 
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, retVal);
+        }
+
+        return retVal;
+    }
+
+    /**
+     * @param iProject
+     * 
+     * @return start command to serve as default populating something like a Run Configuration
+     */
+    public String getDefaultStartCommand(IProject iProject, RuntimeEnv runtimeEnv) {
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { iProject });
+        }
+
+        String retVal = null;
+
+        Project project = projectsByName.get(iProject.getName());
+        BuildType buildType = project.getBuildType();
+
+        if (buildType == Project.BuildType.MAVEN) {
+
+            if (runtimeEnv.equals(RuntimeEnv.CONTAINER)) {
+                retVal = DevModeOperations.DEFAULT_MAVEN_DEVC;
+            } else {
+                retVal = DevModeOperations.DEFAULT_MAVEN_DEV;
+            }
+        } else if (buildType == Project.BuildType.GRADLE) {
+
+            if (runtimeEnv.equals(RuntimeEnv.CONTAINER)) {
+                retVal = DevModeOperations.DEFAULT_GRADLE_DEVC;
+            } else {
+                retVal = DevModeOperations.DEFAULT_GRADLE_DEV;
+            }
+        }
         if (Trace.isEnabled()) {
             Trace.getTracer().traceExit(Trace.TRACE_TOOLS, retVal);
         }

@@ -37,7 +37,10 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.PreferencesUtil;
 
+import io.openliberty.tools.eclipse.CommandBuilder;
 import io.openliberty.tools.eclipse.DevModeOperations;
+import io.openliberty.tools.eclipse.Project;
+import io.openliberty.tools.eclipse.Project.BuildType;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
@@ -60,6 +63,12 @@ public class StartTab extends AbstractLaunchConfigurationTab {
     /** Configuration map key with a value representing the time when the associated project was last run. */
     public static final String PROJECT_RUN_TIME = "io.openliberty.tools.eclipse.launch.project.time.run";
 
+    /** Configuration map key with a value stating the custom start command which we should use. */
+    public static final String PROJECT_CUSTOM_START_COMMAND = "io.openliberty.tools.eclipse.launch.project.start.command.custom";
+
+    /** Configuration map key with a value stating the launch command to use */
+    public static final String PROJECT_LAUNCH_COMMAND = "io.openliberty.tools.eclipse.launch.project.full.launch.command";
+
     /** Configuration map key with a value stating whether or not the associated project ran in a container. */
     public static final String PROJECT_RUN_IN_CONTAINER = "io.openliberty.tools.eclipse.launch.project.container.run";
 
@@ -69,8 +78,11 @@ public class StartTab extends AbstractLaunchConfigurationTab {
     /** Configuration map key with a value stating whether or not the associated project ran in a container. */
     public static final String TAB_NAME = "Start";
 
-    private static final String EXAMPLE_START_PARMS = "Example: -DhotTests=true";
     private static final String EXAMPLE_PRE_START_GOAL = "Example: clean";
+    private static final String EXAMPLE_MAVEN_START_PARMS = "Example: -DhotTests=true";
+    private static final String EXAMPLE_MAVEN_CUSTOM_START_COMMAND = "Example: liberty:dev";
+    private static final String EXAMPLE_GRADLE_START_PARMS = "Example: --hotTests";
+    private static final String EXAMPLE_GRADLE_CUSTOM_START_COMMAND = "Example: libertyDev";
 
     /** The font to use for the contents of this Tab. */
     private Font font;
@@ -84,11 +96,26 @@ public class StartTab extends AbstractLaunchConfigurationTab {
     /** Holds the pre-start goals text configuration. */
     private Text preStartGoalsText;
 
+    /** Holds the custom start command text configuration. */
+    private Text customStartCommandText;
+
     /** Holds the project name associated with the configuration being displayed. */
     private Label projectNameLabel;
 
-    /** Holds the run in container check box. */
-    private Button runInContainerCheckBox;
+    /** Holds the dev mode in container radio button. */
+    private Button startDevModeInContainerRadio;
+
+    /** Holds the dev mode in container radio button. */
+    private Button startDevModeRadio;
+
+    /** Holds the dev mode in container radio button. */
+    private Button startCustomRadio;
+
+    /** Holds the command preview label */
+    private Label commandPreviewLabel;
+
+    /** Whether this project is Maven or Gradle */
+    BuildType buildType;
 
     /** DevModeOperations instance. */
     private DevModeOperations devModeOps = DevModeOperations.getInstance();
@@ -106,6 +133,11 @@ public class StartTab extends AbstractLaunchConfigurationTab {
      */
     @Override
     public void createControl(Composite parent) {
+        // Get details of this project
+        IProject activeProject = Utils.getActiveProject();
+        Project project = devModeOps.getProjectModel().getProject(activeProject.getName());
+        buildType = project.getBuildType();
+
         // Main composite.
         Composite mainComposite = new Composite(parent, SWT.NONE);
         mainComposite.setLayout(new GridLayout(1, false));
@@ -113,11 +145,17 @@ public class StartTab extends AbstractLaunchConfigurationTab {
         setControl(mainComposite);
         createProjectLabel(mainComposite);
 
-        // Parameter group composite.
-        Composite parmsGroupComposite = createGroupComposite(mainComposite, "", 2);
-        createPreLaunchGoalText(parmsGroupComposite);
-        createInputParmText(parmsGroupComposite);
-        createRunInContainerButton(parmsGroupComposite);
+        // Start command group composite.
+        Composite startCommandGroupComposite = createGroupComposite(mainComposite, "Start Command", 2);
+        createStartCommandButtonsGroup(startCommandGroupComposite);
+
+        // Start options group composite.
+        Composite startOptionsGroupComposite = createGroupComposite(mainComposite, "Start Options", 2);
+        createPreLaunchGoalText(startOptionsGroupComposite);
+        createInputParmText(startOptionsGroupComposite);
+
+        // Create preview group composite
+        createCommandPreviewLabel(mainComposite);
 
         createLabelWithPreferenceLink(mainComposite);
     }
@@ -138,9 +176,13 @@ public class StartTab extends AbstractLaunchConfigurationTab {
             configuration.setAttribute(PROJECT_NAME, activeProject.getName());
         }
 
-        configuration.setAttribute(PROJECT_START_PARM, getDefaultStartCommand(activeProject));
+        configuration.setAttribute(PROJECT_START_PARM, getDefaultStartParms(activeProject));
+
+        configuration.setAttribute(PROJECT_PRE_START_GOALS, "");
 
         configuration.setAttribute(PROJECT_RUN_IN_CONTAINER, false);
+
+        configuration.setAttribute(PROJECT_CUSTOM_START_COMMAND, "");
 
         if (Trace.isEnabled()) {
             Trace.getTracer().traceExit(Trace.TRACE_UI);
@@ -160,22 +202,34 @@ public class StartTab extends AbstractLaunchConfigurationTab {
         // Initialize the configuration view with previously saved values.
         try {
 
-            String savedStartParms = configuration.getAttribute(PROJECT_START_PARM, (String) null);
+            String savedStartParms = configuration.getAttribute(PROJECT_START_PARM, "");
             startParmText.setText(savedStartParms);
 
-            String savedPreStartGoals = configuration.getAttribute(PROJECT_PRE_START_GOALS, (String) null);
+            String savedPreStartGoals = configuration.getAttribute(PROJECT_PRE_START_GOALS, "");
             preStartGoalsText.setText(savedPreStartGoals);
 
-            boolean runInContainer = configuration.getAttribute(PROJECT_RUN_IN_CONTAINER, false);
-            runInContainerCheckBox.setSelection(runInContainer);
+            String customStartText = configuration.getAttribute(PROJECT_CUSTOM_START_COMMAND, "");
+            if (customStartText == null || customStartText.isBlank()) {
+                boolean runInContainer = configuration.getAttribute(PROJECT_RUN_IN_CONTAINER, false);
+                if (runInContainer) {
+                    startDevModeInContainerRadio.setSelection(true);
+                } else {
+                    startDevModeRadio.setSelection(true);
+                }
+            } else {
+                startCustomRadio.setSelection(true);
+                customStartCommandText.setText(customStartText);
+            }
 
-            String projectName = configuration.getAttribute(PROJECT_NAME, (String) null);
+            String projectName = configuration.getAttribute(PROJECT_NAME, "");
             if (projectName == null) {
                 super.setErrorMessage(
                         "A project must be selected in order to provide a context to associate the run configuration with.  Either use a tree view like Package Explorer or have an editor window.");
             } else {
                 projectNameLabel.setText(projectName);
             }
+
+            updateCommandPreview();
 
             setDirty(false);
 
@@ -243,20 +297,32 @@ public class StartTab extends AbstractLaunchConfigurationTab {
     @Override
     public void performApply(ILaunchConfigurationWorkingCopy configuration) {
 
+        // Save start parms
         String startParamStr = startParmText.getText();
+        configuration.setAttribute(PROJECT_START_PARM, startParamStr);
+
+        // Save pre-start goals
         String preStartGoalsStr = preStartGoalsText.getText();
-
-        boolean runInContainerBool = runInContainerCheckBox.getSelection();
-
-        configuration.setAttribute(PROJECT_RUN_IN_CONTAINER, runInContainerBool);
-
         configuration.setAttribute(PROJECT_PRE_START_GOALS, preStartGoalsStr);
 
-        configuration.setAttribute(PROJECT_START_PARM, startParamStr);
+        // Save custom start command
+        if (startCustomRadio.getSelection()) {
+            configuration.setAttribute(PROJECT_CUSTOM_START_COMMAND, customStartCommandText.getText());
+        } else {
+            configuration.setAttribute(PROJECT_CUSTOM_START_COMMAND, "");
+        }
+
+        // Resolve and set full launch command
+        String launchCommand = getFullLaunchCommand();
+        configuration.setAttribute(PROJECT_LAUNCH_COMMAND, launchCommand);
+
+        // Resolve and set if we will run in a container
+        boolean runInContainerBool = runInContainer();
+        configuration.setAttribute(PROJECT_RUN_IN_CONTAINER, runInContainerBool);
 
         if (Trace.isEnabled()) {
             Trace.getTracer().trace(Trace.TRACE_UI, "In performApply with project name = " + projectNameLabel.getText() + ", text = "
-                    + startParamStr + ", runInContainer = " + runInContainerBool);
+                    + launchCommand + ", runInContainer = " + runInContainerBool);
         }
     }
 
@@ -298,6 +364,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
     private Composite createGroupComposite(Composite parent, String groupName, int numColumns) {
         Group group = new Group(parent, SWT.NONE);
         group.setText(groupName);
+        group.setFont(font);
         group.setLayout(new GridLayout());
         group.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
 
@@ -332,6 +399,27 @@ public class StartTab extends AbstractLaunchConfigurationTab {
     }
 
     /**
+     * Creates the project label entry that shows the command preview.
+     * 
+     * @param parent The parent composite.
+     */
+    private void createCommandPreviewLabel(Composite parent) {
+        Composite projectComposite = new Composite(parent, SWT.NONE);
+        GridLayout projectLayout = new GridLayout(2, false);
+        projectComposite.setLayout(projectLayout);
+        projectComposite.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
+
+        Label commandLabel = new Label(projectComposite, SWT.NONE);
+        commandLabel.setFont(font);
+        commandLabel.setText("Command Preview: ");
+        GridDataFactory.swtDefaults().applyTo(commandLabel);
+
+        commandPreviewLabel = new Label(projectComposite, SWT.NONE);
+        commandPreviewLabel.setFont(font);
+        GridDataFactory.fillDefaults().grab(true, false).applyTo(commandPreviewLabel);
+    }
+
+    /**
      * Creates the labeled input text entry that allows users to enter parameters used to run dev mode.
      * 
      * @param parent The parent composite.
@@ -344,7 +432,13 @@ public class StartTab extends AbstractLaunchConfigurationTab {
 
         startParmText = new Text(parent, SWT.BORDER);
         startParmText.setFont(font);
-        startParmText.setMessage(EXAMPLE_START_PARMS);
+
+        if (buildType == Project.BuildType.MAVEN) {
+            startParmText.setMessage(EXAMPLE_MAVEN_START_PARMS);
+        } else if (buildType == Project.BuildType.GRADLE) {
+            startParmText.setMessage(EXAMPLE_GRADLE_START_PARMS);
+        }
+
         startParmText.addModifyListener(new ModifyListener() {
 
             /**
@@ -355,6 +449,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
                 checkForIncorrectTerms();
                 setDirty(true);
                 updateLaunchConfigurationDialog();
+                updateCommandPreview();
             }
 
         });
@@ -385,6 +480,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
                 checkForIncorrectTerms();
                 setDirty(true);
                 updateLaunchConfigurationDialog();
+                updateCommandPreview();
             }
 
         });
@@ -418,12 +514,12 @@ public class StartTab extends AbstractLaunchConfigurationTab {
      * 
      * @param parent The parent composite.
      */
-    private void createRunInContainerButton(Composite parent) {
-        runInContainerCheckBox = new Button(parent, SWT.CHECK);
-        runInContainerCheckBox.setText("Run in &Container");
-        runInContainerCheckBox.setSelection(false);
-        runInContainerCheckBox.setFont(font);
-        runInContainerCheckBox.addSelectionListener(new SelectionAdapter() {
+    private void createStartCommandButtonsGroup(Composite parent) {
+
+        startDevModeRadio = new Button(parent, SWT.RADIO);
+        startDevModeRadio.setText("Dev mode");
+        startDevModeRadio.setFont(font);
+        startDevModeRadio.addSelectionListener(new SelectionAdapter() {
 
             /**
              * {@inheritDoc}
@@ -432,12 +528,68 @@ public class StartTab extends AbstractLaunchConfigurationTab {
             public void widgetSelected(SelectionEvent event) {
                 setDirty(true);
                 updateLaunchConfigurationDialog();
+                customStartCommandText.setEnabled(false);
+                updateCommandPreview();
             }
         });
-        GridDataFactory.swtDefaults().applyTo(runInContainerCheckBox);
 
-        Label emptyColumnLabel = new Label(parent, SWT.NONE);
-        GridDataFactory.swtDefaults().applyTo(emptyColumnLabel);
+        startDevModeInContainerRadio = new Button(parent, SWT.RADIO);
+        startDevModeInContainerRadio.setText("Dev mode in container");
+        startDevModeInContainerRadio.setFont(font);
+        startDevModeInContainerRadio.addSelectionListener(new SelectionAdapter() {
+
+            /**
+             * {@inheritDoc}
+             */
+            @Override
+            public void widgetSelected(SelectionEvent event) {
+                setDirty(true);
+                updateLaunchConfigurationDialog();
+                customStartCommandText.setEnabled(false);
+                updateCommandPreview();
+            }
+        });
+
+        startCustomRadio = new Button(parent, SWT.RADIO);
+        startCustomRadio.setText("Custom:");
+        startCustomRadio.setFont(font);
+
+        customStartCommandText = new Text(parent, SWT.BORDER);
+        customStartCommandText.setFont(font);
+
+        if (buildType == Project.BuildType.MAVEN) {
+            customStartCommandText.setMessage(EXAMPLE_MAVEN_CUSTOM_START_COMMAND);
+        } else if (buildType == Project.BuildType.GRADLE) {
+            customStartCommandText.setMessage(EXAMPLE_GRADLE_CUSTOM_START_COMMAND);
+        }
+
+        customStartCommandText.addModifyListener(new ModifyListener() {
+
+            /**
+             * {@inheritDoc}
+             */
+            @Override
+            public void modifyText(ModifyEvent e) {
+                setDirty(true);
+                updateLaunchConfigurationDialog();
+                updateCommandPreview();
+            }
+        });
+        GridDataFactory.fillDefaults().grab(true, false).applyTo(customStartCommandText);
+
+        startCustomRadio.addSelectionListener(new SelectionAdapter() {
+
+            /**
+             * {@inheritDoc}
+             */
+            @Override
+            public void widgetSelected(SelectionEvent event) {
+                setDirty(true);
+                updateLaunchConfigurationDialog();
+                customStartCommandText.setEnabled(true);
+                updateCommandPreview();
+            }
+        });
     }
 
     /**
@@ -447,7 +599,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
      * 
      * @return The default start parameters
      */
-    private String getDefaultStartCommand(IProject iProject) {
+    private String getDefaultStartParms(IProject iProject) {
         String parms = "";
         try {
             if (iProject != null) {
@@ -466,5 +618,66 @@ public class StartTab extends AbstractLaunchConfigurationTab {
         }
 
         return parms;
+    }
+
+    private void updateCommandPreview() {
+
+        IProject activeProject = Utils.getActiveProject();
+        Project project = devModeOps.getProjectModel().getProject(activeProject.getName());
+
+        String cmd = null;
+        try {
+            if (buildType == Project.BuildType.MAVEN) {
+                cmd = CommandBuilder.getMavenExecutable(project.getPath(), System.getenv("PATH"));
+            } else if (buildType == Project.BuildType.GRADLE) {
+                cmd = CommandBuilder.getGradleExecutable(project.getPath(), System.getenv("PATH"));
+            }
+        } catch (Exception e) {
+            // Error generating preview
+        }
+
+        String fullLaunchCommand = getFullLaunchCommand();
+
+        commandPreviewLabel.setText(cmd + " " + fullLaunchCommand);
+    }
+
+    private String getFullLaunchCommand() {
+
+        StringBuilder command = new StringBuilder();
+
+        command.append(preStartGoalsText.getText().trim());
+        command.append(" ");
+
+        if (startCustomRadio.getSelection() && !(customStartCommandText.getText().isBlank())) {
+            command.append(customStartCommandText.getText().trim());
+        } else if (startDevModeInContainerRadio.getSelection()) {
+
+            if (buildType == Project.BuildType.MAVEN) {
+                command.append(DevModeOperations.DEFAULT_MAVEN_DEVC);
+            } else if (buildType == Project.BuildType.GRADLE) {
+                command.append(DevModeOperations.DEFAULT_GRADLE_DEVC);
+            }
+        } else {
+
+            if (buildType == Project.BuildType.MAVEN) {
+                command.append(DevModeOperations.DEFAULT_MAVEN_DEV);
+            } else if (buildType == Project.BuildType.GRADLE) {
+                command.append(DevModeOperations.DEFAULT_GRADLE_DEV);
+            }
+        }
+        command.append(" ");
+
+        command.append(startParmText.getText().trim());
+
+        return command.toString();
+    }
+
+    private boolean runInContainer() {
+        String launchCommand = getFullLaunchCommand();
+        if (launchCommand.contains("devc") || launchCommand.contains("libertyDevc")) {
+            return true;
+        }
+
+        return false;
     }
 }

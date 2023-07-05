@@ -81,6 +81,18 @@ public class DevModeOperations {
             "stopJobCompletionOutput");
     private Map<Job, Boolean> runningJobs = new ConcurrentHashMap<Job, Boolean>();
 
+    /** Default Maven devc command */
+    public static final String DEFAULT_MAVEN_DEVC = "io.openliberty.tools:liberty-maven-plugin:devc";
+
+    /** Default Maven dev command */
+    public static final String DEFAULT_MAVEN_DEV = "io.openliberty.tools:liberty-maven-plugin:dev";
+
+    /** Default Gradle devc command */
+    public static final String DEFAULT_GRADLE_DEVC = "libertyDevc";
+
+    /** Default Gradle dev command */
+    public static final String DEFAULT_GRADLE_DEV = "libertyDev";
+
     /**
      * Project terminal tab controller instance.
      */
@@ -149,10 +161,10 @@ public class DevModeOperations {
      * @param javaHomePath The configuration java installation home to be set in the terminal running dev mode.
      * @param mode The configuration mode.
      */
-    public void start(IProject iProject, String preStartGoals, String parms, String javaHomePath, String mode) {
+    public void start(IProject iProject, String launchCommand, String javaHomePath, String mode) {
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { iProject, preStartGoals, parms, javaHomePath, mode });
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { iProject, launchCommand, javaHomePath, mode });
         }
 
         if (iProject == null) {
@@ -207,28 +219,21 @@ public class DevModeOperations {
                 throw new Exception("Unable to find the path to selected project " + projectName);
             }
 
-            String userPreStartGoals = (preStartGoals == null) ? "" : preStartGoals.trim();
-
-            // If in debug mode, adjust the start parameters.
-            String userParms = (parms == null) ? "" : parms.trim();
-            String startParms = null;
             String debugPort = null;
             if (ILaunchManager.DEBUG_MODE.equals(mode)) {
-                debugPort = debugModeHandler.calculateDebugPort(project, userParms);
-                startParms = debugModeHandler.addDebugDataToStartParms(project, debugPort, userParms);
-            } else {
-                startParms = userParms;
+                debugPort = debugModeHandler.calculateDebugPort(project, launchCommand);
+                launchCommand = debugModeHandler.addDebugDataToStartParms(project, debugPort, launchCommand);
             }
 
             // Prepare the Liberty plugin container dev mode command.
             String cmd = "";
             BuildType buildType = project.getBuildType();
             if (buildType == Project.BuildType.MAVEN) {
-                cmd = CommandBuilder.getMavenCommandLine(projectPath, userPreStartGoals.trim() +
-                        " io.openliberty.tools:liberty-maven-plugin:dev " + startParms,
+                cmd = CommandBuilder.getMavenCommandLine(projectPath, launchCommand,
                         pathEnv, true);
             } else if (buildType == Project.BuildType.GRADLE) {
-                cmd = CommandBuilder.getGradleCommandLine(projectPath, "libertyDev " + startParms, pathEnv, true);
+                cmd = CommandBuilder.getGradleCommandLine(projectPath, launchCommand,
+                        pathEnv, true);
             } else {
                 throw new Exception("Unexpected project build type: " + buildType + ". Project " + projectName
                         + "does not appear to be a Maven or Gradle built project.");
@@ -265,14 +270,14 @@ public class DevModeOperations {
      * Starts the Liberty server in dev mode in a container.
      * 
      * @param iProject The project instance to associate with this action.
-     * @param parms The configuration parameters to be used when starting dev mode.
+     * @param launchCommand The configuration launch comand to be used when starting dev mode.
      * @param javaHomePath The configuration java installation home to be set in the terminal running dev mode.
      * @param mode The configuration mode.
      */
-    public void startInContainer(IProject iProject, String preStartGoals, String parms, String javaHomePath, String mode) {
+    public void startInContainer(IProject iProject, String launchCommand, String javaHomePath, String mode) {
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { iProject, parms, javaHomePath, mode });
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { iProject, launchCommand, javaHomePath, mode });
         }
 
         if (iProject == null) {
@@ -328,25 +333,19 @@ public class DevModeOperations {
             }
 
             // If in debug mode, adjust the start parameters.
-            String userParms = (parms == null) ? "" : parms.trim();
-            String startParms = null;
             String debugPort = null;
             if (ILaunchManager.DEBUG_MODE.equals(mode)) {
-                debugPort = debugModeHandler.calculateDebugPort(project, userParms);
-                startParms = debugModeHandler.addDebugDataToStartParms(project, debugPort, userParms);
-            } else {
-                startParms = userParms;
+                debugPort = debugModeHandler.calculateDebugPort(project, launchCommand);
+                launchCommand = debugModeHandler.addDebugDataToStartParms(project, debugPort, launchCommand);
             }
 
             // Prepare the Liberty plugin container dev mode command.
             String cmd = "";
             BuildType buildType = project.getBuildType();
             if (buildType == Project.BuildType.MAVEN) {
-                cmd = CommandBuilder.getMavenCommandLine(projectPath,
-                        preStartGoals.trim() + " io.openliberty.tools:liberty-maven-plugin:devc " + startParms,
-                        pathEnv, true);
+                cmd = CommandBuilder.getMavenCommandLine(projectPath, launchCommand, pathEnv, true);
             } else if (buildType == Project.BuildType.GRADLE) {
-                cmd = CommandBuilder.getGradleCommandLine(projectPath, "libertyDevc " + startParms, pathEnv, true);
+                cmd = CommandBuilder.getGradleCommandLine(projectPath, launchCommand, pathEnv, true);
             } else {
                 throw new Exception("Unexpected project build type: " + buildType + ". Project " + projectName
                         + "does not appear to be a Maven or Gradle built project.");
