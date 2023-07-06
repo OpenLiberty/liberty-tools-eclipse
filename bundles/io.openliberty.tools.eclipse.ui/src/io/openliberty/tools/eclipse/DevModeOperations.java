@@ -12,16 +12,31 @@
 *******************************************************************************/
 package io.openliberty.tools.eclipse;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.QualifiedName;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.IJobChangeEvent;
+import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.core.runtime.jobs.JobChangeAdapter;
 import org.eclipse.debug.core.ILaunchManager;
+import org.eclipse.jdt.launching.JavaRuntime;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.ISelectionService;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
@@ -30,6 +45,7 @@ import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
 
 import io.openliberty.tools.eclipse.CommandBuilder.CommandNotFoundException;
 import io.openliberty.tools.eclipse.Project.BuildType;
+import io.openliberty.tools.eclipse.logging.Logger;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
 import io.openliberty.tools.eclipse.ui.terminal.ProjectTab;
@@ -55,6 +71,15 @@ public class DevModeOperations {
     public static final String BROWSER_MVN_IT_REPORT_NAME_SUFFIX = "failsafe report";
     public static final String BROWSER_MVN_UT_REPORT_NAME_SUFFIX = "surefire report";
     public static final String BROWSER_GRADLE_TEST_REPORT_NAME_SUFFIX = "test report";
+
+    private static final int STOP_TIMEOUT_SECONDS = 40;
+    protected static final QualifiedName STOP_JOB_COMPLETION_TIMEOUT = new QualifiedName("io.openliberty.tools.eclipse.ui",
+            "stopJobCompletionTimeout");
+    protected static final QualifiedName STOP_JOB_COMPLETION_EXIT_CODE = new QualifiedName("io.openliberty.tools.eclipse.ui",
+            "stopJobCompletionExitCode");
+    protected static final QualifiedName STOP_JOB_COMPLETION_OUTPUT = new QualifiedName("io.openliberty.tools.eclipse.ui",
+            "stopJobCompletionOutput");
+    private Map<Job, Boolean> runningJobs = new ConcurrentHashMap<Job, Boolean>();
 
     /**
      * Project terminal tab controller instance.
@@ -198,11 +223,11 @@ public class DevModeOperations {
             BuildType buildType = project.getBuildType();
             if (buildType == Project.BuildType.MAVEN) {
                 cmd = CommandBuilder.getMavenCommandLine(projectPath, "io.openliberty.tools:liberty-maven-plugin:dev " + startParms,
-                        pathEnv);
+                        pathEnv, true);
             } else if (buildType == Project.BuildType.GRADLE) {
-                cmd = CommandBuilder.getGradleCommandLine(projectPath, "libertyDev " + startParms, pathEnv);
+                cmd = CommandBuilder.getGradleCommandLine(projectPath, "libertyDev " + startParms, pathEnv, true);
             } else {
-                throw new Exception("Unexpected project build type: " + buildType + ". Project" + projectName
+                throw new Exception("Unexpected project build type: " + buildType + ". Project " + projectName
                         + "does not appear to be a Maven or Gradle built project.");
             }
 
@@ -315,11 +340,11 @@ public class DevModeOperations {
             BuildType buildType = project.getBuildType();
             if (buildType == Project.BuildType.MAVEN) {
                 cmd = CommandBuilder.getMavenCommandLine(projectPath, "io.openliberty.tools:liberty-maven-plugin:devc " + startParms,
-                        pathEnv);
+                        pathEnv, true);
             } else if (buildType == Project.BuildType.GRADLE) {
-                cmd = CommandBuilder.getGradleCommandLine(projectPath, "libertyDevc " + startParms, pathEnv);
+                cmd = CommandBuilder.getGradleCommandLine(projectPath, "libertyDevc " + startParms, pathEnv, true);
             } else {
-                throw new Exception("Unexpected project build type: " + buildType + ". Project" + projectName
+                throw new Exception("Unexpected project build type: " + buildType + ". Project " + projectName
                         + "does not appear to be a Maven or Gradle built project.");
             }
 
@@ -374,29 +399,22 @@ public class DevModeOperations {
 
         // Check if the stop action has already been issued of if a start action was never issued before.
         if (projectTabController.getProjectConnector(projectName) == null) {
-            String msg = "Either Liberty Tools did not previously issue a start request, or a stop request was already issued on project "
-                    + projectName
-                    + ".  To stop a server that was started outside of the current Liberty Tools session, you must use another method. For example, open a new terminal inside or outside of Eclipse and issue the 'mvn liberty:stop' or 'gradle libertyStop' command.";
-            if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op. ProjectTabController: " + projectTabController);
-            }
-            ErrorHandler.processErrorMessage(msg, true);
+            String msg = "Unable to process the stop request on project " + projectName
+                    + " because either Liberty Tools did not previously issue a start request, or a stop request was already issued.";
+            handleStopActionError(projectName, msg);
+
             return;
         }
 
         // Check if the terminal tab associated with this call was marked as closed. This scenario may occur if a previous
-        // attempt to start the server in dev mode was issued successfully, but there was a failure in the process or
-        // there was an unexpected case that caused the terminal process to end. Note that objects associated with the previous
-        // start attempt will be cleaned up on the next restart attempt.
+        // attempt to start the server in dev mode failed due to an invalid custom start parameter, dev mode was terminated manually,
+        // dev mode is already running outside of the Liberty Tools session, or there was an unexpected case that caused
+        // the terminal process to end. Note that objects associated with the previous start attempt will be cleaned up on
+        // the next restart attempt.
         if (projectTabController.isProjectTabMarkedClosed(projectName)) {
-            String msg = "The terminal tab that is running project " + projectName
-                    + " is not active due to an unexpected error or external action. Review the terminal output for more details. "
-                    + "Once the circumstance that caused the terminal tab to be inactive is determined and resolved, "
-                    + "issue a start request before you issue the stop request.";
-            if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op. ProjectTabController: " + projectTabController);
-            }
-            ErrorHandler.processErrorMessage(msg, true);
+            String msg = "The terminal tab associated with project " + projectName + " is not active.";
+            handleStopActionError(projectName, msg);
+
             return;
         }
 
@@ -419,10 +437,8 @@ public class DevModeOperations {
 
         } catch (Exception e) {
             String msg = "An error was detected when the stop request was processed on project " + projectName + ".";
-            if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
-            }
-            ErrorHandler.processErrorMessage(msg, e, true);
+            handleStopActionError(projectName, msg);
+
             return;
         }
 
@@ -764,6 +780,184 @@ public class DevModeOperations {
     }
 
     /**
+     * Informs the users of the error and prompts them to chose whether or not to allow the Liberty plugin stop command to be issued
+     * for the specified project.
+     * 
+     * @param projectName The name of the project for which the the Liberty plugin stop command is issued.
+     * @param baseMsg The base message to display.
+     */
+    private void handleStopActionError(String projectName, String baseMsg) {
+        String msg = baseMsg
+                + "\n\nWould you like to issue the Liberty Maven or Gradle stop command for this project to stop a Liberty server that may still be running the project outside of the Liberty Tools session?";
+        Integer response = ErrorHandler.processWarningMessage(msg, true, new String[] { "Yes", "No" }, 0);
+        if (response != null && response == 0) {
+            issueLPStopCommand(projectName);
+        }
+    }
+
+    /**
+     * Issues the Liberty plugin stop command to stop the Liberty server associated with the specified project.
+     * 
+     * @param projectName The name of the project for which the the Liberty plugin stop command is issued.
+     */
+    private void issueLPStopCommand(String projectName) {
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, projectName);
+        }
+
+        try {
+            // Get the internal object representing the input project name.
+            Project project = projectModel.getProject(projectName);
+            if (project == null) {
+                throw new Exception("Unable to find internal the instance of project " + projectName);
+            }
+
+            // Get the absolute path to the application project.
+            String projectPath = project.getPath();
+            if (projectPath == null) {
+                throw new Exception("Unable to find the path associated with project " + projectName);
+            }
+
+            // TODO - for multi-module case, consider additional warning if this is an aggregate module with multiple sub-modules.
+            // Of course we'd have to be smart enough to know this were the case in order to issue such a warning
+
+            // Build the command.
+            String cmd = "";
+            String buildTypeName;
+            BuildType buildType = project.getBuildType();
+            if (buildType == Project.BuildType.MAVEN) {
+                cmd = CommandBuilder.getMavenCommandLine(projectPath, "io.openliberty.tools:liberty-maven-plugin:stop", pathEnv, false);
+                buildTypeName = "Maven";
+            } else if (buildType == Project.BuildType.GRADLE) {
+                cmd = CommandBuilder.getGradleCommandLine(projectPath, "libertyStop", pathEnv, false);
+                buildTypeName = "Gradle";
+            } else {
+                throw new Exception("Unexpected project build type: " + buildType + ". Project " + projectName
+                        + "does not appear to be a Maven or Gradle built project.");
+            }
+
+            // Issue the command.
+            String[] cmdParts = cmd.split(" ");
+            ProcessBuilder pb = new ProcessBuilder(cmdParts);
+            pb.directory(new File(projectPath));
+            pb.redirectErrorStream(true);
+            pb.environment().put("JAVA_HOME", JavaRuntime.getDefaultVMInstall().getInstallLocation().getAbsolutePath());
+
+            /*
+             * Per: https://stackoverflow.com/questions/29793071/rcp-no-progress-dialog-when-starting-a-job it seems that job.setUser(true)
+             * is no longer enough to result in the creation of a progress dialog.
+             */
+            Job job = new Job("Stopping server via " + buildTypeName + " plugin") {
+
+                @Override
+                protected IStatus run(IProgressMonitor monitor) {
+
+                    if (monitor.isCanceled()) {
+                        return Status.CANCEL_STATUS;
+                    }
+
+                    try {
+                        Process p = pb.start();
+
+                        boolean completed = false;
+
+                        for (int elapsed = 0; completed == false && elapsed < STOP_TIMEOUT_SECONDS; elapsed++) {
+                            if (monitor.isCanceled()) {
+                                p.destroy();
+                                return Status.CANCEL_STATUS;
+                            }
+                            completed = p.waitFor(1, TimeUnit.SECONDS);
+                        }
+
+                        if (!completed) {
+                            setProperty(STOP_JOB_COMPLETION_TIMEOUT, Boolean.TRUE);
+                        } else {
+                            setProperty(STOP_JOB_COMPLETION_EXIT_CODE, p.exitValue());
+                            if (p.exitValue() != 0) {
+                                BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+                                StringBuilder builder = new StringBuilder();
+                                String line = null;
+                                while ((line = reader.readLine()) != null) {
+                                    builder.append(line);
+                                    builder.append(System.getProperty("line.separator"));
+                                }
+                                setProperty(STOP_JOB_COMPLETION_OUTPUT, builder.toString());
+                            }
+                        }
+                    } catch (Exception e) {
+                        ErrorHandler.processErrorMessage("Exception issuing plugin stop command", e, false);
+                    }
+                    return Status.OK_STATUS;
+                }
+
+            };
+
+            job.addJobChangeListener(new JobChangeAdapter() {
+                @Override
+                public void done(IJobChangeEvent event) {
+
+                    runningJobs.remove(event.getJob());
+                    if (event.getResult().equals(Status.CANCEL_STATUS)) {
+                        return;
+                    }
+
+                    /*
+                     * Check for timeout
+                     */
+                    Object timeoutOnCompletion = event.getJob().getProperty(STOP_JOB_COMPLETION_TIMEOUT);
+                    if (Boolean.TRUE.equals(timeoutOnCompletion)) {
+                        // Need to do this on main thread since it's displayed to the user.
+                        Display.getDefault().syncExec(new Runnable() {
+                            @Override
+                            public void run() {
+
+                                String msg = "The Liberty Maven or Gradle stop command issued for project " + projectName
+                                        + " timed out after " + STOP_TIMEOUT_SECONDS + " seconds.";
+                                if (Trace.isEnabled()) {
+                                    Trace.getTracer().trace(Trace.TRACE_TOOLS, msg);
+                                }
+                                ErrorHandler.rawErrorMessageDialog(msg);
+                            }
+                        });
+                        return;
+                    }
+
+                    /*
+                     * Check for bad exit value
+                     */
+                    Object rc = event.getJob().getProperty(STOP_JOB_COMPLETION_EXIT_CODE);
+                    if (rc != Integer.valueOf(0)) {
+                        String outputTxt = (String) event.getJob().getProperty(STOP_JOB_COMPLETION_OUTPUT);
+                        Logger.logError("stop command failed, process output: " + outputTxt);
+                        Display.getDefault().syncExec(new Runnable() {
+                            @Override
+                            public void run() {
+                                ErrorHandler.processErrorMessage("Stop failed with exitValue = " + rc, true);
+                            }
+                        });
+                        return;
+                    }
+                }
+            });
+
+            job.setUser(true);
+            runningJobs.put(job, Boolean.TRUE);
+            job.schedule();
+        } catch (Exception e) {
+            String msg = "An error was detected while processing the Liberty Maven or Gradle stop command on project " + projectName;
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
+            }
+            ErrorHandler.processErrorMessage(msg, e, true);
+            return;
+        }
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, projectName);
+        }
+    }
+
+    /**
      * Returns the path of the HTML file containing the integration test report.
      *
      * @param projectPath The project's path.
@@ -908,5 +1102,13 @@ public class DevModeOperations {
         if (dashboardView != null) {
             dashboardView.refreshDashboardView(projectModel, reportError);
         }
+    }
+
+    /**
+     * Cancel running jobs and avoid error message, e.g. on closing Eclipse IDE
+     */
+    public void cancelRunningJobs() {
+        // Cancel will remove job from 'runningJobs' Map
+        runningJobs.keySet().forEach(j -> j.cancel());
     }
 }
