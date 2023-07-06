@@ -897,12 +897,15 @@ public class DevModeOperations {
                 public void done(IJobChangeEvent event) {
 
                     runningJobs.remove(event.getJob());
+                    if (event.getResult().equals(Status.CANCEL_STATUS)) {
+                        return;
+                    }
 
                     /*
                      * Check for timeout
                      */
-                    Object completion = event.getJob().getProperty(STOP_JOB_COMPLETION_TIMEOUT);
-                    if (Boolean.TRUE.equals(completion)) {
+                    Object timeoutOnCompletion = event.getJob().getProperty(STOP_JOB_COMPLETION_TIMEOUT);
+                    if (Boolean.TRUE.equals(timeoutOnCompletion)) {
                         // Need to do this on main thread since it's displayed to the user.
                         Display.getDefault().syncExec(new Runnable() {
                             @Override
@@ -916,6 +919,7 @@ public class DevModeOperations {
                                 ErrorHandler.rawErrorMessageDialog(msg);
                             }
                         });
+                        return;
                     }
 
                     /*
@@ -931,6 +935,7 @@ public class DevModeOperations {
                                 ErrorHandler.processErrorMessage("Stop failed with exitValue = " + rc, true);
                             }
                         });
+                        return;
                     }
                 }
             });
@@ -1103,6 +1108,7 @@ public class DevModeOperations {
      * Cancel running jobs and avoid error message, e.g. on closing Eclipse IDE
      */
     public void cancelRunningJobs() {
+        // Cancel will remove job from 'runningJobs' Map
         runningJobs.keySet().forEach(j -> j.cancel());
     }
 }
