@@ -19,12 +19,14 @@ import org.eclipse.debug.ui.DebugUITools;
 import org.eclipse.debug.ui.ILaunchShortcut;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.PlatformUI;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.logging.Trace;
+import io.openliberty.tools.eclipse.messages.Messages;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher.RuntimeEnv;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationHelper;
@@ -61,7 +63,8 @@ public class StartConfigurationDialogAction implements ILaunchShortcut {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }
-
+            ErrorHandler.processErrorMessage(
+                    NLS.bind(Messages.launch_shortcut_error, LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONFIG), e, true);
             return;
         }
 
@@ -89,7 +92,8 @@ public class StartConfigurationDialogAction implements ILaunchShortcut {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }
-            ErrorHandler.processErrorMessage(msg, e, true);
+            ErrorHandler.processErrorMessage(
+                    NLS.bind(Messages.launch_shortcut_error, LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONFIG), e, true);
             return;
         }
 

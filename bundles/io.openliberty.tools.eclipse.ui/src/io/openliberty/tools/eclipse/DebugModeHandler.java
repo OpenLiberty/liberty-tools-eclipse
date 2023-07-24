@@ -45,6 +45,7 @@ import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.jdt.core.JavaCore;
 import org.eclipse.jdt.launching.IJavaLaunchConfigurationConstants;
+import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbench;
@@ -54,6 +55,7 @@ import org.eclipse.ui.PlatformUI;
 
 import io.openliberty.tools.eclipse.Project.BuildType;
 import io.openliberty.tools.eclipse.logging.Trace;
+import io.openliberty.tools.eclipse.messages.Messages;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationHelper;
 import io.openliberty.tools.eclipse.ui.launch.StartTab;
@@ -387,7 +389,7 @@ public class DebugModeHandler {
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg);
                     }
-                    ErrorHandler.processErrorMessage(msg, false);
+                    ErrorHandler.processErrorMessage(NLS.bind(Messages.multiple_server_env, projectName), false);
                     throw new Exception(msg);
                 }
             }
@@ -501,14 +503,14 @@ public class DebugModeHandler {
         remoteJavaAppConfigWCopy.setAttribute(StartTab.PROJECT_RUN_TIME, String.valueOf(System.currentTimeMillis()));
 
         //
-        // Fixed issue:  https://github.com/OpenLiberty/liberty-tools-eclipse/issues/372
+        // Fixed issue: https://github.com/OpenLiberty/liberty-tools-eclipse/issues/372
         // by launching with the return value of remoteJavaAppConfigWCopy.doSave(), rather than the
         // object (the "working copy") itself.
-        // 
-        // Debated calling launch() with the doSave() return value vs. the value of  
-        // remoteJavaAppConfigWCopy.getOriginal().  Decided on the former which
+        //
+        // Debated calling launch() with the doSave() return value vs. the value of
+        // remoteJavaAppConfigWCopy.getOriginal(). Decided on the former which
         // seemed to be the more common usage pattern, though not entirely clear which is better.
-        //  
+        //
         ILaunchConfiguration updatedConfig = remoteJavaAppConfigWCopy.doSave();
         return updatedConfig.launch(ILaunchManager.DEBUG_MODE, monitor);
     }
@@ -581,12 +583,12 @@ public class DebugModeHandler {
         if (project.isParentOfServerModule()) {
             List<Project> mmps = project.getChildLibertyServerProjects();
             switch (mmps.size()) {
-            case 0:
-                throw new Exception("Unable to find a child project that contains the Liberty server configuration.");
-            case 1:
-                return mmps.get(0);
-            default:
-                throw new Exception("Multiple child projects containing Liberty server configuration were found.");
+                case 0:
+                    throw new Exception("Unable to find a child project that contains the Liberty server configuration.");
+                case 1:
+                    return mmps.get(0);
+                default:
+                    throw new Exception("Multiple child projects containing Liberty server configuration were found.");
             }
         }
 

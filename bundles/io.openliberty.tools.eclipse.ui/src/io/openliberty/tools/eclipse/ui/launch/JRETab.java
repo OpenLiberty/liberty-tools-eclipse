@@ -26,11 +26,13 @@ import org.eclipse.jdt.debug.ui.launchConfigurations.JavaJRETab;
 import org.eclipse.jdt.launching.IJavaLaunchConfigurationConstants;
 import org.eclipse.jdt.launching.IVMInstall;
 import org.eclipse.jdt.launching.JavaRuntime;
+import org.eclipse.osgi.util.NLS;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.Project;
 import io.openliberty.tools.eclipse.WorkspaceProjectsModel;
 import io.openliberty.tools.eclipse.logging.Trace;
+import io.openliberty.tools.eclipse.messages.Messages;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
 import io.openliberty.tools.eclipse.utils.Utils;
 
@@ -78,9 +80,8 @@ public class JRETab extends JavaJRETab {
                 }
             }
         } catch (Exception e) {
-            ErrorHandler
-                    .processWarningMessage("Unable to set the default Java installation that was obtained from the build path of project "
-                            + activeProject.getName() + " in configuration " + configuration.getName(), e);
+            ErrorHandler.processWarningMessage(
+                    NLS.bind(Messages.java_default_set_error, new String[] { activeProject.getName(), configuration.getName() }), e);
         }
 
         super.setDefaults(configuration);
@@ -108,7 +109,7 @@ public class JRETab extends JavaJRETab {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }
-            ErrorHandler.processWarningMessage(msg, e);
+            ErrorHandler.processWarningMessage(NLS.bind(Messages.java_resolution_error, configuration.getName()), e);
         }
 
         if (keyValue != null) {

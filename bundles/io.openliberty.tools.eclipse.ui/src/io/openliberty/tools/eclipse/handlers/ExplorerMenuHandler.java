@@ -20,11 +20,13 @@ import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.osgi.util.NLS;
 import org.eclipse.ui.handlers.HandlerUtil;
 
 import io.openliberty.tools.eclipse.LibertyNature;
 import io.openliberty.tools.eclipse.Project;
 import io.openliberty.tools.eclipse.logging.Trace;
+import io.openliberty.tools.eclipse.messages.Messages;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
 import io.openliberty.tools.eclipse.utils.Utils;
 
@@ -49,13 +51,13 @@ public class ExplorerMenuHandler extends AbstractHandler {
 
         // Validate that a project was selected.
         if (currentSelection.isEmpty()) {
-            String msg = "Invalid project. Be sure to select a project first.";
+            String msg = "The project is not valid. Be sure to select a project first.";
 
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_HANDLERS, msg);
             }
 
-            ErrorHandler.processErrorMessage(msg, true);
+            ErrorHandler.processErrorMessage(NLS.bind(Messages.project_not_valid, null), true);
 
             return null;
         }
@@ -71,7 +73,7 @@ public class ExplorerMenuHandler extends AbstractHandler {
                 Trace.getTracer().trace(Trace.TRACE_HANDLERS, msg, e);
             }
 
-            ErrorHandler.processErrorMessage(msg, e, true);
+            ErrorHandler.processErrorMessage(NLS.bind(Messages.menu_command_retrieve_error, null), e, true);
             return null;
         }
 
@@ -103,7 +105,8 @@ public class ExplorerMenuHandler extends AbstractHandler {
                     Trace.getTracer().trace(Trace.TRACE_HANDLERS, msg, e);
                 }
 
-                ErrorHandler.processErrorMessage(msg, e);
+                ErrorHandler.processErrorMessage(
+                        NLS.bind(Messages.menu_command_process_error, new String[] { commandName, iProject.getName() }), e);
             }
         }
 

@@ -16,7 +16,10 @@ import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+import org.eclipse.osgi.util.NLS;
+
 import io.openliberty.tools.eclipse.logging.Trace;
+import io.openliberty.tools.eclipse.messages.Messages;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
 import io.openliberty.tools.eclipse.utils.Utils;
 
@@ -99,7 +102,11 @@ public class CommandBuilder {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, errorMsg);
             }
 
-            ErrorHandler.processPreferenceErrorMessage(errorMsg, true);
+            if (isMaven) {
+                ErrorHandler.processPreferenceErrorMessage(NLS.bind(Messages.maven_exec_not_found, null), true);
+            } else {
+                ErrorHandler.processPreferenceErrorMessage(NLS.bind(Messages.gradle_exec_not_found, null), true);
+            }
 
             throw new CommandNotFoundException(errorMsg);
         }

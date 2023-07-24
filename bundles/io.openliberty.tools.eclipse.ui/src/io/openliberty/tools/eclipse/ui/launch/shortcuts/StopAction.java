@@ -15,10 +15,12 @@ package io.openliberty.tools.eclipse.ui.launch.shortcuts;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.debug.ui.ILaunchShortcut;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.osgi.util.NLS;
 import org.eclipse.ui.IEditorPart;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.logging.Trace;
+import io.openliberty.tools.eclipse.messages.Messages;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
 import io.openliberty.tools.eclipse.utils.Utils;
@@ -47,7 +49,8 @@ public class StopAction implements ILaunchShortcut {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }
-            ErrorHandler.processErrorMessage(msg, e, true);
+            ErrorHandler.processErrorMessage(
+                    NLS.bind(Messages.launch_shortcut_error, LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_STOP), e, true);
             return;
         }
 
@@ -70,12 +73,13 @@ public class StopAction implements ILaunchShortcut {
         try {
             run(iProject);
         } catch (Exception e) {
-            String msg = "An error was detected while processing the \"" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_STOP
-                    + "\" launch shortcut.";
+            String msg = "An error was detected when the \"" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_STOP
+                    + "\" launch shortcut was processed.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }
-            ErrorHandler.processErrorMessage(msg, e, true);
+            ErrorHandler.processErrorMessage(
+                    NLS.bind(Messages.launch_shortcut_error, LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_STOP), e, true);
             return;
         }
 

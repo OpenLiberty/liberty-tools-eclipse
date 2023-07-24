@@ -25,8 +25,10 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.osgi.util.NLS;
 
 import io.openliberty.tools.eclipse.logging.Trace;
+import io.openliberty.tools.eclipse.messages.Messages;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
 
 /**
@@ -210,7 +212,7 @@ public class Project {
                     javaProjecs.add(child);
                 }
             } catch (CoreException e) {
-                ErrorHandler.processWarningMessage("Unable to determine if project : " + child.getName() + " is a Java project.", e, false);
+                ErrorHandler.processWarningMessage(NLS.bind(Messages.determine_java_project_error, child.getName()), e, false);
             }
         }
         return javaProjecs;
@@ -254,7 +256,7 @@ public class Project {
     }
 
     /**
-     * Classifies this project as a project able to run on a Linerty server.
+     * Classifies this project as a project able to run on a Liberty server.
      */
     public void classifyAsServerModule() {
         try {
@@ -267,8 +269,7 @@ public class Project {
                 libertyServerModule = false;
             }
         } catch (Exception e) {
-            String msg = "Error querying and adding Liberty nature";
-            ErrorHandler.processWarningMessage(msg, e, false);
+            ErrorHandler.processWarningMessage(NLS.bind(Messages.liberty_nature_add_error, null), e, false);
         }
     }
 
@@ -291,8 +292,7 @@ public class Project {
                 }
             }
         } catch (Exception e) {
-            String msg = "Error querying and adding Liberty nature";
-            ErrorHandler.processWarningMessage(msg, e, false);
+            ErrorHandler.processWarningMessage(NLS.bind(Messages.liberty_nature_add_error, null), e, false);
         }
     }
 

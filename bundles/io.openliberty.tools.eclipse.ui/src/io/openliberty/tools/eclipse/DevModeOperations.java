@@ -36,6 +36,7 @@ import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.jdt.launching.JavaRuntime;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.ISelectionService;
 import org.eclipse.ui.IWorkbenchWindow;
@@ -47,6 +48,7 @@ import io.openliberty.tools.eclipse.CommandBuilder.CommandNotFoundException;
 import io.openliberty.tools.eclipse.Project.BuildType;
 import io.openliberty.tools.eclipse.logging.Logger;
 import io.openliberty.tools.eclipse.logging.Trace;
+import io.openliberty.tools.eclipse.messages.Messages;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
 import io.openliberty.tools.eclipse.ui.terminal.ProjectTab;
 import io.openliberty.tools.eclipse.ui.terminal.ProjectTab.State;
@@ -160,7 +162,7 @@ public class DevModeOperations {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op.");
             }
-            ErrorHandler.processErrorMessage(msg, true);
+            ErrorHandler.processErrorMessage(NLS.bind(Messages.start_no_project_found, null), true);
             return;
         }
 
@@ -187,8 +189,7 @@ public class DevModeOperations {
                     Trace.getTracer().trace(Trace.TRACE_TOOLS, "The start request was already issued on project " + projectName
                             + ". No-op. ProjectTabController: " + projectTabController);
                 }
-                ErrorHandler.processErrorMessage("The start request was already issued on project " + projectName
-                        + ". Use the stop action before you select the start action.", true);
+                ErrorHandler.processErrorMessage(NLS.bind(Messages.start_already_issued, projectName), true);
                 return;
             }
         }
@@ -245,11 +246,10 @@ public class DevModeOperations {
             }
             return;
         } catch (Exception e) {
-            String msg = "An error was detected during the start request on project " + projectName;
             if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, "An error was detected during the start request on project " + projectName, e);
             }
-            ErrorHandler.processErrorMessage(msg, e, true);
+            ErrorHandler.processErrorMessage(NLS.bind(Messages.start_general_error, projectName), e, true);
             return;
         }
 
@@ -277,7 +277,7 @@ public class DevModeOperations {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op.");
             }
-            ErrorHandler.processErrorMessage(msg, true);
+            ErrorHandler.processErrorMessage(NLS.bind(Messages.start_container_no_project_found, null), true);
             return;
         }
 
@@ -304,8 +304,7 @@ public class DevModeOperations {
                     Trace.getTracer().trace(Trace.TRACE_TOOLS, "The start in container request was already issued on project " + projectName
                             + ". No-op. ProjectTabController: " + projectTabController);
                 }
-                ErrorHandler.processErrorMessage("The start in container request was already issued on project " + projectName
-                        + ". Use the stop action before you select the start action.", true);
+                ErrorHandler.processErrorMessage(NLS.bind(Messages.start_container_already_issued, projectName), true);
                 return;
             }
         }
@@ -360,7 +359,7 @@ public class DevModeOperations {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
             }
-            ErrorHandler.processErrorMessage(msg, e, true);
+            ErrorHandler.processErrorMessage(NLS.bind(Messages.start_container_general_error, projectName), e, true);
             return;
         }
 
@@ -391,7 +390,7 @@ public class DevModeOperations {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op.");
             }
-            ErrorHandler.processErrorMessage(msg, true);
+            ErrorHandler.processErrorMessage(NLS.bind(Messages.stop_no_project_found, null), true);
             return;
         }
 
@@ -399,8 +398,7 @@ public class DevModeOperations {
 
         // Check if the stop action has already been issued of if a start action was never issued before.
         if (projectTabController.getProjectConnector(projectName) == null) {
-            String msg = "Unable to process the stop request on project " + projectName
-                    + " because either Liberty Tools did not previously issue a start request, or a stop request was already issued.";
+            String msg = NLS.bind(Messages.stop_already_issued, projectName);
             handleStopActionError(projectName, msg);
 
             return;
@@ -412,7 +410,7 @@ public class DevModeOperations {
         // the terminal process to end. Note that objects associated with the previous start attempt will be cleaned up on
         // the next restart attempt.
         if (projectTabController.isProjectTabMarkedClosed(projectName)) {
-            String msg = "The terminal tab associated with project " + projectName + " is not active.";
+            String msg = NLS.bind(Messages.stop_terminal_not_active, projectName);
             handleStopActionError(projectName, msg);
 
             return;
@@ -436,7 +434,7 @@ public class DevModeOperations {
             projectTabController.processTerminalTabCleanup(projectName);
 
         } catch (Exception e) {
-            String msg = "An error was detected when the stop request was processed on project " + projectName + ".";
+            String msg = NLS.bind(Messages.stop_general_error, projectName);
             handleStopActionError(projectName, msg);
 
             return;
@@ -469,7 +467,7 @@ public class DevModeOperations {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op.");
             }
-            ErrorHandler.processErrorMessage(msg, true);
+            ErrorHandler.processErrorMessage(NLS.bind(Messages.run_tests_no_project_found, null), true);
             return;
         }
 
@@ -482,7 +480,7 @@ public class DevModeOperations {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op. ProjectTabController: " + projectTabController);
             }
-            ErrorHandler.processErrorMessage(msg, true);
+            ErrorHandler.processErrorMessage(NLS.bind(Messages.run_tests_no_prior_start, projectName), true);
             return;
         }
 
@@ -498,7 +496,7 @@ public class DevModeOperations {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op. ProjectTabController: " + projectTabController);
             }
-            ErrorHandler.processErrorMessage(msg, true);
+            ErrorHandler.processErrorMessage(NLS.bind(Messages.run_tests_terminal_not_active, projectName), true);
             return;
         }
 
@@ -510,7 +508,7 @@ public class DevModeOperations {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
             }
-            ErrorHandler.processErrorMessage(msg, e, true);
+            ErrorHandler.processErrorMessage(NLS.bind(Messages.run_tests_general_error, projectName), e, true);
             return;
         }
 
@@ -541,7 +539,7 @@ public class DevModeOperations {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op.");
             }
-            ErrorHandler.processErrorMessage(msg, true);
+            ErrorHandler.processErrorMessage(NLS.bind(Messages.mvn_int_test_report_no_project_found, null), true);
             return;
         }
 
@@ -569,7 +567,8 @@ public class DevModeOperations {
                 if (Trace.isEnabled()) {
                     Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op. Path: " + path);
                 }
-                ErrorHandler.processErrorMessage(msg, true);
+                ErrorHandler.processErrorMessage(NLS.bind(Messages.mvn_int_test_report_none_found, new String[] { projectName,
+                        DashboardView.APP_MENU_ACTION_RUN_TESTS, DashboardView.APP_MENU_ACTION_VIEW_MVN_IT_REPORT }), true);
                 return;
             }
 
@@ -582,7 +581,7 @@ public class DevModeOperations {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
             }
-            ErrorHandler.processErrorMessage(msg, e, true);
+            ErrorHandler.processErrorMessage(NLS.bind(Messages.mvn_int_test_report_general_error, projectName), e, true);
             return;
         }
 
@@ -615,7 +614,7 @@ public class DevModeOperations {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op.");
             }
-            ErrorHandler.processErrorMessage(msg, true);
+            ErrorHandler.processErrorMessage(NLS.bind(Messages.mvn_unit_test_report_no_project_found, null), true);
         }
 
         String projectName = iProject.getName();
@@ -642,7 +641,8 @@ public class DevModeOperations {
                 if (Trace.isEnabled()) {
                     Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op. Path: " + path);
                 }
-                ErrorHandler.processErrorMessage(msg, true);
+                ErrorHandler.processErrorMessage(NLS.bind(Messages.mvn_unit_test_report_none_found, new String[] { projectName,
+                        DashboardView.APP_MENU_ACTION_RUN_TESTS, DashboardView.APP_MENU_ACTION_VIEW_MVN_UT_REPORT }), true);
                 return;
             }
 
@@ -654,7 +654,7 @@ public class DevModeOperations {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
             }
-            ErrorHandler.processErrorMessage(msg, e, true);
+            ErrorHandler.processErrorMessage(NLS.bind(Messages.mvn_unit_test_report_general_error, projectName), e, true);
             return;
         }
 
@@ -685,7 +685,7 @@ public class DevModeOperations {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op.");
             }
-            ErrorHandler.processErrorMessage(msg, true);
+            ErrorHandler.processErrorMessage(NLS.bind(Messages.gradle_test_report_no_project_found, null), true);
             return;
         }
 
@@ -713,7 +713,10 @@ public class DevModeOperations {
                 if (Trace.isEnabled()) {
                     Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op. Path: " + path);
                 }
-                ErrorHandler.processErrorMessage(msg, true);
+                ErrorHandler.processErrorMessage(
+                        NLS.bind(Messages.gradle_test_report_none_found, new String[] { projectName,
+                                DashboardView.APP_MENU_ACTION_RUN_TESTS, DashboardView.APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT }),
+                        true);
                 return;
             }
 
@@ -725,7 +728,7 @@ public class DevModeOperations {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
             }
-            ErrorHandler.processErrorMessage(msg, e, true);
+            ErrorHandler.processErrorMessage(NLS.bind(Messages.gradle_test_report_general_error, projectName));
             return;
         }
 
@@ -787,8 +790,8 @@ public class DevModeOperations {
      * @param baseMsg The base message to display.
      */
     private void handleStopActionError(String projectName, String baseMsg) {
-        String msg = baseMsg
-                + "\n\nWould you like to issue the Liberty Maven or Gradle stop command for this project to stop a Liberty server that may still be running the project outside of the Liberty Tools session?";
+        String stopPromptMsg = NLS.bind(Messages.issue_stop_prompt, null);
+        String msg = baseMsg + "\n\n" + stopPromptMsg;
         Integer response = ErrorHandler.processWarningMessage(msg, true, new String[] { "Yes", "No" }, 0);
         if (response != null && response == 0) {
             issueLPStopCommand(projectName);
@@ -885,7 +888,7 @@ public class DevModeOperations {
                             }
                         }
                     } catch (Exception e) {
-                        ErrorHandler.processErrorMessage("Exception issuing plugin stop command", e, false);
+                        ErrorHandler.processErrorMessage(NLS.bind(Messages.plugin_stop_issue_error, null), e, false);
                     }
                     return Status.OK_STATUS;
                 }
@@ -916,7 +919,9 @@ public class DevModeOperations {
                                 if (Trace.isEnabled()) {
                                     Trace.getTracer().trace(Trace.TRACE_TOOLS, msg);
                                 }
-                                ErrorHandler.rawErrorMessageDialog(msg);
+                                ErrorHandler.rawErrorMessageDialog(
+                                        NLS.bind(Messages.plugin_stop_timeout,
+                                                new String[] { projectName, Integer.toString(STOP_TIMEOUT_SECONDS) }));
                             }
                         });
                         return;
@@ -932,7 +937,7 @@ public class DevModeOperations {
                         Display.getDefault().syncExec(new Runnable() {
                             @Override
                             public void run() {
-                                ErrorHandler.processErrorMessage("Stop failed with exitValue = " + rc, true);
+                                ErrorHandler.processErrorMessage(NLS.bind(Messages.plugin_stop_failed, rc), true);
                             }
                         });
                         return;
@@ -948,7 +953,7 @@ public class DevModeOperations {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
             }
-            ErrorHandler.processErrorMessage(msg, e, true);
+            ErrorHandler.processErrorMessage(NLS.bind(Messages.plugin_stop_general_error, projectName), e, true);
             return;
         }
 
