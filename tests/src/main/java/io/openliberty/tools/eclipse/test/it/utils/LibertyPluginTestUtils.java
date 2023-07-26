@@ -67,7 +67,7 @@ public class LibertyPluginTestUtils {
      */
     public static void validateLibertyServerStopped(String testAppPath) {
         String wlpMsgLogPath = testAppPath + "/wlp/usr/servers/defaultServer/logs/messages.log";
-        int maxAttempts = 20;
+        int maxAttempts = 30;
         boolean foundStoppedMsg = false;
 
         // Find message CWWKE0036I: The server x stopped after y seconds
@@ -84,7 +84,7 @@ public class LibertyPluginTestUtils {
                 if (foundStoppedMsg) {
                     break;
                 } else {
-                    Thread.sleep(2000);
+                    Thread.sleep(3000);
                 }
             } catch (Exception e) {
                 Assertions.fail("Caught exception waiting for stop message", e);

@@ -74,7 +74,7 @@ public class DevModeOperations {
     public static final String BROWSER_MVN_UT_REPORT_NAME_SUFFIX = "surefire report";
     public static final String BROWSER_GRADLE_TEST_REPORT_NAME_SUFFIX = "test report";
 
-    private static final int STOP_TIMEOUT_SECONDS = 40;
+    private static final int STOP_TIMEOUT_SECONDS = 60;
     protected static final QualifiedName STOP_JOB_COMPLETION_TIMEOUT = new QualifiedName("io.openliberty.tools.eclipse.ui",
             "stopJobCompletionTimeout");
     protected static final QualifiedName STOP_JOB_COMPLETION_EXIT_CODE = new QualifiedName("io.openliberty.tools.eclipse.ui",
