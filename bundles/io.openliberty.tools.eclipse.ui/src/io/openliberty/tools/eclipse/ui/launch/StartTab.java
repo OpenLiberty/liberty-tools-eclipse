@@ -19,6 +19,7 @@ import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.ui.AbstractLaunchConfigurationTab;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.preference.PreferenceDialog;
+import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -39,6 +40,7 @@ import org.eclipse.ui.dialogs.PreferencesUtil;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.logging.Trace;
+import io.openliberty.tools.eclipse.messages.Messages;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
 import io.openliberty.tools.eclipse.utils.Utils;
@@ -169,18 +171,15 @@ public class StartTab extends AbstractLaunchConfigurationTab {
             setDirty(false);
 
         } catch (CoreException ce) {
-            traceError(ce, "An error was detected during Run Configuration initialization.");
+            String msg = "An error was detected during Run Configuration initialization.";
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UI, msg, ce);
+            }
+            ErrorHandler.processErrorMessage(NLS.bind(Messages.run_config_initialize_error, null), ce, true);
         }
 
         if (Trace.isEnabled()) {
             Trace.getTracer().traceExit(Trace.TRACE_UI);
-        }
-    }
-
-    private void traceError(CoreException ce, String msg) {
-        ErrorHandler.processErrorMessage(msg, ce, true);
-        if (Trace.isEnabled()) {
-            Trace.getTracer().trace(Trace.TRACE_UI, msg, ce);
         }
     }
 
@@ -219,8 +218,12 @@ public class StartTab extends AbstractLaunchConfigurationTab {
                     return false;
                 }
             }
-        } catch (CoreException e) {
-            traceError(e, "Error getting project name");
+        } catch (CoreException ce) {
+            String msg = "Error getting project name";
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UI, msg, ce);
+            }
+            ErrorHandler.processErrorMessage(NLS.bind(Messages.project_name_error, null), ce, true);
             return false;
         }
         return checkForIncorrectTerms();
@@ -418,7 +421,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }
-            ErrorHandler.processErrorMessage(msg, e, true);
+            ErrorHandler.processErrorMessage(NLS.bind(Messages.start_parm_retrieve_error, null), e, true);
         }
 
         return parms;

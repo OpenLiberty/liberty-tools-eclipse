@@ -24,8 +24,10 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.osgi.util.NLS;
 
 import io.openliberty.tools.eclipse.logging.Trace;
+import io.openliberty.tools.eclipse.messages.Messages;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
 
 /**
@@ -146,7 +148,7 @@ public class WorkspaceProjectsModel {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " Workspace projects: " + projectsByLocation.values(), e);
             }
-            ErrorHandler.processWarningMessage(msg, e, false);
+            ErrorHandler.processWarningMessage(NLS.bind(Messages.project_analyze_error, null), e, false);
         }
 
         if (Trace.isEnabled()) {
