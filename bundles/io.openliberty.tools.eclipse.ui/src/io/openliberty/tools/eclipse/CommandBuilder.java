@@ -15,7 +15,7 @@ package io.openliberty.tools.eclipse;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.osgi.util.NLS;
 
 import io.openliberty.tools.eclipse.logging.Trace;

@@ -14,6 +14,7 @@ package io.openliberty.tools.eclipse.ui.launch.shortcuts;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.debug.core.ILaunchConfiguration;
+import org.eclipse.debug.ui.DebugUITools;
 import org.eclipse.debug.ui.ILaunchShortcut;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.osgi.util.NLS;
@@ -22,11 +23,9 @@ import org.eclipse.ui.IEditorPart;
 import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.messages.Messages;
-import io.openliberty.tools.eclipse.ui.launch.JRETab;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher.RuntimeEnv;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationHelper;
-import io.openliberty.tools.eclipse.ui.launch.StartTab;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
 import io.openliberty.tools.eclipse.utils.Utils;
 
@@ -47,7 +46,7 @@ public class StartAction implements ILaunchShortcut {
         }
 
         try {
-            run(iProject, null, mode);
+            run(iProject, mode);
         } catch (Exception e) {
             String msg = "An error was detected when the \"" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START
                     + "\" launch shortcut was processed.";
@@ -75,7 +74,7 @@ public class StartAction implements ILaunchShortcut {
         }
 
         try {
-            run(iProject, null, mode);
+            run(iProject, mode);
         } catch (Exception e) {
             String msg = "An error was detected when the \"" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START
                     + "\" launch shortcut was processed.";
@@ -99,42 +98,16 @@ public class StartAction implements ILaunchShortcut {
      * 
      * @throws Exception
      */
-    public static void run(IProject iProject, ILaunchConfiguration iConfiguration, String mode) throws Exception {
-
-        if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_UI, new Object[] { iProject, iConfiguration, mode });
-        }
-
-        if (iProject == null) {
-            throw new Exception("Invalid project. Be sure to select a project first.");
-        }
+    public static void run(IProject iProject, String mode) throws Exception {
 
         // Validate that the project is supported.
         DevModeOperations devModeOps = DevModeOperations.getInstance();
         devModeOps.verifyProjectSupport(iProject);
 
-        // If the configuration was not provided by the caller, determine what configuration to use.
+        // Determine what configuration to use.
         LaunchConfigurationHelper launchConfigHelper = LaunchConfigurationHelper.getInstance();
-        ILaunchConfiguration configuration = (iConfiguration != null) ? iConfiguration
-                : launchConfigHelper.getLaunchConfiguration(iProject, mode, RuntimeEnv.LOCAL);
+        ILaunchConfiguration configuration = launchConfigHelper.getLaunchConfiguration(iProject, mode, RuntimeEnv.UNKNOWN);
 
-        // Save the time when this configuration was processed.
-        launchConfigHelper.saveConfigProcessingTime(configuration);
-
-        // Retrieve configuration data.
-        boolean runInContainer = configuration.getAttribute(StartTab.PROJECT_RUN_IN_CONTAINER, false);
-        String configParms = configuration.getAttribute(StartTab.PROJECT_START_PARM, (String) null);
-        String javaHomePath = JRETab.resolveJavaHome(configuration);
-
-        // Process the action.
-        if (runInContainer) {
-            devModeOps.startInContainer(iProject, configParms, javaHomePath, mode);
-        } else {
-            devModeOps.start(iProject, configParms, javaHomePath, mode);
-        }
-
-        if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_UI);
-        }
+        DebugUITools.launch(configuration, mode);
     }
 }

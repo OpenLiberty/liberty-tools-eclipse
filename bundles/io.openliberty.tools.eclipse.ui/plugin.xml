@@ -373,6 +373,21 @@
             </command>
         </menuContribution>
    </extension>
+   
+   <extension point="org.eclipse.debug.core.sourceLocators">
+	   <sourceLocator
+	       name="Liberty Source Lookup Director"
+	       class="io.openliberty.tools.eclipse.debug.LibertySourceLookupDirector"
+	       id="io.openliberty.tools.eclipse.debug.libertySourceLookupDirector">
+	   </sourceLocator>
+   </extension>
+   
+   <extension point="org.eclipse.debug.core.sourcePathComputers">
+       <sourcePathComputer
+           class="io.openliberty.tools.eclipse.debug.LibertySourcePathComputer"
+           id="io.openliberty.tools.eclipse.debug.libertySourcePathComputer">
+       </sourcePathComputer>
+   </extension>
 
   <!-- Launch configuration -->
   <extension point="org.eclipse.debug.core.launchConfigurationTypes">
@@ -380,7 +395,9 @@
           name="Liberty"
           delegate="io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher"
           modes="run, debug"
-          id="io.openliberty.tools.eclipse.launch.type">
+          id="io.openliberty.tools.eclipse.launch.type"
+          sourceLocatorId="io.openliberty.tools.eclipse.debug.libertySourceLookupDirector"
+          sourcePathComputerId="io.openliberty.tools.eclipse.debug.libertySourcePathComputer">
       </launchConfigurationType>
   </extension>
   <extension point="org.eclipse.debug.ui.launchConfigurationTypeImages">

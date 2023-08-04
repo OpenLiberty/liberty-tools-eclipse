@@ -57,6 +57,10 @@ public class LaunchConfigurationHelper {
      * @throws Exception
      */
     public ILaunchConfiguration getLaunchConfiguration(IProject iProject, String mode, RuntimeEnv runtimeEnv) throws Exception {
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_UI, new Object[] { iProject, mode, runtimeEnv });
+        }
+
         DevModeOperations devModeOps = DevModeOperations.getInstance();
         ILaunchConfiguration configuration = null;
         ILaunchManager iLaunchMgr = DebugPlugin.getDefault().getLaunchManager();
@@ -69,31 +73,35 @@ public class LaunchConfigurationHelper {
         List<ILaunchConfiguration> matchingConfigList = filterLaunchConfigurations(existingConfigs, iProject.getName(), runtimeEnv);
 
         switch (matchingConfigList.size()) {
-        case 0:
-            // Create a new configuration.
-            String newName = iLaunchMgr.generateLaunchConfigurationName(iProject.getName());
-            ILaunchConfigurationWorkingCopy workingCopy = iLaunchConfigType.newInstance(null, newName);
-            workingCopy.setAttribute(StartTab.PROJECT_NAME, iProject.getName());
-            workingCopy.setAttribute(StartTab.PROJECT_START_PARM, devModeOps.getProjectModel().getDefaultStartParameters(iProject));
-            //default to 'false', no container
-            boolean runInContainer = runtimeEnv.equals(RuntimeEnv.CONTAINER);
-            workingCopy.setAttribute(StartTab.PROJECT_RUN_IN_CONTAINER, runInContainer);
+            case 0:
+                // Create a new configuration.
+                String newName = iLaunchMgr.generateLaunchConfigurationName(iProject.getName());
+                ILaunchConfigurationWorkingCopy workingCopy = iLaunchConfigType.newInstance(null, newName);
+                workingCopy.setAttribute(StartTab.PROJECT_NAME, iProject.getName());
+                workingCopy.setAttribute(StartTab.PROJECT_START_PARM, devModeOps.getProjectModel().getDefaultStartParameters(iProject));
+                // default to 'false', no container
+                boolean runInContainer = runtimeEnv.equals(RuntimeEnv.CONTAINER);
+                workingCopy.setAttribute(StartTab.PROJECT_RUN_IN_CONTAINER, runInContainer);
 
-            String defaultJavaDef = JRETab.getDefaultJavaFromBuildPath(iProject);
-            if (defaultJavaDef != null) {
-                workingCopy.setAttribute(IJavaLaunchConfigurationConstants.ATTR_JRE_CONTAINER_PATH, defaultJavaDef);
-            }
+                String defaultJavaDef = JRETab.getDefaultJavaFromBuildPath(iProject);
+                if (defaultJavaDef != null) {
+                    workingCopy.setAttribute(IJavaLaunchConfigurationConstants.ATTR_JRE_CONTAINER_PATH, defaultJavaDef);
+                }
 
-            configuration = workingCopy.doSave();
-            break;
-        case 1:
-            // Return the found configuration.
-            configuration = matchingConfigList.get(0);
-            break;
-        default:
-            // Return the configuration that was run last.
-            configuration = getLastRunConfiguration(matchingConfigList);
-            break;
+                configuration = workingCopy.doSave();
+                break;
+            case 1:
+                // Return the found configuration.
+                configuration = matchingConfigList.get(0);
+                break;
+            default:
+                // Return the configuration that was run last.
+                configuration = getLastRunConfiguration(matchingConfigList);
+                break;
+        }
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, new Object[] { iProject, configuration });
         }
 
         return configuration;

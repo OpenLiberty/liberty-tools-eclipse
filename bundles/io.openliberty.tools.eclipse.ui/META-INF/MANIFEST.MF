@@ -7,12 +7,16 @@ Bundle-SymbolicName: io.openliberty.tools.eclipse.ui;singleton:=true
 Bundle-Version: 23.0.12.qualifier
 Bundle-Activator: io.openliberty.tools.eclipse.LibertyDevPlugin
 Export-Package: io.openliberty.tools.eclipse;x-friends:="io.openliberty.tools.eclipse.tests",
+ io.openliberty.tools.eclipse.debug;x-friends:="io.openliberty.tools.eclipse.tests",
  io.openliberty.tools.eclipse.ui.dashboard;x-friends:="io.openliberty.tools.eclipse.tests",
  io.openliberty.tools.eclipse.ui.launch;x-friends:="io.openliberty.tools.eclipse.tests",
  io.openliberty.tools.eclipse.ui.launch.shortcuts;x-friends:="io.openliberty.tools.eclipse.tests",
  io.openliberty.tools.eclipse.ui.preferences;x-friends:="io.openliberty.tools.eclipse.tests"
 Require-Bundle: org.eclipse.ui,
- org.eclipse.equinox.preferences
+ org.eclipse.equinox.preferences,
+ org.eclipse.swt,
+ org.eclipse.m2e.maven.runtime,
+ org.eclipse.m2e.core
 Bundle-RequiredExecutionEnvironment: JavaSE-17
 Automatic-Module-Name: io.openliberty.tools.eclipse.ui
 Bundle-ActivationPolicy: lazy
@@ -23,11 +27,18 @@ Import-Package: org.eclipse.core.commands,
  org.eclipse.core.runtime.jobs,
  org.eclipse.debug.core,
  org.eclipse.debug.core.model,
+ org.eclipse.debug.core.sourcelookup,
  org.eclipse.debug.ui,
+ org.eclipse.debug.ui.sourcelookup,
+ org.eclipse.jdi,
  org.eclipse.jdt.core,
+ org.eclipse.jdt.debug.core,
  org.eclipse.jdt.debug.ui.launchConfigurations,
  org.eclipse.jdt.launching,
+ org.eclipse.jdt.launching.sourcelookup.containers,
  org.eclipse.jem.util.emf.workbench,
+ org.eclipse.m2e.core,
+ org.eclipse.m2e.core.project,
  org.eclipse.osgi.service.debug,
  org.eclipse.osgi.util,
  org.eclipse.swt.custom,
@@ -43,4 +54,7 @@ Import-Package: org.eclipse.core.commands,
  org.eclipse.ui,
  org.eclipse.ui.handlers,
  org.eclipse.ui.plugin,
+ org.gradle.tooling,
+ org.gradle.tooling.model,
+ org.gradle.tooling.model.eclipse,
  org.osgi.framework
