@@ -193,13 +193,16 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
 
         // Check that dashboard contains the expected applications.
         boolean foundApp = false;
+        boolean foundWrapperApp = false;
         for (String project : projectList) {
             if (GRADLE_APP_NAME.equals(project)) {
                 foundApp = true;
-                break;
+            } else if (GRADLE_WRAPPER_APP_NAME.equals(project)) {
+                foundWrapperApp = true;
             }
         }
         Assertions.assertTrue(foundApp, () -> "The dashboard does not contain expected application: " + GRADLE_APP_NAME);
+        Assertions.assertTrue(foundWrapperApp, () -> "The dashboard does not contain expected application: " + GRADLE_WRAPPER_APP_NAME);
 
         // Check that the menu for the expected application contains the required actions.
         List<String> menuItems = getDashboardItemMenuActions(GRADLE_APP_NAME);

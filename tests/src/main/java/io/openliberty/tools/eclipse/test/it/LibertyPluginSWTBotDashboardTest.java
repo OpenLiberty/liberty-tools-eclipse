@@ -12,10 +12,10 @@
 *******************************************************************************/
 package io.openliberty.tools.eclipse.test.it;
 
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.openDashboardUsingToolbar;
+
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-
-import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.*;
 
 /**
  * Tests Open Liberty Eclipse plugin functions.

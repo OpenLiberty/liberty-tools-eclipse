@@ -15,7 +15,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>io.openliberty.tools.eclipse</groupId>
 	<artifactId>parent</artifactId>
-	<version>23.0.8-SNAPSHOT</version>
+	<version>23.0.9-SNAPSHOT</version>
 	<packaging>pom</packaging>
     <licenses>
       <license>
@@ -42,7 +42,7 @@
         
         <!-- default version of the eclipse IDE to run tests against -->
         <!-- must be one of the target platform files defined in this project under releng -->
-        <eclipse.target>1Q2023</eclipse.target>
+        <eclipse.target>2Q2023</eclipse.target>
             
 	</properties>
 	
@@ -196,7 +196,7 @@
 						<artifact>
 							<groupId>io.openliberty.tools.eclipse</groupId>
 							<artifactId>target-platform-${eclipse.target}</artifactId>
-							<version>23.0.8-SNAPSHOT</version>
+							<version>23.0.9-SNAPSHOT</version>
 							<file>target-platform-${eclipse.target}</file>
 						</artifact>
 					</target>

@@ -38,18 +38,18 @@ pipeline {
             }
         }
         
-        stage('Test on Eclipse 1Q2023') {
+        stage('Test on Eclipse 2Q2023') {
             steps {
                 dir('liberty-tools-eclipse') {
                     script {
                         try {
                             wrap([$class: 'Xvfb', installationName: 'gui-test', autoDisplayName: true, debug: true, parallelBuild: true, screen: '1680x1050x24']) {
                                 sh "metacity --sm-disable --replace &"
-                                sh "mvn clean verify -Dtycho.disableP2Mirrors=true -Declipse.target=1Q2023 -Dosgi.debug=./tests/resources/ci/debug.opts -DmvnImportWait=60000 -Dtycho.showEclipseLog -e"
+                                sh "mvn clean verify -Dtycho.disableP2Mirrors=true -Declipse.target=2Q2023 -Dosgi.debug=./tests/resources/ci/debug.opts -DmvnImportWait=60000 -Dtycho.showEclipseLog -e"
                             }
                         } finally {
-                            sh "cd tests/target/surefire-reports && zip -r 1Q2023-test-reports.zip ."
-                            archiveArtifacts artifacts: 'tests/target/surefire-reports/1Q2023-test-reports.zip', fingerprint: true
+                            sh "cd tests/target/surefire-reports && zip -r 2Q2023-test-reports.zip ."
+                            archiveArtifacts artifacts: 'tests/target/surefire-reports/2Q2023-test-reports.zip', fingerprint: true
                         }
                     }
                 }
