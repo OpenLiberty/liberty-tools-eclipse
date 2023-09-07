@@ -191,7 +191,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
 
         // Give the app some time to be imported (especially on Windows GHA runs)
         try {
-            Thread.sleep(Integer.parseInt(System.getProperty("io.liberty.tools.eclipse.tests.mvn.import.wait", "0")));
+            Thread.sleep(Integer.parseInt(System.getProperty("io.liberty.tools.eclipse.tests.app.import.wait", "0")));
         } catch (InterruptedException e) {
             e.printStackTrace();
         }

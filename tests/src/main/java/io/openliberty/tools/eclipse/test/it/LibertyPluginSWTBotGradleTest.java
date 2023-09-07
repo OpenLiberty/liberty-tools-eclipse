@@ -182,6 +182,15 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
      */
     public static final void validateBeforeTestRun() {
 
+        // Though supposedly we use blocking methods to do the import, it seems Eclipse has the ability to break out of a deadlock
+        // by interrupting our thread, and we also seem to be causing one due to changing compiler settings.  Since we haven't debugged
+        // the latter, we'll introduce this wait.
+        try {
+            Thread.sleep(Integer.parseInt(System.getProperty("io.liberty.tools.eclipse.tests.app.import.wait", "0")));
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         Path projPath = Paths.get("resources", "applications", "gradle", GRADLE_APP_NAME);
         File projectFile = projPath.toFile();
 
