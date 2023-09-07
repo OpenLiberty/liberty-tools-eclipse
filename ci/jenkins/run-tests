@@ -45,7 +45,7 @@ pipeline {
                         try {
                             wrap([$class: 'Xvfb', installationName: 'gui-test', autoDisplayName: true, debug: true, parallelBuild: true, screen: '1680x1050x24']) {
                                 sh "metacity --sm-disable --replace &"
-                                sh "mvn clean verify -Dtycho.disableP2Mirrors=true -Declipse.target=2Q2023 -Dosgi.debug=./tests/resources/ci/debug.opts -DmvnImportWait=60000 -Dtycho.showEclipseLog -e"
+                                sh "mvn clean verify -Dtycho.disableP2Mirrors=true -Declipse.target=2Q2023 -Dosgi.debug=./tests/resources/ci/debug.opts -DtestAppImportWait=120000 -Dtycho.showEclipseLog -e"
                             }
                         } finally {
                             sh "cd tests/target/surefire-reports && zip -r 2Q2023-test-reports.zip ."
