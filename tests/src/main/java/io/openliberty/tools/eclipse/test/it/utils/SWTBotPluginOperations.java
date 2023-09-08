@@ -536,8 +536,9 @@ public class SWTBotPluginOperations {
     	
         Object libertyConfigTree = getLibertyTreeItem(shell); 
 
-        go(runDebugConfigName, libertyConfigTree, Option.factory().useContains(true).widgetClass(TreeItem.class).build());
-        Object parmLabel = find("Start parameters:", libertyConfigTree, Option.factory().widgetClass(Label.class).build());
+        Object appConfigEntry = find(runDebugConfigName, libertyConfigTree, Option.factory().useContains(true).widgetClass(TreeItem.class).build());
+        go(appConfigEntry);
+        Object parmLabel = find("Start parameters:", appConfigEntry, Option.factory().widgetClass(Label.class).build());
 
         Control parmText = ControlFinder.findControlInRange(parmLabel, Text.class, Direction.EAST);
         set(parmText, customParms);
