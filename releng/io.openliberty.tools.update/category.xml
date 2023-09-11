@@ -12,19 +12,19 @@
       IBM Corporation - initial implementation
 -->
 <site>
-    <feature url="features/io.openliberty.tools.eclipse_23.0.8.qualifier.liberty.jar" id="io.openliberty.tools.eclipse" version="23.0.8.qualifier">
+    <feature url="features/io.openliberty.tools.eclipse_23.0.9.qualifier.liberty.jar" id="io.openliberty.tools.eclipse" version="23.0.9.qualifier">
         <category name="io.openliberty.tools.eclipse" />
     </feature>
 
     <category-def name="io.openliberty.tools.eclipse" label="Liberty Tools" />
 
-    <repository-reference location="https://download.eclipse.org/lsp4e/releases/0.22.0/" enabled="true" />
-    <repository-reference location="https://download.eclipse.org/jdtls/milestones/1.23.0/repository" enabled="true" />
+    <repository-reference location="https://download.eclipse.org/lsp4e/releases/0.23.0/" enabled="true" />
+    <repository-reference location="https://download.eclipse.org/jdtls/milestones/1.25.0/repository" enabled="true" />
     <repository-reference location="https://download.eclipse.org/lsp4mp/releases/0.7.0/repository" enabled="true" />
     <repository-reference location="https://download.eclipse.org/lsp4jakarta/releases/0.1.1/repository" enabled="true" />
 
     <!-- Dependencies -->
-    <bundle id="org.eclipse.ui.trace" version="1.2.200.v20220310-2159">
+    <bundle id="org.eclipse.ui.trace" version="1.3.0.v20230515-0022">
         <category name="io.openliberty.tools.eclipse" />
     </bundle>
 </site>

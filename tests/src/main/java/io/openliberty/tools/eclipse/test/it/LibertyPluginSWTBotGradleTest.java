@@ -182,6 +182,15 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
      */
     public static final void validateBeforeTestRun() {
 
+        // Though supposedly we use blocking methods to do the import, it seems Eclipse has the ability to break out of a deadlock
+        // by interrupting our thread, and we also seem to be causing one due to changing compiler settings.  Since we haven't debugged
+        // the latter, we'll introduce this wait.
+        try {
+            Thread.sleep(Integer.parseInt(System.getProperty("io.liberty.tools.eclipse.tests.app.import.wait", "0")));
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
         Path projPath = Paths.get("resources", "applications", "gradle", GRADLE_APP_NAME);
         File projectFile = projPath.toFile();
 
@@ -193,13 +202,16 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
 
         // Check that dashboard contains the expected applications.
         boolean foundApp = false;
+        boolean foundWrapperApp = false;
         for (String project : projectList) {
             if (GRADLE_APP_NAME.equals(project)) {
                 foundApp = true;
-                break;
+            } else if (GRADLE_WRAPPER_APP_NAME.equals(project)) {
+                foundWrapperApp = true;
             }
         }
         Assertions.assertTrue(foundApp, () -> "The dashboard does not contain expected application: " + GRADLE_APP_NAME);
+        Assertions.assertTrue(foundWrapperApp, () -> "The dashboard does not contain expected application: " + GRADLE_WRAPPER_APP_NAME);
 
         // Check that the menu for the expected application contains the required actions.
         List<String> menuItems = getDashboardItemMenuActions(GRADLE_APP_NAME);
