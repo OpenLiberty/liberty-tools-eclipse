@@ -12,6 +12,8 @@
  *******************************************************************************/
 package io.openliberty.tools.eclipse.test.it.utils;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.lang.ref.Reference;
@@ -947,6 +949,9 @@ public class MagicWidgetFinder {
         return find(name, neighbour, Option.getGlobalOptions());
     }
 
+
+    private static int fCnt=0;
+
     public static Object find(final String name, final Object neighbour, final Option options) {
         final List<Node> matches = new ArrayList<Node>();
 
@@ -983,24 +988,28 @@ public class MagicWidgetFinder {
                         e.printStackTrace();
                     }
 
-                    // if(name.equals("New")) {
-                    // try {
-                    // FileOutputStream fos = new FileOutputStream(new File("d:\\delme\\JGWTest.log"));
-                    // debugDumpNodes(parent, 0, fos);
-                    // fos.close();
-                    // } catch(Exception e) {
-                    // e.printStackTrace();
-                    // }
-                    // }
-
-                    // breadthFirstSearch(parent, name, matches, neighbour instanceof Control ? ((Control)neighbour).getShell() : null ,
-                    // options);
-
+                    if(name.equals("Start parameters:")) {
+                        try {
+                            FileOutputStream fos = new FileOutputStream(new File("MWFout." + fCnt++ + ".log"));
+                            debugDumpNodes(parent, 0, fos);
+                            fos.close();
+                        } catch(Exception e) {
+                            e.printStackTrace();
+                        }
+                    }
                 }
             });
 
             if (matches.size() == 0) {
-                logErr("[find] * " + name + " not found.", options);
+                logErr("Dump to MWFout - [find] * " + name + " not found.", options);
+
+                try {
+                    FileOutputStream fos = new FileOutputStream(new File("MWFerr." + fCnt++ + ".log"));
+                    debugDumpNodes(parent, 0, fos);
+                    fos.close();
+                } catch(Exception e) {
+                    e.printStackTrace();
+                }
 
                 try {
                     TimeUnit.SECONDS.sleep(2);

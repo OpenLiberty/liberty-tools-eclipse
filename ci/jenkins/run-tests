@@ -13,8 +13,8 @@ pipeline {
             steps {
                 dir('liberty-tools-eclipse') {
                     // Clone git repo
-                    git branch: 'main',
-                        url: 'https://github.com/OpenLiberty/liberty-tools-eclipse.git'
+                    git branch: 'mwf-custom-config',
+                        url: 'https://github.com/scottkurz/liberty-tools-eclipse.git'
                 }
             }
         }
@@ -50,6 +50,8 @@ pipeline {
                         } finally {
                             sh "cd tests/target/surefire-reports && zip -r 2Q2023-test-reports.zip ."
                             archiveArtifacts artifacts: 'tests/target/surefire-reports/2Q2023-test-reports.zip', fingerprint: true
+                            archiveArtifacts artifacts: 'tests/MWF*.log', fingerprint: false
+
                         }
                     }
                 }
