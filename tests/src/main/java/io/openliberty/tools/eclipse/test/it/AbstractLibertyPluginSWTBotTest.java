@@ -126,14 +126,25 @@ public abstract class AbstractLibertyPluginSWTBotTest {
 
         // Get the list of projects to install.
         MavenModelManager modelManager = MavenPlugin.getMavenModelManager();
-        LocalProjectScanner lps = new LocalProjectScanner(folders, false, modelManager);
-        lps.run(new NullProgressMonitor());
-        List<MavenProjectInfo> projects = lps.getProjects();
+        
+        for (String folder : folders) {
+            ArrayList<String> folderList = new ArrayList<String>();
+            folderList.add(folder);
 
-        // Import the projects.
-        ProjectImportConfiguration projectImportConfig = new ProjectImportConfiguration();
-        IProjectConfigurationManager projectConfigurationManager = MavenPlugin.getProjectConfigurationManager();
-        projectConfigurationManager.importProjects(projects, projectImportConfig, new NullProgressMonitor());
+            LocalProjectScanner lps = new LocalProjectScanner(folderList, false, modelManager);
+            lps.run(new NullProgressMonitor());
+            List<MavenProjectInfo> projects = lps.getProjects();
+
+            try {
+                // Import the projects.
+                ProjectImportConfiguration projectImportConfig = new ProjectImportConfiguration();
+                IProjectConfigurationManager projectConfigurationManager = MavenPlugin.getProjectConfigurationManager();
+                projectConfigurationManager.importProjects(projects, projectImportConfig, new NullProgressMonitor());
+            } catch (Exception e) {
+                System.out.println("Exception in importMavenProjects importing project = " + folder);
+                e.printStackTrace();
+            }
+        }
     }
 
     /**
