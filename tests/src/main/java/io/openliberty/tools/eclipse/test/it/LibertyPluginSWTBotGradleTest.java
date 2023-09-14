@@ -134,7 +134,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
      * @throws InterruptedException
      */
     @BeforeAll
-    public static void setup() {
+    public static void setup() throws Exception {
 
         commonSetup();
 

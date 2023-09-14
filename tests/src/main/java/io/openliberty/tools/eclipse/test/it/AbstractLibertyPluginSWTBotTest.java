@@ -122,29 +122,18 @@ public abstract class AbstractLibertyPluginSWTBotTest {
      * @throws InterruptedException
      * @throws CoreException
      */
-    public static void importMavenProjects(File workspaceRoot, List<String> folders) {
+    public static void importMavenProjects(File workspaceRoot, List<String> folders) throws Exception {
 
-        Display.getDefault().syncExec(new Runnable() {
+        // Get the list of projects to install.
+        MavenModelManager modelManager = MavenPlugin.getMavenModelManager();
+        LocalProjectScanner lps = new LocalProjectScanner(folders, false, modelManager);
+        lps.run(new NullProgressMonitor());
+        List<MavenProjectInfo> projects = lps.getProjects();
 
-            @Override
-            public void run() {
-                try {
-                    // Get the list of projects to install.
-                    MavenModelManager modelManager = MavenPlugin.getMavenModelManager();
-                    LocalProjectScanner lps = new LocalProjectScanner(folders, false, modelManager);
-                    lps.run(new NullProgressMonitor());
-                    List<MavenProjectInfo> projects = lps.getProjects();
-
-                    // Import the projects.
-                    ProjectImportConfiguration projectImportConfig = new ProjectImportConfiguration();
-                    IProjectConfigurationManager projectConfigurationManager = MavenPlugin.getProjectConfigurationManager();
-                    projectConfigurationManager.importProjects(projects, projectImportConfig, new NullProgressMonitor());
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-
-        });
+        // Import the projects.
+        ProjectImportConfiguration projectImportConfig = new ProjectImportConfiguration();
+        IProjectConfigurationManager projectConfigurationManager = MavenPlugin.getProjectConfigurationManager();
+        projectConfigurationManager.importProjects(projects, projectImportConfig, new NullProgressMonitor());
     }
 
     /**
@@ -155,26 +144,16 @@ public abstract class AbstractLibertyPluginSWTBotTest {
      * @throws InterruptedException
      * @throws CoreException
      */
-    public static void importGradleApplications(ArrayList<File> projectsToInstall) {
-        Display.getDefault().syncExec(new Runnable() {
+    public static void importGradleApplications(ArrayList<File> projectsToInstall) throws Exception {
 
-            @Override
-            public void run() {
-                try {
-                    for (File projectFile : projectsToInstall) {
-                        IPath projectLocation = org.eclipse.core.runtime.Path
-                                .fromOSString(Paths.get(projectFile.getPath()).toAbsolutePath().toString());
-                        BuildConfiguration configuration = BuildConfiguration.forRootProjectDirectory(projectLocation.toFile()).build();
-                        GradleWorkspace workspace = GradleCore.getWorkspace();
-                        GradleBuild newBuild = workspace.createBuild(configuration);
-                        newBuild.synchronize(new NullProgressMonitor());
-                    }
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-
-        });
+        for (File projectFile : projectsToInstall) {
+            IPath projectLocation = org.eclipse.core.runtime.Path
+                    .fromOSString(Paths.get(projectFile.getPath()).toAbsolutePath().toString());
+            BuildConfiguration configuration = BuildConfiguration.forRootProjectDirectory(projectLocation.toFile()).build();
+            GradleWorkspace workspace = GradleCore.getWorkspace();
+            GradleBuild newBuild = workspace.createBuild(configuration);
+            newBuild.synchronize(new NullProgressMonitor());
+        }
     }
 
     /**
