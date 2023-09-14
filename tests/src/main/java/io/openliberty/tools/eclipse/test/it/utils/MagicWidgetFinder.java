@@ -1682,6 +1682,16 @@ public class MagicWidgetFinder {
                 System.err.println("* null value added to queue.");
                 return;
             }
+            if (obj.obj instanceof Label) {
+                Label l = (Label)obj.obj;
+                if (l.getText().contains("arameter")) {
+                    System.out.println("SKSK: adding " + obj.obj + ", with text = " + l.getText() + " with display = " + l.getDisplay());
+                    System.out.println("SKSK: from parent = " + obj.parent);
+                    System.out.println("SKSK: -- beg dump stack --");
+                    Thread.dumpStack();
+                    System.out.println("SKSK: -- end dump stack --");                    
+                }
+            }
             queue.offer(obj);
         }
 
