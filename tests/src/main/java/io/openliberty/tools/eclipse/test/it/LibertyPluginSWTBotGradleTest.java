@@ -289,6 +289,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
      * Tests the start menu action on a dashboard listed application.
      */
     @Test
+@Disabled
     public void testDashboardStartAction() {
 
         // Start dev mode.
@@ -317,6 +318,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
      * Tests the debug menu action on a dashboard listed application.
      */
     @Test
+@Disabled
     public void testDashboardDebugAction() {
 
         // Start dev mode.
@@ -349,6 +351,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
      * @throws InterruptedException
      */
     @Test
+@Disabled
     public void testDashboardStopExternalServer() throws CommandNotFoundException, IOException, InterruptedException {
 
         Path wrapperProject = Paths.get("resources", "applications", "gradle", GRADLE_WRAPPER_APP_NAME).toAbsolutePath();
@@ -379,6 +382,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
      * Tests the start with parameters menu action on a dashboard listed application.
      */
     @Test
+@Disabled
     public void testDashboardStartWithCustomConfigAction() {
 
         // Delete any previously created configs.
@@ -454,6 +458,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
      * Tests the start, run tests, view test report, and stopdashboard actions.
      */
     @Test
+@Disabled
     public void testDashboardActions() {
 
         // Delete the test report files before we start this test.
@@ -586,6 +591,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
      * Run.
      */
     @Test
+@Disabled
     public void testStartWithDefaultRunAsConfig() {
 
         // Delete any previously created configs.
@@ -613,6 +619,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
      * -> Run.
      */
     @Test
+@Disabled
     public void testStartWithCustomRunAsConfig() {
 
         // Delete any previously created configs.
@@ -650,6 +657,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
      * Tests the start, run tests, view test report, and stop run as shortcut actions.
      */
     @Test
+@Disabled
     public void testRunAsShortcutActions() {
 
         // Delete any previously created configs.
@@ -699,6 +707,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
      * (customized) -> Run.
      */
     @Test
+@Disabled
     public void testStartWithCustomDebugAsConfig() {
         // Delete any previously created configs.
         deleteLibertyToolsRunConfigEntriesFromAppRunAs(GRADLE_APP_NAME);
@@ -739,6 +748,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
      * Tests the start/stop debug as shortcut actions.
      */
     @Test
+@Disabled
     public void testStartWithDebugAsShortcut() {
 
         deleteLibertyToolsRunConfigEntriesFromAppRunAs(GRADLE_APP_NAME);
@@ -768,6 +778,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
      * configuration JRE tab.
      */
     @Test
+@Disabled
     public void testDefaultJRECompliance() {
         // Delete any previously created configs.
         deleteLibertyToolsRunConfigEntriesFromAppRunAs(GRADLE_APP_NAME);

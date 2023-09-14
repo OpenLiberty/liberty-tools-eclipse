@@ -40,6 +40,7 @@
                     <trimStackTrace>false</trimStackTrace>
                     <runOrder>alphabetical</runOrder>
                     <systemProperties>
+                        <video.screen.size>1024x768</video.screen.size>
                         <org.eclipse.swtbot.search.timeout>20000</org.eclipse.swtbot.search.timeout>
                         <io.liberty.tools.eclipse.tests.mvnexecutable.path>${mvnPath}</io.liberty.tools.eclipse.tests.mvnexecutable.path>
                         <io.liberty.tools.eclipse.tests.app.import.wait>${testAppImportWait}</io.liberty.tools.eclipse.tests.app.import.wait>
