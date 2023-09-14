@@ -142,7 +142,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
      * Setup.
      */
     @BeforeAll
-    public static void setup() {
+    public static void setup() throws Exception {
 
         commonSetup();
 
