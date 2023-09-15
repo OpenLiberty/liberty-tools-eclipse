@@ -15,6 +15,7 @@ package io.openliberty.tools.eclipse.test.it;
 import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.context;
 import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.go;
 import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.goGlobal;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.deleteLibertyToolsDebugConfigEntriesFromMenu;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.deleteLibertyToolsRunConfigEntriesFromAppRunAs;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.enableLibertyTools;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getAppDebugAsMenu;
@@ -78,7 +79,7 @@ import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLaunche
 /**
  * Tests Open Liberty Eclipse plugin functions.
  */
-public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTest {
+public class AALibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTest {
 
     /**
      * Application name.
@@ -471,7 +472,9 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
     public void testDashboardDebugWithCustomConfigAction() {
 
         // Delete any previously created configs.
+        // Be extra sloppy -DELTE ME
         deleteLibertyToolsRunConfigEntriesFromAppRunAs(MVN_APP_NAME);
+        //deleteLibertyToolsDebugConfigEntriesFromMenu();
 
         // Delete the test report files before we start this test.
         Path pathToITReport = Paths.get(projectPath.toString(), "target", "site", "failsafe-report.html");
