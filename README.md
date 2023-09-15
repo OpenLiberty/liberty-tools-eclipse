@@ -101,3 +101,4 @@ Our [CONTRIBUTING](CONTRIBUTING.md) document contains details for setting up you
 
 Please report bugs, issues and feature requests by creating
 a [GitHub issue](https://github.com/OpenLiberty/liberty-tools-eclipse/issues)
+
