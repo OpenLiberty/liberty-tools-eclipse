@@ -27,7 +27,10 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.debug.core.ILaunchConfiguration;
+import org.eclipse.debug.core.ILaunchConfigurationType;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Control;
@@ -40,6 +43,7 @@ import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotEditor;
@@ -536,7 +540,24 @@ public class SWTBotPluginOperations {
     	
         Object libertyConfigTree = getLibertyTreeItem(shell); 
 
-        Object appConfigEntry = find(runDebugConfigName, libertyConfigTree, Option.factory().useContains(true).widgetClass(TreeItem.class).build());
+        TreeItem appConfigEntry = (TreeItem)find(runDebugConfigName, libertyConfigTree, Option.factory().useContains(true).widgetClass(TreeItem.class).build());
+        
+        Display.getDefault().syncExec(new Runnable() {
+            @Override
+            public void run() {
+                System.out.println("SKSK: In setCustomStartParmsFromShell, -----------------------");
+                System.out.println("SKSK: In setCustomStartParmsFromShell, found appConfigEntry = " + appConfigEntry);
+                try {
+                    Object ct = ((ILaunchConfiguration) appConfigEntry.getData()).getType().getDelegate("debug");
+                    System.out.println("SKSK: In setCustomStartParmsFromShell, found appConfigEntry delegate = " + ct);
+                } catch (CoreException e) {
+                    // TODO Auto-generated catch block
+                    e.printStackTrace();
+                }
+               System.out.println("SKSK: In setCustomStartParmsFromShell, -----------------------");
+            }
+        });
+
         go(appConfigEntry);
         Object parmLabel = find("Start parameters:", appConfigEntry, Option.factory().widgetClass(Label.class).build());
 
