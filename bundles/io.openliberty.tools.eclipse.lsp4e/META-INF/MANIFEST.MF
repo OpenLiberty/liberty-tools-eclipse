@@ -1,5 +1,5 @@
 Manifest-Version: 1.0
-Bundle-Copyright: Copyright (c) 2022 IBM Corporation and others.
+Bundle-Copyright: Copyright (c) 2022, 2023 IBM Corporation and others.
 Bundle-ManifestVersion: 2
 Bundle-Name: Liberty Tools Support for Language Servers
 Bundle-Vendor: Open Liberty
@@ -23,7 +23,7 @@ Require-Bundle: com.google.gson,
  org.eclipse.jdt,
  org.eclipse.jdt.core,
  org.eclipse.jdt.ui,
- org.eclipse.jdt.ls.core,
+ org.eclipse.jdt.ls.core;resolution:=optional,
  org.eclipse.ui.workbench
 Bundle-ClassPath: .,
  server/mp-langserver/org.eclipse.lsp4mp.ls.jar,
