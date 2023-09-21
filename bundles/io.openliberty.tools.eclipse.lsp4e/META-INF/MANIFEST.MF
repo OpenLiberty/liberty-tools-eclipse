@@ -23,7 +23,7 @@ Require-Bundle: com.google.gson,
  org.eclipse.jdt,
  org.eclipse.jdt.core,
  org.eclipse.jdt.ui,
- org.eclipse.jdt.ls.core;resolution:=optional,
+ org.eclipse.jdt.ls.core,
  org.eclipse.ui.workbench
 Bundle-ClassPath: .,
  server/mp-langserver/org.eclipse.lsp4mp.ls.jar,
