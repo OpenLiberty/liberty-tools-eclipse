@@ -21,16 +21,11 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IStatus;
@@ -44,31 +39,31 @@ public class JakartaLSConnection extends ProcessStreamConnectionProvider {
 
     public JakartaLSConnection() {
 
-      List<String> commands = new ArrayList<>();
-      commands.add(computeJavaPath());
-      String debugPortString = System.getProperty(getClass().getName() + ".debugPort");
-      if (debugPortString != null) {
-          commands.add("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=" + debugPortString);
-      }
-      commands.add("-classpath");
-      try {
-          commands.add(computeClasspath());
+        List<String> commands = new ArrayList<>();
+        commands.add(computeJavaPath());
+        String debugPortString = System.getProperty(getClass().getName() + ".debugPort");
+        if (debugPortString != null) {
+            commands.add("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=" + debugPortString);
+        }
+        commands.add("-classpath");
+        try {
+            commands.add(computeClasspath());
 
-          // set current locale to LS JVM
-          // probably don't need this when locale is set to system
-          Locale currentLocale = Locale.getDefault();
-          commands.add("-Duser.language=" + currentLocale.getLanguage());
-          commands.add("-Duser.country=" + currentLocale.getCountry());
+            // set current locale to LS JVM
+            // probably don't need this when locale is set to system
+            Locale currentLocale = Locale.getDefault();
+            commands.add("-Duser.language=" + currentLocale.getLanguage());
+            commands.add("-Duser.country=" + currentLocale.getCountry());
 
-          commands.add("org.eclipse.lsp4jakarta.JakartaLanguageServerLauncher");
-          setCommands(commands);
-          setWorkingDirectory(System.getProperty("user.dir"));
-      } catch (IOException e) {
-          LibertyToolsLSPlugin.getDefault().getLog().log(
-                  new Status(IStatus.ERROR, LibertyToolsLSPlugin.getDefault().getBundle().getSymbolicName(), e.getMessage(), e));
-      }
+            commands.add("org.eclipse.lsp4jakarta.ls.JakartaLanguageServerLauncher");
+            setCommands(commands);
+            setWorkingDirectory(System.getProperty("user.dir"));
+        } catch (IOException e) {
+            LibertyToolsLSPlugin.getDefault().getLog()
+                    .log(new Status(IStatus.ERROR, LibertyToolsLSPlugin.getDefault().getBundle().getSymbolicName(), e.getMessage(), e));
+        }
+    }
 
-  }
     private String computeClasspath() throws IOException {
         StringBuilder builder = new StringBuilder();
         URL url = FileLocator.toFileURL(getClass().getResource("/server/jakarta-langserver/org.eclipse.lsp4jakarta.ls.jar"));
@@ -77,8 +72,7 @@ public class JakartaLSConnection extends ProcessStreamConnectionProvider {
     }
 
     private String computeJavaPath() {
-        File f = new File(System.getProperty("java.home"),
-                "bin/java" + (Platform.getOS().equals(Platform.OS_WIN32) ? ".exe" : ""));
+        File f = new File(System.getProperty("java.home"), "bin/java" + (Platform.getOS().equals(Platform.OS_WIN32) ? ".exe" : ""));
         return f.getAbsolutePath();
     }
 
