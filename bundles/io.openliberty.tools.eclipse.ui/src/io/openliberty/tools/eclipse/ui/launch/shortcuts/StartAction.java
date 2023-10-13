@@ -106,7 +106,7 @@ public class StartAction implements ILaunchShortcut {
 
         // Determine what configuration to use.
         LaunchConfigurationHelper launchConfigHelper = LaunchConfigurationHelper.getInstance();
-        ILaunchConfiguration configuration = launchConfigHelper.getLaunchConfiguration(iProject, mode, RuntimeEnv.UNKNOWN);
+        ILaunchConfiguration configuration = launchConfigHelper.getLaunchConfiguration(iProject, mode, RuntimeEnv.LOCAL);
 
         DebugUITools.launch(configuration, mode);
     }
