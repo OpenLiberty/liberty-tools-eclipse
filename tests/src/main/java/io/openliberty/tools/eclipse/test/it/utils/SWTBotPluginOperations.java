@@ -48,6 +48,7 @@ import org.eclipse.swtbot.swt.finder.SWTBot;
 import org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory;
 import org.eclipse.swtbot.swt.finder.utils.SWTUtils;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotCTabItem;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotCheckBox;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotCombo;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotMenu;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotRootMenu;
@@ -550,6 +551,19 @@ public class SWTBotPluginOperations {
 
         Control parmText = ControlFinder.findControlInRange(parmLabel, Text.class, Direction.EAST);
         set(parmText, customParms);
+    }
+
+    public static void checkRunInContainerCheckBox(Shell shell, String runDebugConfigName) {
+
+        Object libertyConfigTree = getLibertyTreeItem(shell);
+
+        Object appConfigEntry = find(runDebugConfigName, libertyConfigTree,
+                Option.factory().useContains(true).widgetClass(TreeItem.class).build());
+        go(appConfigEntry);
+        Object parmLabel = find("Run in container", appConfigEntry, Option.factory().widgetClass(Label.class).build());
+
+        Control checkBox = ControlFinder.findControlInRange(parmLabel, SWTBotCheckBox.class, Direction.WEST);
+        go(checkBox);
     }
 
     public static Object getAppInPackageExplorerTree(String appName) {

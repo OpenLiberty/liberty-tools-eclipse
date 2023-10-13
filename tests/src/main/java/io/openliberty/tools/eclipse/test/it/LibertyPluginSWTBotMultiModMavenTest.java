@@ -67,6 +67,11 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
     static final String MVN_APP_NAME = "guide-maven-multimodules-pom";
 
     /**
+     * Parent name.
+     */
+    static final String MVN_PARENT_NAME = "guide-maven-multimodules";
+
+    /**
      * Jar sub-module name.
      */
     static final String MVN_JAR_NAME = "guide-maven-multimodules-jar";
@@ -295,11 +300,12 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
      * Tests that the correct dependency projects are added to the debug source lookup list
      */
     @Test
-    public void testDebugSourceLookupContent() {
+    public void testDebugSourceLookupContentSiblingModule() {
 
-        Shell configShell = launchDebugConfigurationsDialogFromAppRunAs(MVN_WAR_NAME);
+        Shell configShell = launchDebugConfigurationsDialogFromAppRunAs(MVN_APP_NAME);
 
-        boolean entryFound = false;
+        boolean jarEntryFound = false;
+        boolean warEntryFound = false;
 
         try {
             Object libertyConfigTree = getLibertyTreeItemNoBot(configShell);
@@ -312,19 +318,28 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
 
             try {
                 defaultSourceLookupTree.getNode(MVN_JAR_NAME);
-                entryFound = true;
+                jarEntryFound = true;
             } catch (WidgetNotFoundException wnfe) {
                 // Jar project was not found in source lookup list.
             }
 
+            // Lookup war project
+            try {
+                defaultSourceLookupTree.getNode(MVN_WAR_NAME);
+                warEntryFound = true;
+            } catch (WidgetNotFoundException wnfe) {
+                // War project was not found in source lookup list.
+            }
+
         } finally {
             go("Close", configShell);
-            deleteLibertyToolsRunConfigEntriesFromAppRunAs(MVN_WAR_NAME);
         }
 
-        // Validate dependency project is in source lookup list
-        Assertions.assertTrue(entryFound,
-                "The " + MVN_JAR_NAME + " project was not listed in the source lookup list for project " + MVN_WAR_NAME);
+        // Validate dependency projects are in source lookup list
+        Assertions.assertTrue(jarEntryFound,
+                "The sibling module project, " + MVN_JAR_NAME + ", was not listed in the source lookup list for project " + MVN_APP_NAME);
+        Assertions.assertTrue(warEntryFound,
+                "The sibling module project, " + MVN_WAR_NAME + ", was not listed in the source lookup list for project " + MVN_APP_NAME);
 
     }
 
@@ -334,7 +349,7 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
     @Test
     public void testDebugSourceLookupContentParentModule() {
 
-        Shell configShell = launchDebugConfigurationsDialogFromAppRunAs(MVN_APP_NAME);
+        Shell configShell = launchDebugConfigurationsDialogFromAppRunAs(MVN_PARENT_NAME);
 
         boolean jarEntryFound = false;
         boolean warEntryFound = false;
@@ -370,9 +385,9 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
 
         // Validate dependency projects are in source lookup list
         Assertions.assertTrue(jarEntryFound,
-                "The child module projects, " + MVN_JAR_NAME + ", was not listed in the source lookup list for project " + MVN_APP_NAME);
+                "The child module project, " + MVN_JAR_NAME + ", was not listed in the source lookup list for project " + MVN_PARENT_NAME);
         Assertions.assertTrue(warEntryFound,
-                "The child module projects, " + MVN_WAR_NAME + ", was not listed in the source lookup list for project " + MVN_APP_NAME);
+                "The child module project, " + MVN_WAR_NAME + ", was not listed in the source lookup list for project " + MVN_PARENT_NAME);
 
     }
 }

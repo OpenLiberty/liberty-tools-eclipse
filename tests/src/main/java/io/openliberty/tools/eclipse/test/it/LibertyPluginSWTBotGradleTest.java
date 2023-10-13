@@ -22,6 +22,7 @@ import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getComboTextBoxWithTextPrefix;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getDashboardContent;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getDashboardItemMenuActions;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getDefaultSourceLookupTreeItemNoBot;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getLibertyTreeItem;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getLibertyTreeItemNoBot;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchCustomDebugFromDashboard;
@@ -38,6 +39,7 @@ import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchStopWithRunAsShortcut;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchViewTestReportWithRunDebugAsShortcut;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.openJRETab;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.openSourceTab;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.refreshDashboard;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.refreshProjectUsingExplorerView;
@@ -55,10 +57,13 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.launching.JavaRuntime;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotView;
+import org.eclipse.swtbot.swt.finder.exceptions.WidgetNotFoundException;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotCombo;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotMenu;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
@@ -97,10 +102,17 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
      */
     static final String GRADLE_WRAPPER_APP_NAME = "liberty-gradle-test-wrapper-app";
 
+    /**
+     * Shared lib jar project name.
+     */
+    static final String MVN_SHARED_LIB_NAME = "test-shared-lib-jar";
+
     static String testAppPath;
     static String testWrapperAppPath;
 
     static ArrayList<File> projectsToInstall = new ArrayList<File>();
+
+    static ArrayList<String> mavenProjectToInstall = new ArrayList<String>();
 
     /**
      * Expected menu items.
@@ -151,6 +163,14 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
 
         importGradleApplications(projectsToInstall);
 
+        // Install Maven shared lib project
+        Path sharedLibProjectPath = Paths.get("resources", "applications", "maven", "test-shared-lib-jar");
+        mavenProjectToInstall.add(sharedLibProjectPath.toString());
+        for (String p : mavenProjectToInstall) {
+            cleanupProject(p);
+        }
+        importMavenProjects(ResourcesPlugin.getWorkspace().getRoot().getLocation().toFile(), mavenProjectToInstall);
+
         // Check basic plugin artifacts are functioning before running tests.
         validateBeforeTestRun();
 
@@ -165,6 +185,11 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         for (File p : projectsToInstall) {
             cleanupProject(p.toString());
         }
+
+        for (String p : mavenProjectToInstall) {
+            cleanupProject(p);
+        }
+
         unsetBuildCmdPathInPreferences(bot, "Gradle");
     }
 
@@ -183,7 +208,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
     public static final void validateBeforeTestRun() {
 
         // Though supposedly we use blocking methods to do the import, it seems Eclipse has the ability to break out of a deadlock
-        // by interrupting our thread, and we also seem to be causing one due to changing compiler settings.  Since we haven't debugged
+        // by interrupting our thread, and we also seem to be causing one due to changing compiler settings. Since we haven't debugged
         // the latter, we'll introduce this wait.
         try {
             Thread.sleep(Integer.parseInt(System.getProperty("io.liberty.tools.eclipse.tests.app.import.wait", "0")));
@@ -793,5 +818,46 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
             go("Apply", configShell);
             go("Close", configShell);
         }
+    }
+
+    /**
+     * Tests that the correct dependency projects are added to the debug source lookup list
+     * NOTE: At the moment we only support Maven dependency projects which is why we are
+     * using a Maven jar project to test
+     */
+    @Test
+    public void testDebugSourceLookupContent() {
+
+        Shell configShell = launchDebugConfigurationsDialogFromAppRunAs(GRADLE_APP_NAME);
+
+        boolean jarEntryFound = false;
+
+        try {
+            Object libertyConfigTree = getLibertyTreeItemNoBot(configShell);
+
+            context(libertyConfigTree, "New Configuration");
+
+            openSourceTab(bot);
+
+            SWTBotTreeItem defaultSourceLookupTree = new SWTBotTreeItem((TreeItem) getDefaultSourceLookupTreeItemNoBot(configShell));
+
+            // Lookup test-shared-lib-jar project
+            try {
+                defaultSourceLookupTree.getNode(MVN_SHARED_LIB_NAME);
+                jarEntryFound = true;
+            } catch (WidgetNotFoundException wnfe) {
+                // Jar project was not found in source lookup list.
+            }
+
+        } finally {
+            go("Close", configShell);
+            deleteLibertyToolsRunConfigEntriesFromAppRunAs(GRADLE_APP_NAME);
+        }
+
+        // Validate dependency projects are in source lookup list
+        Assertions.assertTrue(jarEntryFound,
+                "The dependency project, " + MVN_SHARED_LIB_NAME + ", was not listed in the source lookup list for project "
+                        + GRADLE_APP_NAME);
+
     }
 }
