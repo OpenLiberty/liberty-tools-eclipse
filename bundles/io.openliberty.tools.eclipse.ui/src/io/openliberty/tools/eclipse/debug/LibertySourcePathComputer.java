@@ -193,7 +193,7 @@ public class LibertySourcePathComputer implements ISourcePathComputerDelegate {
         // If the project is a java project, get classpath entries for runtime dependencies
         if (project.isNatureEnabled(JavaCore.NATURE_ID)) {
             List<IRuntimeClasspathEntry> runtimeDependencies = Arrays
-                    .asList(JavaRuntime.computeUnresolvedRuntimeDependencies(JavaCore.create(project)));
+                    .asList(JavaRuntime.computeUnresolvedRuntimeClasspath(JavaCore.create(project)));
             for (IRuntimeClasspathEntry runtimeDependency : runtimeDependencies) {
                 if (!unresolvedClasspathEntries.contains(runtimeDependency)) {
                     unresolvedClasspathEntries.add(runtimeDependency);

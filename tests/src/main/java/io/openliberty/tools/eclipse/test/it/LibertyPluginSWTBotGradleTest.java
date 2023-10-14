@@ -45,9 +45,12 @@ import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.refreshProjectUsingExplorerView;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.setBuildCmdPathInPreferences;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.unsetBuildCmdPathInPreferences;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -105,7 +108,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
     /**
      * Shared lib jar project name.
      */
-    static final String MVN_SHARED_LIB_NAME = "test-shared-lib-jar";
+    static final String MVN_SHARED_LIB_NAME = "shared-lib";
 
     static String testAppPath;
     static String testWrapperAppPath;
@@ -142,6 +145,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
     /**
      * Setup.
      * 
+     * @throws IOException
      * @throws CoreException
      * @throws InterruptedException
      */
@@ -170,6 +174,19 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
             cleanupProject(p);
         }
         importMavenProjects(ResourcesPlugin.getWorkspace().getRoot().getLocation().toFile(), mavenProjectToInstall);
+
+        // Build shared lib project
+        Process process = new ProcessBuilder("mvn", "clean", "install").directory(sharedLibProjectPath.toFile()).start();
+
+        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+
+        String line;
+        while ((line = reader.readLine()) != null) {
+            System.out.println(line);
+        }
+
+        int exitCode = process.waitFor();
+        assertEquals(0, exitCode, "Building of shared lib jar project failed with RC " + exitCode);
 
         // Check basic plugin artifacts are functioning before running tests.
         validateBeforeTestRun();
@@ -827,6 +844,8 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
      */
     @Test
     public void testDebugSourceLookupContent() {
+
+        deleteLibertyToolsRunConfigEntriesFromAppRunAs(GRADLE_APP_NAME);
 
         Shell configShell = launchDebugConfigurationsDialogFromAppRunAs(GRADLE_APP_NAME);
 

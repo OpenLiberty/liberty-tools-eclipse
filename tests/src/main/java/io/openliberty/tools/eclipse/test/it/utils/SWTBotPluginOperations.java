@@ -29,6 +29,7 @@ import java.util.List;
 
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
@@ -48,7 +49,6 @@ import org.eclipse.swtbot.swt.finder.SWTBot;
 import org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory;
 import org.eclipse.swtbot.swt.finder.utils.SWTUtils;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotCTabItem;
-import org.eclipse.swtbot.swt.finder.widgets.SWTBotCheckBox;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotCombo;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotMenu;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotRootMenu;
@@ -560,10 +560,9 @@ public class SWTBotPluginOperations {
         Object appConfigEntry = find(runDebugConfigName, libertyConfigTree,
                 Option.factory().useContains(true).widgetClass(TreeItem.class).build());
         go(appConfigEntry);
-        Object parmLabel = find("Run in container", appConfigEntry, Option.factory().widgetClass(Label.class).build());
+        Object button = find("Run in Container", appConfigEntry, Option.factory().widgetClass(Button.class).build());
 
-        Control checkBox = ControlFinder.findControlInRange(parmLabel, SWTBotCheckBox.class, Direction.WEST);
-        go(checkBox);
+        go(button);
     }
 
     public static Object getAppInPackageExplorerTree(String appName) {
