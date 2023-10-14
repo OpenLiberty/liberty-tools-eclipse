@@ -13,10 +13,7 @@ Export-Package: io.openliberty.tools.eclipse;x-friends:="io.openliberty.tools.ec
  io.openliberty.tools.eclipse.ui.launch.shortcuts;x-friends:="io.openliberty.tools.eclipse.tests",
  io.openliberty.tools.eclipse.ui.preferences;x-friends:="io.openliberty.tools.eclipse.tests"
 Require-Bundle: org.eclipse.ui,
- org.eclipse.equinox.preferences,
- org.eclipse.swt,
- org.eclipse.m2e.maven.runtime,
- org.eclipse.m2e.core
+ org.eclipse.m2e.maven.runtime
 Bundle-RequiredExecutionEnvironment: JavaSE-17
 Automatic-Module-Name: io.openliberty.tools.eclipse.ui
 Bundle-ActivationPolicy: lazy
@@ -25,6 +22,7 @@ Import-Package: org.eclipse.core.commands,
  org.eclipse.core.resources,
  org.eclipse.core.runtime,
  org.eclipse.core.runtime.jobs,
+ org.eclipse.core.runtime.preferences,
  org.eclipse.debug.core,
  org.eclipse.debug.core.model,
  org.eclipse.debug.core.sourcelookup,
@@ -38,6 +36,7 @@ Import-Package: org.eclipse.core.commands,
  org.eclipse.jdt.launching.sourcelookup.containers,
  org.eclipse.jem.util.emf.workbench,
  org.eclipse.m2e.core,
+ org.eclipse.m2e.core.embedder,
  org.eclipse.m2e.core.project,
  org.eclipse.osgi.service.debug,
  org.eclipse.osgi.util,
@@ -51,9 +50,6 @@ Import-Package: org.eclipse.core.commands,
  org.eclipse.tm.terminal.view.ui.launcher,
  org.eclipse.tm.terminal.view.ui.manager,
  org.eclipse.tm.terminal.view.ui.tabs,
- org.eclipse.ui,
- org.eclipse.ui.handlers,
- org.eclipse.ui.plugin,
  org.gradle.tooling,
  org.gradle.tooling.model,
  org.gradle.tooling.model.eclipse,
