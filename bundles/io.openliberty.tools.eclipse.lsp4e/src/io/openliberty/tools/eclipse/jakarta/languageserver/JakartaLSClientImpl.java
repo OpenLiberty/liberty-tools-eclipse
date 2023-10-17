@@ -42,6 +42,10 @@ import org.eclipse.lsp4jakarta.jdt.core.ProjectLabelManager;
 import org.eclipse.lsp4jakarta.jdt.core.PropertiesManagerForJava;
 import org.eclipse.lsp4jakarta.jdt.internal.core.ls.JDTUtilsLSImpl;
 import org.eclipse.lsp4jakarta.ls.api.JakartaLanguageClientAPI;
+import org.eclipse.lsp4jakarta.commons.codeaction.CodeActionResolveData;
+import org.eclipse.lsp4jakarta.commons.utils.JSONUtility;
+
+import io.openliberty.tools.eclipse.ls.plugin.LibertyToolsLSPlugin;
 
 /**
  * Liberty Devex MicroProfile language client.
@@ -78,6 +82,7 @@ public class JakartaLSClientImpl extends LanguageClientImpl implements JakartaLa
                         JDTUtilsLSImpl.getInstance(), monitor);
                 return new JakartaJavaCompletionResult(completionList, javaCursorContext);
             } catch (JavaModelException e) {
+                LibertyToolsLSPlugin.logException(e.getLocalizedMessage(), e);
                 return null;
             }
         });
@@ -124,6 +129,7 @@ public class JakartaLSClientImpl extends LanguageClientImpl implements JakartaLa
             try {
                 return PropertiesManagerForJava.getInstance().diagnostics(javaParams, JDTUtilsLSImpl.getInstance(), monitor);
             } catch (JavaModelException e) {
+                LibertyToolsLSPlugin.logException(e.getLocalizedMessage(), e);
                 return Collections.emptyList();
             }
         });
@@ -141,6 +147,7 @@ public class JakartaLSClientImpl extends LanguageClientImpl implements JakartaLa
                 return (List<CodeAction>) PropertiesManagerForJava.getInstance().codeAction(javaParams, JDTUtilsLSImpl.getInstance(),
                         monitor);
             } catch (JavaModelException e) {
+                LibertyToolsLSPlugin.logException(e.getLocalizedMessage(), e);
                 return Collections.emptyList();
             }
         });
@@ -154,9 +161,12 @@ public class JakartaLSClientImpl extends LanguageClientImpl implements JakartaLa
         return CompletableFutures.computeAsync((cancelChecker) -> {
             IProgressMonitor monitor = getProgressMonitor(cancelChecker);
             try {
+                CodeActionResolveData resolveData = JSONUtility.toModel(unresolved.getData(), CodeActionResolveData.class);
+                unresolved.setData(resolveData);
                 return (CodeAction) PropertiesManagerForJava.getInstance().resolveCodeAction(unresolved, JDTUtilsLSImpl.getInstance(),
                         monitor);
             } catch (JavaModelException e) {
+                LibertyToolsLSPlugin.logException(e.getLocalizedMessage(), e);
                 return null;
             }
         });
