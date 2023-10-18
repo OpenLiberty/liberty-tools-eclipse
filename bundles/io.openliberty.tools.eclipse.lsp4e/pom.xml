@@ -27,7 +27,7 @@
     <properties>
         <liberty.ls.version>2.1-SNAPSHOT</liberty.ls.version>
         <jakarta.ls.version>0.2.0-SNAPSHOT</jakarta.ls.version>
-        <mp.ls.version>0.7.0</mp.ls.version>
+        <mp.ls.version>0.10.0</mp.ls.version>
     </properties>
 
     <artifactId>io.openliberty.tools.eclipse.lsp4e</artifactId>
