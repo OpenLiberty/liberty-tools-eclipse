@@ -15,6 +15,7 @@ package io.openliberty.tools.eclipse.ui.launch;
 import org.eclipse.debug.ui.AbstractLaunchConfigurationTabGroup;
 import org.eclipse.debug.ui.ILaunchConfigurationDialog;
 import org.eclipse.debug.ui.ILaunchConfigurationTab;
+import org.eclipse.debug.ui.sourcelookup.SourceLookupTab;
 
 /**
  * Creates and groups run configuration view tabs.
@@ -26,6 +27,6 @@ public class LaunchConfigTabGroup extends AbstractLaunchConfigurationTabGroup {
      */
     @Override
     public void createTabs(ILaunchConfigurationDialog dialog, String mode) {
-        setTabs(new ILaunchConfigurationTab[] { new StartTab(), new JRETab() });
+        setTabs(new ILaunchConfigurationTab[] { new StartTab(), new JRETab(), new SourceLookupTab() });
     }
 }

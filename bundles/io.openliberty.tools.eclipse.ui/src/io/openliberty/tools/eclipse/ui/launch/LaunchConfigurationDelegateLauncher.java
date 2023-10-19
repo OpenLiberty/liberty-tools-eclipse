@@ -25,9 +25,9 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.PlatformUI;
 
+import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.messages.Messages;
-import io.openliberty.tools.eclipse.ui.launch.shortcuts.StartAction;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
 import io.openliberty.tools.eclipse.utils.Utils;
 
@@ -80,7 +80,7 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
                     IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
                     IProject configProject = root.getProject(configProjectName);
 
-                    StartAction.run(configProject, configuration, mode);
+                    launchDevMode(configProject, configuration, launch, mode);
 
                 } catch (Exception e) {
                     String msg = "An error was detected when configuration was launched" + configuration.getName() + ".";
@@ -113,6 +113,55 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
             }
 
         });
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_UI);
+        }
+    }
+
+    /**
+     * Starts dev mode
+     * 
+     * @param iProject The project to process.
+     * @param iConfiguration The configuration for this start.
+     * @param launch The launch associated with this start
+     * @param mode The operation mode type. Run or debug.
+     * 
+     * @throws Exception
+     */
+    private void launchDevMode(IProject iProject, ILaunchConfiguration iConfiguration, ILaunch launch, String mode) throws Exception {
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_UI, new Object[] { iProject, iConfiguration, mode });
+        }
+
+        if (iProject == null) {
+            throw new Exception("Invalid project. Be sure to select a project first.");
+        }
+
+        // Validate that the project is supported.
+        DevModeOperations devModeOps = DevModeOperations.getInstance();
+        devModeOps.verifyProjectSupport(iProject);
+
+        // If the configuration was not provided by the caller, determine what configuration to use.
+        LaunchConfigurationHelper launchConfigHelper = LaunchConfigurationHelper.getInstance();
+        ILaunchConfiguration configuration = (iConfiguration != null) ? iConfiguration
+                : launchConfigHelper.getLaunchConfiguration(iProject, mode, RuntimeEnv.LOCAL);
+
+        // Save the time when this configuration was processed.
+        launchConfigHelper.saveConfigProcessingTime(configuration);
+
+        // Retrieve configuration data.
+        boolean runInContainer = configuration.getAttribute(StartTab.PROJECT_RUN_IN_CONTAINER, false);
+        String configParms = configuration.getAttribute(StartTab.PROJECT_START_PARM, (String) null);
+        String javaHomePath = JRETab.resolveJavaHome(configuration);
+
+        // Process the action.
+        if (runInContainer) {
+            devModeOps.startInContainer(iProject, configParms, javaHomePath, launch, mode);
+        } else {
+            devModeOps.start(iProject, configParms, javaHomePath, launch, mode);
+        }
 
         if (Trace.isEnabled()) {
             Trace.getTracer().traceExit(Trace.TRACE_UI);
