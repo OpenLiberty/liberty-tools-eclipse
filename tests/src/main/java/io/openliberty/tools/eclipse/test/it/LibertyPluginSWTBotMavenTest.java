@@ -15,6 +15,7 @@ package io.openliberty.tools.eclipse.test.it;
 import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.context;
 import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.go;
 import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.goGlobal;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.checkRunInContainerCheckBox;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.deleteLibertyToolsRunConfigEntriesFromAppRunAs;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.enableLibertyTools;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getAppDebugAsMenu;
@@ -22,8 +23,10 @@ import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getComboTextBoxWithTextPrefix;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getDashboardContent;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getDashboardItemMenuActions;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getDefaultSourceLookupTreeItemNoBot;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getLibertyTreeItem;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getLibertyTreeItemNoBot;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getRunConfigurationsShell;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchCustomDebugFromDashboard;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchCustomRunFromDashboard;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchDashboardAction;
@@ -40,12 +43,16 @@ import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchViewUTReportWithRunDebugAsShortcut;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.openJRETab;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.openJavaPerspectiveViaMenu;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.openSourceTab;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.setBuildCmdPathInPreferences;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.unsetBuildCmdPathInPreferences;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -59,6 +66,7 @@ import org.eclipse.jdt.launching.JavaRuntime;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotView;
+import org.eclipse.swtbot.swt.finder.exceptions.WidgetNotFoundException;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotCombo;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotMenu;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
@@ -72,6 +80,7 @@ import io.openliberty.tools.eclipse.CommandBuilder;
 import io.openliberty.tools.eclipse.CommandBuilder.CommandNotFoundException;
 import io.openliberty.tools.eclipse.test.it.utils.DisabledOnMac;
 import io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils;
+import io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher;
 
@@ -96,6 +105,11 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
     static final String NON_DFLT_NAME = "non.dflt.server.xml.path";
 
     /**
+     * Shared lib jar project name.
+     */
+    static final String MVN_SHARED_LIB_NAME = "shared-lib";
+
+    /**
      * Test app relative path.
      */
     static final Path projectPath = Paths.get("resources", "applications", "maven", "liberty-maven-test-app");
@@ -109,6 +123,11 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
      * Test app relative path.
      */
     static final Path nonDfltProjectPath = Paths.get("resources", "applications", "maven", "non-dflt-server-xml-path");
+
+    /**
+     * Test shared lib relative path.
+     */
+    static final Path sharedLibProjectPath = Paths.get("resources", "applications", "maven", "shared-lib");
 
     static ArrayList<String> projectPaths = new ArrayList<String>();
 
@@ -140,6 +159,8 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
 
     /**
      * Setup.
+     * 
+     * @throws Exception
      */
     @BeforeAll
     public static void setup() throws Exception {
@@ -150,6 +171,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         projectPaths.add(projectPath.toString());
         projectPaths.add(wrapperProjectPath.toString());
         projectPaths.add(nonDfltProjectPath.toString());
+        projectPaths.add(sharedLibProjectPath.toString());
 
         // Maybe redundant but we really want to cleanup. We really want to
         // avoid wasting time debugging tricky differences in behavior because of a dirty re-run
@@ -159,7 +181,19 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
 
         importMavenProjects(workspaceRoot, projectPaths);
 
-        // set the preferences
+        // Build shared lib project
+        Process process = new ProcessBuilder(localMvnCmdPath, "clean", "install").directory(sharedLibProjectPath.toFile()).start();
+        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+
+        String line;
+        while ((line = reader.readLine()) != null) {
+            System.out.println(line);
+        }
+
+        int exitCode = process.waitFor();
+        assertEquals(0, exitCode, "Building of shared lib jar project failed with RC " + exitCode);
+
+        // Set the preferences
         setBuildCmdPathInPreferences(bot, "Maven");
         LibertyPluginTestUtils.validateLibertyToolsPreferencesSet();
 
@@ -306,10 +340,9 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         IProject iProject = LibertyPluginTestUtils.getProject(MVN_APP_NAME);
         String projPath = iProject.getLocation().toOSString();
 
-        String localMvnCmd = LibertyPluginTestUtils.onWindows() ? "mvn.cmd" : "mvn";
         String opaqueMvnCmd = CommandBuilder.getMavenCommandLine(projPath, "io.openliberty.tools:liberty-maven-plugin:dev -f " + projPath,
                 System.getenv("PATH"), true);
-        Assertions.assertTrue(opaqueMvnCmd.contains(localMvnCmd + " io.openliberty.tools:liberty-maven-plugin:dev"),
+        Assertions.assertTrue(opaqueMvnCmd.contains(localMvnCmdExe + " io.openliberty.tools:liberty-maven-plugin:dev"),
                 "Expected cmd to contain 'mvn io.openliberty.tools...' but cmd = " + opaqueMvnCmd);
     }
 
@@ -690,8 +723,8 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
             // Validate that the test reports were generated.
             LibertyPluginTestUtils.validateTestReportExists(pathToITReport);
 
-            // Validate that a remote java application configuration was created and is named after the application.
-            validateRemoteJavaAppCreation(MVN_APP_NAME);
+            // Validate that a debug configuration was created
+            validateDebugConfigCreation(MVN_APP_NAME, SWTBotPluginOperations.NEW_CONFIGURATION);
         } catch (Exception e) {
             System.out.println("Caught exception: " + e);
             throw new RuntimeException(e);
@@ -731,8 +764,8 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         // If there are issues with the workspace, close the error dialog.
         pressWorkspaceErrorDialogProceedButton(bot);
 
-        // Validate that a remote java application configuration was created and is named after the application.
-        validateRemoteJavaAppCreation(MVN_APP_NAME);
+        // Validate that a debug configuration was created
+        validateDebugConfigCreation(MVN_APP_NAME, MVN_APP_NAME);
 
         // Switch back to Java so we can find Pkg Explorer
         openJavaPerspectiveViaMenu();
@@ -903,5 +936,86 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         }
 
         Assertions.assertTrue(newMavenAppFound, () -> "The Maven project should be listed in the dashboard.");
+    }
+
+    /**
+     * Tests that the correct launch configuration is chosen depending on "start" vs "start in container" This test will run
+     * "Start..." and check "Run in container". A subsequent "Start" should run dev mode locally as the "Start" action should filter
+     * out any existing "container" configurations.
+     */
+    @Test
+    public void testLaunchConfigurationMatching() {
+
+        // Delete any previously created configs.
+        deleteLibertyToolsRunConfigEntriesFromAppRunAs(MVN_APP_NAME);
+
+        // Launch "Run Configurations" window and check "Run in container"
+        launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_START_CONFIG);
+        Shell shell = getRunConfigurationsShell();
+        checkRunInContainerCheckBox(shell, MVN_APP_NAME);
+
+        // No need to run here. Just Apply and Close.
+        go("Apply", shell);
+        go("Close", shell);
+
+        // Start dev mode. This should start locally.
+        launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_START);
+        goGlobal("Terminal");
+
+        // Since the app should be started locally, we should be able to validate that the app is up and running.
+        // Since our tests cannot run docker, any "failed" start would indicate we did not start locally.
+        // There is certainly room for improvement here like perhaps reading the Terminal window for "devc" vs "dev" commands, but this is
+        // ok for now.
+        LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
+
+        // If there are issues with the workspace, close the error dialog.
+        pressWorkspaceErrorDialogProceedButton(bot);
+
+        // Stop dev mode.
+        launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
+
+        // Validate application stopped.
+        LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
+
+    }
+
+    /**
+     * Tests that the correct dependency projects are added to the debug source lookup list
+     */
+    @Test
+    public void testDebugSourceLookupContent() {
+
+        deleteLibertyToolsRunConfigEntriesFromAppRunAs(MVN_APP_NAME);
+
+        Shell configShell = launchDebugConfigurationsDialogFromAppRunAs(MVN_APP_NAME);
+
+        boolean jarEntryFound = false;
+
+        try {
+            Object libertyConfigTree = getLibertyTreeItemNoBot(configShell);
+
+            context(libertyConfigTree, "New Configuration");
+
+            openSourceTab(bot);
+
+            SWTBotTreeItem defaultSourceLookupTree = new SWTBotTreeItem((TreeItem) getDefaultSourceLookupTreeItemNoBot(configShell));
+
+            // Lookup shared-lib project
+            try {
+                defaultSourceLookupTree.getNode(MVN_SHARED_LIB_NAME);
+                jarEntryFound = true;
+            } catch (WidgetNotFoundException wnfe) {
+                // Jar project was not found in source lookup list.
+            }
+
+        } finally {
+            go("Close", configShell);
+            deleteLibertyToolsRunConfigEntriesFromAppRunAs(MVN_APP_NAME);
+        }
+
+        // Validate dependency projects are in source lookup list
+        Assertions.assertTrue(jarEntryFound, "The dependency project, " + MVN_SHARED_LIB_NAME
+                + ", was not listed in the source lookup list for project " + MVN_APP_NAME);
+
     }
 }

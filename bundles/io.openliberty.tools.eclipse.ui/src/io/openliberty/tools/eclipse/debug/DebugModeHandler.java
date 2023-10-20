@@ -10,11 +10,12 @@
 * Contributors:
 *     IBM Corporation - initial implementation
 *******************************************************************************/
-package io.openliberty.tools.eclipse;
+package io.openliberty.tools.eclipse.debug;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 import java.net.ConnectException;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -22,29 +23,27 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import org.eclipse.core.resources.IProject;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.IJobChangeEvent;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.jobs.JobChangeAdapter;
-import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
-import org.eclipse.debug.core.ILaunchConfiguration;
-import org.eclipse.debug.core.ILaunchConfigurationType;
-import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
-import org.eclipse.debug.core.ILaunchManager;
-import org.eclipse.jdt.core.JavaCore;
+import org.eclipse.debug.core.model.IDebugTarget;
+import org.eclipse.jdi.Bootstrap;
+import org.eclipse.jdi.TimeoutException;
+import org.eclipse.jdt.debug.core.JDIDebugModel;
 import org.eclipse.jdt.launching.IJavaLaunchConfigurationConstants;
+import org.eclipse.jdt.launching.JavaRuntime;
 import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IViewPart;
@@ -53,12 +52,19 @@ import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
+import com.sun.jdi.VirtualMachine;
+import com.sun.jdi.connect.AttachingConnector;
+import com.sun.jdi.connect.Connector;
+import com.sun.jdi.connect.Connector.Argument;
+import com.sun.jdi.connect.IllegalConnectorArgumentsException;
+
+import io.openliberty.tools.eclipse.DevModeOperations;
+import io.openliberty.tools.eclipse.LibertyDevPlugin;
+import io.openliberty.tools.eclipse.Project;
 import io.openliberty.tools.eclipse.Project.BuildType;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.messages.Messages;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
-import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationHelper;
-import io.openliberty.tools.eclipse.ui.launch.StartTab;
 import io.openliberty.tools.eclipse.ui.terminal.ProjectTabController;
 import io.openliberty.tools.eclipse.ui.terminal.TerminalListener;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
@@ -88,9 +94,6 @@ public class DebugModeHandler {
 
     /** Job status return code indicating that an error took place while attempting to attach the debugger to the JVM. */
     public static int JOB_STATUS_DEBUGGER_CONN_ERROR = 1;
-
-    /** Instance to this class. */
-    private LaunchConfigurationHelper launchConfigHelper = LaunchConfigurationHelper.getInstance();
 
     /** DevModeOperations instance. */
     private DevModeOperations devModeOps;
@@ -209,11 +212,12 @@ public class DebugModeHandler {
      * Starts the job that will attempt to connect the debugger with the server's JVM.
      * 
      * @param project The project for which the debugger needs to be attached.
+     * @param launch The launch to which the debug target will be added.
      * @param debugPort The debug port to use to attach the debugger to.
      * 
      * @throws Exception
      */
-    public void startDebugAttacher(Project project, String debugPort) {
+    public void startDebugAttacher(Project project, ILaunch launch, String debugPort) {
         String projectName = project.getIProject().getName();
 
         Job job = new Job("Attaching Debugger to JVM...") {
@@ -229,7 +233,13 @@ public class DebugModeHandler {
                         return Status.CANCEL_STATUS;
                     }
 
-                    createRemoteJavaAppDebugConfig(project, DEFAULT_ATTACH_HOST, portToConnect, monitor);
+                    AttachingConnector connector = getAttachingConnector();
+                    Map<String, Argument> map = connector.defaultArguments();
+                    configureConnector(map, DEFAULT_ATTACH_HOST, Integer.parseInt(portToConnect));
+                    IDebugTarget debugTarget = createRemoteJDTDebugTarget(launch, Integer.parseInt(portToConnect), DEFAULT_ATTACH_HOST,
+                            connector, map);
+
+                    launch.addDebugTarget(debugTarget);
 
                 } catch (Exception e) {
                     return new Status(IStatus.ERROR, LibertyDevPlugin.PLUGIN_ID, JOB_STATUS_DEBUGGER_CONN_ERROR,
@@ -283,6 +293,120 @@ public class DebugModeHandler {
         });
 
         job.schedule();
+    }
+
+    private AttachingConnector getAttachingConnector() {
+        List<?> connectors = Bootstrap.virtualMachineManager().attachingConnectors();
+        for (int i = 0; i < connectors.size(); i++) {
+            AttachingConnector c = (AttachingConnector) connectors.get(i);
+            if ("com.sun.jdi.SocketAttach".equals(c.name()))
+                return c;
+        }
+
+        return null;
+    }
+
+    /**
+     * Configure the connector properties.
+     *
+     * @param map argument map
+     * @param host the host name or IP address
+     * @param portNumber the port number
+     */
+    private void configureConnector(Map<String, Argument> map, String host, int portNumber) {
+        Connector.StringArgument hostArg = (Connector.StringArgument) map.get("hostname");
+        hostArg.setValue(host);
+
+        Connector.IntegerArgument portArg = (Connector.IntegerArgument) map.get("port");
+        portArg.setValue(portNumber);
+
+        // This timeout value is directly configurable from the "Launch timeout" in Eclipse Preferences.
+        // At the point when we connect, we already confirmed that we are able to connect to the socket,
+        // so this may not come into play. However, we are keeping it here just in case.
+        Connector.IntegerArgument timeoutArg = (Connector.IntegerArgument) map.get("timeout");
+        if (timeoutArg != null) {
+            int timeout = Platform.getPreferencesService().getInt(
+                    "org.eclipse.jdt.launching",
+                    JavaRuntime.PREF_CONNECT_TIMEOUT,
+                    JavaRuntime.DEF_CONNECT_TIMEOUT,
+                    null);
+            timeoutArg.setValue(timeout);
+        }
+    }
+
+    private IDebugTarget createRemoteJDTDebugTarget(ILaunch launch, int remoteDebugPortNum, String hostName,
+            AttachingConnector connector, Map<String, Argument> map) throws CoreException {
+        if (launch == null || hostName == null || hostName.length() == 0) {
+            return null;
+        }
+        VirtualMachine remoteVM = null;
+        Exception ex = null;
+        IDebugTarget debugTarget = null;
+        try {
+            remoteVM = attachJVM(hostName, remoteDebugPortNum, connector, map);
+        } catch (Exception e) {
+            ex = e;
+        }
+        if (remoteVM == null) {
+            throw new CoreException(
+                    new Status(IStatus.ERROR, this.getClass(), IJavaLaunchConfigurationConstants.ERR_CONNECTION_FAILED, "", ex));
+        }
+        debugTarget = JDIDebugModel.newDebugTarget(launch, remoteVM, hostName + ":" + remoteDebugPortNum, null, true, false, true);
+        return debugTarget;
+    }
+
+    /**
+     * Connect the debugger to the debug port of the target VM
+     * 
+     * @param hostName
+     * @param port
+     * @param connector
+     * @param map
+     * 
+     * @return
+     */
+    private VirtualMachine attachJVM(String hostName, int port, AttachingConnector connector, Map<String, Argument> map) {
+
+        // At this point, the "waitForSocketActivation" method has already been called so we know that we are able
+        // to connect to the Liberty server's debug port. However, there is still a gap here where we can get a
+        // connection refused exception when we attempt to attach the debugger. This could potentially be due to a difference in
+        // how we are writing to the socket, but whatever the reason, we have a timeout mechanism here as well to attempt the
+        // connection every 100ms for 10 seconds. Any IOExceptions like a "connection refused" will trigger a retry. Any timeout
+        // exceptions within the connector itself will not trigger a retry. We will catch that in the calling method and
+        // expose the timeout there. If we exhaust out retries we will return null and the calling method will throw a connection
+        // error.
+
+        VirtualMachine vm = null;
+        int timeOut = 10000;
+        try {
+            try {
+                vm = connector.attach(map);
+            } catch (IOException e) {
+                if (Trace.isEnabled()) {
+                    Trace.getTracer().trace(Trace.TRACE_UI,
+                            "Error occured while trying to connect to the remote virtual machine " + e.getMessage(), e);
+                }
+            } catch (TimeoutException e2) {
+                // do nothing
+            }
+
+            while (vm == null && timeOut > 0) {
+                try {
+                    Thread.sleep(100);
+                } catch (Exception e) {
+                    // do nothing
+                }
+                timeOut = timeOut - 100;
+                try {
+                    vm = connector.attach(map);
+                } catch (IOException e) {
+                    // do nothing
+                }
+            }
+        } catch (IllegalConnectorArgumentsException e) {
+            // Do nothing, return vm as null if it fails
+        }
+        return vm;
     }
 
     /**
@@ -431,91 +555,6 @@ public class DebugModeHandler {
     }
 
     /**
-     * Returns a new Remote Java Application debug configuration.
-     * 
-     * @param configuration The configuration being processed.
-     * @param host The JVM host to connect to.
-     * @param port The JVM port to connect to.
-     * @param monitor The progress monitor.
-     * 
-     * @return A new Remote Java Application debug configuration.
-     * 
-     * @throws Exception
-     */
-    private ILaunch createRemoteJavaAppDebugConfig(Project project, String host, String port, IProgressMonitor monitor) throws Exception {
-        // There are cases where some modules of a multi-module project may not be categorized as Java projects.
-        // The Remote Java Application configuration requires that the project being processed is a Java project.
-        // Given this requirement, multi-module projects that contain modules with liberty server configuration that
-        // are not considered Java projects may not be able to run debug mode.
-        // A compromise to go around this case is to obtain configuration information from a child or peer project that
-        // is considered to be Java project.
-        // Therefore, the following code obtains Java configuration information from an associated Java project and
-        // uses it on behalf of the application being processed.
-        IProject iProject = project.getIProject();
-        String projectName = iProject.getName();
-        String associatedProjectName = projectName;
-        if (!iProject.hasNature(JavaCore.NATURE_ID)) {
-            Project associatedProject = project.getAssociatedJavaProject(project);
-            if (associatedProject != null) {
-                associatedProjectName = associatedProject.getName();
-            } else {
-                throw new Exception("Project " + projectName + " is not a Java project. Associated Java projects not found.");
-            }
-        }
-
-        ILaunchManager iLaunchManager = DebugPlugin.getDefault().getLaunchManager();
-        ILaunchConfigurationType remoteJavaAppConfigType = iLaunchManager
-                .getLaunchConfigurationType(IJavaLaunchConfigurationConstants.ID_REMOTE_JAVA_APPLICATION);
-        ILaunchConfiguration[] remoteJavaAppConfigs = iLaunchManager.getLaunchConfigurations(remoteJavaAppConfigType);
-        ILaunchConfigurationWorkingCopy remoteJavaAppConfigWCopy = null;
-
-        // Find the configurations associated with the project.
-        List<ILaunchConfiguration> projectAssociatedConfigs = new ArrayList<ILaunchConfiguration>();
-        for (ILaunchConfiguration remoteJavaAppConfig : remoteJavaAppConfigs) {
-            String savedProjectName = remoteJavaAppConfig.getAttribute(StartTab.PROJECT_NAME, (String) null);
-            if (savedProjectName != null && savedProjectName.equals(projectName)) {
-                projectAssociatedConfigs.add(remoteJavaAppConfig);
-            }
-        }
-
-        // Find the configuration used last.
-        if (projectAssociatedConfigs.size() > 0) {
-            ILaunchConfiguration lastUsedConfig = launchConfigHelper.getLastRunConfiguration(projectAssociatedConfigs);
-            remoteJavaAppConfigWCopy = lastUsedConfig.getWorkingCopy();
-        }
-
-        // If an existing configuration was not found, create one.
-        if (remoteJavaAppConfigWCopy == null) {
-            String configName = launchConfigHelper.buildConfigurationName(projectName);
-            remoteJavaAppConfigWCopy = remoteJavaAppConfigType.newInstance(null, configName);
-            remoteJavaAppConfigWCopy.setAttribute(StartTab.PROJECT_NAME, projectName);
-            remoteJavaAppConfigWCopy.setAttribute(IJavaLaunchConfigurationConstants.ATTR_PROJECT_NAME, associatedProjectName);
-            remoteJavaAppConfigWCopy.setAttribute(IJavaLaunchConfigurationConstants.ATTR_VM_CONNECTOR,
-                    IJavaLaunchConfigurationConstants.ID_SOCKET_ATTACH_VM_CONNECTOR);
-            remoteJavaAppConfigWCopy.setAttribute(IJavaLaunchConfigurationConstants.ATTR_ALLOW_TERMINATE, false);
-        }
-
-        // Update the configuration with the current data.
-        Map<String, String> connectMap = new HashMap<>(2);
-        connectMap.put("port", port);
-        connectMap.put("hostname", host);
-        remoteJavaAppConfigWCopy.setAttribute(IJavaLaunchConfigurationConstants.ATTR_CONNECT_MAP, connectMap);
-        remoteJavaAppConfigWCopy.setAttribute(StartTab.PROJECT_RUN_TIME, String.valueOf(System.currentTimeMillis()));
-
-        //
-        // Fixed issue: https://github.com/OpenLiberty/liberty-tools-eclipse/issues/372
-        // by launching with the return value of remoteJavaAppConfigWCopy.doSave(), rather than the
-        // object (the "working copy") itself.
-        //
-        // Debated calling launch() with the doSave() return value vs. the value of
-        // remoteJavaAppConfigWCopy.getOriginal(). Decided on the former which
-        // seemed to be the more common usage pattern, though not entirely clear which is better.
-        //
-        ILaunchConfiguration updatedConfig = remoteJavaAppConfigWCopy.doSave();
-        return updatedConfig.launch(ILaunchManager.DEBUG_MODE, monitor);
-    }
-
-    /**
      * Waits for the JDWP socket on the JVM to start listening for connections.
      * 
      * @param host The host to connect to.
@@ -527,6 +566,14 @@ public class DebugModeHandler {
      * @throws Exception
      */
     private String waitForSocketActivation(Project project, String host, String port, IProgressMonitor monitor) throws Exception {
+
+        // This is the first of several timeout mechanisms during the debugger connection. This method
+        // will attempt a write to the debug port of the target VM (Liberty server) once every second for
+        // 3 minutes. This seems like a reasonable amount of time for the debug port to become available
+        // so for now we are not making this timeout configurable. If in the future, we need to expose
+        // this timeout value, we could potentially tie it to the "Launch timeout" setting of in the
+        // Eclipse "Debug" preferences.
+
         byte[] handshakeString = "JDWP-Handshake".getBytes(StandardCharsets.US_ASCII);
         int retryLimit = 180;
         int envReadInterval = 2;

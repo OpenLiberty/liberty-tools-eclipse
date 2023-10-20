@@ -13,8 +13,10 @@
 package io.openliberty.tools.eclipse.test.it;
 
 import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.isInternalBrowserSupportAvailable;
-import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.find;
 import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.go;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.closeWelcomePage;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getLibertyToolsConfigMenuItem;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchDebugConfigurationsDialogFromAppRunAs;
 
 import java.io.File;
 import java.io.IOException;
@@ -36,9 +38,7 @@ import org.eclipse.m2e.core.project.IProjectConfigurationManager;
 import org.eclipse.m2e.core.project.LocalProjectScanner;
 import org.eclipse.m2e.core.project.MavenProjectInfo;
 import org.eclipse.m2e.core.project.ProjectImportConfiguration;
-import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotView;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
@@ -49,8 +49,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestInfo;
 
 import io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils;
-import io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.Option;
-import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.*;
 
 public abstract class AbstractLibertyPluginSWTBotTest {
 
@@ -63,6 +61,11 @@ public abstract class AbstractLibertyPluginSWTBotTest {
      * Dashboard instance.
      */
     static SWTBotView dashboard;
+
+    protected static String localMvnCmdExe = LibertyPluginTestUtils.onWindows() ? "mvn.cmd" : "mvn";
+
+    protected static String localMvnCmdPath = System.getProperty("io.liberty.tools.eclipse.tests.mvnexecutable.path") + File.separator
+            + "bin" + File.separator + localMvnCmdExe;
 
     /**
      * Cleanup.
@@ -126,7 +129,7 @@ public abstract class AbstractLibertyPluginSWTBotTest {
 
         // Get the list of projects to install.
         MavenModelManager modelManager = MavenPlugin.getMavenModelManager();
-        
+
         for (String folder : folders) {
             ArrayList<String> folderList = new ArrayList<String>();
             folderList.add(folder);
@@ -168,25 +171,29 @@ public abstract class AbstractLibertyPluginSWTBotTest {
     }
 
     /**
-     * Validates if a Remote Java configuration was created. If it was created, it means that the debugger successfully attached to
-     * the Liberty server.
+     * Validates if a Liberty Tools debug configuration was created. Assumes it will be the first configuration named accordingly.
+     * TODO - make this a parameter
      * 
-     * @param projectName The project name..
+     * @param projectName The project name
      */
-    public void validateRemoteJavaAppCreation(String projectName) {
+    public void validateDebugConfigCreation(String projectName, String configName) {
         Shell configShell = launchDebugConfigurationsDialogFromAppRunAs(projectName);
-        SWTBotTreeItem remoteJavaAppEntry = getRemoteJavaAppConfigMenuItem(configShell);
-        Assertions.assertTrue((remoteJavaAppEntry != null),
-                () -> "The " + LAUNCH_CONFIG_REMOTE_JAVA_APP + " entry was not found in run Configurations dialog.");
+        SWTBotTreeItem libertyToolsEntry = getLibertyToolsConfigMenuItem(configShell);
+        Assertions.assertTrue((libertyToolsEntry != null), () -> "The Liberty entry was not found in run Configurations dialog.");
 
-        // Use 'contains' since the name will include the project name plus something parent-related.
-        Object runConfig = find(projectName, remoteJavaAppEntry,  Option.factory().widgetClass(TreeItem.class).useContains(true).build());
-        
-        if (runConfig != null) {
+        Object debugConfig = null;
+        for (SWTBotTreeItem item : libertyToolsEntry.getItems()) {
+            if (item.getText().equals(configName)) {
+                debugConfig = item;
+                break;
+            }
+        }
+
+        if (debugConfig != null) {
             go("Close", configShell);
             return;
         }
 
-        Assertions.fail("The remote java application configuration did not contain project name " + projectName);
+        Assertions.fail("The debug configuration: " + configName + " was not found.");
     }
 }

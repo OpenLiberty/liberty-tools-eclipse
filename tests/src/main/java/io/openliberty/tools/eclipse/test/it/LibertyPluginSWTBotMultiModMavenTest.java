@@ -12,15 +12,19 @@
  *******************************************************************************/
 package io.openliberty.tools.eclipse.test.it;
 
+import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.context;
 import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.go;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.deleteLibertyToolsRunConfigEntriesFromAppRunAs;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getDashboardContent;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getDashboardItemMenuActions;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getDefaultSourceLookupTreeItemNoBot;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getLibertyTreeItem;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getLibertyTreeItemNoBot;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchDebugConfigurationsDialogFromAppRunAs;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchRunConfigurationsDialogFromAppRunAs;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchStartWithDefaultRunConfigFromAppRunAs;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchStopWithRunAsShortcut;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.openSourceTab;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.setBuildCmdPathInPreferences;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.unsetBuildCmdPathInPreferences;
@@ -34,7 +38,9 @@ import java.util.List;
 
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.swt.widgets.Shell;
+import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotView;
+import org.eclipse.swtbot.swt.finder.exceptions.WidgetNotFoundException;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotMenu;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
 import org.junit.jupiter.api.AfterAll;
@@ -59,6 +65,21 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
      * Application name.
      */
     static final String MVN_APP_NAME = "guide-maven-multimodules-pom";
+
+    /**
+     * Parent name.
+     */
+    static final String MVN_PARENT_NAME = "guide-maven-multimodules";
+
+    /**
+     * Jar sub-module name.
+     */
+    static final String MVN_JAR_NAME = "guide-maven-multimodules-jar";
+
+    /**
+     * War sub-module name
+     */
+    static final String MVN_WAR_NAME = "guide-maven-multimodules-war1";
 
     /**
      * Path to import from, in this case the multi-module root
@@ -273,5 +294,100 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
 
         // Close the terminal.
         terminal.close();
+    }
+
+    /**
+     * Tests that the correct dependency projects are added to the debug source lookup list
+     */
+    @Test
+    public void testDebugSourceLookupContentSiblingModule() {
+
+        Shell configShell = launchDebugConfigurationsDialogFromAppRunAs(MVN_APP_NAME);
+
+        boolean jarEntryFound = false;
+        boolean warEntryFound = false;
+
+        try {
+            Object libertyConfigTree = getLibertyTreeItemNoBot(configShell);
+
+            context(libertyConfigTree, "New Configuration");
+
+            openSourceTab(bot);
+
+            SWTBotTreeItem defaultSourceLookupTree = new SWTBotTreeItem((TreeItem) getDefaultSourceLookupTreeItemNoBot(configShell));
+
+            try {
+                defaultSourceLookupTree.getNode(MVN_JAR_NAME);
+                jarEntryFound = true;
+            } catch (WidgetNotFoundException wnfe) {
+                // Jar project was not found in source lookup list.
+            }
+
+            // Lookup war project
+            try {
+                defaultSourceLookupTree.getNode(MVN_WAR_NAME);
+                warEntryFound = true;
+            } catch (WidgetNotFoundException wnfe) {
+                // War project was not found in source lookup list.
+            }
+
+        } finally {
+            go("Close", configShell);
+        }
+
+        // Validate dependency projects are in source lookup list
+        Assertions.assertTrue(jarEntryFound,
+                "The sibling module project, " + MVN_JAR_NAME + ", was not listed in the source lookup list for project " + MVN_APP_NAME);
+        Assertions.assertTrue(warEntryFound,
+                "The sibling module project, " + MVN_WAR_NAME + ", was not listed in the source lookup list for project " + MVN_APP_NAME);
+
+    }
+
+    /**
+     * Tests that the correct dependency projects are added to the debug source lookup list when starting the parent module
+     */
+    @Test
+    public void testDebugSourceLookupContentParentModule() {
+
+        Shell configShell = launchDebugConfigurationsDialogFromAppRunAs(MVN_PARENT_NAME);
+
+        boolean jarEntryFound = false;
+        boolean warEntryFound = false;
+
+        try {
+            Object libertyConfigTree = getLibertyTreeItemNoBot(configShell);
+
+            context(libertyConfigTree, "New Configuration");
+
+            openSourceTab(bot);
+
+            SWTBotTreeItem defaultSourceLookupTree = new SWTBotTreeItem((TreeItem) getDefaultSourceLookupTreeItemNoBot(configShell));
+
+            // Lookup jar project
+            try {
+                defaultSourceLookupTree.getNode(MVN_JAR_NAME);
+                jarEntryFound = true;
+            } catch (WidgetNotFoundException wnfe) {
+                // Jar project was not found in source lookup list.
+            }
+
+            // Lookup war project
+            try {
+                defaultSourceLookupTree.getNode(MVN_WAR_NAME);
+                warEntryFound = true;
+            } catch (WidgetNotFoundException wnfe) {
+                // War project was not found in source lookup list.
+            }
+
+        } finally {
+            go("Close", configShell);
+        }
+
+        // Validate dependency projects are in source lookup list
+        Assertions.assertTrue(jarEntryFound,
+                "The child module project, " + MVN_JAR_NAME + ", was not listed in the source lookup list for project " + MVN_PARENT_NAME);
+        Assertions.assertTrue(warEntryFound,
+                "The child module project, " + MVN_WAR_NAME + ", was not listed in the source lookup list for project " + MVN_PARENT_NAME);
+
     }
 }

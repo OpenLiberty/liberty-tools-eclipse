@@ -29,6 +29,7 @@ import java.util.List;
 
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
@@ -88,8 +89,8 @@ public class SWTBotPluginOperations {
     public static final String DASHBOARD_TOOLBAR_REFRESH_TIP = "refresh";
     public static final String DASHBOARD_VIEW_TITLE = "Liberty Dashboard";
     public static final String LAUNCH_CONFIG_LIBERTY_MENU_NAME = "Liberty";
-    public static final String LAUNCH_CONFIG_REMOTE_JAVA_APP = "Remote Java Application";
     public static final String EXPLORER_CONFIGURE_MENU_ENABLE_LIBERTY_TOOLS = "Enable Liberty";
+    public static final String NEW_CONFIGURATION = "New_configuration";
 
     /**
      * Close the welcome page if active.
@@ -124,24 +125,25 @@ public class SWTBotPluginOperations {
 
     public static void openJavaPerspectiveViaMenu() {
         Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
-        
+
         if (new SWTWorkbenchBot().activePerspective().getLabel().equals("Java")) {
-        	// Won't be an option to switch to if already active
+            // Won't be an option to switch to if already active
             return;
         } else {
             goMenuItem(windowMenu, "Perspective", "Open Perspective", "Java");
         }
     }
-    
+
     public static SWTBotTable getDashboardTable() {
         openDashboardUsingToolbar();
         Object dashboardView = findGlobal(DASHBOARD_VIEW_TITLE, Option.factory().widgetClass(ViewPart.class).build());
-        Table table = ((DashboardView)dashboardView).getTable();
+        Table table = ((DashboardView) dashboardView).getTable();
         return new SWTBotTable(table);
     }
 
     /**
      * Returns a list of entries on the Open Liberty dashboard.
+     * 
      * @return A list of entries on the Open Liberty dashboard.
      */
     public static List<String> getDashboardContent() {
@@ -194,6 +196,7 @@ public class SWTBotPluginOperations {
 
     /**
      * Launches a dashboard action for the specified application name.
+     * 
      * @param appName The application name to select.
      * @param action The action to select
      */
@@ -292,7 +295,7 @@ public class SWTBotPluginOperations {
 
         String finalMvnExecutableLoc = null;
         String finalGradleExecutableLoc = null;
-        Object locationLabel = null; 
+        Object locationLabel = null;
         Object locationText = null;
 
         finalMvnExecutableLoc = System.getProperty("io.liberty.tools.eclipse.tests.mvnexecutable.path");
@@ -314,7 +317,7 @@ public class SWTBotPluginOperations {
         }
 
         goGlobal("Apply and Close");
-   }
+    }
 
     public static void unsetBuildCmdPathInPreferences(SWTWorkbenchBot bot, String buildTool) {
 
@@ -324,12 +327,12 @@ public class SWTBotPluginOperations {
         if (Platform.getOS().equals(Platform.OS_MACOSX)) {
             return;
         }
-        
+
         Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
         goMenuItem(windowMenu, "Preferences");
 
         findGlobal("Liberty", Option.factory().widgetClass(TreeItem.class).build());
-  
+
         goGlobal("Restore Defaults");
         goGlobal("Apply and Close");
     }
@@ -342,13 +345,13 @@ public class SWTBotPluginOperations {
     public static Shell launchRunConfigurationsDialogFromAppRunAs(String appName) {
 
         Object project = getAppInPackageExplorerTree(appName);
-        
+
         MagicWidgetFinder.context(project, "Run As", "Run Configurations...");
 
         // Return the newly launched configurations shell
         return (Shell) findGlobal("Run Configurations", Option.factory().widgetClass(Shell.class).build());
     }
-    
+
     /**
      * Launches the run configuration dialog.
      * 
@@ -357,7 +360,7 @@ public class SWTBotPluginOperations {
     public static Shell launchDebugConfigurationsDialogFromAppRunAs(String appName) {
 
         Object project = getAppInPackageExplorerTree(appName);
-        
+
         MagicWidgetFinder.context(project, "Debug As", "Debug Configurations...");
 
         // Return the newly launched configurations shell
@@ -387,13 +390,19 @@ public class SWTBotPluginOperations {
     }
 
     public static TreeItem getLibertyTreeItemNoBot(Shell shell) {
-        TreeItem ti = (TreeItem)find(LAUNCH_CONFIG_LIBERTY_MENU_NAME, shell);
+        TreeItem ti = (TreeItem) find(LAUNCH_CONFIG_LIBERTY_MENU_NAME, shell);
         expandTreeItem(ti);
         return ti;
     }
-    
-    public static SWTBotTreeItem getRemoteJavaAppConfigMenuItem(Shell shell) {
-        return new SWTBotTreeItem((TreeItem)find(LAUNCH_CONFIG_REMOTE_JAVA_APP, shell));
+
+    public static TreeItem getDefaultSourceLookupTreeItemNoBot(Shell shell) {
+        TreeItem ti = (TreeItem) find("Default", shell);
+        expandTreeItem(ti);
+        return ti;
+    }
+
+    public static SWTBotTreeItem getLibertyToolsConfigMenuItem(Shell shell) {
+        return new SWTBotTreeItem((TreeItem) find(LAUNCH_CONFIG_LIBERTY_MENU_NAME, shell));
     }
 
     /**
@@ -408,7 +417,7 @@ public class SWTBotPluginOperations {
 
         try {
             SWTBotTreeItem libertyToolsEntry = getLibertyTreeItem(configShell);
-            
+
             Assertions.assertTrue((libertyToolsEntry != null), () -> "The Liberty entry was not found in run Configurations dialog.");
 
             List<String> configs = libertyToolsEntry.getNodes();
@@ -440,20 +449,12 @@ public class SWTBotPluginOperations {
                 deleteRunDebugConfigEntry(libertyToolsEntry, config);
             }
 
-            // Delete debug mode Remote Java Application configurations
-            SWTBotTreeItem remoteJavaAppEntry = getRemoteJavaAppConfigMenuItem(configShell);           
-            Assertions.assertTrue((remoteJavaAppEntry != null),
-                    () -> "The " + LAUNCH_CONFIG_REMOTE_JAVA_APP + " entry was not found in run Configurations dialog.");
-
-            for (String config : remoteJavaAppEntry.getNodes()) {
-                deleteRunDebugConfigEntry(libertyToolsEntry, config);
-            }
         } finally {
             // Close the configuration dialog.
             MagicWidgetFinder.go("Close", configShell);
         }
     }
-    
+
     private static void deleteRunDebugConfigEntry(SWTBotTreeItem parentTree, String configName) {
         go(configName, parentTree);
         goGlobal("Delete selected launch configuration(s)", Option.factory().widgetClass(ToolItem.class).useContains(true).build());
@@ -468,9 +469,8 @@ public class SWTBotPluginOperations {
     public static void launchStartWithDefaultRunConfigFromAppRunAs(String appName) {
 
         Object project = getAppInPackageExplorerTree(appName);
-        context(project, "Run As", 
-                WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START + ".*"));
- 
+        context(project, "Run As", WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START + ".*"));
+
     }
 
     /**
@@ -489,7 +489,7 @@ public class SWTBotPluginOperations {
     /**
      * Launches dev mode with parms using a new Liberty configuration: project -> Debug As -> Debug Configurations -> Liberty -> New
      * configuration (default) -> update parms -> Debug. Note that the changes are not saved.
-     *     
+     * 
      * @param appName The application name.
      * @param customParms The parameter(s) to pass to the dev mode start action.
      */
@@ -498,7 +498,7 @@ public class SWTBotPluginOperations {
         createAndSetNewCustomConfig(shell, customParms);
         go("Debug", shell);
     }
-    
+
     public static void createAndSetNewCustomConfig(Shell shell, String customParms) {
 
         Object libertyConfigTree = find(LAUNCH_CONFIG_LIBERTY_MENU_NAME, shell);
@@ -508,35 +508,35 @@ public class SWTBotPluginOperations {
         Control parmText = ControlFinder.findControlInRange(parmLabel, Text.class, Direction.EAST);
         set(parmText, customParms);
     }
-    
+
     public static Shell getDebugConfigurationsShell() {
-    	return (Shell) findGlobal("Debug Configurations", Option.factory().widgetClass(Shell.class).build());
+        return (Shell) findGlobal("Debug Configurations", Option.factory().widgetClass(Shell.class).build());
     }
-    
+
     public static Shell getRunConfigurationsShell() {
-    	return (Shell) findGlobal("Run Configurations", Option.factory().widgetClass(Shell.class).build());
+        return (Shell) findGlobal("Run Configurations", Option.factory().widgetClass(Shell.class).build());
     }
-    
+
     public static void launchCustomDebugFromDashboard(String appName, String customParms) {
-    	launchDashboardAction(appName, DashboardView.APP_MENU_ACTION_DEBUG_CONFIG);
+        launchDashboardAction(appName, DashboardView.APP_MENU_ACTION_DEBUG_CONFIG);
         Shell shell = getDebugConfigurationsShell();
         setCustomStartParmsFromShell(shell, appName, customParms);
         go("Debug", shell);
     }
 
     public static void launchCustomRunFromDashboard(String appName, String customParms) {
-    	launchDashboardAction(appName, DashboardView.APP_MENU_ACTION_START_CONFIG);
+        launchDashboardAction(appName, DashboardView.APP_MENU_ACTION_START_CONFIG);
         Shell shell = getRunConfigurationsShell();
         setCustomStartParmsFromShell(shell, appName, customParms);
         go("Run", shell);
     }
 
-    
     public static void setCustomStartParmsFromShell(Shell shell, String runDebugConfigName, String customParms) {
-    	
-        Object libertyConfigTree = getLibertyTreeItem(shell); 
 
-        Object appConfigEntry = find(runDebugConfigName, libertyConfigTree, Option.factory().useContains(true).widgetClass(TreeItem.class).build());
+        Object libertyConfigTree = getLibertyTreeItem(shell);
+
+        Object appConfigEntry = find(runDebugConfigName, libertyConfigTree,
+                Option.factory().useContains(true).widgetClass(TreeItem.class).build());
         go(appConfigEntry);
         Object parmLabel = find("Start parameters:", appConfigEntry, Option.factory().widgetClass(Label.class).build());
 
@@ -544,12 +544,24 @@ public class SWTBotPluginOperations {
         set(parmText, customParms);
     }
 
+    public static void checkRunInContainerCheckBox(Shell shell, String runDebugConfigName) {
+
+        Object libertyConfigTree = getLibertyTreeItem(shell);
+
+        Object appConfigEntry = find(runDebugConfigName, libertyConfigTree,
+                Option.factory().useContains(true).widgetClass(TreeItem.class).build());
+        go(appConfigEntry);
+        Object button = find("Run in Container", appConfigEntry, Option.factory().widgetClass(Button.class).build());
+
+        go(button);
+    }
+
     public static Object getAppInPackageExplorerTree(String appName) {
         openJavaPerspectiveViaMenu();
         Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
         goMenuItem(windowMenu, "Show View", "Package Explorer");
         Object peView = MagicWidgetFinder.findGlobal("Package Explorer");
-        
+
         Object project = MagicWidgetFinder.find(appName, peView, Option.factory().useContains(true).widgetClass(TreeItem.class).build());
         go(project);
         return project;
@@ -589,7 +601,6 @@ public class SWTBotPluginOperations {
         MagicWidgetFinder.context(project, "Run As",
                 WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_STOP + ".*"));
     }
-
 
     /**
      * Launches the run tests action using the run as configuration shortcut.
@@ -673,8 +684,7 @@ public class SWTBotPluginOperations {
 
         Object project = getAppInPackageExplorerTree(appName);
 
-        context(project, "Configure", 
-                WidgetMatcherFactory.withRegex(".*" + EXPLORER_CONFIGURE_MENU_ENABLE_LIBERTY_TOOLS + ".*"));
+        context(project, "Configure", WidgetMatcherFactory.withRegex(".*" + EXPLORER_CONFIGURE_MENU_ENABLE_LIBERTY_TOOLS + ".*"));
     }
 
     /**
@@ -828,6 +838,20 @@ public class SWTBotPluginOperations {
     }
 
     /**
+     * Switches the Liberty run configuration main tab to the Source Tab. A Liberty configuration must be opened prior to calling this
+     * method.
+     * 
+     * @param bot The SWTWorkbenchBot instance.
+     */
+    public static void openSourceTab(SWTWorkbenchBot bot) {
+        SWTBotShell shell = bot.shell("Debug Configurations");
+        shell.activate().setFocus();
+        SWTBot shellBot = shell.bot();
+        SWTBotCTabItem tabItem = shellBot.cTabItem("Source");
+        tabItem.activate().setFocus();
+    }
+
+    /**
      * Presses the Proceed button if it exists on the error in workspace dialog.
      * 
      * @param bot The SWTWorkbenchBot instance.
@@ -836,7 +860,7 @@ public class SWTBotPluginOperations {
         try {
             bot.button("Proceed").click();
         } catch (Exception e) {
-            // Not a problem if error wasn't generated.  Continue...
+            // Not a problem if error wasn't generated. Continue...
         }
     }
 
@@ -922,6 +946,5 @@ public class SWTBotPluginOperations {
             return matchFound;
         }
     }
-
 
 }

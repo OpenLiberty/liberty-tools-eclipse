@@ -248,7 +248,7 @@ public class DashboardView extends ViewPart {
             public void run() {
                 IProject iProject = devModeOps.getSelectedDashboardProject();
                 try {
-                    StartAction.run(iProject, null, ILaunchManager.RUN_MODE);
+                    StartAction.run(iProject, ILaunchManager.RUN_MODE);
                 } catch (Exception e) {
                     String msg = "An error was detected during the " + APP_MENU_ACTION_START + " action.";
                     if (Trace.isEnabled()) {
@@ -293,7 +293,7 @@ public class DashboardView extends ViewPart {
             public void run() {
                 IProject iProject = devModeOps.getSelectedDashboardProject();
                 try {
-                    StartInContainerAction.run(iProject, null, ILaunchManager.RUN_MODE);
+                    StartInContainerAction.run(iProject, ILaunchManager.RUN_MODE);
                 } catch (Exception e) {
                     String msg = "An error was detected during the " + APP_MENU_ACTION_START_IN_CONTAINER
                             + " action.";
@@ -315,7 +315,7 @@ public class DashboardView extends ViewPart {
             public void run() {
                 IProject iProject = devModeOps.getSelectedDashboardProject();
                 try {
-                    StartInContainerAction.run(iProject, null, ILaunchManager.DEBUG_MODE);
+                    StartInContainerAction.run(iProject, ILaunchManager.DEBUG_MODE);
                 } catch (Exception e) {
                     String msg = "An error was detected during the " + APP_MENU_ACTION_DEBUG_IN_CONTAINER
                             + " action.";
@@ -337,7 +337,7 @@ public class DashboardView extends ViewPart {
             public void run() {
                 IProject iProject = devModeOps.getSelectedDashboardProject();
                 try {
-                    StartAction.run(iProject, null, ILaunchManager.DEBUG_MODE);
+                    StartAction.run(iProject, ILaunchManager.DEBUG_MODE);
                 } catch (Exception e) {
                     String msg = "An error was detected during the " + APP_MENU_ACTION_DEBUG + " action.";
                     if (Trace.isEnabled()) {

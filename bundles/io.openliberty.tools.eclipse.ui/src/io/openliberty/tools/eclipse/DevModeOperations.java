@@ -32,6 +32,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.IJobChangeEvent;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.jobs.JobChangeAdapter;
+import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.jdt.launching.JavaRuntime;
 import org.eclipse.jface.viewers.ISelection;
@@ -46,6 +47,7 @@ import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
 
 import io.openliberty.tools.eclipse.CommandBuilder.CommandNotFoundException;
 import io.openliberty.tools.eclipse.Project.BuildType;
+import io.openliberty.tools.eclipse.debug.DebugModeHandler;
 import io.openliberty.tools.eclipse.logging.Logger;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.messages.Messages;
@@ -151,7 +153,7 @@ public class DevModeOperations {
      * @param javaHomePath The configuration java installation home to be set in the terminal running dev mode.
      * @param mode The configuration mode.
      */
-    public void start(IProject iProject, String parms, String javaHomePath, String mode) {
+    public void start(IProject iProject, String parms, String javaHomePath, ILaunch launch, String mode) {
 
         if (Trace.isEnabled()) {
             Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { iProject, parms, javaHomePath, mode });
@@ -232,13 +234,13 @@ public class DevModeOperations {
                         + "does not appear to be a Maven or Gradle built project.");
             }
 
-            // If there is a debugPort, start the job to attach the debugger to the Liberty server JVM.
-            if (debugPort != null) {
-                debugModeHandler.startDebugAttacher(project, debugPort);
-            }
-
             // Start a terminal and run the application in dev mode.
             startDevMode(cmd, projectName, projectPath, javaHomePath);
+
+            // If there is a debugPort, start the job to attach the debugger to the Liberty server JVM.
+            if (debugPort != null) {
+                debugModeHandler.startDebugAttacher(project, launch, debugPort);
+            }
         } catch (CommandNotFoundException e) {
             String msg = "Maven or Gradle command not found for project " + projectName;
             if (Trace.isEnabled()) {
@@ -266,7 +268,7 @@ public class DevModeOperations {
      * @param javaHomePath The configuration java installation home to be set in the terminal running dev mode.
      * @param mode The configuration mode.
      */
-    public void startInContainer(IProject iProject, String parms, String javaHomePath, String mode) {
+    public void startInContainer(IProject iProject, String parms, String javaHomePath, ILaunch launch, String mode) {
 
         if (Trace.isEnabled()) {
             Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { iProject, parms, javaHomePath, mode });
@@ -347,13 +349,13 @@ public class DevModeOperations {
                         + "does not appear to be a Maven or Gradle built project.");
             }
 
-            // If there is a debugPort, start the job to attach the debugger to the Liberty server JVM.
-            if (debugPort != null) {
-                debugModeHandler.startDebugAttacher(project, debugPort);
-            }
-
             // Start a terminal and run the application in dev mode.
             startDevMode(cmd, projectName, projectPath, javaHomePath);
+
+            // If there is a debugPort, start the job to attach the debugger to the Liberty server JVM.
+            if (debugPort != null) {
+                debugModeHandler.startDebugAttacher(project, launch, debugPort);
+            }
         } catch (Exception e) {
             String msg = "An error was detected during the start in container request on project " + projectName;
             if (Trace.isEnabled()) {

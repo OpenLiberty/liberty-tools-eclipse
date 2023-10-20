@@ -36,8 +36,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
-import io.openliberty.tools.eclipse.DebugModeHandler;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher.RuntimeEnv;
+import io.openliberty.tools.eclipse.debug.DebugModeHandler;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationHelper;
 import io.openliberty.tools.eclipse.ui.launch.StartTab;
 
