@@ -59,14 +59,25 @@
          point="org.eclipse.core.contenttype.contentTypes">
       <content-type
             base-type="org.eclipse.core.runtime.text"
-            file-names="server.env"
+            file-extensions="env"
             id="io.openliberty.tools.eclipse.org.liberty.tools.config.server-env"
             name="Liberty Server Env Settings"
             priority="normal">
       </content-type>
    </extension>
    
-    <extension
+   <extension
+         point="org.eclipse.core.contenttype.contentTypes">
+      <content-type
+            base-type="org.eclipse.core.runtime.text"
+            file-names="liberty-plugin-config.xml"
+            id="io.openliberty.tools.eclipse.org.liberty.tools.config.liberty-plugin-config"
+            name="Liberty Plugin Cfg"
+            priority="normal">
+      </content-type>
+   </extension>
+
+   <extension
          point="org.eclipse.core.filebuffers.documentSetup">
       <participant
             class="org.eclipse.lsp4e.ConnectDocumentToLanguageServerSetupParticipant"
@@ -91,7 +102,8 @@
             editorId="org.eclipse.ui.genericeditor.GenericEditor">
       </editorContentTypeBinding>
    </extension> 
-      <extension point="org.eclipse.ui.editors">
+  
+   <extension point="org.eclipse.ui.editors">
       <editorContentTypeBinding
             contentTypeId="io.openliberty.tools.eclipse.org.liberty.tools.config.server-env"
             editorId="org.eclipse.ui.genericeditor.GenericEditor">
@@ -104,6 +116,7 @@
             editorId="org.eclipse.ui.genericeditor.GenericEditor">
       </editorContentTypeBinding>
    </extension>   
+  
 
    <extension
          point="org.eclipse.lsp4e.languageServer">
@@ -136,8 +149,14 @@
             contentType="io.openliberty.tools.eclipse.org.liberty.tools.config.bootstrap-properties"
             id="io.openliberty.tools.eclipse.org.liberty.languageserver">
       </contentTypeMapping>
+      
       <contentTypeMapping
             contentType="io.openliberty.tools.eclipse.org.liberty.tools.config.server-env"
+            id="io.openliberty.tools.eclipse.org.liberty.languageserver">
+      </contentTypeMapping>
+      
+      <contentTypeMapping
+            contentType="io.openliberty.tools.eclipse.org.liberty.tools.config.liberty-plugin-config"
             id="io.openliberty.tools.eclipse.org.liberty.languageserver">
       </contentTypeMapping>
       
