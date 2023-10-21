@@ -19,17 +19,9 @@ package io.openliberty.tools.eclipse.liberty.languageserver;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URI;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.regex.Pattern;
-import java.util.stream.Stream;
 
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IStatus;
@@ -41,41 +33,54 @@ import io.openliberty.tools.eclipse.ls.plugin.LibertyToolsLSPlugin;
 
 public class LibertyLSConnection extends ProcessStreamConnectionProvider {
 
-	public LibertyLSConnection() {
-		List<String> commands = new ArrayList<>();
-		commands.add(computeJavaPath());
-		String debugPortString = System.getProperty(getClass().getName() + ".debugPort");
-		if (debugPortString != null) {
-			commands.add("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=" + debugPortString);
-		}
-		commands.add("-classpath");
-		try {
-			commands.add(computeClasspath());
-			commands.add("io.openliberty.tools.langserver.LibertyLanguageServerLauncher");
-			setCommands(commands);
-			setWorkingDirectory(System.getProperty("user.dir"));			
-		} catch (IOException e) {
-			LibertyToolsLSPlugin.getDefault().getLog().log(new Status(IStatus.ERROR,
-					LibertyToolsLSPlugin.getDefault().getBundle().getSymbolicName(), e.getMessage(), e));
-		}
-	}
+    public LibertyLSConnection() {
+        String className = getClass().getName();
+        List<String> commands = new ArrayList<>();
+        commands.add(computeJavaPath());
+        String debugPortString = System.getProperty(className + ".debugPort");
+        if (debugPortString != null) {
+            commands.add(
+                    "-agentlib:jdwp=transport=dt_socket,server=y,suspend=" + getDebugSuspend(className) + ",address=" + debugPortString);
+        }
+        commands.add("-classpath");
+        try {
+            commands.add(computeClasspath());
+            commands.add("io.openliberty.tools.langserver.LibertyLanguageServerLauncher");
+            setCommands(commands);
+            setWorkingDirectory(System.getProperty("user.dir"));
+        } catch (IOException e) {
+            LibertyToolsLSPlugin.getDefault().getLog()
+                    .log(new Status(IStatus.ERROR, LibertyToolsLSPlugin.getDefault().getBundle().getSymbolicName(), e.getMessage(), e));
+        }
+    }
 
-	private String computeClasspath() throws IOException {
-		StringBuilder builder = new StringBuilder();
-		URL url = FileLocator.toFileURL(getClass().getResource("/server/liberty-langserver/liberty-langserver.jar"));
-		builder.append(new java.io.File(url.getPath()).getAbsolutePath());
-		return builder.toString();
-	}
-	
-	private String computeJavaPath() {
-		 File f = new File(System.getProperty("java.home"),
-                "bin/java" + (Platform.getOS().equals(Platform.OS_WIN32) ? ".exe" : ""));
-         return f.getAbsolutePath();
-	}
+    private String computeClasspath() throws IOException {
+        StringBuilder builder = new StringBuilder();
+        URL url = FileLocator.toFileURL(getClass().getResource("/server/liberty-langserver/liberty-langserver.jar"));
+        builder.append(new java.io.File(url.getPath()).getAbsolutePath());
+        return builder.toString();
+    }
 
-	@Override
-	public String toString() {
-		return "Liberty MP Language Server: " + super.toString();
-	}
+    private String computeJavaPath() {
+        File f = new File(System.getProperty("java.home"), "bin/java" + (Platform.getOS().equals(Platform.OS_WIN32) ? ".exe" : ""));
+        return f.getAbsolutePath();
+    }
+
+    private String getDebugSuspend(String className) {
+        String debugSuspend = System.getProperty(className + ".debugSuspend", "false");
+
+        if (Boolean.parseBoolean(debugSuspend)) {
+            return "y";
+        } else if (debugSuspend.equalsIgnoreCase("y")) {
+            return "y";
+        } else {
+            return "n";
+        }
+    }
+
+    @Override
+    public String toString() {
+        return "Liberty Config Language Server: " + super.toString();
+    }
 
 }
