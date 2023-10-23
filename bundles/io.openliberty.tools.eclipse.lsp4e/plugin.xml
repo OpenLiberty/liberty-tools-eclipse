@@ -20,9 +20,9 @@
             <jar
                   path="server/liberty-lemminx-extn/liberty-langserver-lemminx.jar">
             </jar>
-      </extension>
+   </extension>
    
-      <extension
+   <extension
          point="org.eclipse.core.contenttype.contentTypes">
       <content-type
             base-type="org.eclipse.core.runtime.text"
@@ -47,12 +47,21 @@
    <extension
          point="org.eclipse.core.contenttype.contentTypes">
       <content-type
-            base-type="org.eclipse.core.runtime.text"
+            base-type="org.eclipse.jdt.core.javaProperties"
             file-names="bootstrap.properties"
             id="io.openliberty.tools.eclipse.org.liberty.tools.config.bootstrap-properties"
             name="Liberty Server Bootstrap Properties"
             priority="normal">
       </content-type>
+         <!--
+      <content-type
+            base-type="org.eclipse.core.runtime.text"
+            file-extensions="properties"
+            id="io.openliberty.tools.eclipse.org.liberty.tools.config.bootstrap-properties"
+            name="Liberty Server Bootstrap Properties"
+            priority="normal">
+      </content-type>
+      -->
    </extension>
    
    <extension
@@ -62,17 +71,6 @@
             file-extensions="env"
             id="io.openliberty.tools.eclipse.org.liberty.tools.config.server-env"
             name="Liberty Server Env Settings"
-            priority="normal">
-      </content-type>
-   </extension>
-   
-   <extension
-         point="org.eclipse.core.contenttype.contentTypes">
-      <content-type
-            base-type="org.eclipse.core.runtime.text"
-            file-names="liberty-plugin-config.xml"
-            id="io.openliberty.tools.eclipse.org.liberty.tools.config.liberty-plugin-config"
-            name="Liberty Plugin Cfg"
             priority="normal">
       </content-type>
    </extension>
@@ -110,7 +108,7 @@
       </editorContentTypeBinding>
    </extension> 
    
-      <extension point="org.eclipse.ui.editors">
+   <extension point="org.eclipse.ui.editors">
       <editorContentTypeBinding
             contentTypeId="io.openliberty.tools.eclipse.org.liberty.tools.config.bootstrap-properties"
             editorId="org.eclipse.ui.genericeditor.GenericEditor">
@@ -146,17 +144,30 @@
             singleton="true">
       </server>
       <contentTypeMapping
+            contentType="org.eclipse.jdt.core.javaProperties"
+            id="io.openliberty.tools.eclipse.org.liberty.languageserver">
+      </contentTypeMapping>
+      <!--
+      <contentTypeMapping
             contentType="io.openliberty.tools.eclipse.org.liberty.tools.config.bootstrap-properties"
             id="io.openliberty.tools.eclipse.org.liberty.languageserver">
       </contentTypeMapping>
+      -->
       
       <contentTypeMapping
             contentType="io.openliberty.tools.eclipse.org.liberty.tools.config.server-env"
             id="io.openliberty.tools.eclipse.org.liberty.languageserver">
       </contentTypeMapping>
       
+      <!--
       <contentTypeMapping
             contentType="io.openliberty.tools.eclipse.org.liberty.tools.config.liberty-plugin-config"
+            id="io.openliberty.tools.eclipse.org.liberty.languageserver">
+      </contentTypeMapping>
+      -->
+
+      <contentTypeMapping
+            contentType="org.eclipse.jdt.core.javaProperties"
             id="io.openliberty.tools.eclipse.org.liberty.languageserver">
       </contentTypeMapping>
       
