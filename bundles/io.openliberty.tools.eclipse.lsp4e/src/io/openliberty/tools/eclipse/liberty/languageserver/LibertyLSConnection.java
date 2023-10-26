@@ -30,20 +30,19 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.lsp4e.server.ProcessStreamConnectionProvider;
 
 import io.openliberty.tools.eclipse.ls.plugin.LibertyToolsLSPlugin;
+import io.openliberty.tools.eclipse.lsclient.DebugUtil;
 
 public class LibertyLSConnection extends ProcessStreamConnectionProvider {
 
     public LibertyLSConnection() {
-        String className = getClass().getName();
         List<String> commands = new ArrayList<>();
         commands.add(computeJavaPath());
-        String debugPortString = System.getProperty(className + ".debugPort");
-        if (debugPortString != null) {
-            commands.add(
-                    "-agentlib:jdwp=transport=dt_socket,server=y,suspend=" + getDebugSuspend(className) + ",address=" + debugPortString);
-        }
-        commands.add("-classpath");
         try {
+            String debugArg = DebugUtil.getDebugJVMArg(getClass().getName());
+            if (debugArg.length() > 0) {
+                commands.add(debugArg);
+            }
+            commands.add("-classpath");
             commands.add(computeClasspath());
             commands.add("io.openliberty.tools.langserver.LibertyLanguageServerLauncher");
             setCommands(commands);
@@ -64,18 +63,6 @@ public class LibertyLSConnection extends ProcessStreamConnectionProvider {
     private String computeJavaPath() {
         File f = new File(System.getProperty("java.home"), "bin/java" + (Platform.getOS().equals(Platform.OS_WIN32) ? ".exe" : ""));
         return f.getAbsolutePath();
-    }
-
-    private String getDebugSuspend(String className) {
-        String debugSuspend = System.getProperty(className + ".debugSuspend", "false");
-
-        if (Boolean.parseBoolean(debugSuspend)) {
-            return "y";
-        } else if (debugSuspend.equalsIgnoreCase("y")) {
-            return "y";
-        } else {
-            return "n";
-        }
     }
 
     @Override
