@@ -34,6 +34,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.lsp4e.server.ProcessStreamConnectionProvider;
 
 import io.openliberty.tools.eclipse.ls.plugin.LibertyToolsLSPlugin;
+import io.openliberty.tools.eclipse.lsclient.DebugUtil;
 
 public class JakartaLSConnection extends ProcessStreamConnectionProvider {
 
@@ -41,9 +42,9 @@ public class JakartaLSConnection extends ProcessStreamConnectionProvider {
 
         List<String> commands = new ArrayList<>();
         commands.add(computeJavaPath());
-        String debugPortString = System.getProperty(getClass().getName() + ".debugPort");
-        if (debugPortString != null) {
-            commands.add("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=" + debugPortString);
+        String debugArg = DebugUtil.getDebugJVMArg(getClass().getName());
+        if (debugArg.length() > 0) {
+            commands.add(debugArg);
         }
         commands.add("-classpath");
         try {
