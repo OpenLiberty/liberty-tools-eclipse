@@ -21,6 +21,13 @@
     <artifactId>dependency-only</artifactId>
     <version>none</version>
 
+    <parent>
+        <groupId>io.openliberty.tools.eclipse</groupId>
+        <artifactId>parent</artifactId>
+        <version>23.0.12-SNAPSHOT</version>
+        <relativePath>../../pom.xml</relativePath>
+    </parent>
+
 <!--
 
     NOTE: See (IBM-employee-internal-only link):  https://github.ibm.com/liberty-dev-ex/liberty-tools-eclipse/wiki/To-do-an-updated-scan   
@@ -180,7 +187,7 @@ OTHER REFERENCES:  https://projects.eclipse.org/projects/eclipse.platform/develo
             <!-- org.eclipse.debug.core, org.eclipse.debug.core.model -->
             <groupId>org.eclipse.platform</groupId>
             <artifactId>org.eclipse.debug.core</artifactId>
-            <version>3.21.101</version>
+            <version>3.21.100</version>
         </dependency>
         <dependency>
             <groupId>org.eclipse.platform</groupId>
