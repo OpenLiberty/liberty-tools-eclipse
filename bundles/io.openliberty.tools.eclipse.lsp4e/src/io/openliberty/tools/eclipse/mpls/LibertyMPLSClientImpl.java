@@ -29,6 +29,7 @@ import org.eclipse.lsp4e.LanguageClientImpl;
 import org.eclipse.lsp4j.CodeAction;
 import org.eclipse.lsp4j.CodeLens;
 import org.eclipse.lsp4j.CompletionList;
+import org.eclipse.lsp4j.Diagnostic;
 import org.eclipse.lsp4j.Hover;
 import org.eclipse.lsp4j.Location;
 import org.eclipse.lsp4j.PublishDiagnosticsParams;
@@ -151,6 +152,20 @@ public class LibertyMPLSClientImpl extends LanguageClientImpl implements MicroPr
         return CompletableFutures.computeAsync((cancelChecker) -> {
             IProgressMonitor monitor = getProgressMonitor(cancelChecker);
             try {
+
+                // If all the diagnostics have non-microprofile source let's just ignore this.
+                boolean found = false;
+                List<Diagnostic> diagnostics = javaParams.getContext().getDiagnostics();
+                for (Diagnostic d : diagnostics) {
+                    if (d.getSource().startsWith("microprofile")) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (!found) {
+                    return Collections.emptyList();
+                }
+
                 return (List<CodeAction>) PropertiesManagerForJava.getInstance().codeAction(javaParams, JDTUtilsLSImpl.getInstance(),
                         monitor);
             } catch (JavaModelException e) {
