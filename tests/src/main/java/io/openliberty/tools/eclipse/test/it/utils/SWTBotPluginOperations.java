@@ -298,8 +298,8 @@ public class SWTBotPluginOperations {
         Object locationLabel = null;
         Object locationText = null;
 
-        finalMvnExecutableLoc = System.getProperty("io.liberty.tools.eclipse.tests.mvnexecutable.path");
-        finalGradleExecutableLoc = System.getProperty("io.liberty.tools.eclipse.tests.gradleexecutable.path");
+        finalMvnExecutableLoc = System.getProperty("io.liberty.tools.eclipse.tests.mvnexecutable.path", "");
+        finalGradleExecutableLoc = System.getProperty("io.liberty.tools.eclipse.tests.gradleexecutable.path", "");
 
         Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
         goMenuItem(windowMenu, "Preferences");
