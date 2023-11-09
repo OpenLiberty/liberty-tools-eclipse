@@ -64,7 +64,7 @@ public abstract class AbstractLibertyPluginSWTBotTest {
 
     protected static String localMvnCmdExe = LibertyPluginTestUtils.onWindows() ? "mvn.cmd" : "mvn";
 
-    protected static String localMvnCmdPath = System.getProperty("io.liberty.tools.eclipse.tests.mvnexecutable.path") + File.separator
+    protected static String localMvnCmdPath = System.getProperty("io.liberty.tools.eclipse.tests.mvnexecutable.path", "") + File.separator
             + "bin" + File.separator + localMvnCmdExe;
 
     /**
