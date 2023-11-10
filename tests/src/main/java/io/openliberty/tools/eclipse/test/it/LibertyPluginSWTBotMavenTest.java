@@ -182,7 +182,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         importMavenProjects(workspaceRoot, projectPaths);
 
         // Build shared lib project
-        Process process = new ProcessBuilder(localMvnCmdPath, "clean", "install").directory(sharedLibProjectPath.toFile()).start();
+        Process process = new ProcessBuilder(getMvnCmd(), "clean", "install").directory(sharedLibProjectPath.toFile()).start();
         BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 
         String line;
@@ -342,7 +342,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
 
         String opaqueMvnCmd = CommandBuilder.getMavenCommandLine(projPath, "io.openliberty.tools:liberty-maven-plugin:dev -f " + projPath,
                 System.getenv("PATH"), true);
-        Assertions.assertTrue(opaqueMvnCmd.contains(localMvnCmdExe + " io.openliberty.tools:liberty-maven-plugin:dev"),
+        Assertions.assertTrue(opaqueMvnCmd.contains(getMvnCmdFilename() + " io.openliberty.tools:liberty-maven-plugin:dev"),
                 "Expected cmd to contain 'mvn io.openliberty.tools...' but cmd = " + opaqueMvnCmd);
     }
 

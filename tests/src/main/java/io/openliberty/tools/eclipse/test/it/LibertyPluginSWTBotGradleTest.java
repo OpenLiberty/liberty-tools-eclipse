@@ -177,7 +177,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         importMavenProjects(ResourcesPlugin.getWorkspace().getRoot().getLocation().toFile(), mavenProjectToInstall);
 
         // Build shared lib project
-        Process process = new ProcessBuilder(localMvnCmdPath, "clean", "install").directory(sharedLibProjectPath.toFile()).start();
+        Process process = new ProcessBuilder(getMvnCmd(), "clean", "install").directory(sharedLibProjectPath.toFile()).start();
 
         BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
 

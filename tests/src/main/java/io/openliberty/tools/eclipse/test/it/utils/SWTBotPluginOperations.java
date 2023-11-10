@@ -69,6 +69,7 @@ import org.hamcrest.Matcher;
 import org.junit.jupiter.api.Assertions;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
+import io.openliberty.tools.eclipse.test.it.AbstractLibertyPluginSWTBotTest;
 import io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.ControlFinder;
 import io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.ControlFinder.Direction;
 import io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.Option;
@@ -298,8 +299,8 @@ public class SWTBotPluginOperations {
         Object locationLabel = null;
         Object locationText = null;
 
-        finalMvnExecutableLoc = System.getProperty("io.liberty.tools.eclipse.tests.mvnexecutable.path", "");
-        finalGradleExecutableLoc = System.getProperty("io.liberty.tools.eclipse.tests.gradleexecutable.path", "");
+        finalMvnExecutableLoc = AbstractLibertyPluginSWTBotTest.getMvnCmdPath();
+        finalGradleExecutableLoc = AbstractLibertyPluginSWTBotTest.getGradleCmdPath();
 
         Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
         goMenuItem(windowMenu, "Preferences");

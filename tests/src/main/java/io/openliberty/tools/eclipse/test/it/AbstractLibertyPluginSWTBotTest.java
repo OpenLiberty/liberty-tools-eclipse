@@ -62,10 +62,31 @@ public abstract class AbstractLibertyPluginSWTBotTest {
      */
     static SWTBotView dashboard;
 
-    protected static String localMvnCmdExe = LibertyPluginTestUtils.onWindows() ? "mvn.cmd" : "mvn";
+    protected static String getMvnCmdFilename() {
+        return LibertyPluginTestUtils.onWindows() ? "mvn.cmd" : "mvn";
+    }
 
-    protected static String localMvnCmdPath = System.getProperty("io.liberty.tools.eclipse.tests.mvnexecutable.path", "") + File.separator
-            + "bin" + File.separator + localMvnCmdExe;
+    public static String getMvnCmd() {
+        return getMvnCmdPath() + File.separator + "bin" + File.separator + getMvnCmdFilename();
+    }
+
+    public static String getMvnCmdPath() {
+        String pathVal = System.getProperty("io.liberty.tools.eclipse.tests.mvnexecutable.path");
+        // Tycho "helpfully" converts empty/absent props to 'null' but we'd rather have an empty so we can use /
+        if (pathVal.equals("null")) {
+            pathVal = "";
+        }
+        return pathVal;
+    }
+
+    public static String getGradleCmdPath() {
+        String pathVal = System.getProperty("io.liberty.tools.eclipse.tests.gradleexecutable.path");
+        // Tycho "helpfully" converts empty/absent props to 'null' but we'd rather have an empty so we can use /
+        if (pathVal.equals("null")) {
+            pathVal = "";
+        }
+        return pathVal;
+    }
 
     /**
      * Cleanup.
