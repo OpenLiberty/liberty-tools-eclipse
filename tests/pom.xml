@@ -25,6 +25,9 @@
 
     <properties>
         <testAppImportWait>60000</testAppImportWait>
+        <!-- A bit weird-looking but will work on *nix systems where //bin/mvn etc. works. The tycho plugin will map an unset property to "null" so better to set to something concrete -->
+        <mvnPath>/</mvnPath>
+        <gradlePath>/</gradlePath>
     </properties>
 
     <build>
