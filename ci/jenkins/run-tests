@@ -45,7 +45,11 @@ pipeline {
                         try {
                             wrap([$class: 'Xvfb', installationName: 'gui-test', autoDisplayName: true, debug: true, parallelBuild: true, screen: '1680x1050x24']) {
                                 sh "metacity --sm-disable --replace &"
-                                sh "mvn clean verify -Dtycho.disableP2Mirrors=true -Declipse.target=3Q2023 -Dosgi.debug=./tests/resources/ci/debug.opts -DtestAppImportWait=120000 -Dtycho.showEclipseLog -e"
+                                sh '''
+                                   MVNPATH="$(dirname $(which mvn))/.."
+                                   GRADLEPATH="$(dirname $(which gradle))/.."
+                                   mvn clean verify -DmvnPath=$MVNPATH -DgradlePath=$GRADLEPATH -Dtycho.disableP2Mirrors=true -Declipse.target=3Q2023 -Dosgi.debug=./tests/resources/ci/debug.opts -DtestAppImportWait=120000 -Dtycho.showEclipseLog -e
+                                '''
                             }
                         } finally {
                             sh "cd tests/target/surefire-reports && zip -r 3Q2023-test-reports.zip ."
