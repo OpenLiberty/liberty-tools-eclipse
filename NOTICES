@@ -27,13 +27,19 @@ indicated URL):
 ch.qos.logback:logback-classic | https://repo1.maven.org/maven2/ch/qos/logback/logback-classic/1.2.11/logback-classic-1.2.11-sources.jar
 ch.qos.logback:logback-core | https://repo1.maven.org/maven2/ch/qos/logback/logback-core/1.2.11/logback-core-1.2.11-sources.jar
 org.eclipse.lemminx:org.eclipse.lemminx | https://mvnrepository.com/artifact/org.eclipse.lemminx/org.eclipse.lemminx/0.22.0
+org.eclipse.lsp4j:org.eclipse.lsp4j | https://repo1.maven.org/maven2/org/eclipse/lsp4j/org.eclipse.lsp4j/0.14.0/org.eclipse.lsp4j-0.14.0-sources.jar
 org.eclipse.lsp4j:org.eclipse.lsp4j | https://repo1.maven.org/maven2/org/eclipse/lsp4j/org.eclipse.lsp4j/0.17.0/org.eclipse.lsp4j-0.17.0-sources.jar
+org.eclipse.lsp4j:org.eclipse.lsp4j.generator | https://mvnrepository.com/artifact/org.eclipse.lsp4j/org.eclipse.lsp4j.generator/0.14.0
 org.eclipse.lsp4j:org.eclipse.lsp4j.generator | https://mvnrepository.com/artifact/org.eclipse.lsp4j/org.eclipse.lsp4j.generator/0.17.0
+org.eclipse.lsp4j:org.eclipse.lsp4j.jsonrpc | https://repo1.maven.org/maven2/org/eclipse/lsp4j/org.eclipse.lsp4j.jsonrpc/0.14.0/org.eclipse.lsp4j.jsonrpc-0.14.0-sources.jar
 org.eclipse.lsp4j:org.eclipse.lsp4j.jsonrpc | https://repo1.maven.org/maven2/org/eclipse/lsp4j/org.eclipse.lsp4j.jsonrpc/0.17.0/org.eclipse.lsp4j.jsonrpc-0.17.0-sources.jar
 org.eclipse.lsp4jakarta:org.eclipse.lsp4jakarta.ls | https://github.com/eclipse/lsp4jakarta/tree/0.1.0
-org.eclipse.lsp4mp:org.eclipse.lsp4mp.ls | https://github.com/eclipse/lsp4mp/tree/0.7.0
+org.eclipse.lsp4mp:org.eclipse.lsp4mp.ls | https://github.com/eclipse/lsp4mp/tree/0.10.0
+org.eclipse.xtend:org.eclipse.xtend.lib | https://mvnrepository.com/artifact/org.eclipse.xtend/org.eclipse.xtend.lib/2.24.0
 org.eclipse.xtend:org.eclipse.xtend.lib | https://mvnrepository.com/artifact/org.eclipse.xtend/org.eclipse.xtend.lib/2.28.0
+org.eclipse.xtend:org.eclipse.xtend.lib.macro | https://mvnrepository.com/artifact/org.eclipse.xtend/org.eclipse.xtend.lib.macro/2.24.0
 org.eclipse.xtend:org.eclipse.xtend.lib.macro | https://mvnrepository.com/artifact/org.eclipse.xtend/org.eclipse.xtend.lib.macro/2.28.0
+org.eclipse.xtext:org.eclipse.xtext.xbase.lib | https://mvnrepository.com/artifact/org.eclipse.xtext/org.eclipse.xtext.xbase.lib/2.24.0
 org.eclipse.xtext:org.eclipse.xtext.xbase.lib | https://mvnrepository.com/artifact/org.eclipse.xtext/org.eclipse.xtext.xbase.lib/2.28.0
 org.junit:junit-bom | https://repo1.maven.org/maven2/org/junit/junit-bom/5.8.2/
 
@@ -122,7 +128,6 @@ net.java.dev.jna:jna-platform
 org.apache.commons:commons-lang3
 org.apache.felix:org.apache.felix.scr
 org.jboss.logging:jboss-logging
-org.jboss.logging:jboss-logging-annotations
 org.osgi:org.osgi.service.component
 org.osgi:org.osgi.service.event
 org.osgi:org.osgi.service.prefs
