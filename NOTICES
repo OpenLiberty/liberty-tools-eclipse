@@ -7,6 +7,7 @@ TABLE OF CONTENTS
 
 THIS IBM NOTICES FILE CONSISTS OF THE FOLLOWING SECTIONS:
 
+EPL
 EPL-2.0
 BSD-3-Clause
 CDDL-1.0
@@ -14,6 +15,18 @@ Apache-2.0
 LGPL-2.1
 MIT
 Unicode-DFS-2016
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+ECLIPSE PUBLIC LICENSE, VERSION 1
+
+The Program includes some or all of the following that IBM obtained
+under the Eclipse Public License (source code available via the
+indicated URL):
+
+io.takari.m2e.workspace:org.eclipse.m2e.workspace.cli | https://git.eclipse.org/c/m2e/org.eclipse.m2e.workspace.git/tree/org.eclipse.m2e.workspace.cli/pom.xml?h=m2e-workspace-0.3.1
+
+END OF ECLIPSE PUBLIC LICENSE, VERSION 1 NOTICES AND INFORMATION
 
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -126,11 +139,13 @@ io.smallrye.common:smallrye-common-constraint
 io.smallrye.common:smallrye-common-expression
 io.smallrye.common:smallrye-common-function
 io.takari:maven-wrapper
+javax.inject:javax.inject
 net.java.dev.jna:jna
 net.java.dev.jna:jna-platform
 org.apache.aries.spifly:org.apache.aries.spifly.dynamic.bundle
 org.apache.commons:commons-lang3
 org.apache.felix:org.apache.felix.scr
+org.codehaus.plexus:plexus-component-annotations
 org.jboss.logging:jboss-logging
 org.osgi:org.osgi.service.component
 org.osgi:org.osgi.service.event
