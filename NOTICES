@@ -7,6 +7,7 @@ TABLE OF CONTENTS
 
 THIS IBM NOTICES FILE CONSISTS OF THE FOLLOWING SECTIONS:
 
+EPL
 EPL-2.0
 BSD-3-Clause
 CDDL-1.0
@@ -14,6 +15,18 @@ Apache-2.0
 LGPL-2.1
 MIT
 Unicode-DFS-2016
+
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+ECLIPSE PUBLIC LICENSE, VERSION 1
+
+The Program includes some or all of the following that IBM obtained
+under the Eclipse Public License (source code available via the
+indicated URL):
+
+io.takari.m2e.workspace:org.eclipse.m2e.workspace.cli | https://git.eclipse.org/c/m2e/org.eclipse.m2e.workspace.git/tree/org.eclipse.m2e.workspace.cli/pom.xml?h=m2e-workspace-0.3.1
+
+END OF ECLIPSE PUBLIC LICENSE, VERSION 1 NOTICES AND INFORMATION
 
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
@@ -24,18 +37,22 @@ The Program includes some or all of the following that IBM obtained
 under the Eclipse Public License (source code available via the
 indicated URL):
 
-ch.qos.logback:logback-classic | https://repo1.maven.org/maven2/ch/qos/logback/logback-classic/1.2.11/logback-classic-1.2.11-sources.jar
-ch.qos.logback:logback-core | https://repo1.maven.org/maven2/ch/qos/logback/logback-core/1.2.11/logback-core-1.2.11-sources.jar
-org.eclipse.lemminx:org.eclipse.lemminx | https://mvnrepository.com/artifact/org.eclipse.lemminx/org.eclipse.lemminx/0.22.0
-org.eclipse.lsp4j:org.eclipse.lsp4j | https://repo1.maven.org/maven2/org/eclipse/lsp4j/org.eclipse.lsp4j/0.17.0/org.eclipse.lsp4j-0.17.0-sources.jar
-org.eclipse.lsp4j:org.eclipse.lsp4j.generator | https://mvnrepository.com/artifact/org.eclipse.lsp4j/org.eclipse.lsp4j.generator/0.17.0
-org.eclipse.lsp4j:org.eclipse.lsp4j.jsonrpc | https://repo1.maven.org/maven2/org/eclipse/lsp4j/org.eclipse.lsp4j.jsonrpc/0.17.0/org.eclipse.lsp4j.jsonrpc-0.17.0-sources.jar
-org.eclipse.lsp4jakarta:org.eclipse.lsp4jakarta.ls | https://github.com/eclipse/lsp4jakarta/tree/0.1.0
-org.eclipse.lsp4mp:org.eclipse.lsp4mp.ls | https://github.com/eclipse/lsp4mp/tree/0.7.0
+org.eclipse.lsp4j:org.eclipse.lsp4j | https://repo1.maven.org/maven2/org/eclipse/lsp4j/org.eclipse.lsp4j/0.14.0/org.eclipse.lsp4j-0.14.0-sources.jar
+org.eclipse.lsp4j:org.eclipse.lsp4j | https://repo1.maven.org/maven2/org/eclipse/lsp4j/org.eclipse.lsp4j/0.20.1/org.eclipse.lsp4j-0.20.1-sources.jar
+org.eclipse.lsp4j:org.eclipse.lsp4j | https://repo1.maven.org/maven2/org/eclipse/lsp4j/org.eclipse.lsp4j/0.21.0/org.eclipse.lsp4j-0.21.0-sources.jar
+org.eclipse.lsp4j:org.eclipse.lsp4j.generator | https://mvnrepository.com/artifact/org.eclipse.lsp4j/org.eclipse.lsp4j.generator/0.14.0
+org.eclipse.lsp4j:org.eclipse.lsp4j.generator | https://mvnrepository.com/artifact/org.eclipse.lsp4j/org.eclipse.lsp4j.generator/0.20.1
+org.eclipse.lsp4j:org.eclipse.lsp4j.jsonrpc | https://repo1.maven.org/maven2/org/eclipse/lsp4j/org.eclipse.lsp4j.jsonrpc/0.14.0/org.eclipse.lsp4j.jsonrpc-0.14.0-sources.jar
+org.eclipse.lsp4j:org.eclipse.lsp4j.jsonrpc | https://repo1.maven.org/maven2/org/eclipse/lsp4j/org.eclipse.lsp4j.jsonrpc/0.20.1/org.eclipse.lsp4j.jsonrpc-0.20.1-sources.jar
+org.eclipse.lsp4j:org.eclipse.lsp4j.jsonrpc | https://repo1.maven.org/maven2/org/eclipse/lsp4j/org.eclipse.lsp4j.jsonrpc/0.21.0/org.eclipse.lsp4j.jsonrpc-0.21.0-sources.jar
+org.eclipse.lsp4jakarta:org.eclipse.lsp4jakarta.ls | https://github.com/eclipse/lsp4jakarta/tree/0.2.0
+org.eclipse.lsp4mp:org.eclipse.lsp4mp.ls | https://github.com/eclipse/lsp4mp/tree/0.10.0
+org.eclipse.xtend:org.eclipse.xtend.lib | https://mvnrepository.com/artifact/org.eclipse.xtend/org.eclipse.xtend.lib/2.24.0
 org.eclipse.xtend:org.eclipse.xtend.lib | https://mvnrepository.com/artifact/org.eclipse.xtend/org.eclipse.xtend.lib/2.28.0
+org.eclipse.xtend:org.eclipse.xtend.lib.macro | https://mvnrepository.com/artifact/org.eclipse.xtend/org.eclipse.xtend.lib.macro/2.24.0
 org.eclipse.xtend:org.eclipse.xtend.lib.macro | https://mvnrepository.com/artifact/org.eclipse.xtend/org.eclipse.xtend.lib.macro/2.28.0
+org.eclipse.xtext:org.eclipse.xtext.xbase.lib | https://mvnrepository.com/artifact/org.eclipse.xtext/org.eclipse.xtext.xbase.lib/2.24.0
 org.eclipse.xtext:org.eclipse.xtext.xbase.lib | https://mvnrepository.com/artifact/org.eclipse.xtext/org.eclipse.xtext.xbase.lib/2.28.0
-org.junit:junit-bom | https://repo1.maven.org/maven2/org/junit/junit-bom/5.8.2/
 
 END OF ECLIPSE PUBLIC LICENSE, VERSION 2 NOTICES AND INFORMATION
 
@@ -54,6 +71,11 @@ org.eclipse.angus:angus-activation | Copyright (c) 2021 Oracle and/or its affili
 org.glassfish.jaxb:jaxb-core | Copyright (c) 2007, Eclipse Foundation, Inc. and its licensors.
 org.glassfish.jaxb:jaxb-runtime | Copyright (c) 2007, Eclipse Foundation, Inc. and its licensors.
 org.glassfish.jaxb:txw2 | Copyright (c) 2007, Eclipse Foundation, Inc. and its licensors.
+org.ow2.asm:asm | Copyright (c) 2000-2011 INRIA France Telecom. All rights reserved.
+org.ow2.asm:asm-analysis | Copyright (c) 2000-2011 INRIA France Telecom. All rights reserved.
+org.ow2.asm:asm-commons | Copyright (c) 2000-2011 INRIA France Telecom. All rights reserved.
+org.ow2.asm:asm-tree | Copyright (c) 2000-2011 INRIA France Telecom. All rights reserved.
+org.ow2.asm:asm-util | Copyright (c) 2000-2011 INRIA France Telecom. All rights reserved.
 
 
 Redistribution and use in source and binary forms, with or without 
@@ -111,25 +133,27 @@ com.google.guava:failureaccess
 com.google.guava:guava
 com.google.guava:listenablefuture
 com.google.j2objc:j2objc-annotations
-com.kotcrab.remark:remark
+commons-cli:commons-cli
 commons-io:commons-io
 io.smallrye.common:smallrye-common-constraint
 io.smallrye.common:smallrye-common-expression
 io.smallrye.common:smallrye-common-function
 io.takari:maven-wrapper
+javax.inject:javax.inject
 net.java.dev.jna:jna
 net.java.dev.jna:jna-platform
+org.apache.aries.spifly:org.apache.aries.spifly.dynamic.bundle
 org.apache.commons:commons-lang3
 org.apache.felix:org.apache.felix.scr
+org.codehaus.plexus:plexus-component-annotations
 org.jboss.logging:jboss-logging
-org.jboss.logging:jboss-logging-annotations
 org.osgi:org.osgi.service.component
 org.osgi:org.osgi.service.event
 org.osgi:org.osgi.service.prefs
 org.osgi:org.osgi.util.function
 org.osgi:org.osgi.util.promise
+org.osgi:osgi.annotation
 xerces:xercesImpl
-xml-resolver:xml-resolver
 
 Apache License
 Version 2.0, January 2004
@@ -783,7 +807,8 @@ org.bouncycastle:bcprov-jdk18on | Copyright (c) 2000 - 2023 The Legion of the Bo
 org.checkerframework:checker-qual | Copyright 2004-present by the Checker Framework developers
 org.codehaus.mojo:animal-sniffer-annotations | Copyright (c) 2009 codehaus.org
 org.jsoup:jsoup | Copyright (c) 2009-2021 Jonathan Hedley <https://jsoup.org/>
-org.slf4j:slf4j-api | Copyright (c) 2004-2011 QOS.ch
+org.slf4j:slf4j-api | Copyright (c) 2004-2022 QOS.ch
+org.slf4j:slf4j-nop | Copyright (c) 2004-2022 QOS.ch
 
 Permission is hereby granted, free of charge, to any person obtaining a 
 copy of this software and associated documentation files (the 
