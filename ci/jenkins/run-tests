@@ -24,7 +24,7 @@ pipeline {
                 dir('liberty-tools-eclipse') {
                     // Install swt jni libraries
                     sh "sudo apt update"
-                    sh 'sudo apt install dialog apt-utils'
+                    sh 'sudo apt install -y dialog apt-utils'
                     sh "sudo apt install -y libswt-gtk-4-jni"
                     sh "mkdir -p ~/.swt/lib/linux/x86_64/"
                     sh "ln -s /usr/lib/jni/libswt-* ~/.swt/lib/linux/x86_64/"
