@@ -43,6 +43,7 @@ This guide provides detailed instructions on how to use Liberty Tools for the Ec
 |  23.0.6     	| 2023-03 - Eclipse v4.27 |
 |  23.0.7     	| 2023-03 - Eclipse v4.27 |
 |  23.0.9       | 2023-06 - Eclipse v4.28 |
+|  23.0.12      | 2023-09 - Eclipse v4.29 |
 
 **NOTE:** Tested with each of the `Eclipse IDE for Enterprise Java and Web Developers` and `Eclipse IDE for Java Developers` packages
 
@@ -227,13 +228,13 @@ If you select the **Liberty Start...** launch shortcut action, the Debug Configu
 
 ![Debug Configurations Dialog](images/maven-DebugConfigsDialog.png)
 
+Under the `Source` tab you can also customize the source lookup locations for your debug session. By default, the source for the running project as well as any dependency projects that exist within the workspace are added. You can add additional source lookup locations by clicking the `Add` button. 
+
+![Debug Configurations Dialog](images/maven-debugSourceLookupTab.png)
+
 When you finish with the customizations, click the **Debug** button to launch dev mode and attach the debugger. 
 
 ![Debugger Attached](images/maven-DebuggerAttachedToJVMBreakpoint.png)
-
-When the debugger is attached to the Liberty server JVM, a `Remote Java Application` configuration is created (or updated) and reflects the debug port number the JVM is listening on. 
-
-![Debug As launch shortcuts](images/maven-RemoteJavaApplicationConfiguration.png)
 
 ## Manually adding the Liberty nature to a project
 
