@@ -1,5 +1,25 @@
 # Liberty Tools Eclipse Changelog
 
+## 23.0.12 [changes](https://github.com/OpenLiberty/liberty-tools-eclipse/milestone/5?closed=1) / [release](https://github.com/OpenLiberty/liberty-tools-eclipse/releases/tag/liberty-tools-23.0.12.202311281452) (Nov. 28, 2023)
+
+### Eclipse Platform target release upgrade
+ * 4.29 (2023-09)
+
+### Dependency Upgrades
+ * Liberty Config Language Server (LCLS) => 2.1.1
+ * Language Server for Jakarta EE (LSP4Jakarta) => 0.2.0
+ * Language Server for MicroProfile (LSP4MP) => 0.10.0
+
+### Enhancements
+ * Create new "Liberty Tools" Run/Debug configuration type populating source lookup with project Maven/Gradle dependencies.  See [#400](https://github.com/OpenLiberty/liberty-tools-eclipse/issues/400).
+ * Enable support for non-default config file paths (locations) for server.xml, server.env, bootstrap.properties.  See [#429](https://github.com/OpenLiberty/liberty-tools-eclipse/issues/429).
+
+### Bug Fixes
+ * LSP4Jakarta quick fixes not appearing. See [#377](https://github.com/OpenLiberty/liberty-tools-eclipse/issues/377).
+
+### Other
+ * Add suspend config option for debugging LS processes, and default to NOT suspend.  See [#465](https://github.com/OpenLiberty/liberty-tools-eclipse/pull/465).
+
 ## 23.0.9 [changes](https://github.com/OpenLiberty/liberty-tools-eclipse/milestone/4?closed=1) / [release](https://github.com/OpenLiberty/liberty-tools-eclipse/releases/tag/liberty-tools-23.0.9.202309271814) (Sept. 27, 2023)
 
 ### Eclipse Platform target release upgrade
