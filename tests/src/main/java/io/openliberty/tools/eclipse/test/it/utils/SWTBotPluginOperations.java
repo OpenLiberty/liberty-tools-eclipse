@@ -851,6 +851,20 @@ public class SWTBotPluginOperations {
         SWTBotCTabItem tabItem = shellBot.cTabItem("Source");
         tabItem.activate().setFocus();
     }
+    
+   /** 
+    * Switches the Liberty run configuration main tab to the Common Tab.  This operation will fail if tab is not
+    * successfully launched or switched to
+    * 
+    * @param bot The SWTWorkbenchBot instance.
+    */
+   public static void openCommonTab(SWTWorkbenchBot bot) {
+       SWTBotShell shell = bot.shell("Run Configurations");
+       shell.activate().setFocus();
+       SWTBot shellBot = shell.bot();
+       SWTBotCTabItem tabItem = shellBot.cTabItem("Common");
+       tabItem.activate().setFocus();
+   }
 
     /**
      * Presses the Proceed button if it exists on the error in workspace dialog.

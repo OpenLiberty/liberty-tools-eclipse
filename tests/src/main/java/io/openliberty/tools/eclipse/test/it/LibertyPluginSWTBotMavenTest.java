@@ -41,6 +41,7 @@ import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchStopWithRunAsShortcut;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchViewITReportWithRunDebugAsShortcut;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchViewUTReportWithRunDebugAsShortcut;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.openCommonTab;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.openJRETab;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.openJavaPerspectiveViaMenu;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.openSourceTab;
@@ -897,8 +898,35 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
             go("Close", configShell);
         }
     }
-
+    
+    
     /**
+     * Tests that the Common Tab is added and can be opened
+     */
+    @Test
+    public void testDefaultCommonTab() {    	
+    	
+    	deleteLibertyToolsRunConfigEntriesFromAppRunAs(MVN_APP_NAME);
+
+        Shell configShell = launchRunConfigurationsDialogFromAppRunAs(MVN_APP_NAME);
+    	
+    	try {
+        
+        TreeItem libertyConfigTree = getLibertyTreeItemNoBot(configShell);
+
+        context(libertyConfigTree, "New Configuration");
+    	
+    	openCommonTab(bot);
+    	
+    	} finally {
+           
+            go("Close", configShell);
+        }
+    	
+
+    }
+
+	/**
      * Tests that a non-Liberty project can be manually be categorized to be Liberty project. This test also tests the refresh
      * function.
      * 
