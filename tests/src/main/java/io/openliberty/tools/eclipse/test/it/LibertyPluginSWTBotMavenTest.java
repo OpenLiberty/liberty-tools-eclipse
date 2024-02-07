@@ -898,35 +898,33 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
             go("Close", configShell);
         }
     }
-    
-    
+
     /**
      * Tests that the Common Tab is added and can be opened
      */
     @Test
-    public void testDefaultCommonTab() {    	
-    	
-    	deleteLibertyToolsRunConfigEntriesFromAppRunAs(MVN_APP_NAME);
+    public void testDefaultCommonTab() {
+
+        deleteLibertyToolsRunConfigEntriesFromAppRunAs(MVN_APP_NAME);
 
         Shell configShell = launchRunConfigurationsDialogFromAppRunAs(MVN_APP_NAME);
-    	
-    	try {
-        
-        TreeItem libertyConfigTree = getLibertyTreeItemNoBot(configShell);
 
-        context(libertyConfigTree, "New Configuration");
-    	
-    	openCommonTab(bot);
-    	
-    	} finally {
-           
+        try {
+
+            TreeItem libertyConfigTree = getLibertyTreeItemNoBot(configShell);
+
+            context(libertyConfigTree, "New Configuration");
+
+            openCommonTab(bot);
+
+        } finally {
+
             go("Close", configShell);
         }
-    	
 
     }
 
-	/**
+    /**
      * Tests that a non-Liberty project can be manually be categorized to be Liberty project. This test also tests the refresh
      * function.
      * 

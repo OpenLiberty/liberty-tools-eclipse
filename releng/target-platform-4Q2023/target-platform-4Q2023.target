@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<?pde version="3.8"?>
+<!--
+  Copyright (c) 2024 IBM Corporation and others.
+  
+  This program and the accompanying materials are made available under the
+  terms of the Eclipse Public License v. 2.0 which is available at
+  http://www.eclipse.org/legal/epl-2.0.
+  
+  SPDX-License-Identifier: EPL-2.0
+  
+  Contributors:
+      IBM Corporation - initial implementation
+-->
+<target includeMode="feature" name="target-platform.target" sequenceNumber="16">
+    <locations>
+        <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
+            <repository location="https://download.eclipse.org/releases/2023-12/"/>
+            <unit id="org.eclipse.jdt.feature.group" version="3.19.300.v20231201-0110"/>
+            <unit id="org.eclipse.ui.trace" version="1.3.200.v20230913-0603"/>
+            <unit id="org.eclipse.emf.sdk.feature.group" version="2.36.0.v20231107-0612"/>
+            <unit id="org.eclipse.equinox.sdk.feature.group" version="3.23.1000.v20231114-0937"/>
+            <unit id="org.eclipse.m2e.wtp.feature.feature.group" version="1.6.1.20231024-1618"/>
+            <unit id="org.eclipse.sdk.feature.group" version="4.30.0.v20231201-0512"/>
+            <unit id="org.hamcrest.core" version="2.2.0.v20230809-1000"/>
+            <unit id="org.junit" version="4.13.2.v20230809-1000"/>
+            <unit id="junit-jupiter-api" version="5.10.1"/>
+            <unit id="junit-jupiter-engine" version="5.10.1"/>
+            <unit id="org.eclipse.lsp4e" version="0.18.1.202311121506"/>
+            <unit id="org.eclipse.lsp4e.jdt" version="0.11.0.202301312314"/>
+            <unit id="org.eclipse.wildwebdeveloper.feature.feature.group" version="1.3.3.202311211923"/>
+            <unit id="org.eclipse.wildwebdeveloper.xml.feature.feature.group" version="1.3.1.202310310352"/>
+            <unit id="org.eclipse.m2e.lemminx.feature.feature.group" version="2.0.6.20231113-2319"/>
+        </location>
+
+        <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
+            <repository location="https://download.eclipse.org/tools/orbit/downloads/drops/R20220531185310/repository"/>
+            <unit id="ch.qos.logback.slf4j" version="1.2.3.v20200428-2012"/>
+            <unit id="ch.qos.logback.slf4j.source" version="1.2.3.v20200428-2012"/>
+            <unit id="org.slf4j.api" version="1.7.30.v20200204-2150"/>
+            <unit id="org.slf4j.api.source" version="1.7.30.v20200204-2150"/>
+        </location>
+        <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
+            <repository location="https://download.eclipse.org/technology/swtbot/releases/3.1.0"/>
+            <unit id="org.eclipse.swtbot.eclipse.feature.group" version="3.1.0.202106041005"/>
+            <unit id="org.eclipse.swtbot.eclipse.test.junit.feature.group" version="3.1.0.202106041005"/>
+            <unit id="org.eclipse.swtbot.feature.group" version="3.1.0.202106041005"/>
+            <unit id="org.eclipse.swtbot.forms.feature.group" version="3.1.0.202106041005"/>
+            <unit id="org.eclipse.swtbot.ide.feature.group" version="3.1.0.202106041005"/>
+        </location>
+        <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
+            <repository location="https://download.eclipse.org/tools/cdt/releases/10.6"/>
+            <unit id="org.eclipse.tm.terminal.connector.cdtserial.feature.feature.group" version="10.6.2.202205081303"/>
+            <unit id="org.eclipse.tm.terminal.connector.cdtserial.feature.source.feature.group" version="10.6.2.202205081303"/>
+            <unit id="org.eclipse.tm.terminal.connector.local.feature.feature.group" version="10.6.2.202205081303"/>
+            <unit id="org.eclipse.tm.terminal.connector.local.feature.source.feature.group" version="10.6.2.202205081303"/>
+            <unit id="org.eclipse.tm.terminal.connector.remote.feature.feature.group" version="10.6.2.202205081303"/>
+            <unit id="org.eclipse.tm.terminal.connector.remote.feature.source.feature.group" version="10.6.2.202205081303"/>
+            <unit id="org.eclipse.tm.terminal.connector.ssh.feature.feature.group" version="10.6.2.202205081303"/>
+            <unit id="org.eclipse.tm.terminal.connector.ssh.feature.source.feature.group" version="10.6.2.202205081303"/>
+            <unit id="org.eclipse.tm.terminal.connector.telnet.feature.feature.group" version="10.6.2.202205081303"/>
+            <unit id="org.eclipse.tm.terminal.connector.telnet.feature.source.feature.group" version="10.6.2.202205081303"/>
+            <unit id="org.eclipse.tm.terminal.control.feature.feature.group" version="10.6.2.202205081303"/>
+            <unit id="org.eclipse.tm.terminal.control.feature.source.feature.group" version="10.6.2.202205081303"/>
+            <unit id="org.eclipse.tm.terminal.feature.feature.group" version="10.6.2.202205081303"/>
+            <unit id="org.eclipse.tm.terminal.feature.source.feature.group" version="10.6.2.202205081303"/>
+            <unit id="org.eclipse.tm.terminal.view.feature.feature.group" version="10.6.2.202205081303"/>
+            <unit id="org.eclipse.tm.terminal.view.feature.source.feature.group" version="10.6.2.202205081303"/>
+        </location>
+        <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
+            <repository location="http://download.eclipse.org/lsp4mp/releases/0.10.0/repository/"/>
+            <unit id="org.eclipse.lsp4mp.jdt.core" version="0.10.0.20231005-1230"/>
+        </location>
+        <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
+            <repository location="https://download.eclipse.org/lsp4jakarta/releases/0.2.0/repository/"/>
+            <unit id="org.eclipse.lsp4jakarta.jdt.core" version="0.2.0"/>
+        </location>
+        <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
+            <repository location="https://download.eclipse.org/jdtls/milestones/1.28.0/repository/"/>
+            <unit id="org.eclipse.jdt.ls.core" version="0.0.0"/>
+        </location>
+        <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
+            <repository location="https://download.eclipse.org/buildship/updates/e427/releases/3.x/3.1.9.v20240115-1636/"/>
+            <unit id="org.eclipse.buildship.ui" version="3.1.9.v20240115-1636"/>
+        </location>
+        <location includeDependencyDepth="none" includeDependencyScopes="compile" missingManifest="generate" type="Maven">
+            <dependencies>
+                <dependency>
+                    <groupId>net.bytebuddy</groupId>
+                    <artifactId>byte-buddy-agent</artifactId>
+                    <version>1.12.17</version>
+                    <type>jar</type>
+                </dependency>
+                <dependency>
+                    <groupId>net.bytebuddy</groupId>
+                    <artifactId>byte-buddy</artifactId>
+                    <version>1.12.17</version>
+                    <type>jar</type>
+                </dependency>
+                <dependency>
+                    <groupId>org.mockito</groupId>
+                    <artifactId>mockito-core</artifactId>
+                    <version>4.8.1</version>
+                    <type>jar</type>
+                </dependency>
+                <dependency>
+                    <groupId>org.mockito</groupId>
+                    <artifactId>mockito-junit-jupiter</artifactId>
+                    <version>4.8.1</version>
+                    <type>jar</type>
+                </dependency>
+                <dependency>
+                    <groupId>org.objenesis</groupId>
+                    <artifactId>objenesis</artifactId>
+                    <version>3.3</version>
+                    <type>jar</type>
+                </dependency>
+            </dependencies>
+        </location>       
+    </locations>
+</target>

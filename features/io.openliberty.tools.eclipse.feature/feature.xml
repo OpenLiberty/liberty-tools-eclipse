@@ -14,7 +14,7 @@
 <feature
       id="io.openliberty.tools.eclipse"
       label="%featureName"
-      version="23.0.12.qualifier"
+      version="24.0.3.qualifier"
     plugin="io.openliberty.tools.eclipse.product"
     provider-name="%providerName">
 
@@ -28,21 +28,21 @@
          id="io.openliberty.tools.eclipse.ui"
          download-size="0"
          install-size="0"
-         version="23.0.12.qualifier"
+         version="24.0.3.qualifier"
          unpack="false"/>
 
    <plugin
          id="io.openliberty.tools.eclipse.lsp4e"
          download-size="0"
          install-size="0"
-         version="23.0.12.qualifier"
+         version="24.0.3.qualifier"
          unpack="false"/>
 
    <plugin
          id="io.openliberty.tools.eclipse.product"
          download-size="0"
          install-size="0"
-         version="23.0.12.qualifier"
+         version="24.0.3.qualifier"
          unpack="false"/>
 
 </feature>

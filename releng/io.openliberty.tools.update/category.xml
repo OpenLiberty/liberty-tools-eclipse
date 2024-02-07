@@ -12,7 +12,7 @@
       IBM Corporation - initial implementation
 -->
 <site>
-    <feature url="features/io.openliberty.tools.eclipse_23.0.12.qualifier.liberty.jar" id="io.openliberty.tools.eclipse" version="23.0.12.qualifier">
+    <feature url="features/io.openliberty.tools.eclipse_24.0.3.qualifier.liberty.jar" id="io.openliberty.tools.eclipse" version="24.0.3.qualifier">
         <category name="io.openliberty.tools.eclipse"/>
     </feature>
 
