@@ -17,7 +17,7 @@
     <parent>
         <groupId>io.openliberty.tools.eclipse</groupId>
         <artifactId>parent</artifactId>
-        <version>23.0.12-SNAPSHOT</version>
+        <version>24.0.3-SNAPSHOT</version>
     </parent>
 
     <artifactId>io.openliberty.tools.eclipse.tests</artifactId>
@@ -62,7 +62,7 @@
                             <!-- Required for Run As configuration launcher.                                             -->
                             <requirement>
                                 <type>p2-installable-unit</type>
-                                <id>org.eclipse.platform.sdk</id>
+                                <id>org.eclipse.sdk.feature.group</id>
                                 <versionRange>0.0.0</versionRange>
                             </requirement>
                             <requirement>
