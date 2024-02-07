@@ -254,6 +254,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         // Check that the Run As menu contains the expected shortcut
         SWTBotMenu runAsMenu = getAppRunAsMenu(bot, MVN_APP_NAME);
         Assertions.assertTrue(runAsMenu != null, "The runAs menu associated with project: " + MVN_APP_NAME + " is null.");
+        System.out.println("test!!!!! ----- " + runAsMenu.getText());
         List<String> runAsMenuItems = runAsMenu.menuItems();
         Assertions.assertTrue(runAsMenuItems != null && !runAsMenuItems.isEmpty(),
                 "The runAs menu associated with project: " + MVN_APP_NAME + " is null or empty.");
@@ -898,35 +899,33 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
             go("Close", configShell);
         }
     }
-    
-    
+
     /**
      * Tests that the Common Tab is added and can be opened
      */
     @Test
-    public void testDefaultCommonTab() {    	
-    	
-    	deleteLibertyToolsRunConfigEntriesFromAppRunAs(MVN_APP_NAME);
+    public void testDefaultCommonTab() {
+
+        deleteLibertyToolsRunConfigEntriesFromAppRunAs(MVN_APP_NAME);
 
         Shell configShell = launchRunConfigurationsDialogFromAppRunAs(MVN_APP_NAME);
-    	
-    	try {
-        
-        TreeItem libertyConfigTree = getLibertyTreeItemNoBot(configShell);
 
-        context(libertyConfigTree, "New Configuration");
-    	
-    	openCommonTab(bot);
-    	
-    	} finally {
-           
+        try {
+
+            TreeItem libertyConfigTree = getLibertyTreeItemNoBot(configShell);
+
+            context(libertyConfigTree, "New Configuration");
+
+            openCommonTab(bot);
+
+        } finally {
+
             go("Close", configShell);
         }
-    	
 
     }
 
-	/**
+    /**
      * Tests that a non-Liberty project can be manually be categorized to be Liberty project. This test also tests the refresh
      * function.
      * 
