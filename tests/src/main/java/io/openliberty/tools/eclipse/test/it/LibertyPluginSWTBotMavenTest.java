@@ -254,7 +254,6 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         // Check that the Run As menu contains the expected shortcut
         SWTBotMenu runAsMenu = getAppRunAsMenu(bot, MVN_APP_NAME);
         Assertions.assertTrue(runAsMenu != null, "The runAs menu associated with project: " + MVN_APP_NAME + " is null.");
-        System.out.println("test!!!!! ----- " + runAsMenu.getText());
         List<String> runAsMenuItems = runAsMenu.menuItems();
         Assertions.assertTrue(runAsMenuItems != null && !runAsMenuItems.isEmpty(),
                 "The runAs menu associated with project: " + MVN_APP_NAME + " is null or empty.");
