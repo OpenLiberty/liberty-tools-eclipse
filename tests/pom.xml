@@ -39,11 +39,6 @@
                     <providerHint>junit5</providerHint>
                     <trimStackTrace>false</trimStackTrace>
                     <runOrder>alphabetical</runOrder>
-                    <environmentVariables> 
-                        <!-- We want to prevent mvn from looking at the .mvn/extension.xml at the repo root when it's running test apps.  This way those test apps can use whatever Java
-                        they want without worrying about the test app Java version (e.g. 11) being used to run tests but without a high enough version to load Tycho extensions. -->
-                        <MAVEN_BASEDIR>${project.basedir}/resources/applications/maven</MAVEN_BASEDIR>
-                   </environmentVariables>
                     <systemProperties>
                         <org.eclipse.swtbot.search.timeout>20000</org.eclipse.swtbot.search.timeout>
                         <io.liberty.tools.eclipse.tests.mvnexecutable.path>${mvnPath}</io.liberty.tools.eclipse.tests.mvnexecutable.path>
