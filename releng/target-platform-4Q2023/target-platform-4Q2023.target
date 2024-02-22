@@ -50,6 +50,7 @@
         </location>
         <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
             <repository location="https://download.eclipse.org/tools/cdt/releases/10.6"/>
+            <unit id="org.eclipse.cdt.launch" version="10.3.200.202201122357"/>
             <unit id="org.eclipse.tm.terminal.connector.cdtserial.feature.feature.group" version="10.6.2.202205081303"/>
             <unit id="org.eclipse.tm.terminal.connector.cdtserial.feature.source.feature.group" version="10.6.2.202205081303"/>
             <unit id="org.eclipse.tm.terminal.connector.local.feature.feature.group" version="10.6.2.202205081303"/>
