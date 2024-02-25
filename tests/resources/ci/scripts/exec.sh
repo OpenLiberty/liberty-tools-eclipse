@@ -40,7 +40,7 @@ main() {
         metacity --sm-disable --replace 2> metacity.err &
     fi
     
-    mvn clean install -Declipse.target="$TARGET" -Dosgi.debug=./tests/resources/ci/debug.opts -Dtycho.showEclipseLog -DtestAppImportWait=120000 -DmvnPath="${PWD}/test-tools/liberty-dev-tools/apache-maven-3.9.6" -DgradlePath="${PWD}/test-tools/liberty-dev-tools/gradle-7.4.2"
+    mvn clean install -Declipse.target="$TARGET" -Dosgi.debug=./tests/resources/ci/debug.opts -Dtycho.showEclipseLog -DtestAppImportWait=120000 -DmvnPath="${PWD}/test-tools/liberty-dev-tools/apache-maven-3.9.6" -DgradlePath="${PWD}/test-tools/liberty-dev-tools/gradle-7.4.2" -DmvnLogFile
 
     # If there were any errors, gather some debug data before exiting.
     rc=$?

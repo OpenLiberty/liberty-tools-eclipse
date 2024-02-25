@@ -36,3 +36,17 @@ jobs:
       # Build the plugin.
       - name: 'Build: Build-Package-RunTests'
         run: bash ./tests/resources/ci/scripts/exec.sh ${{ matrix.targetPlatform }}
+
+      # Collect logs
+      - run: |
+          mkdir logs
+          find tests -type f -name "*.log" -exec cp {} logs \;
+        if: failure()
+
+      # save logs
+      - name: Upload Logs
+        uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: test-app-logs
+          path: logs

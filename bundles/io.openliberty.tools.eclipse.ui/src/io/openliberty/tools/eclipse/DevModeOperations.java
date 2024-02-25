@@ -18,6 +18,7 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -75,6 +76,7 @@ public class DevModeOperations {
     public static final String BROWSER_MVN_IT_REPORT_NAME_SUFFIX = "failsafe report";
     public static final String BROWSER_MVN_UT_REPORT_NAME_SUFFIX = "surefire report";
     public static final String BROWSER_GRADLE_TEST_REPORT_NAME_SUFFIX = "test report";
+    public static final String MVN_RUN_APP_LOG_FILE = "io.openliberty.tools.eclipse.mvnlogfilename";
 
     private static final int STOP_TIMEOUT_SECONDS = 60;
     protected static final QualifiedName STOP_JOB_COMPLETION_TIMEOUT = new QualifiedName("io.openliberty.tools.eclipse.ui",
@@ -715,10 +717,11 @@ public class DevModeOperations {
                 if (Trace.isEnabled()) {
                     Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op. Path: " + path);
                 }
-                ErrorHandler.processErrorMessage(
-                        NLS.bind(Messages.gradle_test_report_none_found, new String[] { projectName,
-                                DashboardView.APP_MENU_ACTION_RUN_TESTS, DashboardView.APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT }),
-                        true);
+                ErrorHandler
+                        .processErrorMessage(
+                                NLS.bind(Messages.gradle_test_report_none_found, new String[] { projectName,
+                                        DashboardView.APP_MENU_ACTION_RUN_TESTS, DashboardView.APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT }),
+                                true);
                 return;
             }
 
@@ -780,6 +783,16 @@ public class DevModeOperations {
         // The value for JAVA_HOME comes from the underlying configuration. The configuration allows
         // the java installation to be custom defined, execution environment defined, or workspace defined.
         envs.add("JAVA_HOME=" + javaInstallPath);
+        String logFileName = System.getProperty(MVN_RUN_APP_LOG_FILE);
+        if (logFileName != null && !logFileName.isEmpty()) {
+            // TODO - could abort if either of these env variables is already set but by guarding with sysprop no risk
+            // of accidental usage.
+
+            // mvn
+            envs.add("MAVEN_ARGS=--log-file " + logFileName);
+            // mvnw
+            envs.add("MAVEN_CONFIG=--log-file " + logFileName);
+        }
 
         projectTabController.runOnTerminal(projectName, projectPath, cmd, envs);
     }
@@ -921,9 +934,8 @@ public class DevModeOperations {
                                 if (Trace.isEnabled()) {
                                     Trace.getTracer().trace(Trace.TRACE_TOOLS, msg);
                                 }
-                                ErrorHandler.rawErrorMessageDialog(
-                                        NLS.bind(Messages.plugin_stop_timeout,
-                                                new String[] { projectName, Integer.toString(STOP_TIMEOUT_SECONDS) }));
+                                ErrorHandler.rawErrorMessageDialog(NLS.bind(Messages.plugin_stop_timeout,
+                                        new String[] { projectName, Integer.toString(STOP_TIMEOUT_SECONDS) }));
                             }
                         });
                         return;
