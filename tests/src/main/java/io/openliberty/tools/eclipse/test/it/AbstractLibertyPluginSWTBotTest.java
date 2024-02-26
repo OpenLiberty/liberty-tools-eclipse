@@ -12,6 +12,7 @@
  *******************************************************************************/
 package io.openliberty.tools.eclipse.test.it;
 
+import static io.openliberty.tools.eclipse.DevModeOperations.MVN_RUN_APP_LOG_FILE;
 import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.isInternalBrowserSupportAvailable;
 import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.go;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.closeWelcomePage;
@@ -50,7 +51,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.TestInfo;
 
 import io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils;
-import static io.openliberty.tools.eclipse.DevModeOperations.MVN_RUN_APP_LOG_FILE;
 
 public abstract class AbstractLibertyPluginSWTBotTest {
 
@@ -126,7 +126,7 @@ public abstract class AbstractLibertyPluginSWTBotTest {
 
         if (isMvnLogFile()) {
             // Turn on config to log dev mode output to file
-            System.setProperty(MVN_RUN_APP_LOG_FILE, getTimestamp() + ".log");
+            System.setProperty(MVN_RUN_APP_LOG_FILE, "lte-dev-mode-output-" + getTimestamp() + ".log");
         }
     }
 

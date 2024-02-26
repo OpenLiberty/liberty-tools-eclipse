@@ -40,7 +40,7 @@ jobs:
       # Collect logs
       - run: |
           mkdir logs
-          find tests -type f -name "*.log" -exec cp {} logs \;
+          find tests -type f -name "lte-dev-mode-output-*.log" -exec cp {} logs \;
         if: failure()
 
       # save logs
