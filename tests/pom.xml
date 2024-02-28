@@ -17,7 +17,7 @@
     <parent>
         <groupId>io.openliberty.tools.eclipse</groupId>
         <artifactId>parent</artifactId>
-        <version>23.0.12-SNAPSHOT</version>
+        <version>24.0.3-SNAPSHOT</version>
     </parent>
 
     <artifactId>io.openliberty.tools.eclipse.tests</artifactId>
@@ -41,6 +41,7 @@
                     <runOrder>alphabetical</runOrder>
                     <systemProperties>
                         <org.eclipse.swtbot.search.timeout>20000</org.eclipse.swtbot.search.timeout>
+                        <io.liberty.tools.eclipse.tests.mvn.logfile>${mvnLogFile}</io.liberty.tools.eclipse.tests.mvn.logfile>
                         <io.liberty.tools.eclipse.tests.mvnexecutable.path>${mvnPath}</io.liberty.tools.eclipse.tests.mvnexecutable.path>
                         <io.liberty.tools.eclipse.tests.app.import.wait>${testAppImportWait}</io.liberty.tools.eclipse.tests.app.import.wait>
                         <io.liberty.tools.eclipse.tests.gradleexecutable.path>${gradlePath}</io.liberty.tools.eclipse.tests.gradleexecutable.path>
@@ -62,7 +63,7 @@
                             <!-- Required for Run As configuration launcher.                                             -->
                             <requirement>
                                 <type>p2-installable-unit</type>
-                                <id>org.eclipse.platform.sdk</id>
+                                <id>org.eclipse.sdk.feature.group</id>
                                 <versionRange>0.0.0</versionRange>
                             </requirement>
                             <requirement>

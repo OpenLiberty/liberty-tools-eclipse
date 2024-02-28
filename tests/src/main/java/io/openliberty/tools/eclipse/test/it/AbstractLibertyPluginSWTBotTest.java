@@ -12,6 +12,7 @@
  *******************************************************************************/
 package io.openliberty.tools.eclipse.test.it;
 
+import static io.openliberty.tools.eclipse.DevModeOperations.MVN_RUN_APP_LOG_FILE;
 import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.isInternalBrowserSupportAvailable;
 import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.go;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.closeWelcomePage;
@@ -22,6 +23,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -68,6 +70,10 @@ public abstract class AbstractLibertyPluginSWTBotTest {
 
     public static String getMvnCmd() {
         return getMvnCmdPath() + File.separator + "bin" + File.separator + getMvnCmdFilename();
+    }
+
+    public static boolean isMvnLogFile() {
+        return Boolean.getBoolean("io.liberty.tools.eclipse.tests.mvn.logfile");
     }
 
     public static String getMvnCmdPath() {
@@ -117,6 +123,11 @@ public abstract class AbstractLibertyPluginSWTBotTest {
     public void beforeEach(TestInfo info) {
         System.out.println(
                 "INFO: Test " + this.getClass().getSimpleName() + "#" + info.getDisplayName() + " entry: " + java.time.LocalDateTime.now());
+
+        if (isMvnLogFile()) {
+            // Turn on config to log dev mode output to file
+            System.setProperty(MVN_RUN_APP_LOG_FILE, "lte-dev-mode-output-" + getTimestamp() + ".log");
+        }
     }
 
     @AfterEach
@@ -216,5 +227,11 @@ public abstract class AbstractLibertyPluginSWTBotTest {
         }
 
         Assertions.fail("The debug configuration: " + configName + " was not found.");
+    }
+
+    private String getTimestamp() {
+        long currentTime = System.currentTimeMillis();
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd.HH-mm-ss.SSS");
+        return formatter.format(currentTime);
     }
 }

@@ -1,10 +1,10 @@
 Manifest-Version: 1.0
-Bundle-Copyright: Copyright (c) 2022, 2023 IBM Corporation and others.
+Bundle-Copyright: Copyright (c) 2022, 2024 IBM Corporation and others.
 Bundle-ManifestVersion: 2
 Bundle-Name: Liberty Tools
 Bundle-Vendor: Open Liberty
 Bundle-SymbolicName: io.openliberty.tools.eclipse.product;singleton:=true
-Bundle-Version: 23.0.12.qualifier
+Bundle-Version: 24.0.3.qualifier
 Bundle-RequiredExecutionEnvironment: JavaSE-17
 Automatic-Module-Name: io.openliberty.tools.eclipse
 Bundle-ActivationPolicy: lazy
