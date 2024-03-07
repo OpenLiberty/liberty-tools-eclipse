@@ -24,7 +24,8 @@ Require-Bundle: com.google.gson,
  org.eclipse.jdt.core,
  org.eclipse.jdt.ui,
  org.eclipse.jdt.ls.core,
- org.eclipse.ui.workbench
+ org.eclipse.ui.workbench,
+ org.eclipse.core.resources
 Bundle-ClassPath: .,
  server/mp-langserver/org.eclipse.lsp4mp.ls.jar,
  server/liberty-langserver/liberty-langserver.jar,
