@@ -41,6 +41,7 @@ import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.model.IDebugTarget;
 import org.eclipse.jdi.Bootstrap;
 import org.eclipse.jdi.TimeoutException;
+import org.eclipse.jdt.debug.core.IJavaDebugTarget;
 import org.eclipse.jdt.debug.core.JDIDebugModel;
 import org.eclipse.jdt.launching.IJavaLaunchConfigurationConstants;
 import org.eclipse.jdt.launching.JavaRuntime;
@@ -352,6 +353,12 @@ public class DebugModeHandler {
                     new Status(IStatus.ERROR, this.getClass(), IJavaLaunchConfigurationConstants.ERR_CONNECTION_FAILED, "", ex));
         }
         debugTarget = JDIDebugModel.newDebugTarget(launch, remoteVM, hostName + ":" + remoteDebugPortNum, null, true, false, true);
+
+        // Add hot code replace listener to listen for hot code replace failure.
+        IJavaDebugTarget jdt = debugTarget.getAdapter(IJavaDebugTarget.class);
+        if (jdt != null) {
+            jdt.addHotCodeReplaceListener(new LibertyHotCodeReplaceListener());
+        }
         return debugTarget;
     }
 
