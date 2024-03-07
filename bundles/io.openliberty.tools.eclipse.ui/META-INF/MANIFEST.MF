@@ -13,7 +13,9 @@ Export-Package: io.openliberty.tools.eclipse;x-friends:="io.openliberty.tools.ec
  io.openliberty.tools.eclipse.ui.launch.shortcuts;x-friends:="io.openliberty.tools.eclipse.tests",
  io.openliberty.tools.eclipse.ui.preferences;x-friends:="io.openliberty.tools.eclipse.tests"
 Require-Bundle: org.eclipse.ui,
- org.eclipse.m2e.maven.runtime
+ org.eclipse.m2e.maven.runtime,
+ org.eclipse.jdt.debug.ui,
+ org.eclipse.jdt.debug
 Bundle-RequiredExecutionEnvironment: JavaSE-17
 Automatic-Module-Name: io.openliberty.tools.eclipse.ui
 Bundle-ActivationPolicy: lazy
