@@ -114,7 +114,6 @@
             editorId="org.eclipse.ui.genericeditor.GenericEditor">
       </editorContentTypeBinding>
    </extension>   
-  
 
    <extension
          point="org.eclipse.lsp4e.languageServer">
@@ -135,11 +134,12 @@
             contentType="org.eclipse.jdt.core.javaSource"
             id="io.openliberty.tools.eclipse.org.microprofile.mpserver">
       </contentTypeMapping>
-      
+            
       <!-- Liberty Config LS config -->
       <server
             class="io.openliberty.tools.eclipse.liberty.languageserver.LibertyLSConnection"
             id="io.openliberty.tools.eclipse.org.liberty.languageserver"
+            clientImpl="io.openliberty.tools.eclipse.liberty.languageserver.LibertyLSClientImpl"
             label="Liberty Config Language Server"
             singleton="true">
       </server>
