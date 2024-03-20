@@ -35,7 +35,7 @@ You can use the **Install New Software** option in the Eclipse **Help** menu to 
     
     a. Install by using an update site URL. 
 
-    Find the update site URL for your chosen release from the entry in the Releases list. For example, the URL for the [23.0.9 release](https://github.com/OpenLiberty/liberty-tools-eclipse/releases/tag/liberty-tools-23.0.9.202309271814) is https://public.dhe.ibm.com/ibmdl/export/pub/software/openliberty/liberty-tools-eclipse/23.0.9/repository/.
+    Find the update site URL for your chosen release from the entry in the Releases list. For example, the URL for the [24.0.3 release](https://github.com/OpenLiberty/liberty-tools-eclipse/releases/tag/liberty-tools-24.0.3.202403201340) is https://public.dhe.ibm.com/ibmdl/export/pub/software/openliberty/liberty-tools-eclipse/24.0.3/repository/.
 
     Click the **Add...** button to open the **Add Repository** view. Copy and paste the update site URL as the **Location**, specify a **Name** of your choice (optional), and click the **Add** button.
 
@@ -43,7 +43,7 @@ You can use the **Install New Software** option in the Eclipse **Help** menu to 
  
     b. Install by using an archive site URL.
 
-    Find the URL for the archive zip for your chosen release from the entry in the Releases list. For example, the URL for the 0.7.0 release is https://public.dhe.ibm.com/ibmdl/export/pub/software/openliberty/liberty-tools-eclipse/0.7.0/repository.zip
+    Find the URL for the archive zip for your chosen release from the entry in the Releases list. For example, the URL for the 24.0.3 release is https://public.dhe.ibm.com/ibmdl/export/pub/software/openliberty/liberty-tools-eclipse/24.0.3/repository.zip
 
     Download this zip to your local workstation and copy the path to the downloaded archive.
 
