@@ -1,5 +1,20 @@
 # Liberty Tools Eclipse Changelog
 
+## 24.0.3 [changes](https://github.com/OpenLiberty/liberty-tools-eclipse/milestone/6?closed=1) / [release](https://github.com/OpenLiberty/liberty-tools-eclipse/releases/tag/liberty-tools-24.0.3.202403201340) (March. 20, 2024)
+
+### Eclipse Platform target release upgrade
+ * 4.30 (2023-12)
+
+### Dependency Upgrades
+ * Liberty Config Language Server (LCLS) => 2.1.2
+ * Language Server for Jakarta EE (LSP4Jakarta) => 0.2.1
+
+### Enhancements
+ * Common Tab added to Run Configurations for saving configuration options to a local file. See [#484](https://github.com/OpenLiberty/liberty-tools-eclipse/issues/484)
+
+### Bug Fixes
+* File watcher added on liberty-plugin-config.xml, *.properties, and *.env files for compatibility with newer LCLS support: https://github.com/OpenLiberty/liberty-tools-eclipse/issues/461
+
 ## 23.0.12 [changes](https://github.com/OpenLiberty/liberty-tools-eclipse/milestone/5?closed=1) / [release](https://github.com/OpenLiberty/liberty-tools-eclipse/releases/tag/liberty-tools-23.0.12.202311281452) (Nov. 28, 2023)
 
 ### Eclipse Platform target release upgrade
