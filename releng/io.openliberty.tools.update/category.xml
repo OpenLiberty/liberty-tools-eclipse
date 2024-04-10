@@ -12,13 +12,13 @@
       IBM Corporation - initial implementation
 -->
 <site>
-    <feature url="features/io.openliberty.tools.eclipse_24.0.3.qualifier.liberty.jar" id="io.openliberty.tools.eclipse" version="24.0.3.qualifier">
+    <feature url="features/io.openliberty.tools.eclipse_24.0.4.qualifier.liberty.jar" id="io.openliberty.tools.eclipse" version="24.0.4.qualifier">
         <category name="io.openliberty.tools.eclipse"/>
     </feature>
 
     <category-def name="io.openliberty.tools.eclipse" label="Liberty Tools" />
 
-    <repository-reference location="https://download.eclipse.org/jdtls/milestones/1.28.0/repository" enabled="true" />
-    <repository-reference location="https://download.eclipse.org/lsp4mp/releases/0.10.0/repository" enabled="true" />
+    <repository-reference location="https://download.eclipse.org/jdtls/milestones/1.34.0/repository" enabled="true" />
+    <repository-reference location="https://download.eclipse.org/lsp4mp/releases/0.11.3/repository" enabled="true" />
     <repository-reference location="https://download.eclipse.org/lsp4jakarta/releases/0.2.1/repository" enabled="true" />
 </site>
