@@ -15,7 +15,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>io.openliberty.tools.eclipse</groupId>
 	<artifactId>parent</artifactId>
-	<version>24.0.4-SNAPSHOT</version>
+	<version>24.0.6-SNAPSHOT</version>
 	<packaging>pom</packaging>
     <licenses>
       <license>
@@ -196,7 +196,7 @@
 						<artifact>
 							<groupId>io.openliberty.tools.eclipse</groupId>
 							<artifactId>target-platform-${eclipse.target}</artifactId>
-							<version>24.0.4-SNAPSHOT</version>
+							<version>24.0.6-SNAPSHOT</version>
 							<file>target-platform-${eclipse.target}</file>
 						</artifact>
 					</target>
