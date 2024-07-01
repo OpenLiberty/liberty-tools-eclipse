@@ -18,7 +18,6 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -818,7 +817,7 @@ public class DevModeOperations {
      * 
      * @param projectName The name of the project for which the the Liberty plugin stop command is issued.
      */
-    private void issueLPStopCommand(String projectName) {
+    public void issueLPStopCommand(String projectName) {
         if (Trace.isEnabled()) {
             Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, projectName);
         }
