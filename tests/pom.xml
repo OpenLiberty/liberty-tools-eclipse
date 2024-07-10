@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright (c) 2022, 2023 IBM Corporation and others.
+  Copyright (c) 2022, 2024 IBM Corporation and others.
 
   This program and the accompanying materials are made available under the
   terms of the Eclipse Public License v. 2.0 which is available at
@@ -124,7 +124,15 @@
                             <artifactId>tycho-surefire-plugin</artifactId>
                             <version>${tycho-version}</version>
                             <configuration>
-                                <argLine>-XstartOnFirstThread</argLine>
+                                <!-- 
+									Java 21: -Dnet.bytebuddy.experimental=true  prevents this error:
+									java.lang.IllegalArgumentException: Java 21 (65) is not supported by the current 
+									version of Byte Buddy which officially supports Java 19 (63) 
+								-->
+                                <argLine>
+                                    -XstartOnFirstThread
+                                    -Dnet.bytebuddy.experimental=true    
+                                </argLine>
                                 <runOrder>alphabetical</runOrder>
                             </configuration>
                         </plugin>

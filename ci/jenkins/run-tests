@@ -2,7 +2,7 @@ pipeline {
     agent any
     
     tools {
-        jdk 'java17-semeru'
+        jdk 'jdk-semeru-21.0.3'
         xvfb 'gui-test'
         maven 'maven-3.9.6'
         gradle 'gradle-7.6.1'

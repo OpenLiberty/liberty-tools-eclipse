@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2022 IBM Corporation and others.
+* Copyright (c) 2022, 2024 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -252,5 +252,25 @@ public class Utils {
         sb.append(")");
 
         return sb.toString();
+    }
+    
+    /**
+     * Returns the input throwable's root throwable cause.
+     * 
+     * @param t The parent throwable.
+     * 
+     * @return The input throwable's root throwable cause.
+     */
+    public static Throwable findRootCause(Throwable t) {
+        if (t == null) {
+            return null;
+        }
+
+        Throwable cause = t;
+        while (cause.getCause() != null && cause.getCause() != cause) {
+            cause = cause.getCause();
+        }
+
+        return cause;
     }
 }

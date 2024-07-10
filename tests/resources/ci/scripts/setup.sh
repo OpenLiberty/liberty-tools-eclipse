@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ############################################################################
-# Copyright (c) 2022, 2023 IBM Corporation and others.
+# Copyright (c) 2022, 2024 IBM Corporation and others.
 # 
 # This program and the accompanying materials are made available under the
 # terms of the Eclipse Public License v. 2.0 which is available at
@@ -17,28 +17,32 @@ set -Eexo pipefail
 
 # Operating system.
 OS=$(uname -s)
+OS_ARCH=$(uname -m)
 
 # Semeru JDK version control constants.
 # Example:
-# Version (SEMERU_OPEN_JDK_BUILD): 11.0.14.1 
-# OpenJDK (SEMERU_OPEN_JDK_BUILD + SEMERU_OPEN_JDK_BUILD): 11.0.14.1+1
+# Version (SEMERU_OPEN_JDK_BUILD): 11.0.14.1 / 11.0.14.0
+# OpenJDK (SEMERU_OPEN_JDK_BUILD + SEMERU_OPEN_JDK_BUILD): 11.0.14.1+1 / 11.0.14+1
 # OpenJ9  (SEMERU_OPENJ9_VERSION): 0.30.1
-SEMERU_OPEN_JDK_MAJOR=17
-SEMERU_OPEN_JDK_VERSION="${SEMERU_OPEN_JDK_MAJOR}.0.4.1"
-SEMERU_OPEN_JDK_BUILD=1
-SEMERU_OPENJ9_VERSION=0.33.1
+SEMERU_OPEN_JDK_MAJOR=21
+SEMERU_OPEN_JDK_VERSION="${SEMERU_OPEN_JDK_MAJOR}.0.3"
+SEMERU_OPEN_JDK_BUILD=9
+SEMERU_OPENJ9_VERSION=0.44.0
 
-SEMERU_ARCHIVE_MAC_SHA256=7de428bd9637081126ffe945bd178367015da32ef03903feb183efad6158d88b
-SEMERU_ARCHIVE_LINUX_SHA256=dcdacbff5f4c8d81d5cbf5b7385a37b7935ae3b35b233b9b5d9de059246dd1c7
-SEMERU_ARCHIVE_WINDOWS_SHA256=0d8dfecf2c3152fc253477e1048390c65f769d067e0fe55d9f6184d4cfe5fd2e
+SEMERU_ARCHIVE_MAC_X86_SHA256=95640346ef677fbdbf40efa0298cc61314cffed0c43d1b3bd329b84d445db869
+SEMERU_ARCHIVE_MAC_AARCH64_SHA256=a95896a4ca7b69050a25b1557520f430abc66d098e9fd15cd394e20c4c93e5cf
+SEMERU_ARCHIVE_LINUX_SHA256=5cccb39dc7ca6c61a11bd7179c4c3c30b747f9f22129576feef921b59725af25
+SEMERU_ARCHIVE_WINDOWS_SHA256=11b82aed353f80752cdb5aaaadf9ac3398af8f7b3c32cfe80fc83d09ae445f6e
 
 # Maven version control constants.
+# NOTE: If this version is changed, update the "mvn clean install" command in tests/resources/ci/scripts/exec.sh.
 MAVEN_VERSION=3.9.6
 MAVEN_ARCHIVE_SHA512=0eb0432004a91ebf399314ad33e5aaffec3d3b29279f2f143b2f43ade26f4db7bd1c0f08e436e9445ac6dc4a564a2945d13072a160ae54a930e90581284d6461
 
 # Gradle version control constants.
-GRADLE_VERSION=7.4.2
-GRADLE_ARCHIVE_SHA256=29e49b10984e585d8118b7d0bc452f944e386458df27371b49b4ac1dec4b7fda
+# NOTE: If this version is changed, the "mvn clean install" command in tests/resources/ci/scripts/exec.sh.
+GRADLE_VERSION=8.8
+GRADLE_ARCHIVE_SHA256=a4b4158601f8636cdeeab09bd76afb640030bb5b144aafe261a5e8af027dc612
 
 SOFTWARE_INSTALL_DIR="${PWD}/test-tools/liberty-dev-tools"
 
@@ -98,11 +102,22 @@ installJDK() {
         echo "${SEMERU_ARCHIVE_LINUX_SHA256}  /tmp/liberty-dev-tool-semeru-jdk.tar.gz" | sha256sum -c - 
         tar -xzf /tmp/liberty-dev-tool-semeru-jdk.tar.gz -C "$SOFTWARE_INSTALL_DIR"
     elif [[ $OS == "Darwin" ]]; then
-       javaHome="$javaHome"/Contents/Home
-       local url="https://github.com/ibmruntimes/semeru${SEMERU_OPEN_JDK_MAJOR}-binaries/releases/download/jdk-${SEMERU_OPEN_JDK_VERSION}%2B${SEMERU_OPEN_JDK_BUILD}_openj9-${SEMERU_OPENJ9_VERSION}/ibm-semeru-open-jdk_x64_mac_${SEMERU_OPEN_JDK_VERSION}_${SEMERU_OPEN_JDK_BUILD}_openj9-${SEMERU_OPENJ9_VERSION}.tar.gz"
-       curl -fsSL -o /tmp/liberty-dev-tool-semeru-jdk.tar.gz "$url"
-       echo "${SEMERU_ARCHIVE_MAC_SHA256}  /tmp/liberty-dev-tool-semeru-jdk.tar.gz" | shasum -a 256 -c - 
-       tar -xzf /tmp/liberty-dev-tool-semeru-jdk.tar.gz -C "$SOFTWARE_INSTALL_DIR"
+        javaHome="$javaHome"/Contents/Home
+
+        if [[ $OS_ARCH == "arm64" ]]; then
+            local url="https://github.com/ibmruntimes/semeru${SEMERU_OPEN_JDK_MAJOR}-binaries/releases/download/jdk-${SEMERU_OPEN_JDK_VERSION}%2B${SEMERU_OPEN_JDK_BUILD}_openj9-${SEMERU_OPENJ9_VERSION}/ibm-semeru-open-jdk_aarch64_mac_${SEMERU_OPEN_JDK_VERSION}_${SEMERU_OPEN_JDK_BUILD}_openj9-${SEMERU_OPENJ9_VERSION}.tar.gz"
+            curl -fsSL -o /tmp/liberty-dev-tool-semeru-jdk.tar.gz "$url"
+            echo "${SEMERU_ARCHIVE_MAC_AARCH64_SHA256}  /tmp/liberty-dev-tool-semeru-jdk.tar.gz" | shasum -a 256 -c -
+        elif [[ $OS_ARCH == "x86_64" ]]; then
+            local url="https://github.com/ibmruntimes/semeru${SEMERU_OPEN_JDK_MAJOR}-binaries/releases/download/jdk-${SEMERU_OPEN_JDK_VERSION}%2B${SEMERU_OPEN_JDK_BUILD}_openj9-${SEMERU_OPENJ9_VERSION}/ibm-semeru-open-jdk_x64_mac_${SEMERU_OPEN_JDK_VERSION}_${SEMERU_OPEN_JDK_BUILD}_openj9-${SEMERU_OPENJ9_VERSION}.tar.gz"
+            curl -fsSL -o /tmp/liberty-dev-tool-semeru-jdk.tar.gz "$url"
+            echo "${SEMERU_ARCHIVE_MAC_X86_SHA256}  /tmp/liberty-dev-tool-semeru-jdk.tar.gz" | shasum -a 256 -c -
+        else
+            echo "ERROR: Unknow architecture ${OS_ARCH}"
+            exit -1
+        fi
+
+        tar -xzf /tmp/liberty-dev-tool-semeru-jdk.tar.gz -C "$SOFTWARE_INSTALL_DIR"
     else
         local url="https://github.com/ibmruntimes/semeru${SEMERU_OPEN_JDK_MAJOR}-binaries/releases/download/jdk-${SEMERU_OPEN_JDK_VERSION}%2B${SEMERU_OPEN_JDK_BUILD}_openj9-${SEMERU_OPENJ9_VERSION}/ibm-semeru-open-jdk_x64_windows_${SEMERU_OPEN_JDK_VERSION}_${SEMERU_OPEN_JDK_BUILD}_openj9-${SEMERU_OPENJ9_VERSION}.zip"
         curl -fsSL -o /tmp/liberty-dev-tool-semeru-jdk.zip "$url"

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2023 IBM Corporation and others.
+* Copyright (c) 2023, 2024 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -33,6 +33,7 @@ import org.eclipse.jdt.launching.JavaRuntime;
 import org.eclipse.m2e.core.MavenPlugin;
 import org.eclipse.m2e.core.project.IMavenProjectFacade;
 import org.eclipse.m2e.core.project.IMavenProjectRegistry;
+import org.gradle.tooling.BuildException;
 import org.gradle.tooling.GradleConnector;
 import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.model.ExternalDependency;
@@ -42,9 +43,16 @@ import org.gradle.tooling.model.eclipse.EclipseProject;
 import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.Project;
 import io.openliberty.tools.eclipse.ui.launch.StartTab;
+import io.openliberty.tools.eclipse.utils.Utils;
 
 public class LibertySourcePathComputer implements ISourcePathComputerDelegate {
 
+    /**
+     * Gradle distribution that supports Java 21.
+     * Gradle version 8.4+ supports Java 21. 
+     */
+    private static String GRADLE_DISTRIBUTION_VERISION = "8.8";
+    
     ArrayList<IRuntimeClasspathEntry> unresolvedClasspathEntries;
 
     @Override
@@ -132,12 +140,40 @@ public class LibertySourcePathComputer implements ISourcePathComputerDelegate {
                 }
             }
         } else {
-            GradleConnector connector = GradleConnector.newConnector();
-            connector.forProjectDirectory(project.getIProject().getLocation().toFile());
-            ProjectConnection connection = connector.connect();
+            ProjectConnection connection = getProjectGradleConnection(project.getIProject(), null);
 
             try {
-                EclipseProject eclipseProject = connection.getModel(EclipseProject.class);
+                EclipseProject eclipseProject = null;
+
+                try {
+                    eclipseProject = connection.getModel(EclipseProject.class);
+                } catch(BuildException e) {
+                    // When using Eclipse IDE 2024-06, this exception could have been caused by the 
+                    // Gradle tooling API using a Gradle distribution that does not support Java 21.
+                    //
+                    // Per the GradleConnector documentation, if no Gradle version is defined for the 
+                    // build (Gradle wrapper properties file), the connection will use the tooling API's 
+                    // version as the Gradle version to run the build.
+                    // Therefore, if a Gradle version is not defined for the build and given that the 
+                    // tooling version currently being used is 8.1.1, Gradle 8.1.1 
+                    // is downloaded and used by the connector. Gradle 8.1.1 does not support Java 21, 
+                    // which causes runtime issues (Unsupported class file major version 65).
+                    // As a workaround, specify a Java 21 compatible Gradle version that the tooling
+                    // can use (i.e. 8.4+). Note that since it is preferable to use the default version 
+                    // provided by the tooling API, setting the version can be revised at a later time.
+                    Throwable rootCause = Utils.findRootCause(e);
+                    if (rootCause != null && rootCause instanceof IllegalArgumentException) {
+                         String message = rootCause.getMessage();
+                         
+                         if (message != null && message.contains("Unsupported class file major version 65")) {
+                             connection = getProjectGradleConnection(project.getIProject(), GRADLE_DISTRIBUTION_VERISION);
+                             eclipseProject = connection.getModel(EclipseProject.class);
+                         }
+                    } else {
+                        throw e;
+                    }
+                }
+
                 for (ExternalDependency externalDependency : eclipseProject.getClasspath()) {
 
                     GradleModuleVersion gradleModuleVersion = externalDependency.getGradleModuleVersion();
@@ -154,6 +190,26 @@ public class LibertySourcePathComputer implements ISourcePathComputerDelegate {
         }
 
         return projectDependencies;
+    }
+
+    /**
+     * Returns a connection to the input gradle project.
+     * 
+     * @param project The Gradle project.
+     * @param gradleDistVersion The gradle distribution version to be used by the
+     *                          Gradle API tooling.
+     * 
+     * @return A connection to the input gradle project.
+     */
+    private ProjectConnection getProjectGradleConnection(IProject project, String gradleDistVersion) {
+        GradleConnector connector = GradleConnector.newConnector();
+
+        if (gradleDistVersion != null) {
+            connector.useGradleVersion(gradleDistVersion);
+        }
+
+        connector.forProjectDirectory(project.getLocation().toFile());
+        return connector.connect();
     }
 
     /**
