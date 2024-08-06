@@ -4,8 +4,8 @@ apply plugin: 'war'
 version '0.0.1-SNAPSHOT'
 group 'liberty.gradle.test.app'
 
-sourceCompatibility = 11
-targetCompatibility = 11
+sourceCompatibility = 21
+targetCompatibility = 21
 tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
 }
@@ -15,7 +15,7 @@ buildscript {
         mavenCentral()
     }
         dependencies {
-        classpath 'io.openliberty.tools:liberty-gradle-plugin:3.6.2'
+        classpath 'io.openliberty.tools:liberty-gradle-plugin:3.8.3'
     }
 }
 

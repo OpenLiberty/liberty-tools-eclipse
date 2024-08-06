@@ -12,7 +12,7 @@ This guide provides detailed instructions on how to use Liberty Tools for the Ec
   * [Accessing Liberty Tools Operations](#accessing-liberty-tools-operations)
     + [Using the Liberty dashboard view](#using-the-liberty-dashboard-view)
     + [Using the Project Explorer view](#using-the-project-explorer-view)
-  * [Running your application on Liberty using dev mode](#running-your-application-on-liberty-using-dev-mode-1)
+  * [Running your application on Liberty using dev mode](#running-your-application-on-liberty-using-dev-mode)
     + [Start](#start)
     + [Start with Configuration](#start-with-configuration)
     + [Start in container](#start-in-container)
@@ -46,11 +46,12 @@ This guide provides detailed instructions on how to use Liberty Tools for the Ec
 |  23.0.12      | 2023-09 - Eclipse v4.29 |
 |  24.0.3       | 2023-12 - Eclipse v4.30 |
 |  24.0.6       | 2024-03 - Eclipse v4.31 |
+|  24.0.9       | 2024-06 - Eclipse v4.32 |
 
 **NOTE:** Tested with each of the `Eclipse IDE for Enterprise Java and Web Developers` and `Eclipse IDE for Java Developers` packages
 
 
-2. **Java:**  The Eclipse IDE itself requires Java 17. However, the application runtime [can be run with other versions of Java](#start-with-configuration), as long as they are supported by Liberty.
+2. **Java:**  The Eclipse IDE itself requires Java 21. However, the application runtime [can be run with other versions of Java](#start-with-configuration), as long as they are supported by Liberty.
 3. [**Liberty Tools**](installation.md)
 
 
@@ -64,7 +65,7 @@ This guide provides detailed instructions on how to use Liberty Tools for the Ec
 
   - Liberty Maven Plugin -> 3.7.1
     
-  - Liberty Gradle Plugin -> 3.5.1
+  - Liberty Gradle Plugin -> 3.8
 
 ### Maven and Gradle 
 
@@ -83,7 +84,7 @@ Since Liberty dev mode uses the Liberty Maven or Gradle plugins to manage a Mave
    - Set the Maven/Gradle installation to use.
    - click on **Apply and Close** to save your changes.
 
-3. If a Maven/Gradle installation is still not found, Liberty Tools looks at the PATH environment variable for install locations.  See the instructions in [the following section](#Docker) which can also apply to finding Maven or Gradle executables.
+3. If a Maven/Gradle installation is still not found, Liberty Tools looks at the PATH environment variable for install locations.  See the instructions in [the following section](#docker) which can also apply to finding Maven or Gradle executables.
 
 ### Docker
 
@@ -310,7 +311,7 @@ The Gradle Eclipse plugins (Buildship) run a simple Gradle build upon import (**
 
 If this build does not complete successfully, the Liberty Tools function might not work correctly.
 
-For example, if your project uses a Gradle wrapper at a Gradle version less than v7.3, it does not support Java 17 per [matrix](https://docs.gradle.org/current/userguide/compatibility.html), but the Java 17+ workspace JRE is required for running Liberty Tools.
+For example, if your project uses a Gradle wrapper at a Gradle version less than v8.4, it does not support Java 21 per [matrix](https://docs.gradle.org/current/userguide/compatibility.html), but the Java 21+ workspace JRE is required for running Liberty Tools.
 
 One approach to resolve this incompatibility is to configure the preference at:
 **Preferences -> Gradle -> Java home** to refer to a Java installation that is compatible with the level of Gradle in your `gradlew` wrapper.

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2022, 2023 IBM Corporation and others.
+ * Copyright (c) 2022, 2024 IBM Corporation and others.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -30,6 +30,7 @@ import java.util.List;
 import org.eclipse.buildship.core.BuildConfiguration;
 import org.eclipse.buildship.core.GradleBuild;
 import org.eclipse.buildship.core.GradleCore;
+import org.eclipse.buildship.core.GradleDistribution;
 import org.eclipse.buildship.core.GradleWorkspace;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
@@ -64,6 +65,12 @@ public abstract class AbstractLibertyPluginSWTBotTest {
      */
     static SWTBotView dashboard;
 
+    /**
+     * Gradle distribution that supports Java 21.
+     * Gradle version 8.4+ supports Java 21. 
+     */
+    private static String GRADLE_DISTRIBUTION_VERISION = "8.8";
+    
     protected static String getMvnCmdFilename() {
         return LibertyPluginTestUtils.onWindows() ? "mvn.cmd" : "mvn";
     }
@@ -191,11 +198,26 @@ public abstract class AbstractLibertyPluginSWTBotTest {
      * @throws CoreException
      */
     public static void importGradleApplications(ArrayList<File> projectsToInstall) throws Exception {
-
+        // When using Eclipse IDE 2024-06, this exception could have been caused by the 
+        // Gradle tooling API using a Gradle distribution that does not support Java 21.
+        //
+        // Buildship 3.1.9 uses org.gradle.toolingapi 8.1.1. If no Gradle version is defined for the  
+        // build (Gradle wrapper properties file), the connection will use the tooling API's 
+        // version as the Gradle version to run the build.
+        // Therefore, if a Gradle version is not defined for the build and given that the 
+        // tooling version currently being used is 8.1.1, Gradle 8.1.1 
+        // is downloaded and used by the Gradle build. Gradle 8.1.1 does not support Java 21.
+        // This causes runtime issues during the synchronization step (Unsupported class file major 
+        // version 65), which are not reported back to the caller. 
+    	// To workaround this issue, specify a Java 21 compatible Gradle version that the
+        // tooling can use (i.e. 8.4+). Note that since it is preferable to use the default version 
+        // provided by the tooling API, setting the version can be revised at a later time.
         for (File projectFile : projectsToInstall) {
             IPath projectLocation = org.eclipse.core.runtime.Path
                     .fromOSString(Paths.get(projectFile.getPath()).toAbsolutePath().toString());
-            BuildConfiguration configuration = BuildConfiguration.forRootProjectDirectory(projectLocation.toFile()).build();
+            BuildConfiguration configuration = BuildConfiguration.forRootProjectDirectory(projectLocation.toFile())
+                    .gradleDistribution(GradleDistribution.forVersion(GRADLE_DISTRIBUTION_VERISION))
+                    .overrideWorkspaceConfiguration(true).build();
             GradleWorkspace workspace = GradleCore.getWorkspace();
             GradleBuild newBuild = workspace.createBuild(configuration);
             newBuild.synchronize(new NullProgressMonitor());

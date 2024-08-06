@@ -14,7 +14,7 @@ Export-Package: io.openliberty.tools.eclipse;x-friends:="io.openliberty.tools.ec
  io.openliberty.tools.eclipse.ui.preferences;x-friends:="io.openliberty.tools.eclipse.tests"
 Require-Bundle: org.eclipse.ui,
  org.eclipse.m2e.maven.runtime
-Bundle-RequiredExecutionEnvironment: JavaSE-17
+Bundle-RequiredExecutionEnvironment: JavaSE-21
 Automatic-Module-Name: io.openliberty.tools.eclipse.ui
 Bundle-ActivationPolicy: lazy
 Import-Package: org.eclipse.cdt.launch.ui,
