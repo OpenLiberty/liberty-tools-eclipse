@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright (c) 2022 IBM Corporation and others.
+  Copyright (c) 2022, 2024 IBM Corporation and others.
 
   This program and the accompanying materials are made available under the
   terms of the Eclipse Public License v. 2.0 which is available at
@@ -42,7 +42,7 @@
         
         <!-- default version of the eclipse IDE to run tests against -->
         <!-- must be one of the target platform files defined in this project under releng -->
-        <eclipse.target>1Q2024</eclipse.target>
+        <eclipse.target>3Q2024</eclipse.target>
             
 	</properties>
 	
@@ -109,7 +109,7 @@
 					<artifactId>tycho-compiler-plugin</artifactId>
 					<version>${tycho.version}</version>
 					<configuration>
-						<target>17</target>
+						<target>21</target>
 					</configuration>
 				</plugin>
 				<plugin>
@@ -191,7 +191,7 @@
 				<artifactId>target-platform-configuration</artifactId>
 				<version>${tycho.version}</version>
 				<configuration>
-				    <executionEnvironment>JavaSE-17</executionEnvironment>
+				    <executionEnvironment>JavaSE-21</executionEnvironment>
 					<target>
 						<artifact>
 							<groupId>io.openliberty.tools.eclipse</groupId>
