@@ -4,7 +4,7 @@ Bundle-ManifestVersion: 2
 Bundle-Name: Liberty Tools Support for Language Servers
 Bundle-Vendor: Open Liberty
 Bundle-SymbolicName: io.openliberty.tools.eclipse.lsp4e;singleton:=true
-Bundle-Version: 24.0.6.qualifier
+Bundle-Version: 24.0.9.qualifier
 Bundle-Activator: io.openliberty.tools.eclipse.ls.plugin.LibertyToolsLSPlugin
 Bundle-ActivationPolicy: lazy
 Automatic-Module-Name: io.openliberty.tools.eclipse.lsp4e
