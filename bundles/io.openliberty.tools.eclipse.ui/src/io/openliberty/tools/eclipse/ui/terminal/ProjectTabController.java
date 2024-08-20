@@ -245,6 +245,12 @@ public class ProjectTabController {
             if (tabTitle != null && tabTitle.startsWith("<Closed>")) {
                 return true;
             }
+        } else {
+            // At this point, the project is no longer in the projectTabMap. Either it was never added (this project
+            // was never started) or it has already stopped. In either case, the project tab is unavailable (e.g. "closed")
+            // for this project. This is particularly needed during debugger restart processing. If the server has stopped
+            // the restart uses this method to indicate it can abort reconnecting.
+            return true;
         }
 
         return false;

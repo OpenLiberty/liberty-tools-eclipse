@@ -18,7 +18,6 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -241,7 +240,7 @@ public class DevModeOperations {
 
             // If there is a debugPort, start the job to attach the debugger to the Liberty server JVM.
             if (debugPort != null) {
-                debugModeHandler.startDebugAttacher(project, launch, debugPort);
+                debugModeHandler.startDebugAttacher(project, launch, debugPort, false);
             }
         } catch (CommandNotFoundException e) {
             String msg = "Maven or Gradle command not found for project " + projectName;
@@ -356,7 +355,7 @@ public class DevModeOperations {
 
             // If there is a debugPort, start the job to attach the debugger to the Liberty server JVM.
             if (debugPort != null) {
-                debugModeHandler.startDebugAttacher(project, launch, debugPort);
+                debugModeHandler.startDebugAttacher(project, launch, debugPort, false);
             }
         } catch (Exception e) {
             String msg = "An error was detected during the start in container request on project " + projectName;
@@ -985,6 +984,12 @@ public class DevModeOperations {
      */
     public static Path getMavenIntegrationTestReportPath(String projectPath) {
         Path path = Paths.get(projectPath, "target", "site", "failsafe-report.html");
+
+        return path;
+    }
+
+    public Path getLibertyPluginConfigXmlPath(String projectPath) {
+        Path path = Paths.get(projectPath, "target", "liberty-plugin-config.xml");
 
         return path;
     }
