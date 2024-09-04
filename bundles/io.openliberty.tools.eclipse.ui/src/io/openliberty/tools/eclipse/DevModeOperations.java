@@ -18,7 +18,6 @@ import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -563,22 +562,13 @@ public class DevModeOperations {
             }
 
             // Get the path to the test report.
-            Path path = getMavenIntegrationTestReportPath(projectPath);
-            if (!path.toFile().exists()) {
-                String msg = "No integration test results were found for project " + projectName + ". Select \""
-                        + DashboardView.APP_MENU_ACTION_RUN_TESTS + "\" before you select \""
-                        + DashboardView.APP_MENU_ACTION_VIEW_MVN_IT_REPORT + "\" on the menu.";
-                if (Trace.isEnabled()) {
-                    Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op. Path: " + path);
-                }
-                ErrorHandler.processErrorMessage(NLS.bind(Messages.mvn_int_test_report_none_found, new String[] { projectName,
-                        DashboardView.APP_MENU_ACTION_RUN_TESTS, DashboardView.APP_MENU_ACTION_VIEW_MVN_IT_REPORT }), true);
-                return;
-            }
+            Path path = getMavenIntegrationTestReportPath(projectPath, projectName);
 
-            // Display the report on the browser. Browser display is based on eclipse configuration preferences.
-            String browserTabTitle = projectName + " " + BROWSER_MVN_IT_REPORT_NAME_SUFFIX;
-            openTestReport(projectName, path, path.toString(), browserTabTitle, browserTabTitle);
+            if (path != null) {
+                // Display the report on the browser. Browser display is based on eclipse configuration preferences.
+                String browserTabTitle = projectName + " " + BROWSER_MVN_IT_REPORT_NAME_SUFFIX;
+                openTestReport(projectName, path, path.toString(), browserTabTitle, browserTabTitle);
+            }
         } catch (Exception e) {
             String msg = "An error was detected when the view integration test report request was processed on project " + projectName
                     + ".";
@@ -637,22 +627,13 @@ public class DevModeOperations {
             }
 
             // Get the path to the test report.
-            Path path = getMavenUnitTestReportPath(projectPath);
-            if (!path.toFile().exists()) {
-                String msg = "No unit test results were found for project " + projectName + ". Select \""
-                        + DashboardView.APP_MENU_ACTION_RUN_TESTS + "\" before you select \""
-                        + DashboardView.APP_MENU_ACTION_VIEW_MVN_UT_REPORT + "\" on the menu.";
-                if (Trace.isEnabled()) {
-                    Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op. Path: " + path);
-                }
-                ErrorHandler.processErrorMessage(NLS.bind(Messages.mvn_unit_test_report_none_found, new String[] { projectName,
-                        DashboardView.APP_MENU_ACTION_RUN_TESTS, DashboardView.APP_MENU_ACTION_VIEW_MVN_UT_REPORT }), true);
-                return;
-            }
+            Path path = getMavenUnitTestReportPath(projectPath, projectName);
 
-            // Display the report on the browser. Browser display is based on eclipse configuration preferences.
-            String browserTabTitle = projectName + " " + BROWSER_MVN_UT_REPORT_NAME_SUFFIX;
-            openTestReport(projectName, path, path.toString(), browserTabTitle, browserTabTitle);
+            if (path != null) {
+                // Display the report on the browser. Browser display is based on eclipse configuration preferences.
+                String browserTabTitle = projectName + " " + BROWSER_MVN_UT_REPORT_NAME_SUFFIX;
+                openTestReport(projectName, path, path.toString(), browserTabTitle, browserTabTitle);
+            }
         } catch (Exception e) {
             String msg = "An error was detected when the view unit test report request was processed on project " + projectName + ".";
             if (Trace.isEnabled()) {
@@ -983,10 +964,23 @@ public class DevModeOperations {
      *
      * @return The path of the HTML file containing the integration test report.
      */
-    public static Path getMavenIntegrationTestReportPath(String projectPath) {
-        Path path = Paths.get(projectPath, "target", "site", "failsafe-report.html");
+    public static Path getMavenIntegrationTestReportPath(String projectPath, String projectName) {
+        Path path1 = Paths.get(projectPath, "target", "reports", "failsafe.html");
+        Path path2 = Paths.get(projectPath, "target", "site", "failsafe-report.html");
 
-        return path;
+        if (!path1.toFile().exists() && !path2.toFile().exists()) {
+            String msg = "No integration test results were found for project " + projectName + ". Select \""
+                    + DashboardView.APP_MENU_ACTION_RUN_TESTS + "\" before you select \""
+                    + DashboardView.APP_MENU_ACTION_VIEW_MVN_IT_REPORT + "\" on the menu.";
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op. Paths checked: " + path1 + ", " + path2);
+            }
+            ErrorHandler.processErrorMessage(NLS.bind(Messages.mvn_int_test_report_none_found, new String[] { projectName,
+                    DashboardView.APP_MENU_ACTION_RUN_TESTS, DashboardView.APP_MENU_ACTION_VIEW_MVN_IT_REPORT }), true);
+            return null;
+        }
+
+        return path1.toFile().exists() ? path1 : path2;
     }
 
     /**
@@ -996,10 +990,23 @@ public class DevModeOperations {
      *
      * @return The path of the HTML file containing the unit test report.
      */
-    public static Path getMavenUnitTestReportPath(String projectPath) {
-        Path path = Paths.get(projectPath, "target", "site", "surefire-report.html");
+    public static Path getMavenUnitTestReportPath(String projectPath, String projectName) {
+        Path path1 = Paths.get(projectPath, "target", "reports", "surefire.html");
+        Path path2 = Paths.get(projectPath, "target", "site", "surefire-report.html");
 
-        return path;
+        if (!path1.toFile().exists() && !path2.toFile().exists()) {
+            String msg = "No unit test results were found for project " + projectName + ". Select \""
+                    + DashboardView.APP_MENU_ACTION_RUN_TESTS + "\" before you select \""
+                    + DashboardView.APP_MENU_ACTION_VIEW_MVN_UT_REPORT + "\" on the menu.";
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op. Paths checked: " + path1 + ", " + path2);
+            }
+            ErrorHandler.processErrorMessage(NLS.bind(Messages.mvn_unit_test_report_none_found, new String[] { projectName,
+                    DashboardView.APP_MENU_ACTION_RUN_TESTS, DashboardView.APP_MENU_ACTION_VIEW_MVN_UT_REPORT }), true);
+            return null;
+        }
+
+        return path1.toFile().exists() ? path1 : path2;
     }
 
     /**

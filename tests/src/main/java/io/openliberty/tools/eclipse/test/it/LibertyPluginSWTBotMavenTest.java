@@ -472,7 +472,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         deleteLibertyToolsRunConfigEntriesFromAppRunAs(MVN_APP_NAME);
 
         // Delete the test report files before we start this test.
-        Path pathToITReport = Paths.get(projectPath.toString(), "target", "site", "failsafe-report.html");
+        Path pathToITReport = Paths.get(projectPath.toString(), "target", "reports", "failsafe.html");
         boolean testReportDeleted = LibertyPluginTestUtils.deleteFile(pathToITReport.toFile());
         Assertions.assertTrue(testReportDeleted, () -> "File: " + pathToITReport + " was not be deleted.");
 
@@ -508,7 +508,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         deleteLibertyToolsRunConfigEntriesFromAppRunAs(MVN_APP_NAME);
 
         // Delete the test report files before we start this test.
-        Path pathToITReport = Paths.get(projectPath.toString(), "target", "site", "failsafe-report.html");
+        Path pathToITReport = Paths.get(projectPath.toString(), "target", "reports", "failsafe.html");
         boolean testReportDeleted = LibertyPluginTestUtils.deleteFile(pathToITReport.toFile());
         Assertions.assertTrue(testReportDeleted, () -> "File: " + pathToITReport + " was not be deleted.");
 
@@ -544,11 +544,11 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
     public void testDashboardActions() {
 
         // Delete the test report files before we start this test.
-        Path pathToITReport = Paths.get(projectPath.toString(), "target", "site", "failsafe-report.html");
+        Path pathToITReport = Paths.get(projectPath.toString(), "target", "reports", "failsafe.html");
         boolean itReportDeleted = LibertyPluginTestUtils.deleteFile(pathToITReport.toFile());
         Assertions.assertTrue(itReportDeleted, () -> "Test report file: " + pathToITReport + " was not be deleted.");
 
-        Path pathToUTReport = Paths.get(projectPath.toString(), "target", "site", "surefire-report.html");
+        Path pathToUTReport = Paths.get(projectPath.toString(), "target", "reports", "surefire.html");
         boolean utReportDeleted = LibertyPluginTestUtils.deleteFile(pathToITReport.toFile());
         Assertions.assertTrue(utReportDeleted, () -> "Test report file: " + pathToITReport + " was not be deleted.");
 
@@ -622,7 +622,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         deleteLibertyToolsRunConfigEntriesFromAppRunAs(MVN_APP_NAME);
 
         // Delete the test report files before we start this test.
-        Path pathToITReport = Paths.get(projectPath.toString(), "target", "site", "failsafe-report.html");
+        Path pathToITReport = Paths.get(projectPath.toString(), "target", "reports", "failsafe.html");
         boolean testReportDeleted = LibertyPluginTestUtils.deleteFile(pathToITReport.toFile());
         Assertions.assertTrue(testReportDeleted, () -> "File: " + pathToITReport + " was not be deleted.");
 
@@ -655,11 +655,11 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         deleteLibertyToolsRunConfigEntriesFromAppRunAs(MVN_APP_NAME);
 
         // Delete the test report files before we start this test.
-        Path pathToITReport = Paths.get(projectPath.toString(), "target", "site", "failsafe-report.html");
+        Path pathToITReport = Paths.get(projectPath.toString(), "target", "reports", "failsafe.html");
         boolean itReportDeleted = LibertyPluginTestUtils.deleteFile(pathToITReport.toFile());
         Assertions.assertTrue(itReportDeleted, () -> "Test report file: " + pathToITReport + " was not be deleted.");
 
-        Path pathToUTReport = Paths.get(projectPath.toString(), "target", "site", "surefire-report.html");
+        Path pathToUTReport = Paths.get(projectPath.toString(), "target", "reports", "surefire.html");
         boolean utReportDeleted = LibertyPluginTestUtils.deleteFile(pathToITReport.toFile());
         Assertions.assertTrue(utReportDeleted, () -> "Test report file: " + pathToITReport + " was not be deleted.");
 
@@ -706,7 +706,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         deleteLibertyToolsRunConfigEntriesFromAppRunAs(MVN_APP_NAME);
 
         // Delete the test report files before we start this test.
-        Path pathToITReport = Paths.get(projectPath.toString(), "target", "site", "failsafe-report.html");
+        Path pathToITReport = Paths.get(projectPath.toString(), "target", "reports", "failsafe.html");
         boolean testReportDeleted = LibertyPluginTestUtils.deleteFile(pathToITReport.toFile());
         Assertions.assertTrue(testReportDeleted, () -> "File: " + pathToITReport + " was not be deleted.");
 
