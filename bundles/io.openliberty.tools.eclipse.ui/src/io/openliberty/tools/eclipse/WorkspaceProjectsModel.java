@@ -239,7 +239,7 @@ public class WorkspaceProjectsModel {
         String retVal = null;
 
         Project proj = projectsByName.get(iProject.getName());
-        if (proj.isAggregated()) {
+        if (proj.getBuildType() == Project.BuildType.MAVEN && proj.isAggregated()) {
             retVal = "-f ../pom.xml -am -pl " + getModuleNameSegment(iProject);
         } else {
             retVal = "";
