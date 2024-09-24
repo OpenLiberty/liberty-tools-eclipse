@@ -1,5 +1,13 @@
 # Liberty Tools Eclipse Changelog
 
+## 24.0.9 [changes](https://github.com/OpenLiberty/liberty-tools-eclipse/milestone/8?closed=1) / [release](https://github.com/OpenLiberty/liberty-tools-eclipse/releases/tag/liberty-tools-24.0.9.202409170137) (Sept. 24, 2024)
+
+### Eclipse Platform target release upgrade
+ * 4.32 (2024-06)
+
+### Enhancements
+ * Compatibility with Maven Surefire Report plugin location and naming [change](https://issues.apache.org/jira/browse/SUREFIRE-2161).
+
 ## 24.0.6 [changes](https://github.com/OpenLiberty/liberty-tools-eclipse/milestone/7?closed=1) / [release](https://github.com/OpenLiberty/liberty-tools-eclipse/releases/tag/liberty-tools-24.0.6.202406281517) (June. 28, 2024)
 
 ### Eclipse Platform target release upgrade
