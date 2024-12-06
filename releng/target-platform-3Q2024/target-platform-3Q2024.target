@@ -69,8 +69,8 @@
             <unit id="org.eclipse.tm.terminal.view.feature.source.feature.group" version="10.6.2.202205081303"/>
         </location>
         <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-            <repository location="http://download.eclipse.org/lsp4mp/releases/0.11.3/repository/"/>
-            <unit id="org.eclipse.lsp4mp.jdt.core" version="0.11.3.20240201-2107"/>
+            <repository location="http://download.eclipse.org/lsp4mp/releases/0.13.2/repository/"/>
+            <unit id="org.eclipse.lsp4mp.jdt.core" version="0.13.2.20241022-1352"/>
         </location>
         <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
             <repository location="https://download.eclipse.org/lsp4jakarta/releases/0.2.1/repository/"/>
