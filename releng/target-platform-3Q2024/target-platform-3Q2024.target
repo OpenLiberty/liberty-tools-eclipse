@@ -41,48 +41,48 @@
             <unit id="org.slf4j.api.source" version="1.7.30.v20200204-2150"/>
         </location>
         <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-            <repository location="https://download.eclipse.org/technology/swtbot/releases/3.1.0"/>
-            <unit id="org.eclipse.swtbot.eclipse.feature.group" version="3.1.0.202106041005"/>
-            <unit id="org.eclipse.swtbot.eclipse.test.junit.feature.group" version="3.1.0.202106041005"/>
-            <unit id="org.eclipse.swtbot.feature.group" version="3.1.0.202106041005"/>
-            <unit id="org.eclipse.swtbot.forms.feature.group" version="3.1.0.202106041005"/>
-            <unit id="org.eclipse.swtbot.ide.feature.group" version="3.1.0.202106041005"/>
+            <repository location="https://download.eclipse.org/technology/swtbot/releases/4.2.1"/>
+            <unit id="org.eclipse.swtbot.eclipse.feature.group" version="4.2.1.202406141605"/>
+            <unit id="org.eclipse.swtbot.eclipse.test.junit.feature.group" version="4.2.1.202406141605"/>
+            <unit id="org.eclipse.swtbot.feature.group" version="4.2.1.202406141605"/>
+            <unit id="org.eclipse.swtbot.forms.feature.group" version="4.2.1.202406141605"/>
+            <unit id="org.eclipse.swtbot.ide.feature.group" version="4.2.1.202406141605"/>
         </location>
         <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-            <repository location="https://download.eclipse.org/tools/cdt/releases/10.6"/>
-            <unit id="org.eclipse.cdt.launch" version="10.3.200.202201122357"/>
-            <unit id="org.eclipse.tm.terminal.connector.cdtserial.feature.feature.group" version="10.6.2.202205081303"/>
-            <unit id="org.eclipse.tm.terminal.connector.cdtserial.feature.source.feature.group" version="10.6.2.202205081303"/>
-            <unit id="org.eclipse.tm.terminal.connector.local.feature.feature.group" version="10.6.2.202205081303"/>
-            <unit id="org.eclipse.tm.terminal.connector.local.feature.source.feature.group" version="10.6.2.202205081303"/>
-            <unit id="org.eclipse.tm.terminal.connector.remote.feature.feature.group" version="10.6.2.202205081303"/>
-            <unit id="org.eclipse.tm.terminal.connector.remote.feature.source.feature.group" version="10.6.2.202205081303"/>
-            <unit id="org.eclipse.tm.terminal.connector.ssh.feature.feature.group" version="10.6.2.202205081303"/>
-            <unit id="org.eclipse.tm.terminal.connector.ssh.feature.source.feature.group" version="10.6.2.202205081303"/>
-            <unit id="org.eclipse.tm.terminal.connector.telnet.feature.feature.group" version="10.6.2.202205081303"/>
-            <unit id="org.eclipse.tm.terminal.connector.telnet.feature.source.feature.group" version="10.6.2.202205081303"/>
-            <unit id="org.eclipse.tm.terminal.control.feature.feature.group" version="10.6.2.202205081303"/>
-            <unit id="org.eclipse.tm.terminal.control.feature.source.feature.group" version="10.6.2.202205081303"/>
-            <unit id="org.eclipse.tm.terminal.feature.feature.group" version="10.6.2.202205081303"/>
-            <unit id="org.eclipse.tm.terminal.feature.source.feature.group" version="10.6.2.202205081303"/>
-            <unit id="org.eclipse.tm.terminal.view.feature.feature.group" version="10.6.2.202205081303"/>
-            <unit id="org.eclipse.tm.terminal.view.feature.source.feature.group" version="10.6.2.202205081303"/>
+            <repository location="https://download.eclipse.org/tools/cdt/releases/11.6"/>
+            <unit id="org.eclipse.cdt.launch" version="10.4.400.202402230238"/>
+            <unit id="org.eclipse.tm.terminal.connector.cdtserial.feature.feature.group" version="11.6.1.202406241230"/>
+            <unit id="org.eclipse.tm.terminal.connector.cdtserial.feature.source.feature.group" version="11.6.1.202406241230"/>
+            <unit id="org.eclipse.tm.terminal.connector.local.feature.feature.group" version="11.6.1.202406241230"/>
+            <unit id="org.eclipse.tm.terminal.connector.local.feature.source.feature.group" version="11.6.1.202406241230"/>
+            <unit id="org.eclipse.tm.terminal.connector.remote.feature.feature.group" version="11.6.1.202406241230"/>
+            <unit id="org.eclipse.tm.terminal.connector.remote.feature.source.feature.group" version="11.6.1.202406241230"/>
+            <unit id="org.eclipse.tm.terminal.connector.ssh.feature.feature.group" version="11.6.1.202406241230"/>
+            <unit id="org.eclipse.tm.terminal.connector.ssh.feature.source.feature.group" version="11.6.1.202406241230"/>
+            <unit id="org.eclipse.tm.terminal.connector.telnet.feature.feature.group" version="11.6.1.202406241230"/>
+            <unit id="org.eclipse.tm.terminal.connector.telnet.feature.source.feature.group" version="11.6.1.202406241230"/>
+            <unit id="org.eclipse.tm.terminal.control.feature.feature.group" version="11.6.1.202407022003"/>
+            <unit id="org.eclipse.tm.terminal.control.feature.source.feature.group" version="11.6.1.202407022003"/>
+            <unit id="org.eclipse.tm.terminal.feature.feature.group" version="11.6.1.202406241230"/>
+            <unit id="org.eclipse.tm.terminal.feature.source.feature.group" version="11.6.1.202406241230"/>
+            <unit id="org.eclipse.tm.terminal.view.feature.feature.group" version="11.6.1.202406241230"/>
+            <unit id="org.eclipse.tm.terminal.view.feature.source.feature.group" version="11.6.1.202406241230"/>
         </location>
         <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-            <repository location="http://download.eclipse.org/lsp4mp/releases/0.11.3/repository/"/>
-            <unit id="org.eclipse.lsp4mp.jdt.core" version="0.11.3.20240201-2107"/>
+            <repository location="http://download.eclipse.org/lsp4mp/releases/0.13.2/repository/"/>
+            <unit id="org.eclipse.lsp4mp.jdt.core" version="0.13.2.20241022-1352"/>
         </location>
         <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-            <repository location="https://download.eclipse.org/lsp4jakarta/releases/0.2.1/repository/"/>
-            <unit id="org.eclipse.lsp4jakarta.jdt.core" version="0.2.1"/>
+            <repository location="https://download.eclipse.org/lsp4jakarta/releases/0.2.2/repository/"/>
+            <unit id="org.eclipse.lsp4jakarta.jdt.core" version="0.2.2"/>
         </location>
         <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-            <repository location="https://download.eclipse.org/lsp4j/updates/releases/0.22.0/"/>
+            <repository location="https://download.eclipse.org/lsp4j/updates/releases/0.23.1/"/>
             <unit id="org.eclipse.lsp4j" version="0.0.0"/>
             <unit id="org.eclipse.lsp4j.jsonrpc" version="0.0.0"/>
         </location>
         <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-            <repository location="https://download.eclipse.org/jdtls/milestones/1.39.0/repository/"/>
+            <repository location="https://download.eclipse.org/jdtls/milestones/1.42.0/repository/"/>
             <unit id="org.eclipse.jdt.ls.core" version="0.0.0"/>
         </location>
         <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
