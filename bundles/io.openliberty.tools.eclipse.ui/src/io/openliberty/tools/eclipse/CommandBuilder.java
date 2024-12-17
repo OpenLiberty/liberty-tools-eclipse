@@ -118,10 +118,9 @@ public class CommandBuilder {
         String cmd = null;
         if (isMaven) {
             Path p2mw = (Utils.isWindows()) ? Paths.get(projectPath, "mvnw.cmd") : Paths.get(projectPath, "mvnw");
-            Path p2mwJar = Paths.get(projectPath, ".mvn", "wrapper", "maven-wrapper.jar");
             Path p2mwProps = Paths.get(projectPath, ".mvn", "wrapper", "maven-wrapper.properties");
 
-            if (p2mw.toFile().exists() && p2mwJar.toFile().exists() && p2mwProps.toFile().exists()) {
+            if (p2mw.toFile().exists() && p2mwProps.toFile().exists()) {
                 cmd = p2mw.toString();
             }
         } else {
