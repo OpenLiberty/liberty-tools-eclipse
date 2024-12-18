@@ -1,5 +1,15 @@
 # Liberty Tools Eclipse Changelog
 
+## 24.0.12 [changes](https://github.com/OpenLiberty/liberty-tools-eclipse/milestone/9) / [release](https://github.com/OpenLiberty/liberty-tools-eclipse/releases/tag/liberty-tools-24.0.12.202412180117) (Dec 18, 2024)
+
+### Eclipse Platform target release upgrade
+ * 4.33 (2024-09)
+
+### Dependency Upgrades
+ * Liberty Config Language Server (LCLS) => 2.2
+ * Language Server for Jakarta EE (LSP4Jakarta) => 0.2.2
+ * Language Server for MicroProfile (LSP4MP) => 0.13.2
+ 
 ## 24.0.9 [changes](https://github.com/OpenLiberty/liberty-tools-eclipse/milestone/8?closed=1) / [release](https://github.com/OpenLiberty/liberty-tools-eclipse/releases/tag/liberty-tools-24.0.9.202409170137) (Sept. 24, 2024)
 
 ### Eclipse Platform target release upgrade
