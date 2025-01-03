@@ -104,7 +104,7 @@ public class DevModeOperations {
     /**
      * Handles debug mode processing.
      */
-    private DebugModeHandler debugModeHandler;
+    public DebugModeHandler debugModeHandler;
 
     /**
      * The instance of this class.

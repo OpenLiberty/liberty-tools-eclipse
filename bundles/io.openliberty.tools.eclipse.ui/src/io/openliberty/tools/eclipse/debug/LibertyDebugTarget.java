@@ -16,11 +16,18 @@ import io.openliberty.tools.eclipse.debug.DebugModeHandler.RestartDebugger;
 public class LibertyDebugTarget extends JDIDebugTarget {
 
     private RestartDebugger restartDebugger;
+    private boolean relaunch;
 
     public LibertyDebugTarget(ILaunch launch, VirtualMachine jvm, String name, RestartDebugger restartDebugger) {
         super(launch, jvm, "Liberty Application Debug: " + name, true, true, null, true);
 
         this.restartDebugger = restartDebugger;
+        this.relaunch = true;
+
+    }
+
+    public void setRelaunch(boolean relaunch) {
+        this.relaunch = relaunch;
     }
 
     @Override
@@ -44,9 +51,28 @@ public class LibertyDebugTarget extends JDIDebugTarget {
             cleanup();
 
             getLaunch().removeDebugTarget(this);
-            restartDebugger.restart();
-            restartDebugger = null;
+
+            // Attempt to restart the debugger
+            if (relaunch) {
+                restartDebugger.restart();
+                restartDebugger = null;
+            }
         }
     }
+
+    // @Override
+    // public void disconnect() throws DebugException {
+    // // If we got here, the user explicitly called "disconnect" on the debugger.
+    // // We should not try to reconnect in this case but we should allow the user
+    // // to select "relaunch" which should just reconnect the debugger.
+    // // Since we cant differentiate between a normal "launch" and a "relaunch",
+    // // we will set a flag that we will use to determine if we should launch devMode
+    // // or just reconnect the debugger.
+    // restartDebugger = null;
+    // relaunch = true;
+    //
+    // super.disconnect();
+    //
+    // }
 
 }

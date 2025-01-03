@@ -713,4 +713,30 @@
             name="Liberty">
       </page>
    </extension>
+   
+   <extension
+         point="org.eclipse.ui.popupMenus">
+         
+         <viewerContribution
+            targetID="org.eclipse.debug.ui.DebugView"
+            id="org.eclipse.debug.ui.debugview.popupMenu">
+
+         <action
+               label="Relaunch Liberty"
+               icon="$nl$/icons/full/elcl16/runlast_co.png"
+               helpContextId="relaunch_action_context"
+               class="io.openliberty.tools.eclipse.debug.LibertyDebugRelaunchActionDelegate"
+               menubarPath="launchGroup"
+               id="io.openliberty.tools.eclipse.debug.popupMenu.relaunch">
+         </action>
+         <action
+               label="Disconnect"
+               icon="$nl$/icons/full/elcl16/runlast_co.png"
+               helpContextId="relaunch_action_context"
+               class="io.openliberty.tools.eclipse.debug.LibertyDebugDisconnectActionDelegate"
+               menubarPath="launchGroup"
+               id="io.openliberty.tools.eclipse.debug.popupMenu.disconnect">
+         </action>
+         </viewerContribution>
+   </extension>
 </plugin>
