@@ -721,22 +721,15 @@
             targetID="org.eclipse.debug.ui.DebugView"
             id="org.eclipse.debug.ui.debugview.popupMenu">
 
-         <action
-               label="Relaunch Liberty"
-               icon="$nl$/icons/full/elcl16/runlast_co.png"
-               helpContextId="relaunch_action_context"
-               class="io.openliberty.tools.eclipse.debug.LibertyDebugRelaunchActionDelegate"
+         	<action
+               icon="$nl$/icons/openLibertyLogo.png"
+               class="io.openliberty.tools.eclipse.debug.LibertyDebugReconnectActionDelegate"
                menubarPath="launchGroup"
-               id="io.openliberty.tools.eclipse.debug.popupMenu.relaunch">
-         </action>
-         <action
-               label="Disconnect"
-               icon="$nl$/icons/full/elcl16/runlast_co.png"
-               helpContextId="relaunch_action_context"
-               class="io.openliberty.tools.eclipse.debug.LibertyDebugDisconnectActionDelegate"
-               menubarPath="launchGroup"
-               id="io.openliberty.tools.eclipse.debug.popupMenu.disconnect">
-         </action>
+               label="Connect Liberty Debugger"
+               id="io.openliberty.tools.eclipse.debug.popupMenu.reconnect">
+         	</action>
+         
          </viewerContribution>
    </extension>
+ 
 </plugin>

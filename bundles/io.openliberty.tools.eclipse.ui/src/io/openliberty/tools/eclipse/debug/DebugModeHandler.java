@@ -377,8 +377,7 @@ public class DebugModeHandler {
             throw new CoreException(
                     new Status(IStatus.ERROR, this.getClass(), IJavaLaunchConfigurationConstants.ERR_CONNECTION_FAILED, "", ex));
         }
-        LibertyDebugTarget libertyDebugTarget = new LibertyDebugTarget(launch, remoteVM, hostName + ":" + remoteDebugPortNum,
-                new RestartDebugger(project, launch, String.valueOf(remoteDebugPortNum)));
+        LibertyDebugTarget libertyDebugTarget = new LibertyDebugTarget(launch, remoteVM, hostName + ":" + remoteDebugPortNum);
 
         // Add hot code replace listener to listen for hot code replace failure.
         libertyDebugTarget.addHotCodeReplaceListener(new LibertyHotCodeReplaceListener());
@@ -659,32 +658,32 @@ public class DebugModeHandler {
         boolean closed;
     }
 
-    /**
-     * This class is used as a callback to DebugModeHandler. LibertyDebugTarget will
-     * use this to restart the debugger in the event the Liberty server is restarted by dev mode
-     * or a hot code replace failure occurs.
-     */
-    class RestartDebugger {
-
-        private Project project;
-        private ILaunch launch;
-        private String port;
-
-        RestartDebugger(Project project, ILaunch launch, String port) {
-            this.project = project;
-            this.launch = launch;
-            this.port = port;
-        }
-
-        /**
-         * Recreate and re-attach the debug target to the running server
-         */
-        public void restart() {
-            // If dev mode restarted the server, the debug port may have changed and
-            // we need to read the new value from server.env. At this point, we do not
-            // know if the debugger restarted due to a HCR failure, a manual disconnect,
-            // or a dev mode restart, so we need to read the port in all cases.
-            startDebugAttacher(project, launch, port, true);
-        }
-    }
+    // /**
+    // * This class is used as a callback to DebugModeHandler. LibertyDebugTarget will
+    // * use this to restart the debugger in the event the Liberty server is restarted by dev mode
+    // * or a hot code replace failure occurs.
+    // */
+    // class RestartDebugger {
+    //
+    // private Project project;
+    // private ILaunch launch;
+    // private String port;
+    //
+    // RestartDebugger(Project project, ILaunch launch, String port) {
+    // this.project = project;
+    // this.launch = launch;
+    // this.port = port;
+    // }
+    //
+    // /**
+    // * Recreate and re-attach the debug target to the running server
+    // */
+    // public void restart() {
+    // // If dev mode restarted the server, the debug port may have changed and
+    // // we need to read the new value from server.env. At this point, we do not
+    // // know if the debugger restarted due to a HCR failure, a manual disconnect,
+    // // or a dev mode restart, so we need to read the port in all cases.
+    // startDebugAttacher(project, launch, port, true);
+    // }
+    // }
 }
