@@ -179,6 +179,9 @@ public class CommandBuilder {
 
         String[] pathMembers = pathEnv.split(File.pathSeparator);
         for (String member : pathMembers) {
+        	if (member.isBlank() || member.isEmpty()) {
+        		continue;
+        	}
             File tempFile = new File(member + File.separator + executableBaseName);
             if (tempFile.exists()) {
                 foundCmd = tempFile.getPath();
