@@ -70,8 +70,6 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
         IWorkbench workbench = PlatformUI.getWorkbench();
         Display display = workbench.getDisplay();
 
-        // if (launch ==)
-
         // Launch dev mode.
         display.syncExec(new Runnable() {
             public void run() {

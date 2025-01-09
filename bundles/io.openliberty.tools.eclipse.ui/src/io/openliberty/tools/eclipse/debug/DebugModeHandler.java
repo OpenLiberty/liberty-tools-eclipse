@@ -65,7 +65,6 @@ import io.openliberty.tools.eclipse.Project.BuildType;
 import io.openliberty.tools.eclipse.logging.Logger;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
-import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationHelper;
 import io.openliberty.tools.eclipse.ui.terminal.ProjectTabController;
 import io.openliberty.tools.eclipse.ui.terminal.TerminalListener;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
@@ -95,9 +94,6 @@ public class DebugModeHandler {
 
     /** Job status return code indicating that an error took place while attempting to attach the debugger to the JVM. */
     public static int JOB_STATUS_DEBUGGER_CONN_ERROR = 1;
-
-    /** Instance to this class. */
-    private LaunchConfigurationHelper launchConfigHelper = LaunchConfigurationHelper.getInstance();
 
     /** DevModeOperations instance. */
     private DevModeOperations devModeOps;
@@ -261,7 +257,7 @@ public class DebugModeHandler {
                     AttachingConnector connector = getAttachingConnector();
                     Map<String, Argument> map = connector.defaultArguments();
                     configureConnector(map, DEFAULT_ATTACH_HOST, Integer.parseInt(portToConnect));
-                    IDebugTarget debugTarget = createRemoteJDTDebugTarget(launch, project, Integer.parseInt(portToConnect),
+                    IDebugTarget debugTarget = createRemoteJDTDebugTarget(launch, Integer.parseInt(portToConnect),
                             DEFAULT_ATTACH_HOST,
                             connector, map);
 
@@ -360,14 +356,13 @@ public class DebugModeHandler {
         }
     }
 
-    private IDebugTarget createRemoteJDTDebugTarget(ILaunch launch, Project project, int remoteDebugPortNum, String hostName,
+    private IDebugTarget createRemoteJDTDebugTarget(ILaunch launch, int remoteDebugPortNum, String hostName,
             AttachingConnector connector, Map<String, Argument> map) throws CoreException {
         if (launch == null || hostName == null || hostName.length() == 0) {
             return null;
         }
         VirtualMachine remoteVM = null;
         Exception ex = null;
-        IDebugTarget debugTarget = null;
         try {
             remoteVM = attachJVM(hostName, remoteDebugPortNum, connector, map);
         } catch (Exception e) {
@@ -657,33 +652,4 @@ public class DebugModeHandler {
     private class DataHolder {
         boolean closed;
     }
-
-    // /**
-    // * This class is used as a callback to DebugModeHandler. LibertyDebugTarget will
-    // * use this to restart the debugger in the event the Liberty server is restarted by dev mode
-    // * or a hot code replace failure occurs.
-    // */
-    // class RestartDebugger {
-    //
-    // private Project project;
-    // private ILaunch launch;
-    // private String port;
-    //
-    // RestartDebugger(Project project, ILaunch launch, String port) {
-    // this.project = project;
-    // this.launch = launch;
-    // this.port = port;
-    // }
-    //
-    // /**
-    // * Recreate and re-attach the debug target to the running server
-    // */
-    // public void restart() {
-    // // If dev mode restarted the server, the debug port may have changed and
-    // // we need to read the new value from server.env. At this point, we do not
-    // // know if the debugger restarted due to a HCR failure, a manual disconnect,
-    // // or a dev mode restart, so we need to read the port in all cases.
-    // startDebugAttacher(project, launch, port, true);
-    // }
-    // }
 }

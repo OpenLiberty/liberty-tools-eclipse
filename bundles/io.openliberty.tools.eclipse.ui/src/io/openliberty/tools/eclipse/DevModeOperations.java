@@ -104,7 +104,7 @@ public class DevModeOperations {
     /**
      * Handles debug mode processing.
      */
-    public DebugModeHandler debugModeHandler;
+    private DebugModeHandler debugModeHandler;
 
     /**
      * The instance of this class.
@@ -133,6 +133,15 @@ public class DevModeOperations {
      */
     public WorkspaceProjectsModel getProjectModel() {
         return projectModel;
+    }
+
+    /**
+     * Provides a singleton reference to the debug mode handler
+     * 
+     * @returns the debug mode handler
+     */
+    public DebugModeHandler getDebugModeHandler() {
+        return debugModeHandler;
     }
 
     /**

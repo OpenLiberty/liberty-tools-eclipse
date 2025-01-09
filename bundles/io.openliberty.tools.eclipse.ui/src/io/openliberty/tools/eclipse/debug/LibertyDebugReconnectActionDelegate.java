@@ -5,11 +5,19 @@ import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.model.IDebugTarget;
 import org.eclipse.debug.internal.ui.DebugUIPlugin;
 import org.eclipse.debug.internal.ui.actions.AbstractDebugActionDelegate;
+import org.eclipse.osgi.util.NLS;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.Project;
+import io.openliberty.tools.eclipse.logging.Trace;
+import io.openliberty.tools.eclipse.messages.Messages;
 import io.openliberty.tools.eclipse.ui.launch.StartTab;
+import io.openliberty.tools.eclipse.utils.ErrorHandler;
 
+/**
+ * This class represents the executable for the "Connect Liberty Debugger" action
+ * in the Debug view context menu.
+ */
 public class LibertyDebugReconnectActionDelegate extends AbstractDebugActionDelegate {
 
     @Override
@@ -19,23 +27,29 @@ public class LibertyDebugReconnectActionDelegate extends AbstractDebugActionDele
         if (launch != null) {
             DevModeOperations devModeOps = DevModeOperations.getInstance();
 
-            String projectName = "";
+            String projectName = null;
             try {
                 projectName = launch.getLaunchConfiguration().getAttribute(StartTab.PROJECT_NAME, "");
             } catch (CoreException e) {
-                // TODO - how to handle errors?
-                e.printStackTrace();
+                String msg = "An error was detected during debugger reconnect";
+                if (Trace.isEnabled()) {
+                    Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
+                }
+                ErrorHandler.processErrorMessage(NLS.bind(Messages.project_name_error, null), e, true);
             }
 
-            Project project = devModeOps.getProjectModel().getProject(projectName);
+            if (projectName != null && !projectName.isBlank()) {
+                Project project = devModeOps.getProjectModel().getProject(projectName);
 
-            // Reconnect debugger
-            if (!devModeOps.isProjectTerminalTabMarkedClosed(projectName)) {
-                devModeOps.debugModeHandler.startDebugAttacher(project, launch, null, true);
+                // Reconnect debugger
+                if (!devModeOps.isProjectTerminalTabMarkedClosed(projectName)) {
+                    DebugModeHandler debugModeHandler = devModeOps.getDebugModeHandler();
+                    debugModeHandler.startDebugAttacher(project, launch, null, true);
+                }
+
+                // Remove old debug target
+                launch.removeDebugTarget((IDebugTarget) object);
             }
-
-            // Remove old debug target
-            launch.removeDebugTarget((IDebugTarget) object);
         }
     }
 }

@@ -78,7 +78,8 @@ public class LibertyHotCodeReplaceErrorDialog extends HotCodeReplaceErrorDialog 
                         Project project = devModeOps.getProjectModel().getProject(projectName);
 
                         launch.removeDebugTarget(target);
-                        devModeOps.debugModeHandler.startDebugAttacher(project, launch, null, true);
+                        DebugModeHandler debugModeHandler = devModeOps.getDebugModeHandler();
+                        debugModeHandler.startDebugAttacher(project, launch, null, true);
                     } catch (CoreException e) {
                         ex[0] = e;
                     }

@@ -9,8 +9,9 @@ import com.sun.jdi.event.VMDeathEvent;
 import com.sun.jdi.event.VMDisconnectEvent;
 
 /**
- * This class is an extension of the JDIDebugTarget and allows the debugger to be restarted
- * automatically if the VM restarts or a hot code replace failure occurs.
+ * This class is an extension of the JDIDebugTarget and allows the debugger to be
+ * disconnected without triggering a terminate of the entire launch. This is necessary
+ * since our launch contains both the debugger instance AND the Maven/devmode process.
  */
 public class LibertyDebugTarget extends JDIDebugTarget {
 
@@ -37,6 +38,8 @@ public class LibertyDebugTarget extends JDIDebugTarget {
         if (!isDisconnected()) {
             setDisconnected(true);
             cleanup();
+
+            // Fire a change event to trigger a refresh of the debug view
             fireChangeEvent(DebugEvent.CONTENT);
         }
 
