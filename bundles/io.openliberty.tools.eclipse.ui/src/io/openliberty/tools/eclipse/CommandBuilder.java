@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2022, 2023 IBM Corporation and others.
+* Copyright (c) 2022, 2025 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -147,9 +147,17 @@ public class CommandBuilder {
 
     private String getCommandFromPreferences() throws IllegalStateException {
 
-        File tempCmdFile = new File(getInstallLocationPreferenceString() + File.separator + "bin" + File.separator + getExecBaseName());
+        String installLocPref = getInstallLocationPreferenceString();
+        if (installLocPref == null || installLocPref.isBlank() || installLocPref.isEmpty()) {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, "The mvn/gradle preference path: " + installLocPref + " was null, blank, or empty");
+            }
+            return null;
+        }        
+        
+        File tempCmdFile = new File(installLocPref + File.separator + "bin" + File.separator + getExecBaseName());
         String cmdPathStr = tempCmdFile.getPath();
-
+        
         if (tempCmdFile.exists()) {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, "Found mvn/gradle from preference at path: " + cmdPathStr);
@@ -179,9 +187,9 @@ public class CommandBuilder {
 
         String[] pathMembers = pathEnv.split(File.pathSeparator);
         for (String member : pathMembers) {
-        	if (member.isBlank() || member.isEmpty()) {
-        		continue;
-        	}
+            if (member.isBlank() || member.isEmpty()) {
+                continue;
+            }
             File tempFile = new File(member + File.separator + executableBaseName);
             if (tempFile.exists()) {
                 foundCmd = tempFile.getPath();
