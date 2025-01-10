@@ -231,11 +231,7 @@ public class DebugModeHandler {
                     String debugPort = null;
 
                     if (readDebugPort) {
-                        // Read debug port from server.env. If devmode has restarted the server, it may
-                        // take a few seconds for it to find a new port in the event that the previous port
-                        // is still being held by the OS.
-                        Thread.sleep(10000);
-
+                        // Read debug port from server.env.
                         try {
                             Path serverEnvPath = getServerEnvFile(project);
                             if (serverEnvPath != null) {
