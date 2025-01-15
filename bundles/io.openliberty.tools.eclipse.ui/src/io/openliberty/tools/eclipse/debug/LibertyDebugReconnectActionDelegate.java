@@ -34,7 +34,17 @@ public class LibertyDebugReconnectActionDelegate extends AbstractDebugActionDele
 
     @Override
     protected void doAction(Object object) {
-        ILaunch launch = DebugUIPlugin.getLaunch(object);
+        // This action can be performed from either a launch or debug target.
+        // The object param will therefore either be an ILaunch or IDebugTarget object.
+        ILaunch launch = null;
+        IDebugTarget debugTarget = null;
+        if (object instanceof ILaunch) {
+            launch = (ILaunch) object;
+            debugTarget = launch.getDebugTarget();
+        } else {
+            debugTarget = (IDebugTarget) object;
+            launch = DebugUIPlugin.getLaunch(object);
+        }
 
         if (launch != null) {
             DevModeOperations devModeOps = DevModeOperations.getInstance();
@@ -60,7 +70,7 @@ public class LibertyDebugReconnectActionDelegate extends AbstractDebugActionDele
                 }
 
                 // Remove old debug target
-                launch.removeDebugTarget((IDebugTarget) object);
+                launch.removeDebugTarget(debugTarget);
             }
         }
     }
