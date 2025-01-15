@@ -62,7 +62,6 @@ import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.LibertyDevPlugin;
 import io.openliberty.tools.eclipse.Project;
 import io.openliberty.tools.eclipse.Project.BuildType;
-import io.openliberty.tools.eclipse.logging.Logger;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
 import io.openliberty.tools.eclipse.ui.terminal.ProjectTabController;
@@ -217,7 +216,7 @@ public class DebugModeHandler {
      * 
      * @throws Exception
      */
-    public void startDebugAttacher(Project project, ILaunch launch, String port, boolean readDebugPort) {
+    public void startDebugAttacher(Project project, ILaunch launch, String port) {
         String projectName = project.getIProject().getName();
 
         Job job = new Job("Attaching Debugger to JVM...") {
@@ -230,18 +229,41 @@ public class DebugModeHandler {
 
                     String debugPort = null;
 
-                    if (readDebugPort) {
-                        // Read debug port from server.env.
-                        try {
-                            Path serverEnvPath = getServerEnvFile(project);
-                            if (serverEnvPath != null) {
-                                debugPort = readDebugPortFromServerEnv(serverEnvPath);
+                    if (port == null) {
+                        // Read debug port from server.env. Retry every 3 seconds for 1 minute.
+                        int retries = 20;
+                        final Exception[] ex = new Exception[1];
+                        while (debugPort == null && retries > 0) {
+                            // Remove any exceptions we got from the last retry
+                            ex[0] = null;
+
+                            try {
+                                Path serverEnvPath = getServerEnvFile(project);
+                                if (serverEnvPath != null) {
+                                    debugPort = readDebugPortFromServerEnv(serverEnvPath);
+                                }
+                            } catch (Exception e) {
+                                // Save this for now until we are done with our retries;
+                                ex[0] = new Exception(e);
                             }
-                        } catch (Exception e) {
-                            Logger.logError("Failure while attempting to read debug port from server.env file", e);
+
+                            if (debugPort == null) {
+                                Thread.sleep(3000);
+                                retries--;
+                            }
                         }
-                    }
-                    if (debugPort == null) {
+                        if (debugPort == null) {
+                            // We failed to read the debug port. Throw an exception. This will be caught by the outer
+                            // catch block and the job will return with an error.
+                            String errorMessage = "Failed to read debug port from server.env file";
+                            if (ex[0] != null) {
+                                // Add the last exception we got.
+                                throw new Exception(errorMessage, ex[0]);
+                            } else {
+                                throw new Exception(errorMessage);
+                            }
+                        }
+                    } else {
                         debugPort = port;
                     }
 

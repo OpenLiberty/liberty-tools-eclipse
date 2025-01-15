@@ -249,7 +249,7 @@ public class DevModeOperations {
 
             // If there is a debugPort, start the job to attach the debugger to the Liberty server JVM.
             if (debugPort != null) {
-                debugModeHandler.startDebugAttacher(project, launch, debugPort, false);
+                debugModeHandler.startDebugAttacher(project, launch, debugPort);
             }
         } catch (CommandNotFoundException e) {
             String msg = "Maven or Gradle command not found for project " + projectName;
@@ -364,7 +364,7 @@ public class DevModeOperations {
 
             // If there is a debugPort, start the job to attach the debugger to the Liberty server JVM.
             if (debugPort != null) {
-                debugModeHandler.startDebugAttacher(project, launch, debugPort, false);
+                debugModeHandler.startDebugAttacher(project, launch, debugPort);
             }
         } catch (Exception e) {
             String msg = "An error was detected during the start in container request on project " + projectName;

@@ -79,7 +79,7 @@ public class LibertyHotCodeReplaceErrorDialog extends HotCodeReplaceErrorDialog 
 
                         launch.removeDebugTarget(target);
                         DebugModeHandler debugModeHandler = devModeOps.getDebugModeHandler();
-                        debugModeHandler.startDebugAttacher(project, launch, null, true);
+                        debugModeHandler.startDebugAttacher(project, launch, null);
                     } catch (CoreException e) {
                         ex[0] = e;
                     }
