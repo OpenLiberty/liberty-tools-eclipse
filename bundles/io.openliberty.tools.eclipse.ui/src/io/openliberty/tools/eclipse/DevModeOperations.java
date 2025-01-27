@@ -136,6 +136,15 @@ public class DevModeOperations {
     }
 
     /**
+     * Provides a singleton reference to the debug mode handler
+     * 
+     * @returns the debug mode handler
+     */
+    public DebugModeHandler getDebugModeHandler() {
+        return debugModeHandler;
+    }
+
+    /**
      * Returns an instance of this class.
      * 
      * @return An instance of this class.
@@ -981,6 +990,12 @@ public class DevModeOperations {
         }
 
         return path1.toFile().exists() ? path1 : path2;
+    }
+
+    public Path getLibertyPluginConfigXmlPath(String projectPath) {
+        Path path = Paths.get(projectPath, "target", "liberty-plugin-config.xml");
+
+        return path;
     }
 
     /**

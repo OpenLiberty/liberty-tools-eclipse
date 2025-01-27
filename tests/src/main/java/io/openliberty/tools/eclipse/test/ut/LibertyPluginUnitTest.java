@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2022 IBM Corporation and others.
+* Copyright (c) 2022, 2024 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -36,8 +36,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
-import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher.RuntimeEnv;
 import io.openliberty.tools.eclipse.debug.DebugModeHandler;
+import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher.RuntimeEnv;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationHelper;
 import io.openliberty.tools.eclipse.ui.launch.StartTab;
 
@@ -98,17 +98,17 @@ public class LibertyPluginUnitTest {
         try {
             // Test1 . No debug port entry.
             File serverEnv1 = createFile("server.env1", "");
-            String port = debugModeHelper.readDebugPortFromServerEnv(serverEnv1);
+            String port = debugModeHelper.readDebugPortFromServerEnv(serverEnv1.toPath());
             Assertions.assertTrue(port == null, "The resulting list should have returned null as there is debug port entry in file.");
 
             // Test2 . Single port entry.
             File serverEnv2 = createFile("server.env2", "WLP_DEBUG_ADDRESS=1111");
-            String port2 = debugModeHelper.readDebugPortFromServerEnv(serverEnv2);
+            String port2 = debugModeHelper.readDebugPortFromServerEnv(serverEnv2.toPath());
             Assertions.assertTrue(port2.equals("1111"), "The resulting list should have returned port 1111. Instead it returned: " + port2);
 
             // Test1 . Multiple port entries.
             File serverEnv3 = createFile("server.env3", "WLP_DEBUG_ADDRESS=1111", "WLP_DEBUG_ADDRESS=2222", "WLP_DEBUG_ADDRESS=3333");
-            String port3 = debugModeHelper.readDebugPortFromServerEnv(serverEnv3);
+            String port3 = debugModeHelper.readDebugPortFromServerEnv(serverEnv3.toPath());
             Assertions.assertTrue(port3.equals("3333"), "The resulting list should have returned port 3333. Instead it returned: " + port3);
         } finally {
 
