@@ -32,6 +32,7 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.IJobChangeEvent;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.jobs.JobChangeAdapter;
+import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.jdt.launching.JavaRuntime;
@@ -236,16 +237,16 @@ public class DevModeOperations {
             BuildType buildType = project.getBuildType();
             if (buildType == Project.BuildType.MAVEN) {
                 cmd = CommandBuilder.getMavenCommandLine(projectPath, "io.openliberty.tools:liberty-maven-plugin:dev " + startParms,
-                        pathEnv, true);
+                        pathEnv, false);
             } else if (buildType == Project.BuildType.GRADLE) {
-                cmd = CommandBuilder.getGradleCommandLine(projectPath, "libertyDev " + startParms, pathEnv, true);
+                cmd = CommandBuilder.getGradleCommandLine(projectPath, "libertyDev " + startParms, pathEnv, false);
             } else {
                 throw new Exception("Unexpected project build type: " + buildType + ". Project " + projectName
                         + "does not appear to be a Maven or Gradle built project.");
             }
 
             // Start a terminal and run the application in dev mode.
-            startDevMode(cmd, projectName, projectPath, javaHomePath);
+            startDevMode(cmd, projectName, projectPath, javaHomePath, launch);
 
             // If there is a debugPort, start the job to attach the debugger to the Liberty server JVM.
             if (debugPort != null) {
@@ -360,7 +361,7 @@ public class DevModeOperations {
             }
 
             // Start a terminal and run the application in dev mode.
-            startDevMode(cmd, projectName, projectPath, javaHomePath);
+            startDevMode(cmd, projectName, projectPath, javaHomePath, launch);
 
             // If there is a debugPort, start the job to attach the debugger to the Liberty server JVM.
             if (debugPort != null) {
@@ -766,7 +767,7 @@ public class DevModeOperations {
      *
      * @throws Exception If an error occurs while running the specified command.
      */
-    public void startDevMode(String cmd, String projectName, String projectPath, String javaInstallPath) throws Exception {
+    public void startDevMode(String cmd, String projectName, String projectPath, String javaInstallPath, ILaunch launch) throws Exception {
         // Determine the environment properties to be set in the terminal prior to running dev mode.
         List<String> envs = new ArrayList<String>(1);
 
@@ -784,7 +785,8 @@ public class DevModeOperations {
             envs.add("MAVEN_CONFIG=--log-file " + logFileName);
         }
 
-        projectTabController.runOnTerminal(projectName, projectPath, cmd, envs);
+        Process process = projectTabController.runOnTerminal(projectName, projectPath, cmd, envs);
+        DebugPlugin.newProcess(launch, process, projectName);
     }
 
     /**

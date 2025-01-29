@@ -12,6 +12,8 @@
 *******************************************************************************/
 package io.openliberty.tools.eclipse.ui.terminal;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.List;
@@ -24,6 +26,7 @@ import org.eclipse.tm.internal.terminal.provisional.api.ITerminalConnector;
 import org.eclipse.tm.terminal.view.core.TerminalServiceFactory;
 import org.eclipse.tm.terminal.view.core.interfaces.ITerminalService;
 import org.eclipse.tm.terminal.view.core.interfaces.constants.ITerminalsConnectorConstants;
+import org.eclipse.tm.terminal.view.core.utils.Env;
 import org.eclipse.tm.terminal.view.ui.interfaces.ITerminalsView;
 import org.eclipse.tm.terminal.view.ui.interfaces.IUIConstants;
 import org.eclipse.tm.terminal.view.ui.tabs.TabFolderManager;
@@ -110,8 +113,10 @@ public class ProjectTab {
      * @param projectPath The application project path.
      * @param command The command to run on the terminal.
      * @param envs The list of environment properties to be set on the terminal.
+     * 
+     * @throws IOException
      */
-    public void runCommand(String projectPath, String command, List<String> envs) {
+    public Process runCommand(String projectPath, String command, List<String> envs) throws IOException {
         if (Trace.isEnabled()) {
             Trace.getTracer().traceEntry(Trace.TRACE_UI, new Object[] { projectPath, command, envs });
         }
@@ -141,11 +146,17 @@ public class ProjectTab {
             }
         };
 
-        terminalService.openConsole(getProperties(projectPath, envs, command), done);
+        String[] envsArray = envs.toArray(new String[envs.size()]);
+        envsArray = Env.getEnvironment(envsArray, true);
+        Process process = Runtime.getRuntime().exec(command, envsArray, new File(projectPath));
+
+        terminalService.openConsole(getProperties(projectPath, envs, command, process), done);
 
         if (Trace.isEnabled()) {
             Trace.getTracer().traceExit(Trace.TRACE_UI);
         }
+
+        return process;
     }
 
     /**
@@ -157,7 +168,7 @@ public class ProjectTab {
      *
      * @return A map of properties needed to launch a terminal.
      */
-    private Map<String, Object> getProperties(String projectPath, List<String> envs, String command) {
+    private Map<String, Object> getProperties(String projectPath, List<String> envs, String command, Process process) {
         HashMap<String, Object> properties = new HashMap<String, Object>();
         properties.put(ITerminalsConnectorConstants.PROP_TITLE, projectName);
         properties.put(ITerminalsConnectorConstants.PROP_ENCODING, "UTF-8");
@@ -169,6 +180,7 @@ public class ProjectTab {
         properties.put(ITerminalsConnectorConstants.PROP_PROCESS_ARGS, command);
         properties.put(ITerminalsConnectorConstants.PROP_PROCESS_ENVIRONMENT, envs.toArray(new String[envs.size()]));
         properties.put(ITerminalsConnectorConstants.PROP_PROCESS_WORKING_DIR, projectPath);
+        properties.put(ITerminalsConnectorConstants.PROP_PROCESS_OBJ, process);
 
         // WIN: Terminal command is run using whatever is specified under the ComSpec environment variable, or cmd.exe by default.
         // NIX: Terminal command is run using the system shell.

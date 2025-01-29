@@ -12,6 +12,7 @@
 *******************************************************************************/
 package io.openliberty.tools.eclipse.ui.terminal;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -87,11 +88,13 @@ public class ProjectTabController {
      * @param projectPath The application project path.
      * @param command The command to execute on the terminal.
      * @param envs The environment properties to be set on the terminal.
+     * 
+     * @throws IOException
      */
-    public void runOnTerminal(String projectName, String projectPath, String command, List<String> envs) {
+    public Process runOnTerminal(String projectName, String projectPath, String command, List<String> envs) throws IOException {
         ProjectTab projectTab = new ProjectTab(projectName);
         projectTabMap.put(projectName, projectTab);
-        projectTab.runCommand(projectPath, command, envs);
+        return projectTab.runCommand(projectPath, command, envs);
     }
 
     /**
