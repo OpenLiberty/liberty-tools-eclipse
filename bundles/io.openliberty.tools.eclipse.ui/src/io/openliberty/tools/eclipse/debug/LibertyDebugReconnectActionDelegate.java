@@ -64,7 +64,7 @@ public class LibertyDebugReconnectActionDelegate extends AbstractDebugActionDele
                 Project project = devModeOps.getProjectModel().getProject(projectName);
 
                 // Reconnect debugger
-                if (!devModeOps.isProjectTerminalTabMarkedClosed(projectName)) {
+                if (devModeOps.isProjectStarted(projectName)) {
                     DebugModeHandler debugModeHandler = devModeOps.getDebugModeHandler();
                     debugModeHandler.startDebugAttacher(project, launch, null);
                 }

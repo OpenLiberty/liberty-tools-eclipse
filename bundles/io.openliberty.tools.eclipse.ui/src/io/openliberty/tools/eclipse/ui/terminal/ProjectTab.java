@@ -14,66 +14,23 @@ package io.openliberty.tools.eclipse.ui.terminal;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.util.HashMap;
+import java.io.PrintWriter;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import org.eclipse.core.runtime.IStatus;
-import org.eclipse.swt.custom.CTabItem;
-import org.eclipse.swt.graphics.Image;
-import org.eclipse.tm.internal.terminal.provisional.api.ITerminalConnector;
-import org.eclipse.tm.terminal.view.core.TerminalServiceFactory;
-import org.eclipse.tm.terminal.view.core.interfaces.ITerminalService;
-import org.eclipse.tm.terminal.view.core.interfaces.constants.ITerminalsConnectorConstants;
-import org.eclipse.tm.terminal.view.core.utils.Env;
-import org.eclipse.tm.terminal.view.ui.interfaces.ITerminalsView;
-import org.eclipse.tm.terminal.view.ui.interfaces.IUIConstants;
-import org.eclipse.tm.terminal.view.ui.tabs.TabFolderManager;
-import org.eclipse.ui.IViewPart;
-import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.PlatformUI;
-
 import io.openliberty.tools.eclipse.logging.Trace;
-import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
-import io.openliberty.tools.eclipse.ui.launch.StartTab;
-import io.openliberty.tools.eclipse.utils.Utils;
 
 /**
- * Represents a terminal tab item within the terminal view associated with a running application project.
+ * Represents a console tab item within the console view associated with a running application project.
  */
 public class ProjectTab {
 
     /** The name of the application project associated with this terminal. */
     private String projectName;
 
-    /**
-     * Terminal connector instance set by the LocalDevModeLauncherDelegate when the connector is created during initial connection.
-     */
-    private ITerminalConnector connector;
-
-    /** Terminal view tab item associated with the running application project. */
-    private CTabItem projectTab;
-
-    /** Terminal service. */
-    private ITerminalService terminalService;
-
-    /** Terminal tab listener associated with this terminal tab. */
-    private TerminalTabListenerImpl tabListener;
-
-    /** State of this object. */
-    private State state;
-
-    /** Tab image */
-    private Image libertyImage;
-
-    /** States. */
-    public static enum State {
-        INACTIVE, STARTED, STOPPED
-    };
-
-    /** The NIX shell on which the terminal commands are processed. */
-    private final String NIX_SHELL_COMMAND = "/bin/sh";
+    /** The process running in the console */
+    private Process process;
 
     /**
      * Constructor.
@@ -82,29 +39,6 @@ public class ProjectTab {
      */
     public ProjectTab(String projectName) {
         this.projectName = projectName;
-        this.terminalService = TerminalServiceFactory.getService();
-        this.tabListener = new TerminalTabListenerImpl(projectName);
-        this.libertyImage = Utils.getImage(PlatformUI.getWorkbench().getDisplay(), DashboardView.LIBERTY_LOGO_PATH);
-
-        state = State.INACTIVE;
-    }
-
-    /**
-     * Sets the connector associated with this terminal.
-     * 
-     * @param connector The terminal connector for terminal interaction.
-     */
-    public void setConnector(ITerminalConnector connector) {
-        this.connector = connector;
-    }
-
-    /**
-     * Returns the connector associated with this terminal.
-     * 
-     * @return The connector associated with this terminal.
-     */
-    public ITerminalConnector getConnector() {
-        return connector;
     }
 
     /**
@@ -121,36 +55,22 @@ public class ProjectTab {
             Trace.getTracer().traceEntry(Trace.TRACE_UI, new Object[] { projectPath, command, envs });
         }
 
-        ITerminalService.Done done = new ITerminalService.Done() {
-            @Override
-            public void done(IStatus status) {
-                // The console tab for the associated project opened.
-                if (status.getCode() == IStatus.OK) {
+        List<String> commandList = Arrays.asList(command.split(" "));
+        ProcessBuilder builder = new ProcessBuilder();
+        builder.command(commandList);
+        builder.directory(new File(projectPath));
 
-                    // Save the object representing the currently active console tab instance.
-                    projectTab = getActiveProjectTab();
+        // Add environment variables
+        Map<String, String> environment = builder.environment();
 
-                    // Update the tab image with the Liberty logo.
-                    updateImage();
+        for (String env : envs) {
+            String[] keyValues = env.split("=");
+            String key = keyValues[0];
+            String value = keyValues[1];
+            environment.put(key, value);
+        }
 
-                    // Register a terminal tab disposed listener.
-                    terminalService.addTerminalTabListener(tabListener);
-
-                    // Update the state.
-                    setState(State.STARTED);
-
-                    // Save the project name in the project tab item object. This is needed to be
-                    // able to reliably identify this project tab item during cleanup.
-                    projectTab.setData(StartTab.PROJECT_NAME, projectName);
-                }
-            }
-        };
-
-        String[] envsArray = envs.toArray(new String[envs.size()]);
-        envsArray = Env.getEnvironment(envsArray, true);
-        Process process = Runtime.getRuntime().exec(command, envsArray, new File(projectPath));
-
-        terminalService.openConsole(getProperties(projectPath, envs, command, process), done);
+        process = builder.start();
 
         if (Trace.isEnabled()) {
             Trace.getTracer().traceExit(Trace.TRACE_UI);
@@ -160,216 +80,29 @@ public class ProjectTab {
     }
 
     /**
-     * Returns a map of properties needed to launch a terminal.
+     * Writes to the process's output stream.
      *
-     * @param projectPath The application project path.
-     * @param envs Environment variables to be set.
-     * @param command The command to execute.
-     *
-     * @return A map of properties needed to launch a terminal.
-     */
-    private Map<String, Object> getProperties(String projectPath, List<String> envs, String command, Process process) {
-        HashMap<String, Object> properties = new HashMap<String, Object>();
-        properties.put(ITerminalsConnectorConstants.PROP_TITLE, projectName);
-        properties.put(ITerminalsConnectorConstants.PROP_ENCODING, "UTF-8");
-        properties.put(ITerminalsConnectorConstants.PROP_DELEGATE_ID, LocalDevModeLauncherDelegate.id);
-        properties.put(ITerminalsConnectorConstants.PROP_DATA, projectName);
-        properties.put(ITerminalsConnectorConstants.PROP_PROCESS_MERGE_ENVIRONMENT, Boolean.TRUE);
-        properties.put(ITerminalsConnectorConstants.PROP_FORCE_NEW, Boolean.TRUE);
-        properties.put(ITerminalsConnectorConstants.PROP_DATA_NO_RECONNECT, Boolean.TRUE);
-        properties.put(ITerminalsConnectorConstants.PROP_PROCESS_ARGS, command);
-        properties.put(ITerminalsConnectorConstants.PROP_PROCESS_ENVIRONMENT, envs.toArray(new String[envs.size()]));
-        properties.put(ITerminalsConnectorConstants.PROP_PROCESS_WORKING_DIR, projectPath);
-        properties.put(ITerminalsConnectorConstants.PROP_PROCESS_OBJ, process);
-
-        // WIN: Terminal command is run using whatever is specified under the ComSpec environment variable, or cmd.exe by default.
-        // NIX: Terminal command is run using the system shell.
-        if (!Utils.isWindows()) {
-            properties.put(ITerminalsConnectorConstants.PROP_PROCESS_PATH, NIX_SHELL_COMMAND);
-        }
-
-        return properties;
-    }
-
-    /**
-     * Updates the tab image with the Liberty logo.
-     */
-    private void updateImage() {
-        projectTab.getDisplay().asyncExec(() -> {
-            projectTab.setImage(libertyImage);
-        });
-    }
-
-    /**
-     * Writes to the terminal's output stream.
-     *
-     * @param content The bytes to be written to the terminal.
-     * @param cleanup Indicates whether or not this call was made as part of cleanup or not.
+     * @param content The String to be written to the process.
      *
      * @throws Exception
      */
-    public void writeToStream(byte[] content, boolean cleanup) throws Exception {
+    public void writeToProcess(String content) throws Exception {
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_UI, new Object[] { new String(content), cleanup });
+            Trace.getTracer().traceEntry(Trace.TRACE_UI, new Object[] { new String(content) });
         }
-
-        if (connector == null) {
-            String msg = "Unable to write to terminal. Terminal connector associated with project " + projectName + " was not found.";
-            if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_UI, msg + "Content: " + new String(content));
-            }
-            throw new Exception(msg);
+        if (process != null) {
+            PrintWriter writer = new PrintWriter(process.getOutputStream());
+            writer.println(content);
+            writer.flush();
         }
-
-        OutputStream terminalStream = connector.getTerminalToRemoteStream();
-        if (terminalStream == null) {
-            String msg = "Unable to write to terminal. Terminal remote stream associated with project " + projectName + " was not found.";
-            if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_UI, msg + " Connector: " + connector);
-            }
-            throw new Exception(msg);
-        }
-
-        if (!cleanup) {
-            showTerminalView();
-        }
-
-        terminalStream.write(content);
 
         if (Trace.isEnabled()) {
             Trace.getTracer().traceExit(Trace.TRACE_UI);
         }
     }
 
-    /**
-     * Returns the active CTabItem object associated with the currently active terminal tab.
-     *
-     * @return The active CTabItem object associated with the currently active terminal tab.
-     */
-    private CTabItem getActiveProjectTab() {
-        IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-        if (activePage == null) {
-            if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_UI, "No active page found. No-op.");
-            }
-            return null;
-        }
-
-        IViewPart viewPart = activePage.findView(IUIConstants.ID);
-        if (viewPart == null || !(viewPart instanceof ITerminalsView)) {
-            if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_UI, "No terminal view found. No-op. Active view label: " + activePage.getLabel());
-            }
-            return null;
-        }
-
-        ITerminalsView view = (ITerminalsView) viewPart;
-        TabFolderManager manager = view.getAdapter(TabFolderManager.class);
-
-        if (manager == null) {
-            if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_UI, "No tab folder manager found. No-op. Active view title: " + view.getTitle());
-            }
-            return null;
-        }
-
-        CTabItem item = manager.getActiveTabItem();
-
-        return item;
-    }
-
-    /**
-     * Returns the tab's title text.
-     *
-     * @return The tab's title text.
-     */
-    public String getTitle() {
-        String title = null;
-        if (projectTab != null) {
-            title = projectTab.getText();
-        }
-
-        return title;
-    }
-
-    /**
-     * Returns the current state.
-     *
-     * @return the current state.
-     */
-    public State getState() {
-        return state;
-    }
-
-    /**
-     * Sets the state of this object.
-     *
-     * @param newState The new state.
-     */
-    public synchronized void setState(State newState) {
-        this.state = newState;
-    }
-
-    /**
-     * Performs cleanup.
-     */
-    public void cleanup() {
-        // Remove the registered listener from the calling service.
-        terminalService.removeTerminalTabListener(tabListener);
-
-        // Dispose of the liberty image associated with this tab.
-        if (libertyImage != null) {
-            libertyImage.dispose();
-        }
-    }
-
-    /**
-     * Shows the terminal view in the foreground and focuses on it.
-     */
-    public void showTerminalView() {
-        // Bring the main terminal view to the front.
-        IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-        if (activePage == null) {
-            if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_UI, "No active page found. No-op.");
-            }
-            return;
-        }
-
-        IViewPart viewPart = null;
-        try {
-            viewPart = activePage.showView(IUIConstants.ID, null, IWorkbenchPage.VIEW_ACTIVATE);
-            if (viewPart == null) {
-                if (Trace.isEnabled()) {
-                    Trace.getTracer().trace(Trace.TRACE_UI, "No terminal view found. No-op. Active view label: " + activePage.getLabel());
-                }
-                return;
-            }
-            activePage.bringToTop(viewPart);
-
-        } catch (Exception e) {
-            if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_UI, "Error while attempting to show terminal view. Active view title: "
-                        + ((viewPart != null) ? viewPart.getTitle() : "null"));
-            }
-            return;
-        }
-
-        // Bring tab item associated with the application project to the front.
-        if (viewPart instanceof ITerminalsView) {
-            ITerminalsView view = (ITerminalsView) viewPart;
-            TabFolderManager manager = view.getAdapter(TabFolderManager.class);
-
-            if (manager == null) {
-                if (Trace.isEnabled()) {
-                    Trace.getTracer().trace(Trace.TRACE_UI,
-                            "No tab folder manager found. No-op. Terminal view tab title: " + view.getTitle());
-                }
-                return;
-            }
-
-            manager.bringToTop(projectTab);
-        }
+    public boolean isStarted() {
+        return process != null;
     }
 
     /**
@@ -380,9 +113,6 @@ public class ProjectTab {
         StringBuffer sb = new StringBuffer();
         sb.append("Class: ").append(this.getClass().getName()).append(": ");
         sb.append("projectName: ").append(projectName).append(", ");
-        sb.append("State: ").append(state).append(", ");
-        sb.append("Connector: ").append(connector).append(", ");
-        sb.append("TabListener: ").append(tabListener);
         return sb.toString();
     }
 }

@@ -53,8 +53,6 @@ import io.openliberty.tools.eclipse.logging.Logger;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.messages.Messages;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
-import io.openliberty.tools.eclipse.ui.terminal.ProjectTab;
-import io.openliberty.tools.eclipse.ui.terminal.ProjectTab.State;
 import io.openliberty.tools.eclipse.ui.terminal.ProjectTabController;
 import io.openliberty.tools.eclipse.ui.terminal.TerminalListener;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
@@ -182,29 +180,15 @@ public class DevModeOperations {
         // Check if the start action has already been issued.
         String projectName = iProject.getName();
 
-        // Check if the start action has already been issued.
-        State terminalState = projectTabController.getTerminalState(projectName);
-        if (terminalState != null && terminalState == ProjectTab.State.STARTED) {
-            // Check if the terminal tab associated with this call was marked as closed. This scenario may occur if a previous
-            // attempt to start the server in dev mode was issued successfully, but there was a failure in the process or
-            // there was an unexpected case that caused the terminal process to end. If that is the case, cleanup the objects
-            // associated with the previous instance to allow users to restart dev mode.
-            if (projectTabController.isProjectTabMarkedClosed(projectName)) {
-                if (Trace.isEnabled()) {
-                    Trace.getTracer().trace(Trace.TRACE_TOOLS,
-                            "The start request was already processed on project " + projectName
-                                    + ". The terminal tab for this project is marked as closed. Cleaning up. ProjectTabController: "
-                                    + projectTabController);
-                }
-                projectTabController.processTerminalTabCleanup(projectName);
-            } else {
-                if (Trace.isEnabled()) {
-                    Trace.getTracer().trace(Trace.TRACE_TOOLS, "The start request was already issued on project " + projectName
-                            + ". No-op. ProjectTabController: " + projectTabController);
-                }
-                ErrorHandler.processErrorMessage(NLS.bind(Messages.start_already_issued, projectName), true);
-                return;
+        // Check if we already have a start process running for this project
+        if (projectTabController.isStarted(projectName)) {
+
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, "The start request was already issued on project " + projectName
+                        + ". No-op. ProjectTabController: " + projectTabController);
             }
+            ErrorHandler.processErrorMessage(NLS.bind(Messages.start_already_issued, projectName), true);
+            return;
         }
 
         Project project = null;
@@ -297,29 +281,15 @@ public class DevModeOperations {
         // Check if the start action has already been issued.
         String projectName = iProject.getName();
 
-        // Check if the start action has already been issued.
-        State terminalState = projectTabController.getTerminalState(projectName);
-        if (terminalState != null && terminalState == ProjectTab.State.STARTED) {
-            // Check if the terminal tab associated with this call was marked as closed. This scenario may occur if a previous
-            // attempt to start the server in dev mode was issued successfully, but there was a failure in the process or
-            // there was an unexpected case that caused the terminal process to end. If that is the case, cleanup the objects
-            // associated with the previous instance to allow users to restart dev mode.
-            if (projectTabController.isProjectTabMarkedClosed(projectName)) {
-                if (Trace.isEnabled()) {
-                    Trace.getTracer().trace(Trace.TRACE_TOOLS,
-                            "The start in container request was already processed on project " + projectName
-                                    + ". The terminal tab for this project is marked as closed. Cleaning up. ProjectTabController: "
-                                    + projectTabController);
-                }
-                projectTabController.processTerminalTabCleanup(projectName);
-            } else {
-                if (Trace.isEnabled()) {
-                    Trace.getTracer().trace(Trace.TRACE_TOOLS, "The start in container request was already issued on project " + projectName
-                            + ". No-op. ProjectTabController: " + projectTabController);
-                }
-                ErrorHandler.processErrorMessage(NLS.bind(Messages.start_container_already_issued, projectName), true);
-                return;
+        // Check if we already have a start process running for this project
+        if (projectTabController.isStarted(projectName)) {
+
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, "The start request was already issued on project " + projectName
+                        + ". No-op. ProjectTabController: " + projectTabController);
             }
+            ErrorHandler.processErrorMessage(NLS.bind(Messages.start_already_issued, projectName), true);
+            return;
         }
 
         Project project = null;
@@ -410,20 +380,8 @@ public class DevModeOperations {
         String projectName = iProject.getName();
 
         // Check if the stop action has already been issued of if a start action was never issued before.
-        if (projectTabController.getProjectConnector(projectName) == null) {
+        if (!projectTabController.isStarted(projectName)) {
             String msg = NLS.bind(Messages.stop_already_issued, projectName);
-            handleStopActionError(projectName, msg);
-
-            return;
-        }
-
-        // Check if the terminal tab associated with this call was marked as closed. This scenario may occur if a previous
-        // attempt to start the server in dev mode failed due to an invalid custom start parameter, dev mode was terminated manually,
-        // dev mode is already running outside of the Liberty Tools session, or there was an unexpected case that caused
-        // the terminal process to end. Note that objects associated with the previous start attempt will be cleaned up on
-        // the next restart attempt.
-        if (projectTabController.isProjectTabMarkedClosed(projectName)) {
-            String msg = NLS.bind(Messages.stop_terminal_not_active, projectName);
             handleStopActionError(projectName, msg);
 
             return;
@@ -431,12 +389,7 @@ public class DevModeOperations {
 
         try {
             // Issue the command on the terminal.
-            projectTabController.writeToTerminalStream(projectName, DEVMODE_COMMAND_EXIT.getBytes());
-
-            // The command to exit dev mode was issued. Set the internal project tab state to STOPPED as
-            // indication that the stop command was issued. The project's terminal tab UI will be marked as closed (title and state
-            // updates) when dev mode exits.
-            projectTabController.setTerminalState(projectName, ProjectTab.State.STOPPED);
+            projectTabController.writeToProcessStream(projectName, DEVMODE_COMMAND_EXIT);
 
             // Cleanup internal objects. This maybe done a bit prematurely at this point because the operations triggered by
             // the action of writing to the terminal are asynchronous. However, there is no good way to listen for terminal tab
@@ -487,7 +440,7 @@ public class DevModeOperations {
         String projectName = iProject.getName();
 
         // Check if the stop action has already been issued of if a start action was never issued before.
-        if (projectTabController.getProjectConnector(projectName) == null) {
+        if (!projectTabController.isStarted(projectName)) {
             String msg = "No start request was issued first or the stop request was already issued on project " + projectName
                     + ". Issue a start request before you issue the run tests request.";
             if (Trace.isEnabled()) {
@@ -497,25 +450,9 @@ public class DevModeOperations {
             return;
         }
 
-        // Check if the terminal tab associated with this call was marked as closed. This scenario may occur if a previous
-        // attempt to start the server in dev mode was issued successfully, but there was a failure in the process or
-        // there was an unexpected case that caused the terminal process to end. Note that objects associated with the previous
-        // start attempt will be cleaned up on the next restart attempt.
-        if (projectTabController.isProjectTabMarkedClosed(projectName)) {
-            String msg = "The terminal tab that is running project " + projectName
-                    + " is not active due to an unexpected error or external action. Review the terminal output for more details. "
-                    + "Once the circumstance that caused the terminal tab to be inactive is determined and resolved, "
-                    + "issue a start request before you issue the run tests request.";
-            if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op. ProjectTabController: " + projectTabController);
-            }
-            ErrorHandler.processErrorMessage(NLS.bind(Messages.run_tests_terminal_not_active, projectName), true);
-            return;
-        }
-
         try {
-            // Issue the command on the terminal.
-            projectTabController.writeToTerminalStream(projectName, DEVMODE_COMMAND_RUN_TESTS.getBytes());
+            // Issue the command on the console.
+            projectTabController.writeToProcessStream(projectName, DEVMODE_COMMAND_RUN_TESTS);
         } catch (Exception e) {
             String msg = "An error was detected when the run tests request was processed on project " + projectName + ".";
             if (Trace.isEnabled()) {
@@ -786,6 +723,7 @@ public class DevModeOperations {
         }
 
         Process process = projectTabController.runOnTerminal(projectName, projectPath, cmd, envs);
+
         DebugPlugin.newProcess(launch, process, projectName);
     }
 
@@ -1108,14 +1046,14 @@ public class DevModeOperations {
     }
 
     /**
-     * Returns true if the terminal tab associated with the input project was marked closed. False, otherwise.
+     * Returns true if the start process for the project is active. False, otherwise.
      * 
      * @param projectName The name of the project.
      * 
-     * @return true if the terminal tab associated with the input project was marked closed. False, otherwise.
+     * @return true if the start process for the project is active. False, otherwise.
      */
-    public boolean isProjectTerminalTabMarkedClosed(String projectName) {
-        return projectTabController.isProjectTabMarkedClosed(projectName);
+    public boolean isProjectStarted(String projectName) {
+        return projectTabController.isStarted(projectName);
     }
 
     /**

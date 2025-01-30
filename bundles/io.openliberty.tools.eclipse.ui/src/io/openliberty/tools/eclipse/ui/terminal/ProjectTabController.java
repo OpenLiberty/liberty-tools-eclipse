@@ -21,32 +21,19 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 
-import org.eclipse.swt.custom.CTabFolder;
 import org.eclipse.swt.custom.CTabFolder2Listener;
-import org.eclipse.swt.custom.CTabItem;
-import org.eclipse.tm.internal.terminal.provisional.api.ITerminalConnector;
-import org.eclipse.tm.terminal.view.ui.interfaces.ITerminalsView;
-import org.eclipse.tm.terminal.view.ui.interfaces.IUIConstants;
-import org.eclipse.tm.terminal.view.ui.manager.ConsoleManager;
 import org.eclipse.ui.IViewPart;
-import org.eclipse.ui.IWorkbenchPage;
-import org.eclipse.ui.IWorkbenchWindow;
-import org.eclipse.ui.PlatformUI;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.logging.Trace;
-import io.openliberty.tools.eclipse.ui.terminal.ProjectTab.State;
 import io.openliberty.tools.eclipse.utils.Utils;
 
 /**
- * Manages a set of terminal view project tab instances.
+ * Manages a set of console view project tab instances.
  */
 public class ProjectTabController {
 
-    /** Terminal view ID. */
-    public static final String TERMINAL_VIEW_ID = "org.eclipse.tm.terminal.view.ui.TerminalsView";
-
-    /** The set of active Terminal associated with different application projects. */
+    /** The set of active Consoles associated with different application projects. */
     private static final ConcurrentHashMap<String, ProjectTab> projectTabMap = new ConcurrentHashMap<String, ProjectTab>();
 
     /** The set of terminal listeners associated with the different application projects. */
@@ -55,9 +42,6 @@ public class ProjectTabController {
     /** TerminalManager instance. */
     private static ProjectTabController instance;
 
-    /** Terminal console manager instance. */
-    private ConsoleManager consoleMgr;
-
     /** The active terminal view part. It is refreshed when the terminal reopens. */
     private IViewPart viewPart;
 
@@ -65,7 +49,6 @@ public class ProjectTabController {
      * Constructor.
      */
     private ProjectTabController() {
-        this.consoleMgr = ConsoleManager.getInstance();
     }
 
     /**
@@ -105,7 +88,7 @@ public class ProjectTabController {
      *
      * @throws Exception
      */
-    public void writeToTerminalStream(String projectName, byte[] data) throws Exception {
+    public void writeToProcessStream(String projectName, String data) throws Exception {
         ProjectTab projectTab = projectTabMap.get(projectName);
 
         if (projectTab == null) {
@@ -117,25 +100,7 @@ public class ProjectTabController {
             throw new Exception(msg);
         }
 
-        projectTab.writeToStream(data, false);
-    }
-
-    /**
-     * Returns the terminal tab item associated with the specified project name and connector.
-     *
-     * @param projectName The application project name.
-     * @param connector The terminal connector object associated with input project name.
-     *
-     * @return the terminal tab item associated with the specified project name and connector.
-     */
-    public CTabItem getTerminalTabItem(String projectName, ITerminalConnector connector) {
-        CTabItem item = null;
-
-        if (connector != null) {
-            item = consoleMgr.findConsole(IUIConstants.ID, null, projectName, connector, null);
-        }
-
-        return item;
+        projectTab.writeToProcess(data);
     }
 
     /**
@@ -149,111 +114,10 @@ public class ProjectTabController {
         return projectTabMap.get(projectName);
     }
 
-    public State getTerminalState(String projectName) {
+    public boolean isStarted(String projectName) {
         ProjectTab projectTab = projectTabMap.get(projectName);
         if (projectTab != null) {
-            return projectTab.getState();
-        } else {
-            if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_UI, "Internal project tab object associated with project " + projectName
-                        + " was not found. ProjectTabMap: " + projectTabMap);
-            }
-        }
-
-        return null;
-    }
-
-    public void setTerminalState(String projectName, State newState) throws Exception {
-        if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_UI, new Object[] { projectName, newState });
-        }
-
-        ProjectTab projectTab = projectTabMap.get(projectName);
-        if (projectTab == null) {
-            String msg = "Internal project tab object associated with project: " + projectName + " was not found. Unable to set state.";
-            if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_UI, msg);
-            }
-            throw new Exception();
-        }
-
-        projectTab.setState(newState);
-
-        if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_UI, projectTab.getState());
-        }
-    }
-
-    /**
-     * Returns the connector associated with a terminal running the application represented by the input project name.
-     *
-     * @param projectName The application project name.
-     *
-     * @return The Connector associated with a terminal running the application represented by the input project name.
-     */
-    public ITerminalConnector getProjectConnector(String projectName) {
-        ITerminalConnector connector = null;
-        ProjectTab projectTab = projectTabMap.get(projectName);
-
-        if (projectTab != null) {
-            connector = projectTab.getConnector();
-        } else {
-            if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_UI, "Internal project tab object associated with project " + projectName
-                        + " was not found. Unable to retrieve connector. ProjectTabMap: " + projectTabMap);
-            }
-        }
-
-        return connector;
-    }
-
-    /**
-     * Saves the terminal connector instance on the terminal object represented by the input project name.
-     *
-     * @param projectName The application project name.
-     * @param terminalConnector The terminal connector instance.
-     */
-    public void setProjectConnector(String projectName, ITerminalConnector terminalConnector) {
-        if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_UI, new Object[] { projectName, terminalConnector, projectTabMap.size() });
-        }
-
-        ProjectTab projectTab = projectTabMap.get(projectName);
-        if (projectTab != null) {
-            projectTab.setConnector(terminalConnector);
-            projectTabMap.put(projectName, projectTab);
-        } else {
-            if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_UI, "Internal project tab object associated with project " + projectName
-                        + " was not found. Unable to retrieve connector. ProjectTabMap: " + projectTabMap);
-            }
-        }
-
-        if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_UI, projectTabMap.size());
-        }
-    }
-
-    /**
-     * Returns true if the tab title associated with the input project name was marked as closed. False, otherwise.
-     *
-     * @param projectName The application project name.
-     *
-     * @return true if the tab title associated with the input project name was marked as closed. False, otherwise.
-     */
-    public boolean isProjectTabMarkedClosed(String projectName) {
-        ProjectTab projectTab = projectTabMap.get(projectName);
-        if (projectTab != null) {
-            String tabTitle = projectTab.getTitle();
-            if (tabTitle != null && tabTitle.startsWith("<Closed>")) {
-                return true;
-            }
-        } else {
-            // At this point, the project is no longer in the projectTabMap. Either it was never added (this project
-            // was never started) or it has already stopped. In either case, the project tab is unavailable (e.g. "closed")
-            // for this project. This is particularly needed during debugger restart processing. If the server has stopped
-            // the restart uses this method to indicate it can abort reconnecting.
-            return true;
+            return projectTab.isStarted();
         }
 
         return false;
@@ -284,7 +148,7 @@ public class ProjectTabController {
         if (projectTab != null) {
             try {
                 // Run the exit command on the terminal. This will trigger dev mode cleanup processing.
-                projectTab.writeToStream(DevModeOperations.DEVMODE_COMMAND_EXIT.getBytes(), true);
+                projectTab.writeToProcess(DevModeOperations.DEVMODE_COMMAND_EXIT);
 
                 // Wait for the command issued to take effect. This also handles some cases where
                 // the terminal tab/view is terminated while dev mode is starting, but the command
@@ -315,17 +179,6 @@ public class ProjectTabController {
     public void processTerminalTabCleanup(String projectName) {
         if (Trace.isEnabled()) {
             Trace.getTracer().traceEntry(Trace.TRACE_UI, new Object[] { projectName, projectTabMap.size() });
-        }
-
-        // Call the terminal object to do further cleanup.
-        ProjectTab projectTab = projectTabMap.get(projectName);
-        if (projectTab != null) {
-            projectTab.cleanup();
-        } else {
-            if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_UI, "Internal project tab object associated with project " + projectName
-                        + " was not found. ProjectTabMap: " + projectTabMap);
-            }
         }
 
         // Remove the connector from the connector map cache.
@@ -397,39 +250,8 @@ public class ProjectTabController {
             Trace.getTracer().traceEntry(Trace.TRACE_UI, new Object[] { listener, viewPart });
         }
 
-        if (viewPart != null || (viewPart instanceof ITerminalsView)) {
-            ITerminalsView terminalView = (ITerminalsView) viewPart;
-            CTabFolder tabFolder = terminalView.getAdapter(CTabFolder.class);
-
-            if (tabFolder != null) {
-                tabFolder.removeCTabFolder2Listener(listener);
-            }
-        }
-
         if (Trace.isEnabled()) {
             Trace.getTracer().traceExit(Trace.TRACE_UI);
-        }
-    }
-
-    /**
-     * Refreshes the active terminal view part.
-     */
-    public void refreshViewPart() {
-        if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_UI, viewPart);
-        }
-
-        IWorkbenchWindow iWorkbenchWindow = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-        if (iWorkbenchWindow != null) {
-            IWorkbenchPage activePage = iWorkbenchWindow.getActivePage();
-
-            if (activePage != null) {
-                viewPart = activePage.findView(IUIConstants.ID);
-            }
-        }
-
-        if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_UI, viewPart);
         }
     }
 

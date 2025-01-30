@@ -44,9 +44,7 @@ import org.eclipse.jdi.TimeoutException;
 import org.eclipse.jdt.launching.IJavaLaunchConfigurationConstants;
 import org.eclipse.jdt.launching.JavaRuntime;
 import org.eclipse.swt.widgets.Display;
-import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbench;
-import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.w3c.dom.Document;
@@ -63,8 +61,6 @@ import io.openliberty.tools.eclipse.LibertyDevPlugin;
 import io.openliberty.tools.eclipse.Project;
 import io.openliberty.tools.eclipse.Project.BuildType;
 import io.openliberty.tools.eclipse.logging.Trace;
-import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
-import io.openliberty.tools.eclipse.ui.terminal.ProjectTabController;
 import io.openliberty.tools.eclipse.ui.terminal.TerminalListener;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
 
@@ -472,35 +468,6 @@ public class DebugModeHandler {
                 return;
             }
         }
-
-        // Open the terminal view.
-        IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-        try {
-            IViewPart terminalView = activePage.findView(ProjectTabController.TERMINAL_VIEW_ID);
-            if (terminalView == null) {
-                activePage.showView(ProjectTabController.TERMINAL_VIEW_ID);
-            }
-        } catch (Exception e) {
-            if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_UI, e.getMessage(), e);
-            }
-
-            ErrorHandler.processErrorMessage(e.getMessage(), e, false);
-        }
-
-        // Open the dashboard view.
-        try {
-            IViewPart dashboardView = activePage.findView(DashboardView.ID);
-            if (dashboardView == null) {
-                activePage.showView(DashboardView.ID);
-            }
-        } catch (Exception e) {
-            if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_UI, e.getMessage(), e);
-            }
-
-            ErrorHandler.processErrorMessage(e.getMessage(), e, false);
-        }
     }
 
     /**
@@ -620,12 +587,12 @@ public class DebugModeHandler {
 
                 display.syncExec(new Runnable() {
                     public void run() {
-                        boolean isClosed = devModeOps.isProjectTerminalTabMarkedClosed(project.getIProject().getName());
-                        data.closed = isClosed;
+                        boolean isStarted = devModeOps.isProjectStarted(project.getIProject().getName());
+                        data.started = isStarted;
                     }
                 });
 
-                if (data.closed == true) {
+                if (data.started != true) {
                     return null;
                 }
             }
@@ -668,6 +635,6 @@ public class DebugModeHandler {
     }
 
     private class DataHolder {
-        boolean closed;
+        boolean started;
     }
 }

@@ -682,15 +682,6 @@
          </run>
       </runtime>
   </extension>
-
-  <!-- Delegate-->
-  <extension point="org.eclipse.tm.terminal.view.ui.launcherDelegates">
-      <delegate
-          class="io.openliberty.tools.eclipse.ui.terminal.LocalDevModeLauncherDelegate"
-          id="io.openliberty.tools.eclipse.ui.terminal.local.devmode.launcher.delegate"
-          label="io.openliberty.tools.eclipse.ui.terminal.local.devmode.launcher.delegate.label">
-      </delegate>
-  </extension>
    
   <!-- Trace-->
   <extension
