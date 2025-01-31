@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2022, 2024 IBM Corporation and others.
+* Copyright (c) 2022, 2025 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -23,7 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import io.openliberty.tools.eclipse.logging.Trace;
 
 /**
- * Manages a set of console view project tab instances.
+ * Manages the set up running dev mode processes.
  */
 public class ProcessController {
 
@@ -111,6 +111,14 @@ public class ProcessController {
         writer.flush();
     }
 
+    /**
+     * Returns true if there is a process associated with this project and the
+     * process is alive.
+     * 
+     * @param projectName - The name of the project to check.
+     * 
+     * @return True if the process is alive. False otherwise.
+     */
     public boolean isProcessStarted(String projectName) {
         Process process = projectProcessMap.get(projectName);
         if (process != null) {
@@ -120,6 +128,11 @@ public class ProcessController {
         return false;
     }
 
+    /**
+     * Cleans up any objects associated with this project.
+     * 
+     * @param projectName - The name of the project to clean up.
+     */
     public void cleanup(String projectName) {
         projectProcessMap.remove(projectName);
     }
