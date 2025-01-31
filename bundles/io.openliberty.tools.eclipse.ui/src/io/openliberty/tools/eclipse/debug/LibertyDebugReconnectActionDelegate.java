@@ -15,7 +15,7 @@ package io.openliberty.tools.eclipse.debug;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.model.IDebugTarget;
-import org.eclipse.debug.internal.ui.DebugUIPlugin;
+import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.debug.internal.ui.actions.AbstractDebugActionDelegate;
 import org.eclipse.osgi.util.NLS;
 
@@ -34,16 +34,20 @@ public class LibertyDebugReconnectActionDelegate extends AbstractDebugActionDele
 
     @Override
     protected void doAction(Object object) {
-        // This action can be performed from either a launch or debug target.
-        // The object param will therefore either be an ILaunch or IDebugTarget object.
         ILaunch launch = null;
         IDebugTarget debugTarget = null;
+
+        // This action can be performed from a launch, a process, or a debug target.
+        // The object param will therefore be an ILaunch, an IProcess, or IDebugTarget object.
         if (object instanceof ILaunch) {
             launch = (ILaunch) object;
             debugTarget = launch.getDebugTarget();
+        } else if (object instanceof IProcess) {
+            launch = ((IProcess) object).getLaunch();
+            debugTarget = launch.getDebugTarget();
         } else {
             debugTarget = (IDebugTarget) object;
-            launch = DebugUIPlugin.getLaunch(object);
+            launch = debugTarget.getLaunch();
         }
 
         if (launch != null) {
@@ -70,7 +74,9 @@ public class LibertyDebugReconnectActionDelegate extends AbstractDebugActionDele
                 }
 
                 // Remove old debug target
-                launch.removeDebugTarget(debugTarget);
+                if (debugTarget != null) {
+                    launch.removeDebugTarget(debugTarget);
+                }
             }
         }
     }
