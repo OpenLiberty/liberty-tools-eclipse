@@ -114,7 +114,7 @@ public class ProcessController {
     public boolean isProcessStarted(String projectName) {
         Process process = projectProcessMap.get(projectName);
         if (process != null) {
-            return true;
+            return process.isAlive();
         }
 
         return false;
