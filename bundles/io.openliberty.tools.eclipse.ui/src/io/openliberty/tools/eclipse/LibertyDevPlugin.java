@@ -28,7 +28,6 @@ import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
 import io.openliberty.tools.eclipse.logging.Trace;
-import io.openliberty.tools.eclipse.ui.terminal.ProjectTabController;
 
 /**
  * The activator class controls the plug-in life cycle
@@ -111,7 +110,6 @@ public class LibertyDevPlugin extends AbstractUIPlugin {
      */
     private void unregisterListeners() {
         unregisterResourceChangeListener();
-        unregisterPartListener();
     }
 
     /**
@@ -144,39 +142,6 @@ public class LibertyDevPlugin extends AbstractUIPlugin {
 
         if (Trace.isEnabled()) {
             Trace.getTracer().traceExit(Trace.TRACE_TOOLS, iWorkspace);
-        }
-    }
-
-    /**
-     * Removes the listener registered with the Eclipse terminal view folder.
-     */
-    public void unregisterCTabFolderListener() {
-        if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, tabFolderListener);
-        }
-
-        ProjectTabController tabController = ProjectTabController.getInstance();
-        tabController.unregisterCTabFolder2Listener(tabFolderListener);
-
-        if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, tabController);
-        }
-    }
-
-    /**
-     * Removes the listener registered to process terminal tab view item termination cleanup.
-     */
-    public void unregisterPartListener() {
-        if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, viewPartListener);
-        }
-
-        if (iWorkbenchPage != null) {
-            iWorkbenchPage.removePartListener(viewPartListener);
-        }
-
-        if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, iWorkbenchPage);
         }
     }
 }

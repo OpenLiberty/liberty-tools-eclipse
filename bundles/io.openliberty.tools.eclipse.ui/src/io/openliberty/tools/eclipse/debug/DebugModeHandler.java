@@ -61,7 +61,6 @@ import io.openliberty.tools.eclipse.LibertyDevPlugin;
 import io.openliberty.tools.eclipse.Project;
 import io.openliberty.tools.eclipse.Project.BuildType;
 import io.openliberty.tools.eclipse.logging.Trace;
-import io.openliberty.tools.eclipse.ui.terminal.TerminalListener;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
 
 public class DebugModeHandler {
@@ -286,24 +285,10 @@ public class DebugModeHandler {
             }
         };
 
-        // Register a listener with the terminal tab controller. This listener handles cleanup when the terminal or terminal tab is
-        // terminated while actively processing work.
-        TerminalListener terminalListener = new TerminalListener() {
-            /**
-             * {@inheritDoc}
-             */
-            @Override
-            public void cleanup() {
-                job.cancel();
-            }
-        };
-        devModeOps.registerTerminalListener(project.getIProject().getName(), terminalListener);
-
         // Register a job change listener. This listener performs job completion processing.
         job.addJobChangeListener(new JobChangeAdapter() {
             @Override
             public void done(IJobChangeEvent event) {
-                devModeOps.unregisterTerminalListener(projectName, terminalListener);
                 IStatus result = event.getResult();
                 IWorkbench workbench = PlatformUI.getWorkbench();
                 Display display = workbench.getDisplay();

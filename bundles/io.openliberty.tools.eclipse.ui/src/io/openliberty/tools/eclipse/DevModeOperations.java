@@ -52,9 +52,8 @@ import io.openliberty.tools.eclipse.debug.DebugModeHandler;
 import io.openliberty.tools.eclipse.logging.Logger;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.messages.Messages;
+import io.openliberty.tools.eclipse.process.ProcessController;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
-import io.openliberty.tools.eclipse.ui.terminal.ProjectTabController;
-import io.openliberty.tools.eclipse.ui.terminal.TerminalListener;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
 
 /**
@@ -86,9 +85,9 @@ public class DevModeOperations {
     private Map<Job, Boolean> runningJobs = new ConcurrentHashMap<Job, Boolean>();
 
     /**
-     * Project terminal tab controller instance.
+     * Process controller instance.
      */
-    private ProjectTabController projectTabController;
+    private ProcessController processController;
 
     /**
      * Dashboard object reference.
@@ -119,7 +118,7 @@ public class DevModeOperations {
      * Constructor.
      */
     public DevModeOperations() {
-        projectTabController = ProjectTabController.getInstance();
+        processController = ProcessController.getInstance();
         projectModel = new WorkspaceProjectsModel();
         pathEnv = System.getenv("PATH");
         debugModeHandler = new DebugModeHandler(this);
@@ -181,11 +180,11 @@ public class DevModeOperations {
         String projectName = iProject.getName();
 
         // Check if we already have a start process running for this project
-        if (projectTabController.isStarted(projectName)) {
+        if (processController.isProcessStarted(projectName)) {
 
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, "The start request was already issued on project " + projectName
-                        + ". No-op. ProjectTabController: " + projectTabController);
+                        + ". No-op. ProjectTabController: " + processController);
             }
             ErrorHandler.processErrorMessage(NLS.bind(Messages.start_already_issued, projectName), true);
             return;
@@ -282,11 +281,11 @@ public class DevModeOperations {
         String projectName = iProject.getName();
 
         // Check if we already have a start process running for this project
-        if (projectTabController.isStarted(projectName)) {
+        if (processController.isProcessStarted(projectName)) {
 
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, "The start request was already issued on project " + projectName
-                        + ". No-op. ProjectTabController: " + projectTabController);
+                        + ". No-op. ProjectTabController: " + processController);
             }
             ErrorHandler.processErrorMessage(NLS.bind(Messages.start_already_issued, projectName), true);
             return;
@@ -380,7 +379,7 @@ public class DevModeOperations {
         String projectName = iProject.getName();
 
         // Check if the stop action has already been issued of if a start action was never issued before.
-        if (!projectTabController.isStarted(projectName)) {
+        if (!processController.isProcessStarted(projectName)) {
             String msg = NLS.bind(Messages.stop_already_issued, projectName);
             handleStopActionError(projectName, msg);
 
@@ -389,15 +388,10 @@ public class DevModeOperations {
 
         try {
             // Issue the command on the terminal.
-            projectTabController.writeToProcessStream(projectName, DEVMODE_COMMAND_EXIT);
+            processController.writeToProcessStream(projectName, DEVMODE_COMMAND_EXIT);
 
-            // Cleanup internal objects. This maybe done a bit prematurely at this point because the operations triggered by
-            // the action of writing to the terminal are asynchronous. However, there is no good way to listen for terminal tab
-            // state changes (avoid loops or terminal internal class references). Furthermore, if errors are experienced during
-            // dev mode exit, those errors may not be easily solved by re-trying the stop command.
-            // If there are any errors during cleanup or if cleanup does not happen at all here, cleanup will be attempted
-            // when the associated terminal view tab is closed/disposed.
-            projectTabController.processTerminalTabCleanup(projectName);
+            // Cleanup internal objects.
+            processController.cleanup(projectName);
 
         } catch (Exception e) {
             String msg = NLS.bind(Messages.stop_general_error, projectName);
@@ -440,11 +434,11 @@ public class DevModeOperations {
         String projectName = iProject.getName();
 
         // Check if the stop action has already been issued of if a start action was never issued before.
-        if (!projectTabController.isStarted(projectName)) {
+        if (!processController.isProcessStarted(projectName)) {
             String msg = "No start request was issued first or the stop request was already issued on project " + projectName
                     + ". Issue a start request before you issue the run tests request.";
             if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op. ProjectTabController: " + projectTabController);
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op. ProcessController: " + processController);
             }
             ErrorHandler.processErrorMessage(NLS.bind(Messages.run_tests_no_prior_start, projectName), true);
             return;
@@ -452,7 +446,7 @@ public class DevModeOperations {
 
         try {
             // Issue the command on the console.
-            projectTabController.writeToProcessStream(projectName, DEVMODE_COMMAND_RUN_TESTS);
+            processController.writeToProcessStream(projectName, DEVMODE_COMMAND_RUN_TESTS);
         } catch (Exception e) {
             String msg = "An error was detected when the run tests request was processed on project " + projectName + ".";
             if (Trace.isEnabled()) {
@@ -722,7 +716,7 @@ public class DevModeOperations {
             envs.add("MAVEN_CONFIG=--log-file " + logFileName);
         }
 
-        Process process = projectTabController.runOnTerminal(projectName, projectPath, cmd, envs);
+        Process process = processController.runProcess(projectName, projectPath, cmd, envs);
 
         DebugPlugin.newProcess(launch, process, projectName);
     }
@@ -1053,27 +1047,7 @@ public class DevModeOperations {
      * @return true if the start process for the project is active. False, otherwise.
      */
     public boolean isProjectStarted(String projectName) {
-        return projectTabController.isStarted(projectName);
-    }
-
-    /**
-     * Registers the input terminal listener.
-     * 
-     * @param projectName The name of the project for which the listener is registered.
-     * @param listener The listener implementation.
-     */
-    public void registerTerminalListener(String projectName, TerminalListener listener) {
-        projectTabController.registerTerminalListener(projectName, listener);
-    }
-
-    /**
-     * Unregisters the input terminal listener.
-     * 
-     * @param projectName The name of the project the input listener is registered for.
-     * @param listener The listener implementation.
-     */
-    public void unregisterTerminalListener(String projectName, TerminalListener listener) {
-        projectTabController.unregisterTerminalListener(projectName, listener);
+        return processController.isProcessStarted(projectName);
     }
 
     /**
