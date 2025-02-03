@@ -15,12 +15,13 @@ package io.openliberty.tools.eclipse.process;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import io.openliberty.tools.eclipse.logging.Trace;
+import io.openliberty.tools.eclipse.utils.Utils;
 
 /**
  * Manages the set up running dev mode processes.
@@ -62,11 +63,37 @@ public class ProcessController {
      * 
      * @throws IOException
      */
-    public Process runProcess(String projectName, String projectPath, String command, List<String> envs) throws IOException {
+    public Process runProcess(String projectName, String projectPath, String command, List<String> envs, boolean printCmd)
+            throws IOException {
 
-        List<String> commandList = Arrays.asList(command.split(" "));
-        ProcessBuilder builder = new ProcessBuilder();
-        builder.command(commandList);
+        List<String> commandList = new ArrayList<String>();
+
+        // Add exec statements and print commands
+        if (Utils.isWindows()) {
+            commandList.add("cmd.exe");
+            commandList.add("/c");
+            if (printCmd) {
+                StringBuilder sb = new StringBuilder();
+                sb.append("echo && ");
+                sb.append("echo Liberty Tools running command: " + command);
+                sb.append(" from directory: " + projectPath + " && ");
+                sb.append(command);
+                command = sb.toString();
+            }
+
+        } else {
+            commandList.add("/bin/sh");
+            if (printCmd) {
+                commandList.add("-xc");
+            } else {
+                commandList.add("-c");
+            }
+        }
+
+        commandList.add(command);
+
+        ProcessBuilder builder = new ProcessBuilder(commandList);
+
         builder.directory(new File(projectPath));
 
         // Add environment variables

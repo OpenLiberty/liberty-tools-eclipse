@@ -184,7 +184,7 @@ public class DevModeOperations {
 
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, "The start request was already issued on project " + projectName
-                        + ". No-op. ProjectTabController: " + processController);
+                        + ". No-op. ProcessController: " + processController);
             }
             ErrorHandler.processErrorMessage(NLS.bind(Messages.start_already_issued, projectName), true);
             return;
@@ -220,9 +220,9 @@ public class DevModeOperations {
             BuildType buildType = project.getBuildType();
             if (buildType == Project.BuildType.MAVEN) {
                 cmd = CommandBuilder.getMavenCommandLine(projectPath, "io.openliberty.tools:liberty-maven-plugin:dev " + startParms,
-                        pathEnv, false);
+                        pathEnv);
             } else if (buildType == Project.BuildType.GRADLE) {
-                cmd = CommandBuilder.getGradleCommandLine(projectPath, "libertyDev " + startParms, pathEnv, false);
+                cmd = CommandBuilder.getGradleCommandLine(projectPath, "libertyDev " + startParms, pathEnv);
             } else {
                 throw new Exception("Unexpected project build type: " + buildType + ". Project " + projectName
                         + "does not appear to be a Maven or Gradle built project.");
@@ -284,10 +284,10 @@ public class DevModeOperations {
         if (processController.isProcessStarted(projectName)) {
 
             if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_TOOLS, "The start request was already issued on project " + projectName
-                        + ". No-op. ProjectTabController: " + processController);
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, "The start in container request was already issued on project " + projectName
+                        + ". No-op. ProcessController: " + processController);
             }
-            ErrorHandler.processErrorMessage(NLS.bind(Messages.start_already_issued, projectName), true);
+            ErrorHandler.processErrorMessage(NLS.bind(Messages.start_container_already_issued, projectName), true);
             return;
         }
 
@@ -321,9 +321,9 @@ public class DevModeOperations {
             BuildType buildType = project.getBuildType();
             if (buildType == Project.BuildType.MAVEN) {
                 cmd = CommandBuilder.getMavenCommandLine(projectPath, "io.openliberty.tools:liberty-maven-plugin:devc " + startParms,
-                        pathEnv, true);
+                        pathEnv);
             } else if (buildType == Project.BuildType.GRADLE) {
-                cmd = CommandBuilder.getGradleCommandLine(projectPath, "libertyDevc " + startParms, pathEnv, true);
+                cmd = CommandBuilder.getGradleCommandLine(projectPath, "libertyDevc " + startParms, pathEnv);
             } else {
                 throw new Exception("Unexpected project build type: " + buildType + ". Project " + projectName
                         + "does not appear to be a Maven or Gradle built project.");
@@ -716,7 +716,7 @@ public class DevModeOperations {
             envs.add("MAVEN_CONFIG=--log-file " + logFileName);
         }
 
-        Process process = processController.runProcess(projectName, projectPath, cmd, envs);
+        Process process = processController.runProcess(projectName, projectPath, cmd, envs, true);
 
         DebugPlugin.newProcess(launch, process, projectName);
     }
@@ -768,10 +768,10 @@ public class DevModeOperations {
             String buildTypeName;
             BuildType buildType = project.getBuildType();
             if (buildType == Project.BuildType.MAVEN) {
-                cmd = CommandBuilder.getMavenCommandLine(projectPath, "io.openliberty.tools:liberty-maven-plugin:stop", pathEnv, false);
+                cmd = CommandBuilder.getMavenCommandLine(projectPath, "io.openliberty.tools:liberty-maven-plugin:stop", pathEnv);
                 buildTypeName = "Maven";
             } else if (buildType == Project.BuildType.GRADLE) {
-                cmd = CommandBuilder.getGradleCommandLine(projectPath, "libertyStop", pathEnv, false);
+                cmd = CommandBuilder.getGradleCommandLine(projectPath, "libertyStop", pathEnv);
                 buildTypeName = "Gradle";
             } else {
                 throw new Exception("Unexpected project build type: " + buildType + ". Project " + projectName

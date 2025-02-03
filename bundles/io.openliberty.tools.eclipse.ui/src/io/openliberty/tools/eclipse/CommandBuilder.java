@@ -15,6 +15,7 @@ package io.openliberty.tools.eclipse;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
 import org.eclipse.osgi.util.NLS;
 
 import io.openliberty.tools.eclipse.logging.Trace;
@@ -52,28 +53,28 @@ public class CommandBuilder {
      * 
      * @throws CommandNotFoundException
      */
-    public static String getMavenCommandLine(String projectPath, String cmdArgs, String pathEnv, boolean printCmd)
+    public static String getMavenCommandLine(String projectPath, String cmdArgs, String pathEnv)
             throws CommandBuilder.CommandNotFoundException {
         if (Trace.isEnabled()) {
             Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { projectPath, cmdArgs });
         }
         CommandBuilder builder = new CommandBuilder(projectPath, pathEnv, true);
         String cmd = builder.getCommand();
-        String cmdLine = builder.getCommandLineFromArgs(cmd, cmdArgs, printCmd);
+        String cmdLine = builder.getCommandLineFromArgs(cmd, cmdArgs);
         if (Trace.isEnabled()) {
             Trace.getTracer().traceExit(Trace.TRACE_TOOLS, cmdLine);
         }
         return cmdLine;
     }
 
-    public static String getGradleCommandLine(String projectPath, String cmdArgs, String pathEnv, boolean printCmd)
+    public static String getGradleCommandLine(String projectPath, String cmdArgs, String pathEnv)
             throws CommandBuilder.CommandNotFoundException {
         if (Trace.isEnabled()) {
             Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { projectPath, cmdArgs });
         }
         CommandBuilder builder = new CommandBuilder(projectPath, pathEnv, false);
         String cmd = builder.getCommand();
-        String cmdLine = builder.getCommandLineFromArgs(cmd, cmdArgs, printCmd);
+        String cmdLine = builder.getCommandLineFromArgs(cmd, cmdArgs);
         if (Trace.isEnabled()) {
             Trace.getTracer().traceExit(Trace.TRACE_TOOLS, cmdLine);
         }
@@ -150,14 +151,15 @@ public class CommandBuilder {
         String installLocPref = getInstallLocationPreferenceString();
         if (installLocPref == null || installLocPref.isBlank() || installLocPref.isEmpty()) {
             if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_TOOLS, "The mvn/gradle preference path: " + installLocPref + " was null, blank, or empty");
+                Trace.getTracer().trace(Trace.TRACE_TOOLS,
+                        "The mvn/gradle preference path: " + installLocPref + " was null, blank, or empty");
             }
             return null;
-        }        
-        
+        }
+
         File tempCmdFile = new File(installLocPref + File.separator + "bin" + File.separator + getExecBaseName());
         String cmdPathStr = tempCmdFile.getPath();
-        
+
         if (tempCmdFile.exists()) {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, "Found mvn/gradle from preference at path: " + cmdPathStr);
@@ -202,20 +204,10 @@ public class CommandBuilder {
         return foundCmd;
     }
 
-    private String getCommandLineFromArgs(String cmd, String cmdArgs, boolean printCmd) {
+    private String getCommandLineFromArgs(String cmd, String cmdArgs) {
         // Put it all together.
         StringBuilder sb = new StringBuilder();
         if (cmd != null) {
-            if (printCmd) {
-                if (Utils.isWindows()) {
-                    sb.append("/c ");
-                    sb.append("echo && ");
-                    sb.append("echo Liberty Tools running command: " + cmd + " " + cmdArgs);
-                    sb.append(" from directory: " + projectPath + " && ");
-                } else {
-                    sb.append(" -x ");
-                }
-            }
             sb.append(cmd).append(" ").append(cmdArgs);
         }
 
