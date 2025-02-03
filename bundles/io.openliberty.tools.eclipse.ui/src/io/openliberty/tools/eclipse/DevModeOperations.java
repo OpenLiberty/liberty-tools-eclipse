@@ -158,7 +158,7 @@ public class DevModeOperations {
     /**
      * @param iProject The project instance to associate with this action.
      * @param parms The configuration parameters to be used when starting dev mode.
-     * @param javaHomePath The configuration java installation home to be set in the terminal running dev mode.
+     * @param javaHomePath The configuration java installation home to be set in the process running dev mode.
      * @param mode The configuration mode.
      */
     public void start(IProject iProject, String parms, String javaHomePath, ILaunch launch, String mode) {
@@ -228,7 +228,7 @@ public class DevModeOperations {
                         + "does not appear to be a Maven or Gradle built project.");
             }
 
-            // Start a terminal and run the application in dev mode.
+            // Run the application in dev mode.
             startDevMode(cmd, projectName, projectPath, javaHomePath, launch);
 
             // If there is a debugPort, start the job to attach the debugger to the Liberty server JVM.
@@ -259,7 +259,7 @@ public class DevModeOperations {
      * 
      * @param iProject The project instance to associate with this action.
      * @param parms The configuration parameters to be used when starting dev mode.
-     * @param javaHomePath The configuration java installation home to be set in the terminal running dev mode.
+     * @param javaHomePath The configuration java installation home to be set in the process running dev mode.
      * @param mode The configuration mode.
      */
     public void startInContainer(IProject iProject, String parms, String javaHomePath, ILaunch launch, String mode) {
@@ -329,7 +329,7 @@ public class DevModeOperations {
                         + "does not appear to be a Maven or Gradle built project.");
             }
 
-            // Start a terminal and run the application in dev mode.
+            // Run the application in dev mode.
             startDevMode(cmd, projectName, projectPath, javaHomePath, launch);
 
             // If there is a debugPort, start the job to attach the debugger to the Liberty server JVM.
@@ -387,7 +387,7 @@ public class DevModeOperations {
         }
 
         try {
-            // Issue the command on the terminal.
+            // Issue the command to the process.
             processController.writeToProcessStream(projectName, DEVMODE_COMMAND_EXIT);
 
             // Cleanup internal objects.
@@ -690,7 +690,7 @@ public class DevModeOperations {
     }
 
     /**
-     * Runs the specified command on a terminal.
+     * Runs the specified command.
      *
      * @param cmd The command to run.
      * @param projectName The name of the project currently being processed.
@@ -699,7 +699,7 @@ public class DevModeOperations {
      * @throws Exception If an error occurs while running the specified command.
      */
     public void startDevMode(String cmd, String projectName, String projectPath, String javaInstallPath, ILaunch launch) throws Exception {
-        // Determine the environment properties to be set in the terminal prior to running dev mode.
+        // Determine the environment properties to be set in the process running dev mode.
         List<String> envs = new ArrayList<String>(1);
 
         // The value for JAVA_HOME comes from the underlying configuration. The configuration allows

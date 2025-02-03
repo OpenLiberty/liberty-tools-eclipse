@@ -44,7 +44,9 @@ import org.eclipse.jdi.TimeoutException;
 import org.eclipse.jdt.launching.IJavaLaunchConfigurationConstants;
 import org.eclipse.jdt.launching.JavaRuntime;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.w3c.dom.Document;
@@ -61,6 +63,7 @@ import io.openliberty.tools.eclipse.LibertyDevPlugin;
 import io.openliberty.tools.eclipse.Project;
 import io.openliberty.tools.eclipse.Project.BuildType;
 import io.openliberty.tools.eclipse.logging.Trace;
+import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
 
 public class DebugModeHandler {
@@ -434,7 +437,7 @@ public class DebugModeHandler {
     }
 
     /**
-     * Opens the debug perspective with the terminal and liberty dashboard views.
+     * Opens the debug perspective with the liberty dashboard view.
      */
     private void openDebugPerspective() {
         // Open the debug perspective.
@@ -452,6 +455,21 @@ public class DebugModeHandler {
                 ErrorHandler.processErrorMessage(e.getMessage(), e, false);
                 return;
             }
+        }
+
+        // Open the dashboard view.
+        IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+        try {
+            IViewPart dashboardView = activePage.findView(DashboardView.ID);
+            if (dashboardView == null) {
+                activePage.showView(DashboardView.ID);
+            }
+        } catch (Exception e) {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UI, e.getMessage(), e);
+            }
+
+            ErrorHandler.processErrorMessage(e.getMessage(), e, false);
         }
     }
 
@@ -553,7 +571,6 @@ public class DebugModeHandler {
 
         byte[] handshakeString = "JDWP-Handshake".getBytes(StandardCharsets.US_ASCII);
         int retryLimit = 180;
-        int envReadInterval = 2;
 
         for (int retryCount = 0; retryCount < retryLimit; retryCount++) {
 
@@ -562,24 +579,9 @@ public class DebugModeHandler {
                 return null;
             }
 
-            // Check if the terminal was marked as closed, but to reduce contention on the UI thread,
-            // not every time through the loop. We don't have a clean callback/notification that the
-            // terminal session has been marked closed; we're actually going to read the UI element text
-            if (retryCount % envReadInterval == 0) {
-                IWorkbench workbench = PlatformUI.getWorkbench();
-                Display display = workbench.getDisplay();
-                DataHolder data = new DataHolder();
-
-                display.syncExec(new Runnable() {
-                    public void run() {
-                        boolean isStarted = devModeOps.isProjectStarted(project.getIProject().getName());
-                        data.started = isStarted;
-                    }
-                });
-
-                if (data.started != true) {
-                    return null;
-                }
+            // Abort if the project has stopped
+            if (!devModeOps.isProjectStarted(project.getIProject().getName())) {
+                return null;
             }
 
             try (Socket socket = new Socket(host, Integer.valueOf(port))) {
@@ -591,7 +593,7 @@ public class DebugModeHandler {
         }
 
         throw new Exception("Timed out trying to attach the debugger to JVM on host: " + host + " and port: " + port
-                + ".  If the server starts later you might try to manually create a Remote Java Application debug configuration and attach to the server.  You can confirm the debug port used in the terminal output looking for a message like  'Liberty debug port: [ 63624 ]'.");
+                + ".  If the server starts later you might try to manually connect the debugger from the launch in the Debug view  You can confirm the debug port used in the console output looking for a message like  'Liberty debug port: [ 63624 ]'.");
     }
 
     /**

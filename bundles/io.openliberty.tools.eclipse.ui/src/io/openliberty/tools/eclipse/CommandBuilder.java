@@ -43,13 +43,13 @@ public class CommandBuilder {
     }
 
     /**
-     * Returns the full Maven command to run on the terminal.
+     * Returns the full Maven command to run.
      *
      * @param projectPath The project's path.
      * @param cmdArgs The mvn command args
      * @param pathEnv The PATH env var
      *
-     * @return The full Maven command to run on the terminal.
+     * @return The full Maven command to run.
      * 
      * @throws CommandNotFoundException
      */

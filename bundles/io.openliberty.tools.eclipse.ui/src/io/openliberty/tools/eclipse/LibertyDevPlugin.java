@@ -20,9 +20,6 @@ import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.osgi.service.debug.DebugOptions;
 import org.eclipse.osgi.service.debug.DebugOptionsListener;
-import org.eclipse.swt.custom.CTabFolder2Listener;
-import org.eclipse.ui.IPartListener2;
-import org.eclipse.ui.IWorkbenchPage;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
@@ -45,15 +42,6 @@ public class LibertyDevPlugin extends AbstractUIPlugin {
 
     /** Resource Change listener instance. */
     private IResourceChangeListener resourceChangeListener;
-
-    /** Terminal view part listener instance. */
-    private IPartListener2 viewPartListener;
-
-    /** Terminal tab folder listener instance. */
-    private CTabFolder2Listener tabFolderListener;
-
-    /** Workbench page instance used to register the terminal part listener. */
-    IWorkbenchPage iWorkbenchPage;
 
     /**
      * Constructor.
