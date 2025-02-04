@@ -992,10 +992,39 @@ public class DevModeOperations {
         return path1.toFile().exists() ? path1 : path2;
     }
 
-    public Path getLibertyPluginConfigXmlPath(String projectPath) {
-        Path path = Paths.get(projectPath, "target", "liberty-plugin-config.xml");
-
+    public Path getLibertyPluginConfigXmlPath(Project project) throws Exception {  	
+    	    	
+        Project serverProj = getLibertyServerProject(project);
+        String buildDir = serverProj.getBuildType() == BuildType.GRADLE ? "build" : "target";
+      
+        Path path = Paths.get(serverProj.getPath(), buildDir, "liberty-plugin-config.xml");
         return path;
+    }
+    
+
+    /**
+     * Returns the liberty server module project associated with the input project.
+     * 
+     * @param project The project to process.
+     * 
+     * @return The liberty server module project associated with the input project.
+     * 
+     * @throws Exception
+     */
+    private Project getLibertyServerProject(Project project) throws Exception {
+        if (project.isParentOfServerModule()) {
+            List<Project> mmps = project.getChildLibertyServerProjects();
+            switch (mmps.size()) {
+                case 0:
+                    throw new Exception("Unable to find a child project that contains the Liberty server configuration.");
+                case 1:
+                    return mmps.get(0);
+                default:
+                    throw new Exception("Multiple child projects containing Liberty server configuration were found.");
+            }
+        }
+
+        return project;
     }
 
     /**
