@@ -27,6 +27,7 @@ import java.util.concurrent.TimeUnit;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.IJobChangeEvent;
@@ -74,6 +75,9 @@ public class DevModeOperations {
     public static final String BROWSER_MVN_UT_REPORT_NAME_SUFFIX = "surefire report";
     public static final String BROWSER_GRADLE_TEST_REPORT_NAME_SUFFIX = "test report";
     public static final String MVN_RUN_APP_LOG_FILE = "io.openliberty.tools.eclipse.mvnlogfilename";
+
+    private static final String ANSI_SUPPORT_QUALIFIER = "org.eclipse.ui.console";
+    private static final String ANSI_SUPPORT_KEY = "ANSI_support_enabled";
 
     private static final int STOP_TIMEOUT_SECONDS = 60;
     protected static final QualifiedName STOP_JOB_COMPLETION_TIMEOUT = new QualifiedName("io.openliberty.tools.eclipse.ui",
@@ -158,7 +162,9 @@ public class DevModeOperations {
     /**
      * @param iProject The project instance to associate with this action.
      * @param parms The configuration parameters to be used when starting dev mode.
+     * @param colorOutput Flag indicating if the output of the console should be colored
      * @param javaHomePath The configuration java installation home to be set in the process running dev mode.
+     * @param launch The launch associated with this run.
      * @param mode The configuration mode.
      */
     public void start(IProject iProject, String parms, String javaHomePath, ILaunch launch, String mode) {
@@ -215,9 +221,27 @@ public class DevModeOperations {
                 startParms = userParms;
             }
 
+            // Append color styling to start parms
+            BuildType buildType = project.getBuildType();
+            if (buildType == Project.BuildType.MAVEN) {
+
+                StringBuffer updateStartParms = new StringBuffer(startParms);
+                updateStartParms.append(" ");
+
+                boolean ansiSupported = Platform.getPreferencesService().getBoolean(ANSI_SUPPORT_QUALIFIER, ANSI_SUPPORT_KEY, true, null);
+
+                if (ansiSupported) {
+                    updateStartParms.append("-Dstyle.color=always");
+                } else {
+                    updateStartParms.append("-Dstyle.color=never");
+                }
+
+                startParms = updateStartParms.toString();
+            }
+
             // Prepare the Liberty plugin container dev mode command.
             String cmd = "";
-            BuildType buildType = project.getBuildType();
+
             if (buildType == Project.BuildType.MAVEN) {
                 cmd = CommandBuilder.getMavenCommandLine(projectPath, "io.openliberty.tools:liberty-maven-plugin:dev " + startParms,
                         pathEnv);
@@ -259,7 +283,9 @@ public class DevModeOperations {
      * 
      * @param iProject The project instance to associate with this action.
      * @param parms The configuration parameters to be used when starting dev mode.
+     * @param colorOutput Flag indicating if the output of the console should be colored
      * @param javaHomePath The configuration java installation home to be set in the process running dev mode.
+     * @param launch The launch associated with this run.
      * @param mode The configuration mode.
      */
     public void startInContainer(IProject iProject, String parms, String javaHomePath, ILaunch launch, String mode) {
@@ -316,9 +342,26 @@ public class DevModeOperations {
                 startParms = userParms;
             }
 
+            // Append color styling to start parms
+            BuildType buildType = project.getBuildType();
+            if (buildType == Project.BuildType.MAVEN) {
+
+                StringBuffer updateStartParms = new StringBuffer(startParms);
+                updateStartParms.append(" ");
+
+                boolean ansiSupported = Platform.getPreferencesService().getBoolean(ANSI_SUPPORT_QUALIFIER, ANSI_SUPPORT_KEY, true, null);
+
+                if (ansiSupported) {
+                    updateStartParms.append("-Dstyle.color=always");
+                } else {
+                    updateStartParms.append("-Dstyle.color=never");
+                }
+
+                startParms = updateStartParms.toString();
+            }
+
             // Prepare the Liberty plugin container dev mode command.
             String cmd = "";
-            BuildType buildType = project.getBuildType();
             if (buildType == Project.BuildType.MAVEN) {
                 cmd = CommandBuilder.getMavenCommandLine(projectPath, "io.openliberty.tools:liberty-maven-plugin:devc " + startParms,
                         pathEnv);
@@ -886,7 +929,9 @@ public class DevModeOperations {
             job.setUser(true);
             runningJobs.put(job, Boolean.TRUE);
             job.schedule();
-        } catch (Exception e) {
+        } catch (
+
+        Exception e) {
             String msg = "An error was detected while processing the Liberty Maven or Gradle stop command on project " + projectName;
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
