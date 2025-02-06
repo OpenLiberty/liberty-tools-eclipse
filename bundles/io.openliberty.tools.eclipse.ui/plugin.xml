@@ -705,6 +705,41 @@
       </page>
    </extension>
    
+
+   <extension
+         point="org.eclipse.ui.commands">
+         
+         <command
+            name="Connect Liberty Debugger"
+            categoryId="org.eclipse.debug.ui.category.run"
+            description="Connect the Liberty Debugger"
+            icon="$nl$/icons/openLibertyLogo.png"
+            id="io.openliberty.tools.eclipse.debug.LibertyDebugReconnect">
+      </command>
+  </extension>
+  
+  <extension id="menus" point="org.eclipse.ui.menus">
+      <menuContribution locationURI="popup:org.eclipse.debug.ui.DebugView">
+			<command
+         commandId="io.openliberty.tools.eclipse.debug.LibertyDebugReconnect"
+         icon="icons/openLibertyLogo.png"
+         label="Connect Liberty Debugger"
+         style="push">
+                <enabledWhen
+                    checkEnabled="true">
+                </enabledWhen>
+			</command>
+	  </menuContribution>
+  </extension>
+  <extension
+        point="org.eclipse.ui.handlers">
+     <handler
+           class="io.openliberty.tools.eclipse.debug.LibertyDebugReconnectHandler"
+           commandId="io.openliberty.tools.eclipse.debug.LibertyDebugReconnect">
+     </handler>
+  </extension>
+
+   <!--
    <extension
          point="org.eclipse.ui.popupMenus">
          
@@ -722,5 +757,6 @@
          
          </viewerContribution>
    </extension>
+   -->
  
 </plugin>
