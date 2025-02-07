@@ -20,6 +20,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+import org.eclipse.debug.core.DebugPlugin;
+
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.utils.Utils;
 
@@ -110,7 +112,15 @@ public class ProcessController {
 
         projectProcessMap.put(projectName, process);
 
+        addTerminateListener(projectName);
+
         return process;
+    }
+
+    private void addTerminateListener(String projectName) {
+
+        DebugPlugin.getDefault().addDebugEventListener(new LibertyDebugEventListener(projectName));
+
     }
 
     /**

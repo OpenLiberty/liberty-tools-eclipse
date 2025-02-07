@@ -408,7 +408,7 @@ public class DevModeOperations {
             processController.writeToProcessStream(projectName, DEVMODE_COMMAND_EXIT);
 
             // Cleanup internal objects.
-            processController.cleanup(projectName);
+            cleanupProcess(projectName);
 
         } catch (Exception e) {
             String msg = NLS.bind(Messages.stop_general_error, projectName);
@@ -420,6 +420,10 @@ public class DevModeOperations {
         if (Trace.isEnabled()) {
             Trace.getTracer().traceExit(Trace.TRACE_TOOLS, projectName);
         }
+    }
+
+    public void cleanupProcess(String projectName) {
+        processController.cleanup(projectName);
     }
 
     /**
