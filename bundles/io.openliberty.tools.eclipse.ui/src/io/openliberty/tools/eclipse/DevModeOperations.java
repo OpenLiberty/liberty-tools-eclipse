@@ -162,7 +162,6 @@ public class DevModeOperations {
     /**
      * @param iProject The project instance to associate with this action.
      * @param parms The configuration parameters to be used when starting dev mode.
-     * @param colorOutput Flag indicating if the output of the console should be colored
      * @param javaHomePath The configuration java installation home to be set in the process running dev mode.
      * @param launch The launch associated with this run.
      * @param mode The configuration mode.
@@ -271,7 +270,6 @@ public class DevModeOperations {
      * 
      * @param iProject The project instance to associate with this action.
      * @param parms The configuration parameters to be used when starting dev mode.
-     * @param colorOutput Flag indicating if the output of the console should be colored
      * @param javaHomePath The configuration java installation home to be set in the process running dev mode.
      * @param launch The launch associated with this run.
      * @param mode The configuration mode.
