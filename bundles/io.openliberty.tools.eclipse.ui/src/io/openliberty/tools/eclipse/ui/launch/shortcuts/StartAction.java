@@ -104,6 +104,17 @@ public class StartAction implements ILaunchShortcut {
         DevModeOperations devModeOps = DevModeOperations.getInstance();
         devModeOps.verifyProjectSupport(iProject);
 
+        // Check if project is already started
+        String projectName = iProject.getName();
+        if (devModeOps.isProjectStarted(projectName)) {
+
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, "The start request was already issued on project " + projectName);
+            }
+            ErrorHandler.processErrorMessage(NLS.bind(Messages.start_already_issued, projectName), true);
+            return;
+        }
+
         // Determine what configuration to use.
         LaunchConfigurationHelper launchConfigHelper = LaunchConfigurationHelper.getInstance();
         ILaunchConfiguration configuration = launchConfigHelper.getLaunchConfiguration(iProject, mode, RuntimeEnv.LOCAL);

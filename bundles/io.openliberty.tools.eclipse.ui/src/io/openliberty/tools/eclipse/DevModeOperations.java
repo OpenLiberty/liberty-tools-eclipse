@@ -182,19 +182,7 @@ public class DevModeOperations {
             return;
         }
 
-        // Check if the start action has already been issued.
         String projectName = iProject.getName();
-
-        // Check if we already have a start process running for this project
-        if (processController.isProcessStarted(projectName)) {
-
-            if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_TOOLS, "The start request was already issued on project " + projectName
-                        + ". No-op. ProcessController: " + processController);
-            }
-            ErrorHandler.processErrorMessage(NLS.bind(Messages.start_already_issued, projectName), true);
-            return;
-        }
 
         Project project = null;
 
@@ -303,19 +291,7 @@ public class DevModeOperations {
             return;
         }
 
-        // Check if the start action has already been issued.
         String projectName = iProject.getName();
-
-        // Check if we already have a start process running for this project
-        if (processController.isProcessStarted(projectName)) {
-
-            if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_TOOLS, "The start in container request was already issued on project " + projectName
-                        + ". No-op. ProcessController: " + processController);
-            }
-            ErrorHandler.processErrorMessage(NLS.bind(Messages.start_container_already_issued, projectName), true);
-            return;
-        }
 
         Project project = null;
 
