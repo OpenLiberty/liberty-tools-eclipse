@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2022, 2023 IBM Corporation and others.
+ * Copyright (c) 2022, 2025 IBM Corporation and others.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -39,7 +39,6 @@ import java.util.List;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TreeItem;
-import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotView;
 import org.eclipse.swtbot.swt.finder.exceptions.WidgetNotFoundException;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotMenu;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
@@ -232,8 +231,6 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
 
         // Start dev mode.
         SWTBotPluginOperations.launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_START);
-        SWTBotView terminal = bot.viewByTitle("Terminal");
-        terminal.show();
 
         LibertyPluginTestUtils.validateApplicationOutcomeCustom("http://localhost:9080/converter1/heights.jsp?heightCm=10", true,
                 "Height in feet and inches", serverModule1Path + "/target/liberty");
@@ -245,16 +242,12 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
 
         // Stop dev mode.
         SWTBotPluginOperations.launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
-        terminal.show();
 
         // Validate application stopped.
         LibertyPluginTestUtils.validateLibertyServerStopped(serverModule1Path + "/target/liberty");
 
         // unset the preferences
         SWTBotPluginOperations.unsetBuildCmdPathInPreferences(bot, "Maven");
-
-        // Close the terminal.
-        terminal.close();
     }
 
     /**
@@ -272,8 +265,6 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
 
         // Start dev mode.
         launchStartWithDefaultRunConfigFromAppRunAs(MVN_APP_NAME);
-        SWTBotView terminal = bot.viewByTitle("Terminal");
-        terminal.show();
 
         // Validate application is up and running.
         LibertyPluginTestUtils.validateApplicationOutcomeCustom("http://localhost:9080/converter1/heights.jsp?heightCm=30", true,
@@ -284,16 +275,12 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
 
         // Stop dev mode.
         launchStopWithRunAsShortcut(MVN_APP_NAME);
-        terminal.show();
 
         // Validate application stopped.
         LibertyPluginTestUtils.validateLibertyServerStopped(serverModule1Path + "/target/liberty");
 
         // unset the preferences
         unsetBuildCmdPathInPreferences(bot, "Maven");
-
-        // Close the terminal.
-        terminal.close();
     }
 
     /**

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2022, 2023 IBM Corporation and others.
+* Copyright (c) 2022, 2025 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -14,7 +14,6 @@ package io.openliberty.tools.eclipse.test.it;
 
 import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.context;
 import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.go;
-import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.goGlobal;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.checkRunInContainerCheckBox;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.deleteLibertyToolsRunConfigEntriesFromAppRunAs;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.enableLibertyTools;
@@ -66,7 +65,6 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.jdt.launching.JavaRuntime;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TreeItem;
-import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotView;
 import org.eclipse.swtbot.swt.finder.exceptions.WidgetNotFoundException;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotCombo;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotMenu;
@@ -342,7 +340,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         String projPath = iProject.getLocation().toOSString();
 
         String opaqueMvnCmd = CommandBuilder.getMavenCommandLine(projPath, "io.openliberty.tools:liberty-maven-plugin:dev -f " + projPath,
-                System.getenv("PATH"), true);
+                System.getenv("PATH"));
         Assertions.assertTrue(opaqueMvnCmd.contains(getMvnCmdFilename() + " io.openliberty.tools:liberty-maven-plugin:dev"),
                 "Expected cmd to contain 'mvn io.openliberty.tools...' but cmd = " + opaqueMvnCmd);
     }
@@ -353,7 +351,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         String projPath = iProject.getLocation().toOSString();
 
         String opaqueMvnwCmd = CommandBuilder.getMavenCommandLine(projPath, "io.openliberty.tools:liberty-maven-plugin:dev -f " + projPath,
-                System.getenv("PATH"), true);
+                System.getenv("PATH"));
         Assertions.assertTrue(opaqueMvnwCmd.contains("mvnw"), "Expected cmd to contain 'mvnw' but cmd = " + opaqueMvnwCmd);
     }
 
@@ -365,8 +363,6 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
 
         // Start dev mode.
         launchDashboardAction(MVN_WRAPPER_APP_NAME, DashboardView.APP_MENU_ACTION_START);
-
-        goGlobal("Terminal");
 
         // Validate application is up and running.
         LibertyPluginTestUtils.validateApplicationOutcome(MVN_WRAPPER_APP_NAME, true,
@@ -389,7 +385,6 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
     public void testDashboardStartAction() {
         // Start dev mode.
         launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_START);
-        goGlobal("Terminal");
 
         // Validate application is up and running.
         LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
@@ -419,7 +414,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         // Doing a 'clean' first in case server was started previously and terminated abruptly. App tests may fail,
         // making it look like an "outer", actual test is failing, so we skip the tests.
         String cmd = CommandBuilder.getMavenCommandLine(projAbsolutePath.toString(),
-                "clean io.openliberty.tools:liberty-maven-plugin:dev -DskipITs=true", null, false);
+                "clean io.openliberty.tools:liberty-maven-plugin:dev -DskipITs=true", null);
         String[] cmdParts = cmd.split(" ");
         ProcessBuilder pb = new ProcessBuilder(cmdParts).inheritIO().directory(projAbsolutePath.toFile()).redirectErrorStream(true);
         pb.environment().put("JAVA_HOME", JavaRuntime.getDefaultVMInstall().getInstallLocation().getAbsolutePath());
@@ -447,7 +442,6 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
     public void testDashboardDebugAction() {
         // Start dev mode.
         launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_DEBUG);
-        goGlobal("Terminal");
 
         // Validate application is up and running.
         LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
@@ -477,8 +471,6 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         Assertions.assertTrue(testReportDeleted, () -> "File: " + pathToITReport + " was not be deleted.");
 
         launchCustomRunFromDashboard(MVN_APP_NAME, "-DhotTests=true");
-
-        goGlobal("Terminal");
 
         // Validate application is up and running.
         LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
@@ -513,8 +505,6 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         Assertions.assertTrue(testReportDeleted, () -> "File: " + pathToITReport + " was not be deleted.");
 
         launchCustomDebugFromDashboard(MVN_APP_NAME, "-DhotTests=true");
-
-        goGlobal("Terminal");
 
         // Validate application is up and running.
         LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
@@ -554,7 +544,6 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
 
         // Start dev mode.
         launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_START);
-        goGlobal("Terminal");
 
         // Validate application is up and running.
         LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
@@ -597,8 +586,6 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         // Start dev mode.
         launchStartWithDefaultRunConfigFromAppRunAs(MVN_APP_NAME);
 
-        goGlobal("Terminal");
-
         // Validate application is up and running.
         LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
 
@@ -628,7 +615,6 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
 
         // Start dev mode with parms.
         launchStartWithNewCustomRunConfig(MVN_APP_NAME, "-DhotTests=true");
-        goGlobal("Terminal");
 
         // Validate application is up and running.
         LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
@@ -665,7 +651,6 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
 
         // Start dev mode.
         launchStartWithRunAsShortcut(MVN_APP_NAME);
-        goGlobal("Terminal");
 
         // Validate application is up and running.
         LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
@@ -712,7 +697,6 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
 
         // Start dev mode with parms.
         launchStartWithNewCustomDebugConfig(MVN_APP_NAME, "-DhotTests=true");
-        goGlobal("Terminal");
 
         // Validate application is up and running.
         LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
@@ -735,13 +719,9 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
 
             // Stop dev mode using the Run As stop command.
             launchStopWithRunAsShortcut(MVN_APP_NAME);
-            // terminal.show();
 
             // Validate application stopped.
             LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
-
-            // Close the terminal.
-            // terminal.close();
         }
     }
 
@@ -756,8 +736,6 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
 
         // Start dev mode.
         launchStartWithDebugAsShortcut(MVN_APP_NAME);
-
-        goGlobal("Terminal");
 
         // Validate application is up and running.
         LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
@@ -774,13 +752,8 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         // Stop dev mode using the Run As stop command.
         launchStopWithRunAsShortcut(MVN_APP_NAME);
 
-        // terminal.show();
-
         // Validate application stopped.
         LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
-
-        // Close the terminal.
-        // terminal.close();
     }
 
     @Test
@@ -812,8 +785,6 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
 
         // Start dev mode.
         launchDashboardAction(MVN_WRAPPER_APP_NAME, DashboardView.APP_MENU_ACTION_START);
-        SWTBotView terminal = bot.viewByTitle("Terminal");
-        terminal.show();
 
         // Validate application is up and running.
         LibertyPluginTestUtils.validateApplicationOutcome(MVN_WRAPPER_APP_NAME, true,
@@ -824,13 +795,9 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
 
         // Stop dev mode.
         launchDashboardAction(MVN_WRAPPER_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
-        terminal.show();
 
         // Validate application stopped.
         LibertyPluginTestUtils.validateLibertyServerStopped(wrapperProjectPath.toAbsolutePath().toString() + "/target/liberty");
-
-        // Close the terminal.
-        terminal.close();
 
         setBuildCmdPathInPreferences(bot, "Maven");
     }
@@ -846,8 +813,6 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
 
         // Start dev mode.
         launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_START);
-        SWTBotView terminal = bot.viewByTitle("Terminal");
-        terminal.show();
 
         // Validate application is up and running.
         LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
@@ -857,13 +822,9 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
 
         // Stop dev mode.
         launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
-        terminal.show();
 
         // Validate application stopped.
         LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
-
-        // Close the terminal.
-        terminal.close();
     }
 
     /**
@@ -986,11 +947,10 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
 
         // Start dev mode. This should start locally.
         launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_START);
-        goGlobal("Terminal");
 
         // Since the app should be started locally, we should be able to validate that the app is up and running.
         // Since our tests cannot run docker, any "failed" start would indicate we did not start locally.
-        // There is certainly room for improvement here like perhaps reading the Terminal window for "devc" vs "dev" commands, but this is
+        // There is certainly room for improvement here like perhaps reading the Console window for "devc" vs "dev" commands, but this is
         // ok for now.
         LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
 

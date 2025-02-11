@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2022, 2023 IBM Corporation and others.
+* Copyright (c) 2022, 2025 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -64,8 +64,6 @@ import io.openliberty.tools.eclipse.Project;
 import io.openliberty.tools.eclipse.Project.BuildType;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
-import io.openliberty.tools.eclipse.ui.terminal.ProjectTabController;
-import io.openliberty.tools.eclipse.ui.terminal.TerminalListener;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
 
 public class DebugModeHandler {
@@ -290,24 +288,10 @@ public class DebugModeHandler {
             }
         };
 
-        // Register a listener with the terminal tab controller. This listener handles cleanup when the terminal or terminal tab is
-        // terminated while actively processing work.
-        TerminalListener terminalListener = new TerminalListener() {
-            /**
-             * {@inheritDoc}
-             */
-            @Override
-            public void cleanup() {
-                job.cancel();
-            }
-        };
-        devModeOps.registerTerminalListener(project.getIProject().getName(), terminalListener);
-
         // Register a job change listener. This listener performs job completion processing.
         job.addJobChangeListener(new JobChangeAdapter() {
             @Override
             public void done(IJobChangeEvent event) {
-                devModeOps.unregisterTerminalListener(projectName, terminalListener);
                 IStatus result = event.getResult();
                 IWorkbench workbench = PlatformUI.getWorkbench();
                 Display display = workbench.getDisplay();
@@ -453,7 +437,7 @@ public class DebugModeHandler {
     }
 
     /**
-     * Opens the debug perspective with the terminal and liberty dashboard views.
+     * Opens the debug perspective with the liberty dashboard view.
      */
     private void openDebugPerspective() {
         // Open the debug perspective.
@@ -473,22 +457,8 @@ public class DebugModeHandler {
             }
         }
 
-        // Open the terminal view.
-        IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
-        try {
-            IViewPart terminalView = activePage.findView(ProjectTabController.TERMINAL_VIEW_ID);
-            if (terminalView == null) {
-                activePage.showView(ProjectTabController.TERMINAL_VIEW_ID);
-            }
-        } catch (Exception e) {
-            if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_UI, e.getMessage(), e);
-            }
-
-            ErrorHandler.processErrorMessage(e.getMessage(), e, false);
-        }
-
         // Open the dashboard view.
+        IWorkbenchPage activePage = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
         try {
             IViewPart dashboardView = activePage.findView(DashboardView.ID);
             if (dashboardView == null) {
@@ -600,7 +570,6 @@ public class DebugModeHandler {
 
         byte[] handshakeString = "JDWP-Handshake".getBytes(StandardCharsets.US_ASCII);
         int retryLimit = 180;
-        int envReadInterval = 2;
 
         for (int retryCount = 0; retryCount < retryLimit; retryCount++) {
 
@@ -609,24 +578,9 @@ public class DebugModeHandler {
                 return null;
             }
 
-            // Check if the terminal was marked as closed, but to reduce contention on the UI thread,
-            // not every time through the loop. We don't have a clean callback/notification that the
-            // terminal session has been marked closed; we're actually going to read the UI element text
-            if (retryCount % envReadInterval == 0) {
-                IWorkbench workbench = PlatformUI.getWorkbench();
-                Display display = workbench.getDisplay();
-                DataHolder data = new DataHolder();
-
-                display.syncExec(new Runnable() {
-                    public void run() {
-                        boolean isClosed = devModeOps.isProjectTerminalTabMarkedClosed(project.getIProject().getName());
-                        data.closed = isClosed;
-                    }
-                });
-
-                if (data.closed == true) {
-                    return null;
-                }
+            // Abort if the project has stopped
+            if (!devModeOps.isProjectStarted(project.getIProject().getName())) {
+                return null;
             }
 
             try (Socket socket = new Socket(host, Integer.valueOf(port))) {
@@ -638,11 +592,11 @@ public class DebugModeHandler {
         }
 
         throw new Exception("Timed out trying to attach the debugger to JVM on host: " + host + " and port: " + port
-                + ".  If the server starts later you might try to manually create a Remote Java Application debug configuration and attach to the server.  You can confirm the debug port used in the terminal output looking for a message like  'Liberty debug port: [ 63624 ]'.");
+                + ".  If the server starts later you might try to manually connect the debugger from the launch in the Debug view  You can confirm the debug port used in the console output looking for a message like  'Liberty debug port: [ 63624 ]'.");
     }
 
 
     private class DataHolder {
-        boolean closed;
+        boolean started;
     }
 }

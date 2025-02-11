@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2022, 2024 IBM Corporation and others.
+* Copyright (c) 2022, 2025 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -27,11 +27,13 @@ import java.util.concurrent.TimeUnit;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.IJobChangeEvent;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.jobs.JobChangeAdapter;
+import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.jdt.launching.JavaRuntime;
@@ -51,11 +53,8 @@ import io.openliberty.tools.eclipse.debug.DebugModeHandler;
 import io.openliberty.tools.eclipse.logging.Logger;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.messages.Messages;
+import io.openliberty.tools.eclipse.process.ProcessController;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
-import io.openliberty.tools.eclipse.ui.terminal.ProjectTab;
-import io.openliberty.tools.eclipse.ui.terminal.ProjectTab.State;
-import io.openliberty.tools.eclipse.ui.terminal.ProjectTabController;
-import io.openliberty.tools.eclipse.ui.terminal.TerminalListener;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
 
 /**
@@ -77,6 +76,9 @@ public class DevModeOperations {
     public static final String BROWSER_GRADLE_TEST_REPORT_NAME_SUFFIX = "test report";
     public static final String MVN_RUN_APP_LOG_FILE = "io.openliberty.tools.eclipse.mvnlogfilename";
 
+    private static final String ANSI_SUPPORT_QUALIFIER = "org.eclipse.ui.console";
+    private static final String ANSI_SUPPORT_KEY = "ANSI_support_enabled";
+
     private static final int STOP_TIMEOUT_SECONDS = 60;
     protected static final QualifiedName STOP_JOB_COMPLETION_TIMEOUT = new QualifiedName("io.openliberty.tools.eclipse.ui",
             "stopJobCompletionTimeout");
@@ -87,9 +89,9 @@ public class DevModeOperations {
     private Map<Job, Boolean> runningJobs = new ConcurrentHashMap<Job, Boolean>();
 
     /**
-     * Project terminal tab controller instance.
+     * Process controller instance.
      */
-    private ProjectTabController projectTabController;
+    private ProcessController processController;
 
     /**
      * Dashboard object reference.
@@ -120,7 +122,7 @@ public class DevModeOperations {
      * Constructor.
      */
     public DevModeOperations() {
-        projectTabController = ProjectTabController.getInstance();
+        processController = ProcessController.getInstance();
         projectModel = new WorkspaceProjectsModel();
         pathEnv = System.getenv("PATH");
         debugModeHandler = new DebugModeHandler(this);
@@ -160,7 +162,8 @@ public class DevModeOperations {
     /**
      * @param iProject The project instance to associate with this action.
      * @param parms The configuration parameters to be used when starting dev mode.
-     * @param javaHomePath The configuration java installation home to be set in the terminal running dev mode.
+     * @param javaHomePath The configuration java installation home to be set in the process running dev mode.
+     * @param launch The launch associated with this run.
      * @param mode The configuration mode.
      */
     public void start(IProject iProject, String parms, String javaHomePath, ILaunch launch, String mode) {
@@ -178,33 +181,7 @@ public class DevModeOperations {
             return;
         }
 
-        // Check if the start action has already been issued.
         String projectName = iProject.getName();
-
-        // Check if the start action has already been issued.
-        State terminalState = projectTabController.getTerminalState(projectName);
-        if (terminalState != null && terminalState == ProjectTab.State.STARTED) {
-            // Check if the terminal tab associated with this call was marked as closed. This scenario may occur if a previous
-            // attempt to start the server in dev mode was issued successfully, but there was a failure in the process or
-            // there was an unexpected case that caused the terminal process to end. If that is the case, cleanup the objects
-            // associated with the previous instance to allow users to restart dev mode.
-            if (projectTabController.isProjectTabMarkedClosed(projectName)) {
-                if (Trace.isEnabled()) {
-                    Trace.getTracer().trace(Trace.TRACE_TOOLS,
-                            "The start request was already processed on project " + projectName
-                                    + ". The terminal tab for this project is marked as closed. Cleaning up. ProjectTabController: "
-                                    + projectTabController);
-                }
-                projectTabController.processTerminalTabCleanup(projectName);
-            } else {
-                if (Trace.isEnabled()) {
-                    Trace.getTracer().trace(Trace.TRACE_TOOLS, "The start request was already issued on project " + projectName
-                            + ". No-op. ProjectTabController: " + projectTabController);
-                }
-                ErrorHandler.processErrorMessage(NLS.bind(Messages.start_already_issued, projectName), true);
-                return;
-            }
-        }
 
         Project project = null;
 
@@ -231,21 +208,39 @@ public class DevModeOperations {
                 startParms = userParms;
             }
 
-            // Prepare the Liberty plugin container dev mode command.
-            String cmd = "";
+            // Append color styling to start parms
             BuildType buildType = project.getBuildType();
             if (buildType == Project.BuildType.MAVEN) {
+
+                StringBuffer updateStartParms = new StringBuffer(startParms);
+                updateStartParms.append(" ");
+
+                boolean ansiSupported = Platform.getPreferencesService().getBoolean(ANSI_SUPPORT_QUALIFIER, ANSI_SUPPORT_KEY, true, null);
+
+                if (ansiSupported) {
+                    updateStartParms.append("-Dstyle.color=always");
+                } else {
+                    updateStartParms.append("-Dstyle.color=never");
+                }
+
+                startParms = updateStartParms.toString();
+            }
+
+            // Prepare the Liberty plugin container dev mode command.
+            String cmd = "";
+
+            if (buildType == Project.BuildType.MAVEN) {
                 cmd = CommandBuilder.getMavenCommandLine(projectPath, "io.openliberty.tools:liberty-maven-plugin:dev " + startParms,
-                        pathEnv, true);
+                        pathEnv);
             } else if (buildType == Project.BuildType.GRADLE) {
-                cmd = CommandBuilder.getGradleCommandLine(projectPath, "libertyDev " + startParms, pathEnv, true);
+                cmd = CommandBuilder.getGradleCommandLine(projectPath, "libertyDev " + startParms, pathEnv);
             } else {
                 throw new Exception("Unexpected project build type: " + buildType + ". Project " + projectName
                         + "does not appear to be a Maven or Gradle built project.");
             }
 
-            // Start a terminal and run the application in dev mode.
-            startDevMode(cmd, projectName, projectPath, javaHomePath);
+            // Run the application in dev mode.
+            startDevMode(cmd, projectName, projectPath, javaHomePath, launch);
 
             // If there is a debugPort, start the job to attach the debugger to the Liberty server JVM.
             if (debugPort != null) {
@@ -275,7 +270,8 @@ public class DevModeOperations {
      * 
      * @param iProject The project instance to associate with this action.
      * @param parms The configuration parameters to be used when starting dev mode.
-     * @param javaHomePath The configuration java installation home to be set in the terminal running dev mode.
+     * @param javaHomePath The configuration java installation home to be set in the process running dev mode.
+     * @param launch The launch associated with this run.
      * @param mode The configuration mode.
      */
     public void startInContainer(IProject iProject, String parms, String javaHomePath, ILaunch launch, String mode) {
@@ -293,33 +289,7 @@ public class DevModeOperations {
             return;
         }
 
-        // Check if the start action has already been issued.
         String projectName = iProject.getName();
-
-        // Check if the start action has already been issued.
-        State terminalState = projectTabController.getTerminalState(projectName);
-        if (terminalState != null && terminalState == ProjectTab.State.STARTED) {
-            // Check if the terminal tab associated with this call was marked as closed. This scenario may occur if a previous
-            // attempt to start the server in dev mode was issued successfully, but there was a failure in the process or
-            // there was an unexpected case that caused the terminal process to end. If that is the case, cleanup the objects
-            // associated with the previous instance to allow users to restart dev mode.
-            if (projectTabController.isProjectTabMarkedClosed(projectName)) {
-                if (Trace.isEnabled()) {
-                    Trace.getTracer().trace(Trace.TRACE_TOOLS,
-                            "The start in container request was already processed on project " + projectName
-                                    + ". The terminal tab for this project is marked as closed. Cleaning up. ProjectTabController: "
-                                    + projectTabController);
-                }
-                projectTabController.processTerminalTabCleanup(projectName);
-            } else {
-                if (Trace.isEnabled()) {
-                    Trace.getTracer().trace(Trace.TRACE_TOOLS, "The start in container request was already issued on project " + projectName
-                            + ". No-op. ProjectTabController: " + projectTabController);
-                }
-                ErrorHandler.processErrorMessage(NLS.bind(Messages.start_container_already_issued, projectName), true);
-                return;
-            }
-        }
 
         Project project = null;
 
@@ -346,21 +316,38 @@ public class DevModeOperations {
                 startParms = userParms;
             }
 
-            // Prepare the Liberty plugin container dev mode command.
-            String cmd = "";
+            // Append color styling to start parms
             BuildType buildType = project.getBuildType();
             if (buildType == Project.BuildType.MAVEN) {
+
+                StringBuffer updateStartParms = new StringBuffer(startParms);
+                updateStartParms.append(" ");
+
+                boolean ansiSupported = Platform.getPreferencesService().getBoolean(ANSI_SUPPORT_QUALIFIER, ANSI_SUPPORT_KEY, true, null);
+
+                if (ansiSupported) {
+                    updateStartParms.append("-Dstyle.color=always");
+                } else {
+                    updateStartParms.append("-Dstyle.color=never");
+                }
+
+                startParms = updateStartParms.toString();
+            }
+
+            // Prepare the Liberty plugin container dev mode command.
+            String cmd = "";
+            if (buildType == Project.BuildType.MAVEN) {
                 cmd = CommandBuilder.getMavenCommandLine(projectPath, "io.openliberty.tools:liberty-maven-plugin:devc " + startParms,
-                        pathEnv, true);
+                        pathEnv);
             } else if (buildType == Project.BuildType.GRADLE) {
-                cmd = CommandBuilder.getGradleCommandLine(projectPath, "libertyDevc " + startParms, pathEnv, true);
+                cmd = CommandBuilder.getGradleCommandLine(projectPath, "libertyDevc " + startParms, pathEnv);
             } else {
                 throw new Exception("Unexpected project build type: " + buildType + ". Project " + projectName
                         + "does not appear to be a Maven or Gradle built project.");
             }
 
-            // Start a terminal and run the application in dev mode.
-            startDevMode(cmd, projectName, projectPath, javaHomePath);
+            // Run the application in dev mode.
+            startDevMode(cmd, projectName, projectPath, javaHomePath, launch);
 
             // If there is a debugPort, start the job to attach the debugger to the Liberty server JVM.
             if (debugPort != null) {
@@ -409,41 +396,19 @@ public class DevModeOperations {
         String projectName = iProject.getName();
 
         // Check if the stop action has already been issued of if a start action was never issued before.
-        if (projectTabController.getProjectConnector(projectName) == null) {
+        if (!processController.isProcessStarted(projectName)) {
             String msg = NLS.bind(Messages.stop_already_issued, projectName);
             handleStopActionError(projectName, msg);
 
             return;
         }
 
-        // Check if the terminal tab associated with this call was marked as closed. This scenario may occur if a previous
-        // attempt to start the server in dev mode failed due to an invalid custom start parameter, dev mode was terminated manually,
-        // dev mode is already running outside of the Liberty Tools session, or there was an unexpected case that caused
-        // the terminal process to end. Note that objects associated with the previous start attempt will be cleaned up on
-        // the next restart attempt.
-        if (projectTabController.isProjectTabMarkedClosed(projectName)) {
-            String msg = NLS.bind(Messages.stop_terminal_not_active, projectName);
-            handleStopActionError(projectName, msg);
-
-            return;
-        }
-
         try {
-            // Issue the command on the terminal.
-            projectTabController.writeToTerminalStream(projectName, DEVMODE_COMMAND_EXIT.getBytes());
+            // Issue the command to the process.
+            processController.writeToProcessStream(projectName, DEVMODE_COMMAND_EXIT);
 
-            // The command to exit dev mode was issued. Set the internal project tab state to STOPPED as
-            // indication that the stop command was issued. The project's terminal tab UI will be marked as closed (title and state
-            // updates) when dev mode exits.
-            projectTabController.setTerminalState(projectName, ProjectTab.State.STOPPED);
-
-            // Cleanup internal objects. This maybe done a bit prematurely at this point because the operations triggered by
-            // the action of writing to the terminal are asynchronous. However, there is no good way to listen for terminal tab
-            // state changes (avoid loops or terminal internal class references). Furthermore, if errors are experienced during
-            // dev mode exit, those errors may not be easily solved by re-trying the stop command.
-            // If there are any errors during cleanup or if cleanup does not happen at all here, cleanup will be attempted
-            // when the associated terminal view tab is closed/disposed.
-            projectTabController.processTerminalTabCleanup(projectName);
+            // Cleanup internal objects.
+            cleanupProcess(projectName);
 
         } catch (Exception e) {
             String msg = NLS.bind(Messages.stop_general_error, projectName);
@@ -455,6 +420,10 @@ public class DevModeOperations {
         if (Trace.isEnabled()) {
             Trace.getTracer().traceExit(Trace.TRACE_TOOLS, projectName);
         }
+    }
+
+    public void cleanupProcess(String projectName) {
+        processController.cleanup(projectName);
     }
 
     /**
@@ -486,35 +455,19 @@ public class DevModeOperations {
         String projectName = iProject.getName();
 
         // Check if the stop action has already been issued of if a start action was never issued before.
-        if (projectTabController.getProjectConnector(projectName) == null) {
+        if (!processController.isProcessStarted(projectName)) {
             String msg = "No start request was issued first or the stop request was already issued on project " + projectName
                     + ". Issue a start request before you issue the run tests request.";
             if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op. ProjectTabController: " + projectTabController);
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op. ProcessController: " + processController);
             }
             ErrorHandler.processErrorMessage(NLS.bind(Messages.run_tests_no_prior_start, projectName), true);
             return;
         }
 
-        // Check if the terminal tab associated with this call was marked as closed. This scenario may occur if a previous
-        // attempt to start the server in dev mode was issued successfully, but there was a failure in the process or
-        // there was an unexpected case that caused the terminal process to end. Note that objects associated with the previous
-        // start attempt will be cleaned up on the next restart attempt.
-        if (projectTabController.isProjectTabMarkedClosed(projectName)) {
-            String msg = "The terminal tab that is running project " + projectName
-                    + " is not active due to an unexpected error or external action. Review the terminal output for more details. "
-                    + "Once the circumstance that caused the terminal tab to be inactive is determined and resolved, "
-                    + "issue a start request before you issue the run tests request.";
-            if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op. ProjectTabController: " + projectTabController);
-            }
-            ErrorHandler.processErrorMessage(NLS.bind(Messages.run_tests_terminal_not_active, projectName), true);
-            return;
-        }
-
         try {
-            // Issue the command on the terminal.
-            projectTabController.writeToTerminalStream(projectName, DEVMODE_COMMAND_RUN_TESTS.getBytes());
+            // Issue the command on the console.
+            processController.writeToProcessStream(projectName, DEVMODE_COMMAND_RUN_TESTS);
         } catch (Exception e) {
             String msg = "An error was detected when the run tests request was processed on project " + projectName + ".";
             if (Trace.isEnabled()) {
@@ -758,7 +711,7 @@ public class DevModeOperations {
     }
 
     /**
-     * Runs the specified command on a terminal.
+     * Runs the specified command.
      *
      * @param cmd The command to run.
      * @param projectName The name of the project currently being processed.
@@ -766,8 +719,8 @@ public class DevModeOperations {
      *
      * @throws Exception If an error occurs while running the specified command.
      */
-    public void startDevMode(String cmd, String projectName, String projectPath, String javaInstallPath) throws Exception {
-        // Determine the environment properties to be set in the terminal prior to running dev mode.
+    public void startDevMode(String cmd, String projectName, String projectPath, String javaInstallPath, ILaunch launch) throws Exception {
+        // Determine the environment properties to be set in the process running dev mode.
         List<String> envs = new ArrayList<String>(1);
 
         // The value for JAVA_HOME comes from the underlying configuration. The configuration allows
@@ -784,7 +737,9 @@ public class DevModeOperations {
             envs.add("MAVEN_CONFIG=--log-file " + logFileName);
         }
 
-        projectTabController.runOnTerminal(projectName, projectPath, cmd, envs);
+        Process process = processController.runProcess(projectName, projectPath, cmd, envs, true);
+
+        DebugPlugin.newProcess(launch, process, projectName);
     }
 
     /**
@@ -834,10 +789,10 @@ public class DevModeOperations {
             String buildTypeName;
             BuildType buildType = project.getBuildType();
             if (buildType == Project.BuildType.MAVEN) {
-                cmd = CommandBuilder.getMavenCommandLine(projectPath, "io.openliberty.tools:liberty-maven-plugin:stop", pathEnv, false);
+                cmd = CommandBuilder.getMavenCommandLine(projectPath, "io.openliberty.tools:liberty-maven-plugin:stop", pathEnv);
                 buildTypeName = "Maven";
             } else if (buildType == Project.BuildType.GRADLE) {
-                cmd = CommandBuilder.getGradleCommandLine(projectPath, "libertyStop", pathEnv, false);
+                cmd = CommandBuilder.getGradleCommandLine(projectPath, "libertyStop", pathEnv);
                 buildTypeName = "Gradle";
             } else {
                 throw new Exception("Unexpected project build type: " + buildType + ". Project " + projectName
@@ -952,7 +907,9 @@ public class DevModeOperations {
             job.setUser(true);
             runningJobs.put(job, Boolean.TRUE);
             job.schedule();
-        } catch (Exception e) {
+        } catch (
+
+        Exception e) {
             String msg = "An error was detected while processing the Liberty Maven or Gradle stop command on project " + projectName;
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
@@ -1135,34 +1092,14 @@ public class DevModeOperations {
     }
 
     /**
-     * Returns true if the terminal tab associated with the input project was marked closed. False, otherwise.
+     * Returns true if the start process for the project is active. False, otherwise.
      * 
      * @param projectName The name of the project.
      * 
-     * @return true if the terminal tab associated with the input project was marked closed. False, otherwise.
+     * @return true if the start process for the project is active. False, otherwise.
      */
-    public boolean isProjectTerminalTabMarkedClosed(String projectName) {
-        return projectTabController.isProjectTabMarkedClosed(projectName);
-    }
-
-    /**
-     * Registers the input terminal listener.
-     * 
-     * @param projectName The name of the project for which the listener is registered.
-     * @param listener The listener implementation.
-     */
-    public void registerTerminalListener(String projectName, TerminalListener listener) {
-        projectTabController.registerTerminalListener(projectName, listener);
-    }
-
-    /**
-     * Unregisters the input terminal listener.
-     * 
-     * @param projectName The name of the project the input listener is registered for.
-     * @param listener The listener implementation.
-     */
-    public void unregisterTerminalListener(String projectName, TerminalListener listener) {
-        projectTabController.unregisterTerminalListener(projectName, listener);
+    public boolean isProjectStarted(String projectName) {
+        return processController.isProcessStarted(projectName);
     }
 
     /**

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright (c) 2022, 2024 IBM Corporation and others.
+  Copyright (c) 2022, 2025 IBM Corporation and others.
 
   This program and the accompanying materials are made available under the
   terms of the Eclipse Public License v. 2.0 which is available at
@@ -681,15 +681,6 @@
          <run class="io.openliberty.tools.eclipse.LibertyNature">
          </run>
       </runtime>
-  </extension>
-
-  <!-- Delegate-->
-  <extension point="org.eclipse.tm.terminal.view.ui.launcherDelegates">
-      <delegate
-          class="io.openliberty.tools.eclipse.ui.terminal.LocalDevModeLauncherDelegate"
-          id="io.openliberty.tools.eclipse.ui.terminal.local.devmode.launcher.delegate"
-          label="io.openliberty.tools.eclipse.ui.terminal.local.devmode.launcher.delegate.label">
-      </delegate>
   </extension>
    
   <!-- Trace-->

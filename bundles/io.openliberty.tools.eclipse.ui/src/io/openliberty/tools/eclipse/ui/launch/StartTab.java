@@ -218,6 +218,16 @@ public class StartTab extends AbstractLaunchConfigurationTab {
                     return false;
                 }
             }
+
+            // Check if project is already started
+            if (devModeOps.isProjectStarted(configProjectName)) {
+                if (Trace.isEnabled()) {
+                    Trace.getTracer().trace(Trace.TRACE_TOOLS, "The start request was already issued on project " + configProjectName);
+                }
+
+                super.setErrorMessage(NLS.bind(Messages.start_already_issued, configProjectName));
+                return false;
+            }
         } catch (CoreException ce) {
             String msg = "Error getting project name";
             if (Trace.isEnabled()) {
