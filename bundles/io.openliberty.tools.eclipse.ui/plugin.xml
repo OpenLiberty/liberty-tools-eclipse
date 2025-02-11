@@ -739,24 +739,4 @@
      </handler>
   </extension>
 
-   <!--
-   <extension
-         point="org.eclipse.ui.popupMenus">
-         
-         <viewerContribution
-            targetID="org.eclipse.debug.ui.DebugView"
-            id="org.eclipse.debug.ui.debugview.popupMenu">
-
-         	<action
-               icon="$nl$/icons/openLibertyLogo.png"
-               class="io.openliberty.tools.eclipse.debug.LibertyDebugReconnectActionDelegate"
-               menubarPath="launchGroup"
-               label="Connect Liberty Debugger"
-               id="io.openliberty.tools.eclipse.debug.popupMenu.reconnect">
-         	</action>
-         
-         </viewerContribution>
-   </extension>
-   -->
- 
 </plugin>

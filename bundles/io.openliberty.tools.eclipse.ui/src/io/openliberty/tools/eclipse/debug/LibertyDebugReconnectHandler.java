@@ -10,6 +10,7 @@ import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.osgi.util.NLS;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.handlers.HandlerUtil;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
@@ -23,7 +24,37 @@ public class LibertyDebugReconnectHandler extends AbstractHandler {
 
     @Override
     public boolean isEnabled() {
-        return false;
+        Object target = null;
+
+        ISelection selection = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService().getSelection();
+        if (selection != null & selection instanceof IStructuredSelection) {
+            IStructuredSelection strucSelection = (IStructuredSelection) selection;
+            Object[] elements = strucSelection.toArray();
+            target = elements[0];
+        }
+
+        ILaunch launch = null;
+
+        // This action can be performed from a launch, a process, or a debug target.
+        // The object param will therefore be an ILaunch, an IProcess, or IDebugTarget object.
+        if (target instanceof ILaunch) {
+            launch = (ILaunch) target;
+        } else if (target instanceof IProcess) {
+            launch = ((IProcess) target).getLaunch();
+        } else {
+            launch = ((IDebugTarget) target).getLaunch();
+        }
+
+        if (launch.isTerminated()) {
+            return false;
+        } else {
+            IDebugTarget debugTarget = launch.getDebugTarget();
+            if (debugTarget != null && !debugTarget.isDisconnected()) {
+                return false;
+            } else {
+                return true;
+            }
+        }
     }
 
     @Override
