@@ -118,9 +118,7 @@ public class ProcessController {
     }
 
     private void addTerminateListener(String projectName) {
-
         DebugPlugin.getDefault().addDebugEventListener(new LibertyDebugEventListener(projectName));
-
     }
 
     /**
