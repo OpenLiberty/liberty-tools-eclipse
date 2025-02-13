@@ -124,6 +124,105 @@ public class SWTBotPluginOperations {
         Display.getDefault().syncExec(runnable);
     }
 
+    /**
+     * Gets the context menu item labeled "Connect Liberty Debugger" for the given
+     * debug object. The debug object can either be a launch, a debug target, or a
+     * process in the Debug View.
+     * 
+     * @param debugObject - The debug object in the Debug View
+     * 
+     * @return
+     */
+    public static SWTBotMenu getDebuggerConnectMenuForDebugObject(Object debugObject) {
+        openDebugPerspective();
+        Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
+        goMenuItem(windowMenu, "Show View", "Debug");
+
+        SWTBotTreeItem obj = new SWTBotTreeItem((TreeItem) debugObject);
+
+        return obj.contextMenu("Connect Liberty Debugger");
+    }
+
+    /**
+     * Disconnects the given debug target (debugger) in the Debug View
+     * 
+     * @param debugTarget - The debug target object in the Debug View
+     * 
+     * @return
+     */
+    public static void disconnectDebugTarget(Object debugTarget) {
+        openDebugPerspective();
+        Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
+        goMenuItem(windowMenu, "Show View", "Debug");
+
+        MagicWidgetFinder.context(debugTarget, "Disconnect");
+    }
+
+    /**
+     * Terminate the launch
+     */
+    public static void terminateLaunch() {
+        openDebugPerspective();
+        Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
+        goMenuItem(windowMenu, "Show View", "Debug");
+
+        Object debugView = MagicWidgetFinder.findGlobal("Debug");
+
+        Object launch = MagicWidgetFinder.find("[Liberty]", debugView,
+                Option.factory().useContains(true).setThrowExceptionOnNotFound(false).build());
+
+        MagicWidgetFinder.context(launch, "Terminate and Remove");
+
+        try {
+            Shell confirm = (Shell) findGlobal("Terminate and Remove", Option.factory().widgetClass(Shell.class).build());
+
+            MagicWidgetFinder.go("Yes", confirm);
+            MagicWidgetFinder.pause(3000);
+        } catch (Exception e) {
+            // The configrmation pop up window only shows if the launch has not yet been terminated.
+            // If it has been terminated (or stopped), there is no confirmation.
+        }
+
+    }
+
+    /**
+     * Returns the debug object item in the Debug View with the given name.
+     * The debug object can either be a launch, a debug target, or a process in the Debug View.
+     * 
+     * @param objectName - The name of the object in the Debug View.
+     * 
+     * @return
+     */
+    public static Object getObjectInDebugView(String objectName) {
+        openDebugPerspective();
+        Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
+        goMenuItem(windowMenu, "Show View", "Debug");
+
+        Object debugView = MagicWidgetFinder.findGlobal("Debug");
+
+        return MagicWidgetFinder.find(objectName, debugView, Option.factory().useContains(true).setThrowExceptionOnNotFound(false).build());
+    }
+
+    /**
+     * Open the Eclipse debug perspective.
+     */
+    public static void openDebugPerspective() {
+        Runnable runnable = new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    IWorkbench wb = PlatformUI.getWorkbench();
+                    wb.showPerspective("org.eclipse.debug.ui.DebugPerspective", wb.getActiveWorkbenchWindow());
+                } catch (WorkbenchException we) {
+                    // Print a message. Lighter environments may not support this perspective.
+                    System.out.println("INFO: Debug perspective was not opened: " + we.getMessage());
+                }
+            }
+        };
+
+        Display.getDefault().syncExec(runnable);
+    }
+
     public static void openJavaPerspectiveViaMenu() {
         Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
 
@@ -851,20 +950,20 @@ public class SWTBotPluginOperations {
         SWTBotCTabItem tabItem = shellBot.cTabItem("Source");
         tabItem.activate().setFocus();
     }
-    
-   /** 
-    * Switches the Liberty run configuration main tab to the Common Tab.  This operation will fail if tab is not
-    * successfully launched or switched to
-    * 
-    * @param bot The SWTWorkbenchBot instance.
-    */
-   public static void openCommonTab(SWTWorkbenchBot bot) {
-       SWTBotShell shell = bot.shell("Run Configurations");
-       shell.activate().setFocus();
-       SWTBot shellBot = shell.bot();
-       SWTBotCTabItem tabItem = shellBot.cTabItem("Common");
-       tabItem.activate().setFocus();
-   }
+
+    /**
+     * Switches the Liberty run configuration main tab to the Common Tab. This operation will fail if tab is not
+     * successfully launched or switched to
+     * 
+     * @param bot The SWTWorkbenchBot instance.
+     */
+    public static void openCommonTab(SWTWorkbenchBot bot) {
+        SWTBotShell shell = bot.shell("Run Configurations");
+        shell.activate().setFocus();
+        SWTBot shellBot = shell.bot();
+        SWTBotCTabItem tabItem = shellBot.cTabItem("Common");
+        tabItem.activate().setFocus();
+    }
 
     /**
      * Presses the Proceed button if it exists on the error in workspace dialog.
