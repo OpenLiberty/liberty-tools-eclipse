@@ -200,7 +200,8 @@ public class SWTBotPluginOperations {
 
         Object debugView = MagicWidgetFinder.findGlobal("Debug");
 
-        return MagicWidgetFinder.find(objectName, debugView, Option.factory().useContains(true).setThrowExceptionOnNotFound(false).build());
+        return MagicWidgetFinder.find(objectName, debugView,
+                Option.factory().useContains(true).setThrowExceptionOnNotFound(false).widgetClass(TreeItem.class).build());
     }
 
     /**
