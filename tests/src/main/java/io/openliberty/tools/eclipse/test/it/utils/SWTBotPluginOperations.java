@@ -156,6 +156,8 @@ public class SWTBotPluginOperations {
         goMenuItem(windowMenu, "Show View", "Debug");
 
         MagicWidgetFinder.context(debugTarget, "Disconnect");
+
+        MagicWidgetFinder.pause(3000);
     }
 
     /**
