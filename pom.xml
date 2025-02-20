@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright (c) 2022, 2024 IBM Corporation and others.
+  Copyright (c) 2022, 2025 IBM Corporation and others.
 
   This program and the accompanying materials are made available under the
   terms of the Eclipse Public License v. 2.0 which is available at
@@ -15,7 +15,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>io.openliberty.tools.eclipse</groupId>
 	<artifactId>parent</artifactId>
-	<version>24.0.12-SNAPSHOT</version>
+	<version>25.0.3-SNAPSHOT</version>
 	<packaging>pom</packaging>
     <licenses>
       <license>
@@ -196,7 +196,7 @@
 						<artifact>
 							<groupId>io.openliberty.tools.eclipse</groupId>
 							<artifactId>target-platform-${eclipse.target}</artifactId>
-							<version>24.0.12-SNAPSHOT</version>
+							<version>25.0.3-SNAPSHOT</version>
 							<file>target-platform-${eclipse.target}</file>
 						</artifact>
 					</target>

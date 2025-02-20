@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  Copyright (c) 2022, 2024 IBM Corporation and others.
+  Copyright (c) 2022, 2025 IBM Corporation and others.
 
   This program and the accompanying materials are made available under the
   terms of the Eclipse Public License v. 2.0 which is available at
@@ -12,7 +12,7 @@
       IBM Corporation - initial implementation
 -->
 <site>
-    <feature url="features/io.openliberty.tools.eclipse_24.0.12.qualifier.liberty.jar" id="io.openliberty.tools.eclipse" version="24.0.12.qualifier">
+    <feature url="features/io.openliberty.tools.eclipse_25.0.3.qualifier.liberty.jar" id="io.openliberty.tools.eclipse" version="25.0.3.qualifier">
         <category name="io.openliberty.tools.eclipse"/>
     </feature>
 
