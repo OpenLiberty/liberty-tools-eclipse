@@ -3,5 +3,8 @@
   "scanSettings": {
       "configMode": "LOCAL",
       "baseBranches": ["main" ]
+  },
+  "scanSettingsSAST": {
+    "enableScan": true
   }
 }
