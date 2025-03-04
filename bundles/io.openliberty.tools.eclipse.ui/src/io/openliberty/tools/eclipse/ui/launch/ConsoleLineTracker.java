@@ -88,7 +88,7 @@ public class ConsoleLineTracker implements IConsoleLineTracker {
 									null, null, null);
 							b.openURL(uri.toURL());
 						} catch (Exception e) {
-							String msg = "An error was detected while making link activated from console";
+							String msg = "An error occurred while adding hyperlinks to external URLs";
 				            if (Trace.isEnabled()) {
 				                Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
 				            }
@@ -100,7 +100,7 @@ public class ConsoleLineTracker implements IConsoleLineTracker {
 			}
 
 		} catch (Exception e) {
-			String msg = "An error was detected while making external URLs accessible from console logs ";
+			String msg = "An error occurred while adding hyperlinks to external URLs";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
             }		
