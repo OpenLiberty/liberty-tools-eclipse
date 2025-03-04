@@ -36,6 +36,7 @@ import org.eclipse.core.runtime.jobs.JobChangeAdapter;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchManager;
+import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.jdt.launching.JavaRuntime;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
@@ -739,7 +740,8 @@ public class DevModeOperations {
 
         Process process = processController.runProcess(projectName, projectPath, cmd, envs, true);
 
-        DebugPlugin.newProcess(launch, process, projectName);
+        IProcess eclipseProcess = DebugPlugin.newProcess(launch, process, projectName);
+        eclipseProcess.setAttribute(IProcess.ATTR_PROCESS_TYPE, "io.openliberty.ui.console");
     }
 
     /**
