@@ -81,6 +81,17 @@ public class CommandBuilder {
         return cmdLine;
     }
 
+
+    public static String getMvnCleanCommand(String projectPath, String pathEnv) throws CommandBuilder.CommandNotFoundException{
+    	try {
+    		CommandBuilder builder = new CommandBuilder(projectPath, pathEnv, true);
+			return builder.getCommand()+" clean && ";
+		} catch (CommandNotFoundException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		return "";
+    }
     private String getCommand() throws CommandBuilder.CommandNotFoundException {
         String cmd = getCommandFromWrapper();
         if (cmd == null) {
@@ -247,4 +258,5 @@ public class CommandBuilder {
         }
 
     }
+    
 }
