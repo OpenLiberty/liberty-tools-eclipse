@@ -1,3 +1,15 @@
+/*******************************************************************************
+* Copyright (c) 2025 IBM Corporation and others.
+*
+* This program and the accompanying materials are made available under the
+* terms of the Eclipse Public License v. 2.0 which is available at
+* http://www.eclipse.org/legal/epl-2.0.
+*
+* SPDX-License-Identifier: EPL-2.0
+*
+* Contributors:
+*     IBM Corporation - initial implementation
+*******************************************************************************/
 package io.openliberty.tools.eclipse.ui.launch;
 
 import java.net.URI;
@@ -13,6 +25,11 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.browser.IWebBrowser;
 import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
 import org.eclipse.ui.console.IHyperlink;
+
+import io.openliberty.tools.eclipse.logging.Trace;
+/**
+ * Monitor each lines in the console and make it as accessible from console if it external URL.
+ */
 
 public class ConsoleLineTracker implements IConsoleLineTracker {
 
@@ -71,6 +88,10 @@ public class ConsoleLineTracker implements IConsoleLineTracker {
 									null, null, null);
 							b.openURL(uri.toURL());
 						} catch (Exception e) {
+							String msg = "An error was detected while making link activated from console";
+				            if (Trace.isEnabled()) {
+				                Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
+				            }
 
 						}
 					}
@@ -79,7 +100,10 @@ public class ConsoleLineTracker implements IConsoleLineTracker {
 			}
 
 		} catch (Exception e) {
-
+			String msg = "An error was detected while making external URLs accessible from console logs ";
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
+            }		
 		}
 	}
 
