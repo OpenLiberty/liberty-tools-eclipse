@@ -25,8 +25,10 @@ import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
 import org.eclipse.ui.console.IHyperlink;
 
 import io.openliberty.tools.eclipse.logging.Trace;
+
 /**
- * Monitor each lines in the console and make it as accessible from console if it external URL.
+ * Monitor each lines in the console and make it as accessible from console if
+ * it external URL.
  */
 
 public class ConsoleLineTracker implements IConsoleLineTracker {
@@ -84,9 +86,9 @@ public class ConsoleLineTracker implements IConsoleLineTracker {
 							b.openURL(uri.toURL());
 						} catch (Exception e) {
 							String msg = "An error occurred while adding hyperlinks to external URLs";
-				            if (Trace.isEnabled()) {
-				                Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
-				            }
+							if (Trace.isEnabled()) {
+								Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
+							}
 
 						}
 					}
@@ -96,9 +98,9 @@ public class ConsoleLineTracker implements IConsoleLineTracker {
 
 		} catch (Exception e) {
 			String msg = "An error occurred while adding hyperlinks to external URLs";
-            if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
-            }		
+			if (Trace.isEnabled()) {
+				Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
+			}
 		}
 	}
 
