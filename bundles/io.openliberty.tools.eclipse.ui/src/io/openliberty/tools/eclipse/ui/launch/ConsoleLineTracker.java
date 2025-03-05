@@ -68,15 +68,12 @@ public class ConsoleLineTracker implements IConsoleLineTracker {
 			Matcher matcher = pattern.matcher(consoleLog);
 			if (matcher.find()) {
 				int urlStartPosition = matcher.start();
-
 				String urlFinder = consoleLog.substring(urlStartPosition);
 				String[] wordsAfterUrl = urlFinder.split(" ");
 				if (wordsAfterUrl.length > 1) {
 					urlFinder = wordsAfterUrl[0];
 				}
-				String url = urlFinder;
-				Path path = Paths.get(url);
-				URI uri = path.toUri();
+				URI uri = URI.create(urlFinder);
 
 				IHyperlink link = new AbstractHyperlink() {
 					@Override
