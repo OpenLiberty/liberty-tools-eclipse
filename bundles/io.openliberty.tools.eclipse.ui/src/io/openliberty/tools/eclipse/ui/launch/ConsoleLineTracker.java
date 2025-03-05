@@ -13,8 +13,6 @@
 package io.openliberty.tools.eclipse.ui.launch;
 
 import java.net.URI;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
