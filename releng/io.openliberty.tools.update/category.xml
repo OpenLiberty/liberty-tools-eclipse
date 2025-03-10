@@ -21,5 +21,5 @@
     <repository-reference location="https://download.eclipse.org/jdtls/milestones/1.42.0/repository" enabled="true" />
     <repository-reference location="https://download.eclipse.org/lsp4mp/releases/0.13.2/repository" enabled="true" />
     <repository-reference location="https://download.eclipse.org/lsp4j/updates/releases/0.23.1" enabled="true" />
-    <repository-reference location="https://download.eclipse.org/lsp4jakarta/releases/0.2.2/repository" enabled="true" />
+    <repository-reference location="https://download.eclipse.org/lsp4jakarta/releases/0.2.3/repository" enabled="true" />
 </site>
