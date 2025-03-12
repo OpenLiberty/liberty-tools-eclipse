@@ -428,27 +428,27 @@ public class StartTab extends AbstractLaunchConfigurationTab {
      * 
      * @param parent The parent composite.
      */
-    private void createMvnCleanButton(Composite parent) {
-        mvnCleanCheckBox = new Button(parent, SWT.CHECK);
-        mvnCleanCheckBox.setText("Run maven clean");
-        mvnCleanCheckBox.setSelection(false);
-        mvnCleanCheckBox.setFont(font);
-        mvnCleanCheckBox.addSelectionListener(new SelectionAdapter() {
+	private void createMvnCleanButton(Composite parent) {
+		mvnCleanCheckBox = new Button(parent, SWT.CHECK);
+		mvnCleanCheckBox.setText("Run maven clean");
+		mvnCleanCheckBox.setSelection(false);
+		mvnCleanCheckBox.setFont(font);
+		mvnCleanCheckBox.addSelectionListener(new SelectionAdapter() {
 
-            /**
-             * {@inheritDoc}
-             */
-            @Override
-            public void widgetSelected(SelectionEvent event) {
-                setDirty(true);
-                updateLaunchConfigurationDialog();
-            }
-        });
-        GridDataFactory.swtDefaults().applyTo(mvnCleanCheckBox);
+			/**
+			 * {@inheritDoc}
+			 */
+			@Override
+			public void widgetSelected(SelectionEvent event) {
+				setDirty(true);
+				updateLaunchConfigurationDialog();
+			}
+		});
+		GridDataFactory.swtDefaults().applyTo(mvnCleanCheckBox);
 
-        Label emptyColumnLabel = new Label(parent, SWT.NONE);
-        GridDataFactory.swtDefaults().applyTo(emptyColumnLabel);
-    }
+		Label emptyColumnLabel = new Label(parent, SWT.NONE);
+		GridDataFactory.swtDefaults().applyTo(emptyColumnLabel);
+	}
 
     /**
      * Returns the default start parameters.

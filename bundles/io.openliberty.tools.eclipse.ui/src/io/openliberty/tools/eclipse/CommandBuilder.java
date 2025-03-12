@@ -257,6 +257,5 @@ public class CommandBuilder {
             super(cause);
         }
 
-    }
-    
+    }    
 }
