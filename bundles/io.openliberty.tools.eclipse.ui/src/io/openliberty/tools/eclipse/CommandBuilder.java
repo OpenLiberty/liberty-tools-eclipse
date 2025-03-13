@@ -81,7 +81,6 @@ public class CommandBuilder {
         return cmdLine;
     }
 
-
     private String getCommand() throws CommandBuilder.CommandNotFoundException {
         String cmd = getCommandFromWrapper();
         if (cmd == null) {
@@ -247,5 +246,5 @@ public class CommandBuilder {
             super(cause);
         }
 
-    }    
+    }
 }
