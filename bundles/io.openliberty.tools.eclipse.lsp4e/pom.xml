@@ -25,8 +25,8 @@
     </parent>
     
     <properties>
-        <liberty.ls.version>2.2</liberty.ls.version>
-        <jakarta.ls.version>0.2.2</jakarta.ls.version>
+        <liberty.ls.version>2.2.1</liberty.ls.version>
+        <jakarta.ls.version>0.2.3</jakarta.ls.version>
         <mp.ls.version>0.13.2</mp.ls.version>
     </properties>
 
