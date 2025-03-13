@@ -63,7 +63,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
     public static final String PROJECT_RUN_IN_CONTAINER = "io.openliberty.tools.eclipse.launch.project.container.run";
 
     /** Configuration map key with a value stating whether or not the associated project ran with maven clean option. */
-    public static final String PROJECT_MVN_CLEAN = "io.openliberty.tools.eclipse.launch.project.mvn.clean";
+    public static final String PROJECT_CLEAN = "io.openliberty.tools.eclipse.launch.project.clean";
     
     /** Main preference page ID. */
     public static final String MAIN_PREFERENCE_PAGE_ID = "io.openliberty.tools.eclipse.ui.preferences.page";
@@ -167,7 +167,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
             boolean runInContainer = configuration.getAttribute(PROJECT_RUN_IN_CONTAINER, false);
             runInContainerCheckBox.setSelection(runInContainer);
             
-            boolean mvnClean = configuration.getAttribute(PROJECT_MVN_CLEAN, false);
+            boolean mvnClean = configuration.getAttribute(PROJECT_CLEAN, false);
             mvnCleanCheckBox.setSelection(mvnClean);
 
             String projectName = configuration.getAttribute(PROJECT_NAME, (String) null);
@@ -263,7 +263,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
 
         configuration.setAttribute(PROJECT_RUN_IN_CONTAINER, runInContainerBool);
         
-        configuration.setAttribute(PROJECT_MVN_CLEAN, mvnCleanBool);
+        configuration.setAttribute(PROJECT_CLEAN, mvnCleanBool);
 
         configuration.setAttribute(PROJECT_START_PARM, startParamStr);
 
@@ -430,7 +430,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
      */
 	private void createMvnCleanButton(Composite parent) {
 		mvnCleanCheckBox = new Button(parent, SWT.CHECK);
-		mvnCleanCheckBox.setText("Run maven clean");
+		mvnCleanCheckBox.setText("Clean project");
 		mvnCleanCheckBox.setSelection(false);
 		mvnCleanCheckBox.setFont(font);
 		mvnCleanCheckBox.addSelectionListener(new SelectionAdapter() {

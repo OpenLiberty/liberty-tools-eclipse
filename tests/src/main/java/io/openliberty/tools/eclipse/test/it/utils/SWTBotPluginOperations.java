@@ -664,14 +664,14 @@ public class SWTBotPluginOperations {
      * @param shell
      * @param runDebugConfigName
      */
-    public static void checkRunMavenCleanCheckBox(Shell shell, String runDebugConfigName) {
+    public static void checkRunCleanProjectCheckBox(Shell shell, String runDebugConfigName) {
 
         Object libertyConfigTree = getLibertyTreeItem(shell);
 
         Object appConfigEntry = find(runDebugConfigName, libertyConfigTree,
                 Option.factory().useContains(true).widgetClass(TreeItem.class).build());
         go(appConfigEntry);
-        Object button = find("Run maven clean", appConfigEntry, Option.factory().widgetClass(Button.class).build());
+        Object button = find("Clean project", appConfigEntry, Option.factory().widgetClass(Button.class).build());
 
         go(button);
     }

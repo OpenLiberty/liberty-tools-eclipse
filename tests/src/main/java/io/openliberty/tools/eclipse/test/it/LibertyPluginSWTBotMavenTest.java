@@ -15,7 +15,7 @@ package io.openliberty.tools.eclipse.test.it;
 import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.context;
 import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.go;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.checkRunInContainerCheckBox;
-import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.checkRunMavenCleanCheckBox;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.checkRunCleanProjectCheckBox;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.deleteLibertyToolsRunConfigEntriesFromAppRunAs;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.enableLibertyTools;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getAppDebugAsMenu;
@@ -968,21 +968,21 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
     }
     
     /**
-     * Tests the Run maven clean option provided under liberty run configuration option. Test will check 
+     * Tests the Clean project option provided under liberty run configuration option. Test will check 
      * if the application has started and also will check for the presence of mvn clean and dev mode commands 
      * from the console tab 
      */
     
     @Test
-    public void testRunMavenCleanCheckbox() {
+    public void testRunCleanProjectCheckbox() {
 
         // Delete any previously created configs.
         deleteLibertyToolsRunConfigEntriesFromAppRunAs(MVN_APP_NAME);
 
-        // Launch "Run Configurations" window and check "Run maven clean"
+        // Launch "Run Configurations" window and check "Clean project"
         launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_START_CONFIG);
         Shell shell = getRunConfigurationsShell();
-        checkRunMavenCleanCheckBox(shell, MVN_APP_NAME);
+        checkRunCleanProjectCheckBox(shell, MVN_APP_NAME);
 
         // No need to run here. Just Apply and Close.
         go("Apply", shell);
@@ -994,8 +994,8 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
         //Reads the text from the console output tab
         String consoleText =LibertyPluginTestUtils.getConsoleOutput();
-        Assert.isTrue(consoleText.contains("/mvn clean"));//checks if the consoleText contains the maven clean command 
-        Assert.isTrue(consoleText.contains("mvn io.openliberty.tools:liberty-maven-plugin:dev -Dstyle.color=always"));//checks if the consoleText contains dev mode command 
+        Assert.isTrue(consoleText.contains("clean io.openliberty.tools:liberty-maven-plugin:dev -Dstyle.color=always"));//checks if the consoleText contains the maven clean command 
+       // Assert.isTrue(consoleText.contains("mvn io.openliberty.tools:liberty-maven-plugin:dev -Dstyle.color=always"));//checks if the consoleText contains dev mode command 
         // If there are issues with the workspace, close the error dialog.
         pressWorkspaceErrorDialogProceedButton(bot);
 

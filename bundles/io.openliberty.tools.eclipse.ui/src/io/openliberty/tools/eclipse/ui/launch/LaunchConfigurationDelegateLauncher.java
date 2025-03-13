@@ -153,15 +153,15 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
 
         // Retrieve configuration data.
         boolean runInContainer = configuration.getAttribute(StartTab.PROJECT_RUN_IN_CONTAINER, false);
-        boolean runMvnClean = configuration.getAttribute(StartTab.PROJECT_MVN_CLEAN, false);
+        boolean runProjectClean = configuration.getAttribute(StartTab.PROJECT_CLEAN, false);
         String configParms = configuration.getAttribute(StartTab.PROJECT_START_PARM, (String) null);
         String javaHomePath = JRETab.resolveJavaHome(configuration);
 
         // Process the action.
         if (runInContainer) {
-            devModeOps.startInContainer(iProject, configParms, javaHomePath, launch, mode, runMvnClean);
+            devModeOps.startInContainer(iProject, configParms, javaHomePath, launch, mode, runProjectClean);
         } else {
-            devModeOps.start(iProject, configParms, javaHomePath, launch, mode, runMvnClean);
+            devModeOps.start(iProject, configParms, javaHomePath, launch, mode, runProjectClean);
         }
 
         if (Trace.isEnabled()) {

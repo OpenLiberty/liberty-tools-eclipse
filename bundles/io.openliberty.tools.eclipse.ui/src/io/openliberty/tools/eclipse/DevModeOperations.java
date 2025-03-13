@@ -166,7 +166,7 @@ public class DevModeOperations {
      * @param launch The launch associated with this run.
      * @param mode The configuration mode.
      */
-    public void start(IProject iProject, String parms, String javaHomePath, ILaunch launch, String mode, boolean runMvnClean) {
+    public void start(IProject iProject, String parms, String javaHomePath, ILaunch launch, String mode, boolean runProjectClean) {
 
         if (Trace.isEnabled()) {
             Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { iProject, parms, javaHomePath, mode });
@@ -230,19 +230,15 @@ public class DevModeOperations {
             String cmd = "";
 
             if (buildType == Project.BuildType.MAVEN) {
-                cmd = CommandBuilder.getMavenCommandLine(projectPath, "io.openliberty.tools:liberty-maven-plugin:dev " + startParms,
+                cmd = CommandBuilder.getMavenCommandLine(projectPath, (runProjectClean == true ? " clean " : "" ) + "io.openliberty.tools:liberty-maven-plugin:dev " + startParms,
                         pathEnv);
             } else if (buildType == Project.BuildType.GRADLE) {
-                cmd = CommandBuilder.getGradleCommandLine(projectPath, "libertyDev " + startParms, pathEnv);
+                cmd = CommandBuilder.getGradleCommandLine(projectPath, (runProjectClean == true ? " clean " : "" ) + "libertyDev " + startParms, pathEnv);
             } else {
                 throw new Exception("Unexpected project build type: " + buildType + ". Project " + projectName
                         + "does not appear to be a Maven or Gradle built project.");
             }
 
-           //Modify the command to include 'mvn clean' if run maven clean option is selected
-           if(runMvnClean) {
-        	   cmd = CommandBuilder.getMvnCleanCommand(projectPath,pathEnv) + cmd;
-           }
            // Run the application in dev mode.
             startDevMode(cmd, projectName, projectPath, javaHomePath, launch);
 
@@ -278,7 +274,7 @@ public class DevModeOperations {
      * @param launch The launch associated with this run.
      * @param mode The configuration mode.
      */
-    public void startInContainer(IProject iProject, String parms, String javaHomePath, ILaunch launch, String mode , boolean runMvnClean) {
+    public void startInContainer(IProject iProject, String parms, String javaHomePath, ILaunch launch, String mode , boolean runProjectClean) {
 
         if (Trace.isEnabled()) {
             Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { iProject, parms, javaHomePath, mode });
@@ -341,19 +337,15 @@ public class DevModeOperations {
             // Prepare the Liberty plugin container dev mode command.
             String cmd = "";
             if (buildType == Project.BuildType.MAVEN) {
-                cmd = CommandBuilder.getMavenCommandLine(projectPath, "io.openliberty.tools:liberty-maven-plugin:devc " + startParms,
+                cmd = CommandBuilder.getMavenCommandLine(projectPath,(runProjectClean == true ? " clean " : "") + "io.openliberty.tools:liberty-maven-plugin:devc " + startParms,
                         pathEnv);
             } else if (buildType == Project.BuildType.GRADLE) {
-                cmd = CommandBuilder.getGradleCommandLine(projectPath, "libertyDevc " + startParms, pathEnv);
+                cmd = CommandBuilder.getGradleCommandLine(projectPath, (runProjectClean == true ? " clean " : "" ) + "libertyDevc " + startParms, pathEnv);
             } else {
                 throw new Exception("Unexpected project build type: " + buildType + ". Project " + projectName
                         + "does not appear to be a Maven or Gradle built project.");
             }
             
-            //Modify the command to include 'mvn clean' if run maven clean option is selected
-            if(runMvnClean) {
-         	   cmd = CommandBuilder.getMvnCleanCommand(projectPath,pathEnv) + cmd;
-            }
             // Run the application in dev mode.
             startDevMode(cmd, projectName, projectPath, javaHomePath, launch);
 

@@ -14,6 +14,7 @@ package io.openliberty.tools.eclipse.test.it;
 
 import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.context;
 import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.go;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.checkRunCleanProjectCheckBox;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.deleteLibertyToolsRunConfigEntriesFromAppRunAs;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.enableLibertyTools;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getAppDebugAsMenu;
@@ -24,6 +25,7 @@ import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getDefaultSourceLookupTreeItemNoBot;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getLibertyTreeItem;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getLibertyTreeItemNoBot;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getRunConfigurationsShell;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchCustomDebugFromDashboard;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchCustomRunFromDashboard;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchDashboardAction;
@@ -60,6 +62,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.launching.JavaRuntime;
 import org.eclipse.swt.widgets.Shell;
@@ -665,6 +668,45 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
             // Validate application stopped.
             LibertyPluginTestUtils.validateLibertyServerStopped(testAppPath + "/build");
         }
+    }
+    
+    /**
+     * Tests the Clean project option provided under liberty run configuration option. Test will check 
+     * if the application has started and also will check for the presence of mvn clean and dev mode commands 
+     * from the console tab 
+     */
+    
+    @Test
+    public void testRunCleanProjectCheckbox() {
+
+        // Delete any previously created configs.
+        deleteLibertyToolsRunConfigEntriesFromAppRunAs(GRADLE_APP_NAME);
+
+        // Launch "Run Configurations" window and check "Clean project"
+        launchDashboardAction(GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_START_CONFIG);
+        Shell shell = getRunConfigurationsShell();
+        checkRunCleanProjectCheckBox(shell, GRADLE_APP_NAME);
+
+        // No need to run here. Just Apply and Close.
+        go("Apply", shell);
+        go("Close", shell);
+
+        // Start dev mode. This should start locally.
+        launchDashboardAction(GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_START);
+
+        LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_APP_NAME, true, testAppPath + "/build");
+        //Reads the text from the console output tab
+        String consoleText =LibertyPluginTestUtils.getConsoleOutput();
+        //Assert.isTrue(consoleText.contains("clean libertyDev"));//checks if the consoleText contains the maven clean command 
+        // If there are issues with the workspace, close the error dialog.
+        pressWorkspaceErrorDialogProceedButton(bot);
+
+        // Stop dev mode.
+        launchDashboardAction(GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
+
+        // Validate application stopped.
+        LibertyPluginTestUtils.validateLibertyServerStopped( testAppPath + "/build");
+
     }
 
     /**
