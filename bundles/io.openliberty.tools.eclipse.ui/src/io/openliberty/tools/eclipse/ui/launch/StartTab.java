@@ -89,7 +89,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
     private Button runInContainerCheckBox;
     
     /** Holds the Maven clean check box. */
-    private Button mvnCleanCheckBox;
+    private Button projectCleanCheckBox;
 
     /** DevModeOperations instance. */
     private DevModeOperations devModeOps = DevModeOperations.getInstance();
@@ -118,7 +118,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
         Composite parmsGroupComposite = createGroupComposite(mainComposite, "", 2);
         createInputParmText(parmsGroupComposite);
         createRunInContainerButton(parmsGroupComposite);
-        createMvnCleanButton(parmsGroupComposite);
+        createProjectCleanButton(parmsGroupComposite);
 
         createLabelWithPreferenceLink(mainComposite);
     }
@@ -167,8 +167,8 @@ public class StartTab extends AbstractLaunchConfigurationTab {
             boolean runInContainer = configuration.getAttribute(PROJECT_RUN_IN_CONTAINER, false);
             runInContainerCheckBox.setSelection(runInContainer);
             
-            boolean mvnClean = configuration.getAttribute(PROJECT_CLEAN, false);
-            mvnCleanCheckBox.setSelection(mvnClean);
+            boolean projectClean = configuration.getAttribute(PROJECT_CLEAN, false);
+            projectCleanCheckBox.setSelection(projectClean);
 
             String projectName = configuration.getAttribute(PROJECT_NAME, (String) null);
             if (projectName == null) {
@@ -259,11 +259,11 @@ public class StartTab extends AbstractLaunchConfigurationTab {
 
         boolean runInContainerBool = runInContainerCheckBox.getSelection();
         
-        boolean mvnCleanBool = mvnCleanCheckBox.getSelection();
+        boolean projectCleanBool = projectCleanCheckBox.getSelection();
 
         configuration.setAttribute(PROJECT_RUN_IN_CONTAINER, runInContainerBool);
         
-        configuration.setAttribute(PROJECT_CLEAN, mvnCleanBool);
+        configuration.setAttribute(PROJECT_CLEAN, projectCleanBool);
 
         configuration.setAttribute(PROJECT_START_PARM, startParamStr);
 
@@ -428,12 +428,12 @@ public class StartTab extends AbstractLaunchConfigurationTab {
      * 
      * @param parent The parent composite.
      */
-	private void createMvnCleanButton(Composite parent) {
-		mvnCleanCheckBox = new Button(parent, SWT.CHECK);
-		mvnCleanCheckBox.setText("Clean project");
-		mvnCleanCheckBox.setSelection(false);
-		mvnCleanCheckBox.setFont(font);
-		mvnCleanCheckBox.addSelectionListener(new SelectionAdapter() {
+	private void createProjectCleanButton(Composite parent) {
+		projectCleanCheckBox = new Button(parent, SWT.CHECK);
+		projectCleanCheckBox.setText("Clean project");
+		projectCleanCheckBox.setSelection(false);
+		projectCleanCheckBox.setFont(font);
+		projectCleanCheckBox.addSelectionListener(new SelectionAdapter() {
 
 			/**
 			 * {@inheritDoc}
@@ -444,7 +444,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
 				updateLaunchConfigurationDialog();
 			}
 		});
-		GridDataFactory.swtDefaults().applyTo(mvnCleanCheckBox);
+		GridDataFactory.swtDefaults().applyTo(projectCleanCheckBox);
 
 		Label emptyColumnLabel = new Label(parent, SWT.NONE);
 		GridDataFactory.swtDefaults().applyTo(emptyColumnLabel);
