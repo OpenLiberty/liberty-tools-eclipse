@@ -660,7 +660,7 @@ public class SWTBotPluginOperations {
     }
     
     /**
-     * Selects the Run Maven clean option under liberty in run configurations
+     * Selects the project clean option under liberty in run configurations
      * @param shell
      * @param runDebugConfigName
      */

@@ -969,7 +969,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
     
     /**
      * Tests the Clean project option provided under liberty run configuration option. Test will check 
-     * if the application has started and also will check for the presence of mvn clean and dev mode commands 
+     * if the application has started and also will check for the presence of project clean and dev mode commands 
      * from the console tab 
      */
     

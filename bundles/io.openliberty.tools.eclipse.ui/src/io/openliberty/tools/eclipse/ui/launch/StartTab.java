@@ -88,7 +88,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
     /** Holds the run in container check box. */
     private Button runInContainerCheckBox;
     
-    /** Holds the Maven clean check box. */
+    /** Holds the project clean check box. */
     private Button projectCleanCheckBox;
 
     /** DevModeOperations instance. */
@@ -424,7 +424,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
     }
 
     /**
-     * Creates the button entry that indicates whether or not the project should run with maven clean command.
+     * Creates the button entry that indicates whether or not the project should run with project clean command.
      * 
      * @param parent The parent composite.
      */
