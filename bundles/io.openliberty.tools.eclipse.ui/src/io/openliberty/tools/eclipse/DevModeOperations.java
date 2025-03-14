@@ -239,7 +239,7 @@ public class DevModeOperations {
                         + "does not appear to be a Maven or Gradle built project.");
             }
 
-           // Run the application in dev mode.
+            // Run the application in dev mode.
             startDevMode(cmd, projectName, projectPath, javaHomePath, launch);
 
             // If there is a debugPort, start the job to attach the debugger to the Liberty server JVM.
@@ -345,7 +345,7 @@ public class DevModeOperations {
                 throw new Exception("Unexpected project build type: " + buildType + ". Project " + projectName
                         + "does not appear to be a Maven or Gradle built project.");
             }
-            
+
             // Run the application in dev mode.
             startDevMode(cmd, projectName, projectPath, javaHomePath, launch);
 
