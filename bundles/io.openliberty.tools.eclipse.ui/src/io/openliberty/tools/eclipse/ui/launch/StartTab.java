@@ -62,6 +62,9 @@ public class StartTab extends AbstractLaunchConfigurationTab {
     /** Configuration map key with a value stating whether or not the associated project ran in a container. */
     public static final String PROJECT_RUN_IN_CONTAINER = "io.openliberty.tools.eclipse.launch.project.container.run";
 
+    /** Configuration map key with a value stating whether or not the associated project ran with clean option. */
+    public static final String PROJECT_CLEAN = "io.openliberty.tools.eclipse.launch.project.clean";
+    
     /** Main preference page ID. */
     public static final String MAIN_PREFERENCE_PAGE_ID = "io.openliberty.tools.eclipse.ui.preferences.page";
 
@@ -84,6 +87,9 @@ public class StartTab extends AbstractLaunchConfigurationTab {
 
     /** Holds the run in container check box. */
     private Button runInContainerCheckBox;
+    
+    /** Holds the project clean check box. */
+    private Button projectCleanCheckBox;
 
     /** DevModeOperations instance. */
     private DevModeOperations devModeOps = DevModeOperations.getInstance();
@@ -112,6 +118,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
         Composite parmsGroupComposite = createGroupComposite(mainComposite, "", 2);
         createInputParmText(parmsGroupComposite);
         createRunInContainerButton(parmsGroupComposite);
+        createProjectCleanButton(parmsGroupComposite);
 
         createLabelWithPreferenceLink(mainComposite);
     }
@@ -159,6 +166,9 @@ public class StartTab extends AbstractLaunchConfigurationTab {
 
             boolean runInContainer = configuration.getAttribute(PROJECT_RUN_IN_CONTAINER, false);
             runInContainerCheckBox.setSelection(runInContainer);
+            
+            boolean projectClean = configuration.getAttribute(PROJECT_CLEAN, false);
+            projectCleanCheckBox.setSelection(projectClean);
 
             String projectName = configuration.getAttribute(PROJECT_NAME, (String) null);
             if (projectName == null) {
@@ -248,8 +258,12 @@ public class StartTab extends AbstractLaunchConfigurationTab {
         String startParamStr = startParmText.getText();
 
         boolean runInContainerBool = runInContainerCheckBox.getSelection();
+        
+        boolean projectCleanBool = projectCleanCheckBox.getSelection();
 
         configuration.setAttribute(PROJECT_RUN_IN_CONTAINER, runInContainerBool);
+        
+        configuration.setAttribute(PROJECT_CLEAN, projectCleanBool);
 
         configuration.setAttribute(PROJECT_START_PARM, startParamStr);
 
@@ -408,6 +422,33 @@ public class StartTab extends AbstractLaunchConfigurationTab {
         Label emptyColumnLabel = new Label(parent, SWT.NONE);
         GridDataFactory.swtDefaults().applyTo(emptyColumnLabel);
     }
+
+    /**
+     * Creates the button entry that indicates whether or not the project should run with project clean command.
+     * 
+     * @param parent The parent composite.
+     */
+	private void createProjectCleanButton(Composite parent) {
+		projectCleanCheckBox = new Button(parent, SWT.CHECK);
+		projectCleanCheckBox.setText("Clean project");
+		projectCleanCheckBox.setSelection(false);
+		projectCleanCheckBox.setFont(font);
+		projectCleanCheckBox.addSelectionListener(new SelectionAdapter() {
+
+			/**
+			 * {@inheritDoc}
+			 */
+			@Override
+			public void widgetSelected(SelectionEvent event) {
+				setDirty(true);
+				updateLaunchConfigurationDialog();
+			}
+		});
+		GridDataFactory.swtDefaults().applyTo(projectCleanCheckBox);
+
+		Label emptyColumnLabel = new Label(parent, SWT.NONE);
+		GridDataFactory.swtDefaults().applyTo(emptyColumnLabel);
+	}
 
     /**
      * Returns the default start parameters.

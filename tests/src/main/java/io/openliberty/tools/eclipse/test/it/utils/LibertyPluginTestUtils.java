@@ -14,6 +14,11 @@ package io.openliberty.tools.eclipse.test.it.utils;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import org.eclipse.ui.console.ConsolePlugin;
+import org.eclipse.ui.console.IConsole;
+import org.eclipse.ui.console.IConsoleManager;
+import org.eclipse.ui.console.TextConsole;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -265,6 +270,28 @@ public class LibertyPluginTestUtils {
         if (preferences == null) {
             assertNotNull(preferences, "preferences file not found for Liberty Tools");
         }
+    }
+    
+    /**
+     * Reads and returns the text from the console output tab 
+     * @return
+     */
+    public static String getConsoleOutput() {
+        IConsoleManager consoleManager = ConsolePlugin.getDefault().getConsoleManager();
+        IConsole[] consoles = consoleManager.getConsoles();
+        StringBuilder result = new StringBuilder();
+        
+        // Iterate through each console
+        for (IConsole console : consoles) {
+            if (console instanceof TextConsole) {
+                TextConsole textConsole = (TextConsole) console;
+                // Append the console output to the result
+                result.append(textConsole.getDocument().get());
+            }
+        }
+        
+        // Return the concatenated result from all text consoles
+        return result.toString();
     }
 
     /**
