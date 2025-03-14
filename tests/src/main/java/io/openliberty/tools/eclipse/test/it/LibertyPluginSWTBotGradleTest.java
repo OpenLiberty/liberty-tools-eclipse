@@ -697,7 +697,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_APP_NAME, true, testAppPath + "/build");
         //Reads the text from the console output tab
         String consoleText =LibertyPluginTestUtils.getConsoleOutput();
-        //Assert.isTrue(consoleText.contains("clean libertyDev"));//checks if the consoleText contains the maven clean command 
+        Assert.isTrue(consoleText.contains("clean libertyDev"));//checks if the consoleText contains the clean libertyDev command 
         // If there are issues with the workspace, close the error dialog.
         pressWorkspaceErrorDialogProceedButton(bot);
 

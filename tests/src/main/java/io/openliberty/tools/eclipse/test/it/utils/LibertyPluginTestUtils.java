@@ -279,14 +279,19 @@ public class LibertyPluginTestUtils {
     public static String getConsoleOutput() {
         IConsoleManager consoleManager = ConsolePlugin.getDefault().getConsoleManager();
         IConsole[] consoles = consoleManager.getConsoles();
-
+        StringBuilder result = new StringBuilder();
+        
+        // Iterate through each console
         for (IConsole console : consoles) {
             if (console instanceof TextConsole) {
                 TextConsole textConsole = (TextConsole) console;
-                return textConsole.getDocument().get();
+                // Append the console output to the result
+                result.append(textConsole.getDocument().get());
             }
         }
-        return "";
+        
+        // Return the concatenated result from all text consoles
+        return result.toString();
     }
 
     /**
