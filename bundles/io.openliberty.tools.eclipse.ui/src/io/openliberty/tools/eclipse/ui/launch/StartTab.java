@@ -62,7 +62,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
     /** Configuration map key with a value stating whether or not the associated project ran in a container. */
     public static final String PROJECT_RUN_IN_CONTAINER = "io.openliberty.tools.eclipse.launch.project.container.run";
 
-    /** Configuration map key with a value stating whether or not the associated project ran with maven clean option. */
+    /** Configuration map key with a value stating whether or not the associated project ran with clean option. */
     public static final String PROJECT_CLEAN = "io.openliberty.tools.eclipse.launch.project.clean";
     
     /** Main preference page ID. */

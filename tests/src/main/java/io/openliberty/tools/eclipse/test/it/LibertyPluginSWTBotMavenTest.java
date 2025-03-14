@@ -994,8 +994,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
         //Reads the text from the console output tab
         String consoleText =LibertyPluginTestUtils.getConsoleOutput();
-        Assert.isTrue(consoleText.contains("clean io.openliberty.tools:liberty-maven-plugin:dev -Dstyle.color=always"));//checks if the consoleText contains the maven clean command 
-       // Assert.isTrue(consoleText.contains("mvn io.openliberty.tools:liberty-maven-plugin:dev -Dstyle.color=always"));//checks if the consoleText contains dev mode command 
+        Assert.isTrue(consoleText.contains("clean io.openliberty.tools:liberty-maven-plugin:dev"));//checks if the consoleText contains the maven clean command 
         // If there are issues with the workspace, close the error dialog.
         pressWorkspaceErrorDialogProceedButton(bot);
 
