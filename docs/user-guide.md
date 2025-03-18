@@ -48,6 +48,7 @@ This guide provides detailed instructions on how to use Liberty Tools for the Ec
 |  24.0.6       | 2024-03 - Eclipse v4.31 |
 |  24.0.9       | 2024-06 - Eclipse v4.32 |
 |  24.0.12      | 2024-09 - Eclipse v4.33 |
+|  25.0.3       | 2024-12 - Eclipse v4.34 |
 
 **NOTE:** Tested with each of the `Eclipse IDE for Enterprise Java and Web Developers` and `Eclipse IDE for Java Developers` packages
 
@@ -140,7 +141,7 @@ Three options are available to start your Liberty application in dev mode: Start
 
 To start your application in dev mode, you can either right-click the application listed in the Liberty dashboard and click the **Start** action, or right-click the application in the project explorer, select **Run As**, and select the **Liberty Start** launch shortcut.
 
-A new terminal tab opens to run the application in dev mode.
+A new Console opens to run the application in dev mode.
 
 ![Start action started](images/maven-devModeStarted.png)
 
@@ -158,7 +159,7 @@ Use the **JRE** tab to customize the Java installation to use when you run dev m
 
 When you finish customizing the configuration, click **Run**. 
 
-A new terminal tab opens to run the application in dev mode. 
+A new Console opens to run the application in dev mode. 
 
 ![Start with parameters started](images/maven-devModeITRun.png)
 
@@ -182,7 +183,7 @@ Once your application is running on Liberty using dev mode, you can easily run t
 
 To run tests, you can either right-click on the application listed in the Liberty dashboard, and click on the **Run tests** action, or you can right-click on the application in the project explorer, select **Run As** from the menu, and click the **Liberty Run Tests** launch shortcut.
 
-The tests are run in the corresponding terminal.
+The tests are run in the corresponding console.
 
 ![Run tests](images/maven-devModeITRun.png)
 
@@ -213,8 +214,6 @@ Test reports are opened either in your Eclipse IDE's internal browser or an exte
 To stop your application, you can either right-click on the application listed in the Liberty dashboard, and click on the **Stop** action, or you can right-click on the application in the project explorer, select **Run As** on the menu, and click the **Liberty Stop** launch shortcut.
 
 ![Stop action](images/maven-devModeStopped.png)
-
-When the project is stopped, the terminal in which it ran is closed.
 
 ## Debugging your application
 
