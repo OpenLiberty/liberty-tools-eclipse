@@ -237,8 +237,6 @@ Under the `Source` tab you can also customize the source lookup locations for yo
 
 When you finish with the customizations, click the **Debug** button to launch dev mode and attach the debugger. 
 
-![Debugger Attached](images/maven-DebuggerAttachedToJVMBreakpoint.png)
-
 ## Manually adding the Liberty nature to a project
 
 You can manually classify a project as a Liberty project with the Liberty Tools for Eclipse IDE . This capability is useful in cases where the tool , due to project customizations, does not recognize a project to be a Liberty project; even though, it might be a Liberty project.
