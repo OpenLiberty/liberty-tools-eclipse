@@ -237,6 +237,12 @@ Under the `Source` tab you can also customize the source lookup locations for yo
 
 When you finish with the customizations, click the **Debug** button to launch dev mode and attach the debugger. 
 
+Additionally, if you do not start your application with the Debug option, you can attach a debugger at any time using the **Connect Liberty Debugger** context menu action. 
+
+From the Debug View in the Debug Perspective, right-click on the launched application and select **Connect Liberty Debugger**. 
+
+![Connect Liberty Debugger action](images/maven-ConnectLibertyDebuggerAction.png)
+
 ## Manually adding the Liberty nature to a project
 
 You can manually classify a project as a Liberty project with the Liberty Tools for Eclipse IDE . This capability is useful in cases where the tool , due to project customizations, does not recognize a project to be a Liberty project; even though, it might be a Liberty project.
