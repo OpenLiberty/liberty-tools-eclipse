@@ -63,7 +63,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.Assert;
 import org.eclipse.jdt.launching.JavaRuntime;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.TreeItem;
@@ -994,7 +993,8 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
         //Reads the text from the console output tab
         String consoleText =LibertyPluginTestUtils.getConsoleOutput();
-        Assert.isTrue(consoleText.contains("clean io.openliberty.tools:liberty-maven-plugin:dev"));//checks if the consoleText contains the maven clean command 
+        Assertions.assertTrue(consoleText.contains("clean io.openliberty.tools:liberty-maven-plugin:dev"), 
+                "Console text should contain 'clean io.openliberty.tools:liberty-maven-plugin:dev'");
         // If there are issues with the workspace, close the error dialog.
         pressWorkspaceErrorDialogProceedButton(bot);
 

@@ -62,7 +62,6 @@ import java.util.concurrent.TimeUnit;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
-import org.eclipse.core.runtime.Assert;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.jdt.launching.JavaRuntime;
 import org.eclipse.swt.widgets.Shell;
@@ -697,7 +696,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_APP_NAME, true, testAppPath + "/build");
         //Reads the text from the console output tab
         String consoleText =LibertyPluginTestUtils.getConsoleOutput();
-        Assert.isTrue(consoleText.contains("clean libertyDev"));//checks if the consoleText contains the clean libertyDev command 
+        Assertions.assertTrue(consoleText.contains("clean libertyDev"),"Console text should contain 'clean libertyDev'");
         // If there are issues with the workspace, close the error dialog.
         pressWorkspaceErrorDialogProceedButton(bot);
 
