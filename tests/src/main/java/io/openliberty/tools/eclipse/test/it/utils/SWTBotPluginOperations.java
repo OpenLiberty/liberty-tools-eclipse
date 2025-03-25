@@ -658,23 +658,6 @@ public class SWTBotPluginOperations {
 
         go(button);
     }
-    
-    /**
-     * Selects the project clean option under liberty in run configurations
-     * @param shell
-     * @param runDebugConfigName
-     */
-    public static void checkRunCleanProjectCheckBox(Shell shell, String runDebugConfigName) {
-
-        Object libertyConfigTree = getLibertyTreeItem(shell);
-
-        Object appConfigEntry = find(runDebugConfigName, libertyConfigTree,
-                Option.factory().useContains(true).widgetClass(TreeItem.class).build());
-        go(appConfigEntry);
-        Object button = find("Clean project", appConfigEntry, Option.factory().widgetClass(Button.class).build());
-
-        go(button);
-    }
 
     public static Object getAppInPackageExplorerTree(String appName) {
         openJavaPerspectiveViaMenu();
