@@ -7,7 +7,9 @@ Bundle-Version: 25.0.3.qualifier
 Bundle-RequiredExecutionEnvironment: JavaSE-21
 Require-Bundle: junit-jupiter-api,
  org.eclipse.ui,
- org.hamcrest.library
+ org.hamcrest.library,
+ org.eclipse.ui.console,
+ org.eclipse.text
 Import-Package: io.openliberty.tools.eclipse,
  io.openliberty.tools.eclipse.debug,
  io.openliberty.tools.eclipse.ui.dashboard,
