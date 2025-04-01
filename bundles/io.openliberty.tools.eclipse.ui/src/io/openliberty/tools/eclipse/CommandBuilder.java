@@ -30,6 +30,8 @@ public class CommandBuilder {
     private String pathEnv;
 
     private boolean isMaven;
+    
+	private String MVNW_WRAPPER = "./mvnw";
 
     /**
      * @param pathEnv
@@ -111,7 +113,7 @@ public class CommandBuilder {
             throw new CommandNotFoundException(errorMsg);
         }
 
-        return cmd;
+        return encloseCmdInQuotesIfNeeded(cmd);
     }
 
     private String getCommandFromWrapper() {
@@ -123,7 +125,10 @@ public class CommandBuilder {
 
             if (p2mw.toFile().exists() && p2mwProps.toFile().exists()) {
                 cmd = p2mw.toString();
-            }
+				if (!Utils.isWindows()) {
+					cmd = MVNW_WRAPPER;
+				}
+			}
         } else {
             // Check if there is wrapper defined.
             Path p2gw = (Utils.isWindows()) ? Paths.get(projectPath, "gradlew.bat") : Paths.get(projectPath, "gradlew");
@@ -247,4 +252,14 @@ public class CommandBuilder {
         }
 
     }
+    
+    /**
+     * Function to enclose the command in double quotes if it contains any spaces
+     */
+	private String encloseCmdInQuotesIfNeeded(String cmd) {
+		if (cmd.contains(" ")) {
+			return "\"" + cmd + "\"";
+		}
+		return cmd;
+	}
 }
