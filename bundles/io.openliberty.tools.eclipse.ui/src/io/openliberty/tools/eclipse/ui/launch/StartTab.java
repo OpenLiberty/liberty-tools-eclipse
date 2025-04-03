@@ -269,7 +269,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
 
         if (Trace.isEnabled()) {
             Trace.getTracer().trace(Trace.TRACE_UI, "In performApply with project name = " + projectNameLabel.getText() + ", text = "
-                    + startParamStr + ", runInContainer = " + runInContainerBool);
+                    + startParamStr + ", runInContainer = " + runInContainerBool + ", clean project = " + projectCleanBool);
         }
     }
 
