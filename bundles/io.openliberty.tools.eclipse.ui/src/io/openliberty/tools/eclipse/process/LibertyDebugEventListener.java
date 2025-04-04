@@ -4,8 +4,15 @@ import org.eclipse.debug.core.DebugEvent;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.IDebugEventSetListener;
 import org.eclipse.debug.core.model.IProcess;
+import org.eclipse.osgi.util.NLS;
+
+import com.google.inject.internal.Messages;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
+import io.openliberty.tools.eclipse.Project;
+import io.openliberty.tools.eclipse.logging.Trace;
+import io.openliberty.tools.eclipse.utils.ErrorHandler;
+import io.openliberty.tools.eclipse.utils.Utils;
 
 public class LibertyDebugEventListener implements IDebugEventSetListener {
 
@@ -27,8 +34,23 @@ public class LibertyDebugEventListener implements IDebugEventSetListener {
                 if (projectName.equals(iProcess.getLabel())) {
                     // We match - cleanup
                     DevModeOperations devModeOps = DevModeOperations.getInstance();
-                    devModeOps.cleanupProcess(projectName);
+                    Project project = null;
 
+                    try {
+                        project = devModeOps.getProjectModel().getProject(projectName);
+                        if (project != null) {
+                        	Utils.enableAppMonitoring(false, project);
+                        }
+
+                    } catch (Exception e) {
+                        String msg = "An error was detected when the view integration test report request was processed on project " + projectName
+                                + ".";
+                        if (Trace.isEnabled()) {
+                            Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
+                        }
+                        return;
+                    }
+                    devModeOps.cleanupProcess(projectName);
                     DebugPlugin.getDefault().removeDebugEventListener(this);
                 }
             }
