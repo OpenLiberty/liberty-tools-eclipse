@@ -395,24 +395,12 @@ public class DevModeOperations {
         }
 
         String projectName = iProject.getName();
-        Project project = null;
-
-        try {
-            project = projectModel.getProject(projectName);
-            if (project != null) {
-            	Utils.enableAppMonitoring(false, project);
-            }
-
-        } catch (Exception e) {
-            String msg = "An error was detected when the view integration test report request was processed on project " + projectName
-                    + ".";
-            if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
-            }
-            ErrorHandler.processErrorMessage(NLS.bind(Messages.mvn_int_test_report_general_error, projectName), e, true);
-            return;
-        }
+        Project project = projectModel.getProject(projectName);
         
+        if (project != null) {
+        	Utils.enableAppMonitoring(false, project);
+        }
+
         // Check if the stop action has already been issued of if a start action was never issued before.
         if (!processController.isProcessStarted(projectName)) {
             String msg = NLS.bind(Messages.stop_already_issued, projectName);

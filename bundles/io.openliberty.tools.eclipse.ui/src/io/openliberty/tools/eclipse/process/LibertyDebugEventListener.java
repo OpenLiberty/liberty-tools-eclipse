@@ -34,22 +34,12 @@ public class LibertyDebugEventListener implements IDebugEventSetListener {
                 if (projectName.equals(iProcess.getLabel())) {
                     // We match - cleanup
                     DevModeOperations devModeOps = DevModeOperations.getInstance();
-                    Project project = null;
-
-                    try {
-                        project = devModeOps.getProjectModel().getProject(projectName);
-                        if (project != null) {
-                        	Utils.enableAppMonitoring(false, project);
-                        }
-
-                    } catch (Exception e) {
-                        String msg = "An error was detected when the view integration test report request was processed on project " + projectName
-                                + ".";
-                        if (Trace.isEnabled()) {
-                            Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
-                        }
-                        return;
+                    Project project = devModeOps.getProjectModel().getProject(projectName);
+                    
+                    if (project != null) {
+                    	Utils.enableAppMonitoring(false, project);
                     }
+                    
                     devModeOps.cleanupProcess(projectName);
                     DebugPlugin.getDefault().removeDebugEventListener(this);
                 }
