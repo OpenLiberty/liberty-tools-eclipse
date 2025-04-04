@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2022, 2024 IBM Corporation and others.
+* Copyright (c) 2022, 2025 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -278,48 +278,48 @@ public class Utils {
         return cause;
     }
 
-    /**
-     * Enable or disable app monitoring by adding or removing
-     * app monitoring configuration in the target folder.
-     * 
-     * 
-     * @param isEnable flag used to enable or disable app monitoring..
-     * @param project a project in the Liberty dashboard.
-     *  
-     */
-    public static void enableAppMonitoring(Boolean isEnable, Project project) {
-    	
-    	if (project == null || project.getPath() == null || project.getBuildType() == Project.BuildType.UNKNOWN) {
+	/**
+	 * Enable or disable app monitoring by adding or removing app monitoring
+	 * configuration in the target folder.
+	 * 
+	 * 
+	 * @param isEnable flag used to enable or disable app monitoring..
+	 * @param project  a project in the Liberty dashboard.
+	 * 
+	 */
+	public static void enableAppMonitoring(Boolean isEnable, Project project) {
+
+		if (project == null || project.getPath() == null || project.getBuildType() == Project.BuildType.UNKNOWN) {
 			System.err.println("Invalid project object or path.");
 			return;
 		}
-    	
-    	if (isEnable) {
-    		addConfigDropinsInServerDir(project);
-    	} else {
-    		try {
-    			String dirNameTofind = "configDropins";
 
-    			String serverDirName = project.getBuildType() == Project.BuildType.MAVEN ? "target" : "build"; 
-    			File usrDir = new File(project.getPath() + "/" + serverDirName);
-    			File configDropins = findFolder(usrDir, dirNameTofind);
+		if (isEnable) {
+			addConfigDropinsInServerDir(project);
+		} else {
+			try {
+				String dirNameTofind = "configDropins";
 
-    			// Delete the directory if exists.
-    			if (configDropins != null) {
-    				deleteDirectory(configDropins);
-    			} else {
-    				System.err.println("configDropins directory not found!!");
-    			}
+				String serverDirName = project.getBuildType() == Project.BuildType.MAVEN ? "target" : "build";
+				File usrDir = new File(project.getPath() + "/" + serverDirName);
+				File configDropins = findFolder(usrDir, dirNameTofind);
 
-    		} catch (Exception e) {
-    			e.printStackTrace();
-    		}
-    	}
-    }
+				// Delete the directory if exists.
+				if (configDropins != null) {
+					deleteDirectory(configDropins);
+				} else {
+					System.err.println("configDropins directory not found!!");
+				}
 
-    // Add configuration to disable app monitoring in target folder.
-    private static void addConfigDropinsInServerDir(Project project) {
-    	String serverFolderName = "servers";
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
+	// Add configuration to disable app monitoring in target folder.
+	private static void addConfigDropinsInServerDir(Project project) {
+		String serverFolderName = "servers";
 		String fileNameTofind = "server.xml";
 		String usrDirPath = "/liberty/wlp/usr";
 		String newFilePath = "/configDropins/overrides/disableApplicationMonitor.xml";
@@ -329,12 +329,11 @@ public class Utils {
 			String serverDirName = project.getBuildType() == Project.BuildType.MAVEN ? "target" : "build";
 			File projectDir = new File(project.getPath() + "/" + serverDirName + usrDirPath);
 			File serverDirectory = findFolder(projectDir, serverFolderName);
-			
+
 			if (serverDirectory != null) {
 				File serverXmlFile = findFileInFolder(serverDirectory, fileNameTofind);
 				if (serverXmlFile != null) {
-					File configDropins = new File(
-							serverXmlFile.getParent() + newFilePath);
+					File configDropins = new File(serverXmlFile.getParent() + newFilePath);
 					createDirectoryStructure(configDropins, fileContent);
 
 				} else {
@@ -346,83 +345,83 @@ public class Utils {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-    }
-    
-    // Method to recursively find a folder by name.
-    private static File findFolder(File rootDir, String targetFolderName) {
-    	if (rootDir == null || !rootDir.isDirectory()) {
-    		return null;
-    	}
+	}
 
-    	if (rootDir.getName().equals(targetFolderName)) {
-    		return rootDir;  // Found the folder
-    	}
+	// Method to recursively find a folder by name.
+	private static File findFolder(File rootDir, String targetFolderName) {
+		if (rootDir == null || !rootDir.isDirectory()) {
+			return null;
+		}
 
-    	File[] subDirs = rootDir.listFiles();
-    	if (subDirs != null) {
-    		for (File subDir : subDirs) {
-    			if (subDir.isDirectory()) {
-    				File found = findFolder(subDir, targetFolderName);
-    				if (found != null) {
-    					return found;
-    				}
-    			}
-    		}
-    	}
-    	return null;  // Folder not found
-    }
+		if (rootDir.getName().equals(targetFolderName)) {
+			return rootDir; // Found the folder
+		}
 
-    // Method to find a specific file in a folder
-    private static File findFileInFolder(File folder, String fileName) {
-    	if (folder == null || !folder.isDirectory()) {
-    		return null;
-    	}
+		File[] subDirs = rootDir.listFiles();
+		if (subDirs != null) {
+			for (File subDir : subDirs) {
+				if (subDir.isDirectory()) {
+					File found = findFolder(subDir, targetFolderName);
+					if (found != null) {
+						return found;
+					}
+				}
+			}
+		}
+		return null; // Folder not found
+	}
 
-    	File[] files = folder.listFiles();
-    	if (files != null) {
-    		for (File file : files) {
-    			if (file.isFile() && file.getName().equals(fileName)) {
-    				return file;  // Found the file
-    			} else if (file.isDirectory()) {
-    				File found = findFileInFolder(file, fileName);
-    				if (found != null) {
-    					return found;
-    				}
-    			}
-    		}
-    	}
-    	return null;  // File not found
-    }
+	// Method to find a specific file in a folder
+	private static File findFileInFolder(File folder, String fileName) {
+		if (folder == null || !folder.isDirectory()) {
+			return null;
+		}
 
-    //Create a directory and a file containing the specified content.
-    private static void createDirectoryStructure(File file, String content) {
-    	try {
-    		if (file.getParentFile() != null && !file.getParentFile().exists()) {
-    			file.getParentFile().mkdirs();
-    		}
+		File[] files = folder.listFiles();
+		if (files != null) {
+			for (File file : files) {
+				if (file.isFile() && file.getName().equals(fileName)) {
+					return file; // Found the file
+				} else if (file.isDirectory()) {
+					File found = findFileInFolder(file, fileName);
+					if (found != null) {
+						return found;
+					}
+				}
+			}
+		}
+		return null; // File not found
+	}
 
-    		if (file.createNewFile()) {
-    			try (FileWriter writer = new FileWriter(file)) {
-    				writer.write(content);
-    			}
-    		} else {
-    			System.out.println("File already exists: " + file.getAbsolutePath());
-    		}
-    	} catch (IOException e) {
-    		System.err.println("An error occurred while creating the file: " + e.getMessage());
-    	}
-    }
+	// Create a directory and a file containing the specified content.
+	private static void createDirectoryStructure(File file, String content) {
+		try {
+			if (file.getParentFile() != null && !file.getParentFile().exists()) {
+				file.getParentFile().mkdirs();
+			}
 
-    // Method to delete a directory and its contents
-    private static boolean deleteDirectory(File directory) {
-    	if (directory.isDirectory()) {
-    		File[] files = directory.listFiles();
-    		if (files != null) {
-    			for (File file : files) {
-    				deleteDirectory(file);  // Recursively delete files and subdirectories
-    			}
-    		}
-    	}
-    	return directory.delete();  // Delete the directory (or file)
-    }
+			if (file.createNewFile()) {
+				try (FileWriter writer = new FileWriter(file)) {
+					writer.write(content);
+				}
+			} else {
+				System.out.println("File already exists: " + file.getAbsolutePath());
+			}
+		} catch (IOException e) {
+			System.err.println("An error occurred while creating the file: " + e.getMessage());
+		}
+	}
+
+	// Method to delete a directory and its contents
+	private static boolean deleteDirectory(File directory) {
+		if (directory.isDirectory()) {
+			File[] files = directory.listFiles();
+			if (files != null) {
+				for (File file : files) {
+					deleteDirectory(file); // Recursively delete files and subdirectories
+				}
+			}
+		}
+		return directory.delete(); // Delete the directory (or file)
+	}
 }

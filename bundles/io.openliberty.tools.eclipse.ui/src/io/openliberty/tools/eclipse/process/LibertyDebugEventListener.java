@@ -4,14 +4,9 @@ import org.eclipse.debug.core.DebugEvent;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.IDebugEventSetListener;
 import org.eclipse.debug.core.model.IProcess;
-import org.eclipse.osgi.util.NLS;
-
-import com.google.inject.internal.Messages;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.Project;
-import io.openliberty.tools.eclipse.logging.Trace;
-import io.openliberty.tools.eclipse.utils.ErrorHandler;
 import io.openliberty.tools.eclipse.utils.Utils;
 
 public class LibertyDebugEventListener implements IDebugEventSetListener {
@@ -39,7 +34,6 @@ public class LibertyDebugEventListener implements IDebugEventSetListener {
                     if (project != null) {
                     	Utils.enableAppMonitoring(false, project);
                     }
-                    
                     devModeOps.cleanupProcess(projectName);
                     DebugPlugin.getDefault().removeDebugEventListener(this);
                 }
