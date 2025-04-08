@@ -301,7 +301,7 @@ public class DebugModeHandler {
                     display.syncExec(new Runnable() {
                         public void run() {
                             openDebugPerspective();
-                            Utils.enableAppMonitoring(true, project);
+                            Utils.disableAppMonitoring(project);
                         }
                     });
                 } else {

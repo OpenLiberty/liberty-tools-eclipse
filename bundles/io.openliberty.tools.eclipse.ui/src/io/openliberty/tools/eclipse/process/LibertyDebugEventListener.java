@@ -32,7 +32,7 @@ public class LibertyDebugEventListener implements IDebugEventSetListener {
                     Project project = devModeOps.getProjectModel().getProject(projectName);
                     
                     if (project != null) {
-                    	Utils.enableAppMonitoring(false, project);
+                    	Utils.reEnableAppMonitoring(project);
                     }
                     devModeOps.cleanupProcess(projectName);
                     DebugPlugin.getDefault().removeDebugEventListener(this);

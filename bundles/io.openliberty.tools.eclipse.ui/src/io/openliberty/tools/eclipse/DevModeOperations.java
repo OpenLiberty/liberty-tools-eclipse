@@ -398,7 +398,7 @@ public class DevModeOperations {
         Project project = projectModel.getProject(projectName);
         
         if (project != null) {
-        	Utils.enableAppMonitoring(false, project);
+        	Utils.reEnableAppMonitoring(project);
         }
 
         // Check if the stop action has already been issued of if a start action was never issued before.

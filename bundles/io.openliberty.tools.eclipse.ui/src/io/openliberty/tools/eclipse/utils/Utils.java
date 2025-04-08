@@ -279,44 +279,58 @@ public class Utils {
     }
 
 	/**
-	 * Enable or disable app monitoring by adding or removing app monitoring
-	 * configuration in the target folder.
+	 * Disable app monitoring, by adding an XML file with the appropriate configuration in the 
+	 * 'configDropins/overrides' folder within the target directory.
 	 * 
 	 * 
-	 * @param isEnable flag used to enable or disable app monitoring..
 	 * @param project  a project in the Liberty dashboard.
 	 * 
 	 */
-	public static void enableAppMonitoring(Boolean isEnable, Project project) {
+	public static void disableAppMonitoring(Project project) {
 
 		if (project == null || project.getPath() == null || project.getBuildType() == Project.BuildType.UNKNOWN) {
-			System.err.println("Invalid project object or path.");
+			System.err.println("Invalid project object or path or unknown buildType.");
+			return;
+		}
+		addConfigDropinsInServerDir(project);
+	}
+
+	
+	/**
+	 * re-enable app monitoring by removing app monitoring
+	 * configuration from the target folder.
+	 * 
+	 * 
+	 * @param project  a project in the Liberty dashboard.
+	 * 
+	 */
+	public static void reEnableAppMonitoring(Project project) {
+		if (project == null || project.getPath() == null || project.getBuildType() == Project.BuildType.UNKNOWN) {
+			System.err.println("Invalid project object or path or unknown buildType.");
 			return;
 		}
 
-		if (isEnable) {
-			addConfigDropinsInServerDir(project);
-		} else {
-			try {
-				String dirNameTofind = "configDropins";
 
-				String serverDirName = project.getBuildType() == Project.BuildType.MAVEN ? "target" : "build";
-				File usrDir = new File(project.getPath() + "/" + serverDirName);
-				File configDropins = findFolder(usrDir, dirNameTofind);
+		try {
+			String dirNameTofind = "configDropins";
 
-				// Delete the directory if exists.
-				if (configDropins != null) {
-					deleteDirectory(configDropins);
-				} else {
-					System.err.println("configDropins directory not found!!");
-				}
+			String serverDirName = project.getBuildType() == Project.BuildType.MAVEN ? "target" : "build";
+			File usrDir = new File(project.getPath() + "/" + serverDirName);
+			File configDropins = findFolder(usrDir, dirNameTofind);
 
-			} catch (Exception e) {
-				e.printStackTrace();
+			// Delete the directory if exists.
+			if (configDropins != null) {
+				deleteDirectory(configDropins);
+			} else {
+				System.err.println("configDropins directory not found!!");
 			}
-		}
-	}
 
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+	}
+	
 	// Add configuration to disable app monitoring in target folder.
 	private static void addConfigDropinsInServerDir(Project project) {
 		String serverFolderName = "servers";
