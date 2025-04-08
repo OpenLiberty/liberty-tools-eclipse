@@ -124,10 +124,7 @@ public class CommandBuilder {
             Path p2mwProps = Paths.get(projectPath, ".mvn", "wrapper", "maven-wrapper.properties");
 
             if (p2mw.toFile().exists() && p2mwProps.toFile().exists()) {
-                cmd = p2mw.toString();
-				if (!Utils.isWindows()) {
-					cmd = MVNW_WRAPPER;
-				}
+                cmd = MVNW_WRAPPER;
 			}
         } else {
             // Check if there is wrapper defined.
