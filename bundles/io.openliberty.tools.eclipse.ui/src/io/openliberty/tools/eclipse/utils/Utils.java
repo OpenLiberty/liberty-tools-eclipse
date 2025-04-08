@@ -17,6 +17,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -291,21 +292,18 @@ public class Utils {
 
 		String serverFolderName = "servers";
 		String fileNameTofind = "server.xml";
-		String usrDirPath = "/liberty/wlp/usr";
-		String newFilePath = "/configDropins/overrides/disableApplicationMonitor.xml";
 		String fileContent = "<server> <applicationMonitor updateTrigger=\"disabled\"/> </server>";
 
 		try {
-			validateProjectIsGradleOrMaven(project);
-			String serverDirName = project.getBuildType() == Project.BuildType.MAVEN ? "target" : "build";
-			File projectDir = new File(project.getPath() + "/" + serverDirName + usrDirPath);
+			validateProjectIsGradleOrMaven(project);			
+			File projectDir = new File(getUsrDirPath(project).toString());
 			File serverDirectory = findFolder(projectDir, serverFolderName);
 
 			if (serverDirectory != null) {
 				File serverXmlFile = findFileInFolder(serverDirectory, fileNameTofind);
 				if (serverXmlFile != null) {
-					File configDropins = new File(serverXmlFile.getParent() + newFilePath);
-					createDirectoryStructure(configDropins, fileContent);
+					File disableAppMonitorXmlFile = new File(getXmlFilePath(serverXmlFile));
+					createDirectoryStructure(disableAppMonitorXmlFile, fileContent);
 				} else {
 					if (Trace.isEnabled()) {
 						Trace.getTracer().trace(Trace.TRACE_UI,
@@ -339,10 +337,8 @@ public class Utils {
 
 		try {
 			validateProjectIsGradleOrMaven(project);
-			String dirNameTofind = "configDropins";
-			String serverDirName = project.getBuildType() == Project.BuildType.MAVEN ? "target" : "build";
-			File usrDir = new File(project.getPath() + "/" + serverDirName);
-			File configDropins = findFolder(usrDir, dirNameTofind);
+			String dirNameTofind = "disableApplicationMonitor.xml";
+			File configDropins = findFileInFolder(getUsrDirPath(project), dirNameTofind);
 
 			// Delete the directory if exists.
 			if (configDropins != null) {
@@ -446,8 +442,7 @@ public class Utils {
 		}
 
 		// Get the absolute path to the application project.
-		String projectPath = project.getPath();
-		if (projectPath == null) {
+		if (project.getPath() == null) {
 			throw new Exception("Unable to find the path to selected project.");
 		}
 
@@ -459,4 +454,17 @@ public class Utils {
 			}
 		}
 	}
+
+	private static File getUsrDirPath(Project project) {
+		if (project.getBuildType()  == Project.BuildType.MAVEN) {
+			return Paths.get(project.getPath(), "target", "liberty", "wlp", "usr").toFile();
+		} else {
+			return Paths.get(project.getPath(), "target", "wlp", "usr").toFile();
+		}
+	}
+
+	private static String getXmlFilePath(File serverXmlFile) {
+        return Paths.get(serverXmlFile.getParent(), "configDropins", "overrides", "disableApplicationMonitor.xml").toString();
+	}
+	
 }
