@@ -279,60 +279,16 @@ public class Utils {
     }
 
 	/**
-	 * Disable app monitoring, by adding an XML file with the appropriate configuration in the 
-	 * 'configDropins/overrides' folder within the target directory.
+	 * Disable app monitoring by placing an XML file containing the app monitoring
+	 * configuration into the 'configDropins/overrides' folder inside the target
+	 * directory.
 	 * 
 	 * 
-	 * @param project  a project in the Liberty dashboard.
+	 * @param project a project in the Liberty dashboard.
 	 * 
 	 */
 	public static void disableAppMonitoring(Project project) {
 
-		if (project == null || project.getPath() == null || project.getBuildType() == Project.BuildType.UNKNOWN) {
-			System.err.println("Invalid project object or path or unknown buildType.");
-			return;
-		}
-		addConfigDropinsInServerDir(project);
-	}
-
-	
-	/**
-	 * re-enable app monitoring by removing app monitoring
-	 * configuration from the target folder.
-	 * 
-	 * 
-	 * @param project  a project in the Liberty dashboard.
-	 * 
-	 */
-	public static void reEnableAppMonitoring(Project project) {
-		if (project == null || project.getPath() == null || project.getBuildType() == Project.BuildType.UNKNOWN) {
-			System.err.println("Invalid project object or path or unknown buildType.");
-			return;
-		}
-
-
-		try {
-			String dirNameTofind = "configDropins";
-
-			String serverDirName = project.getBuildType() == Project.BuildType.MAVEN ? "target" : "build";
-			File usrDir = new File(project.getPath() + "/" + serverDirName);
-			File configDropins = findFolder(usrDir, dirNameTofind);
-
-			// Delete the directory if exists.
-			if (configDropins != null) {
-				deleteDirectory(configDropins);
-			} else {
-				System.err.println("configDropins directory not found!!");
-			}
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-
-	}
-	
-	// Add configuration to disable app monitoring in target folder.
-	private static void addConfigDropinsInServerDir(Project project) {
 		String serverFolderName = "servers";
 		String fileNameTofind = "server.xml";
 		String usrDirPath = "/liberty/wlp/usr";
@@ -340,6 +296,7 @@ public class Utils {
 		String fileContent = "<server> <applicationMonitor updateTrigger=\"disabled\"/> </server>";
 
 		try {
+			validateProjectIsGradleOrMaven(project);
 			String serverDirName = project.getBuildType() == Project.BuildType.MAVEN ? "target" : "build";
 			File projectDir = new File(project.getPath() + "/" + serverDirName + usrDirPath);
 			File serverDirectory = findFolder(projectDir, serverFolderName);
@@ -349,15 +306,54 @@ public class Utils {
 				if (serverXmlFile != null) {
 					File configDropins = new File(serverXmlFile.getParent() + newFilePath);
 					createDirectoryStructure(configDropins, fileContent);
-
 				} else {
-					System.out.println("File '" + fileNameTofind + "' not found in folder '" + serverFolderName + "'.");
+					if (Trace.isEnabled()) {
+						Trace.getTracer().trace(Trace.TRACE_UI,
+								"File '" + fileNameTofind + "' not found in folder '" + serverFolderName + "'.");
+					}
 				}
 			} else {
-				System.out.println("Folder '" + serverFolderName + "' not found in the project.");
+				if (Trace.isEnabled()) {
+					Trace.getTracer().trace(Trace.TRACE_UI,
+							"Folder '" + serverFolderName + "' not found in the project.");
+				}
 			}
 		} catch (Exception e) {
-			e.printStackTrace();
+			if (Trace.isEnabled()) {
+				Trace.getTracer().trace(Trace.TRACE_UI, "Error encountered while adding xml file in the configDropins.",
+						e);
+			}
+		}
+	}
+
+	/**
+	 * Re-enable app monitoring by removing the XML file containing the app
+	 * monitoring configuration from the 'configDropins/overrides' folder inside the
+	 * target directory.
+	 * 
+	 * 
+	 * @param project a project in the Liberty dashboard.
+	 * 
+	 */
+	public static void reEnableAppMonitoring(Project project) {
+
+		try {
+			validateProjectIsGradleOrMaven(project);
+			String dirNameTofind = "configDropins";
+			String serverDirName = project.getBuildType() == Project.BuildType.MAVEN ? "target" : "build";
+			File usrDir = new File(project.getPath() + "/" + serverDirName);
+			File configDropins = findFolder(usrDir, dirNameTofind);
+
+			// Delete the directory if exists.
+			if (configDropins != null) {
+				deleteDirectory(configDropins);
+			}
+
+		} catch (Exception e) {
+			if (Trace.isEnabled()) {
+				Trace.getTracer().trace(Trace.TRACE_UI, "Error encountered while removing xml file from configDropins.",
+						e);
+			}
 		}
 	}
 
@@ -419,10 +415,14 @@ public class Utils {
 					writer.write(content);
 				}
 			} else {
-				System.out.println("File already exists: " + file.getAbsolutePath());
+				if (Trace.isEnabled()) {
+					Trace.getTracer().trace(Trace.TRACE_UI, "File already exists: " + file.getAbsolutePath());
+				}
 			}
 		} catch (IOException e) {
-			System.err.println("An error occurred while creating the file: " + e.getMessage());
+			if (Trace.isEnabled()) {
+				Trace.getTracer().trace(Trace.TRACE_UI, "An error occurred while creating the file: " + e.getMessage());
+			}
 		}
 	}
 
@@ -437,5 +437,26 @@ public class Utils {
 			}
 		}
 		return directory.delete(); // Delete the directory (or file)
+	}
+
+	private static void validateProjectIsGradleOrMaven(Project project) throws Exception {
+
+		if (project == null) {
+			throw new Exception("Unable to find internal instance of project.");
+		}
+
+		// Get the absolute path to the application project.
+		String projectPath = project.getPath();
+		if (projectPath == null) {
+			throw new Exception("Unable to find the path to selected project.");
+		}
+
+		if (project.getBuildType() == Project.BuildType.UNKNOWN) {
+			if (Trace.isEnabled()) {
+				Trace.getTracer().trace(Trace.TRACE_UI, "Unexpected project build type: " + project.getBuildType()
+						+ ". " + "Project does not appear to be a Maven or Gradle built project.");
+				return;
+			}
+		}
 	}
 }
