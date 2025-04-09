@@ -17,9 +17,13 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
@@ -290,30 +294,23 @@ public class Utils {
 	 */
 	public static void disableAppMonitoring(Project project) {
 
-		String serverFolderName = "servers";
 		String fileNameTofind = "server.xml";
 		String fileContent = "<server> <applicationMonitor updateTrigger=\"disabled\"/> </server>";
 
 		try {
-			validateProjectIsGradleOrMaven(project);			
-			File projectDir = new File(getUsrDirPath(project).toString());
-			File serverDirectory = findFolder(projectDir, serverFolderName);
-
-			if (serverDirectory != null) {
-				File serverXmlFile = findFileInFolder(serverDirectory, fileNameTofind);
-				if (serverXmlFile != null) {
-					File disableAppMonitorXmlFile = new File(getXmlFilePath(serverXmlFile));
-					createDirectoryStructure(disableAppMonitorXmlFile, fileContent);
-				} else {
-					if (Trace.isEnabled()) {
-						Trace.getTracer().trace(Trace.TRACE_UI,
-								"File '" + fileNameTofind + "' not found in folder '" + serverFolderName + "'.");
-					}
-				}
+			validateProjectIsGradleOrMaven(project);
+			// Find the 'usr' directory inside 'wlp'
+			File usrDir = new File(getUsrDirPath(project).toString());
+			// Locate the server.xml file inside the server directory.
+			// The configDropins directory should be created at the same level as
+			// server.xml.
+			Path serverXmlFilePath = findFileByName(usrDir, fileNameTofind).toPath();
+			if (serverXmlFilePath != null) {
+				createFile(serverXmlFilePath.getParent(), fileContent);
 			} else {
 				if (Trace.isEnabled()) {
 					Trace.getTracer().trace(Trace.TRACE_UI,
-							"Folder '" + serverFolderName + "' not found in the project.");
+							"File '" + fileNameTofind + "' not found in the 'usr'folder.");
 				}
 			}
 		} catch (Exception e) {
@@ -337,14 +334,12 @@ public class Utils {
 
 		try {
 			validateProjectIsGradleOrMaven(project);
-			String dirNameTofind = "disableApplicationMonitor.xml";
-			File configDropins = findFileInFolder(getUsrDirPath(project), dirNameTofind);
-
+			String fileNameTofind = "disableApplicationMonitor.xml";
+			File xmlFile = findFileByName(getUsrDirPath(project), fileNameTofind);
 			// Delete the directory if exists.
-			if (configDropins != null) {
-				deleteDirectory(configDropins);
+			if (xmlFile != null) {
+				deleteFileByName(xmlFile.toPath());
 			}
-
 		} catch (Exception e) {
 			if (Trace.isEnabled()) {
 				Trace.getTracer().trace(Trace.TRACE_UI, "Error encountered while removing xml file from configDropins.",
@@ -353,63 +348,31 @@ public class Utils {
 		}
 	}
 
-	// Method to recursively find a folder by name.
-	private static File findFolder(File rootDir, String targetFolderName) {
+	// Method to find a specific file in a folder.
+	private static File findFileByName(File rootDir, String targetFileName) {
 		if (rootDir == null || !rootDir.isDirectory()) {
 			return null;
 		}
 
-		if (rootDir.getName().equals(targetFolderName)) {
-			return rootDir; // Found the folder
-		}
-
-		File[] subDirs = rootDir.listFiles();
-		if (subDirs != null) {
-			for (File subDir : subDirs) {
-				if (subDir.isDirectory()) {
-					File found = findFolder(subDir, targetFolderName);
-					if (found != null) {
-						return found;
-					}
-				}
+		try (Stream<Path> paths = Files.walk(rootDir.toPath())) {
+			Optional<Path> match = paths.filter(path -> path.getFileName().toString().equals(targetFileName))
+					.findFirst();
+			return match.map(Path::toFile).orElse(null);
+		} catch (IOException e) {
+			if (Trace.isEnabled()) {
+				Trace.getTracer().trace(Trace.TRACE_UI, "An error occurred while searching for the folder.", e);
 			}
-		}
-		return null; // Folder not found
-	}
-
-	// Method to find a specific file in a folder
-	private static File findFileInFolder(File folder, String fileName) {
-		if (folder == null || !folder.isDirectory()) {
 			return null;
 		}
-
-		File[] files = folder.listFiles();
-		if (files != null) {
-			for (File file : files) {
-				if (file.isFile() && file.getName().equals(fileName)) {
-					return file; // Found the file
-				} else if (file.isDirectory()) {
-					File found = findFileInFolder(file, fileName);
-					if (found != null) {
-						return found;
-					}
-				}
-			}
-		}
-		return null; // File not found
 	}
 
 	// Create a directory and a file containing the specified content.
-	private static void createDirectoryStructure(File file, String content) {
+	private static void createFile(Path filePath, String content) {
 		try {
-			if (file.getParentFile() != null && !file.getParentFile().exists()) {
-				file.getParentFile().mkdirs();
-			}
-
-			if (file.createNewFile()) {
-				try (FileWriter writer = new FileWriter(file)) {
-					writer.write(content);
-				}
+			Files.createDirectories(filePath.getParent());
+			if (Files.notExists(filePath)) {
+				Files.createFile(filePath);
+				Files.writeString(filePath, content);
 			} else {
 				if (Trace.isEnabled()) {
 					Trace.getTracer().trace(Trace.TRACE_UI, "File already exists: " + file.getAbsolutePath());
@@ -422,17 +385,21 @@ public class Utils {
 		}
 	}
 
-	// Method to delete a directory and its contents
-	private static boolean deleteDirectory(File directory) {
-		if (directory.isDirectory()) {
-			File[] files = directory.listFiles();
-			if (files != null) {
-				for (File file : files) {
-					deleteDirectory(file); // Recursively delete files and subdirectories
+	// Method to delete a file by path.
+	private static void deleteFileByName(Path filePath) {
+		try {
+			Files.walk(filePath).filter(Files::isRegularFile).forEach(path -> {
+				try {
+					Files.delete(path);
+				} catch (IOException e) {
+					e.printStackTrace();
 				}
+			});
+		} catch (IOException e) {
+			if (Trace.isEnabled()) {
+				Trace.getTracer().trace(Trace.TRACE_UI, "Error during file deletion: " + e.getMessage());
 			}
 		}
-		return directory.delete(); // Delete the directory (or file)
 	}
 
 	private static void validateProjectIsGradleOrMaven(Project project) throws Exception {
@@ -455,16 +422,12 @@ public class Utils {
 		}
 	}
 
+	// Get the usr directory path from the maven/gradle output folder.
 	private static File getUsrDirPath(Project project) {
-		if (project.getBuildType()  == Project.BuildType.MAVEN) {
+		if (project.getBuildType() == Project.BuildType.MAVEN) {
 			return Paths.get(project.getPath(), "target", "liberty", "wlp", "usr").toFile();
 		} else {
 			return Paths.get(project.getPath(), "target", "wlp", "usr").toFile();
 		}
 	}
-
-	private static String getXmlFilePath(File serverXmlFile) {
-        return Paths.get(serverXmlFile.getParent(), "configDropins", "overrides", "disableApplicationMonitor.xml").toString();
-	}
-	
 }
