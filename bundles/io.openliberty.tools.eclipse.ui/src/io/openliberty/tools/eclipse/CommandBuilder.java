@@ -30,14 +30,14 @@ public class CommandBuilder {
     private String pathEnv;
 
     private boolean isMaven;
-    
+
     private String MVNW_WRAPPER = "./mvnw";
-    
-	private String MVNW_WRAPPER_WIN = ".\\mvnw.cmd";
-	
-	private String GRADLE_WRAPPER = "./gradlew";
-	
-	private String GRADLE_WRAPPER_WIN = ".\\gradlew.bat";
+
+    private String MVNW_WRAPPER_WIN = ".\\mvnw.cmd";
+
+    private String GRADLE_WRAPPER = "./gradlew";
+
+    private String GRADLE_WRAPPER_WIN = ".\\gradlew.bat";
 
     /**
      * @param pathEnv
