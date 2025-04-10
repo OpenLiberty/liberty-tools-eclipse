@@ -1102,6 +1102,15 @@ public class DevModeOperations {
         return processController.isProcessStarted(projectName);
     }
 
+    public void restartServer(String projectName) {
+        String restartCommand = "r" + System.lineSeparator();
+        try {
+			processController.writeToProcessStream(projectName, restartCommand);
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    }
     /**
      * Refreshes the dashboard view.
      */
