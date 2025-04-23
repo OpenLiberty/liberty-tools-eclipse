@@ -68,7 +68,6 @@ public class LibertyHotCodeReplaceErrorDialog extends HotCodeReplaceErrorDialog 
                 public void run() {
                     try {
                         operation[0] = DebugUIMessages.HotCodeReplaceErrorDialog_6;
-//                        target.disconnect();
 
                         // Restart the debugger
                         DevModeOperations devModeOps = DevModeOperations.getInstance();
