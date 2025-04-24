@@ -421,7 +421,7 @@ public class Utils {
 		if (project.getBuildType() == Project.BuildType.MAVEN) {
 			return Paths.get(project.getPath(), "target", "liberty", "wlp", "usr").toFile();
 		} else {
-			return Paths.get(project.getPath(), "target", "wlp", "usr").toFile();
+			return Paths.get(project.getPath(), "build", "wlp", "usr").toFile();
 		}
 	}
 
