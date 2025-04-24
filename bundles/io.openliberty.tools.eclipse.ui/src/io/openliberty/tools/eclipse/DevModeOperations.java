@@ -56,6 +56,7 @@ import io.openliberty.tools.eclipse.messages.Messages;
 import io.openliberty.tools.eclipse.process.ProcessController;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
+import io.openliberty.tools.eclipse.utils.Utils;
 
 /**
  * Provides the implementation of all supported dev mode operations.
@@ -394,6 +395,11 @@ public class DevModeOperations {
         }
 
         String projectName = iProject.getName();
+        Project project = projectModel.getProject(projectName);
+        
+        if (project != null) {
+        	Utils.reEnableAppMonitoring(project);
+        }
 
         // Check if the stop action has already been issued of if a start action was never issued before.
         if (!processController.isProcessStarted(projectName)) {
