@@ -153,14 +153,15 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
 
         // Retrieve configuration data.
         boolean runInContainer = configuration.getAttribute(StartTab.PROJECT_RUN_IN_CONTAINER, false);
+        boolean enhancedDebugMonitoring = configuration.getAttribute(StartTab.PROJECT_DEBUG_ENHANCED_MONITORING, true);
         String configParms = configuration.getAttribute(StartTab.PROJECT_START_PARM, (String) null);
         String javaHomePath = JRETab.resolveJavaHome(configuration);
 
         // Process the action.
         if (runInContainer) {
-            devModeOps.startInContainer(iProject, configParms, javaHomePath, launch, mode);
+            devModeOps.startInContainer(iProject, configParms, javaHomePath, launch, mode, enhancedDebugMonitoring);
         } else {
-            devModeOps.start(iProject, configParms, javaHomePath, launch, mode);
+            devModeOps.start(iProject, configParms, javaHomePath, launch, mode, enhancedDebugMonitoring);
         }
 
         if (Trace.isEnabled()) {

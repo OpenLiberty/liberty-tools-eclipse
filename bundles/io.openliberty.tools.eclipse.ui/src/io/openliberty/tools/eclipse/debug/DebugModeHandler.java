@@ -215,7 +215,7 @@ public class DebugModeHandler {
      * 
      * @throws Exception
      */
-    public void startDebugAttacher(Project project, ILaunch launch, String port) {
+    public void startDebugAttacher(Project project, ILaunch launch, String port, boolean enableEnhancedDebugMonitoring) {
         String projectName = project.getIProject().getName();
 
         Job job = new Job("Attaching Debugger to JVM...") {
@@ -301,7 +301,9 @@ public class DebugModeHandler {
                     display.syncExec(new Runnable() {
                         public void run() {
                             openDebugPerspective();
-                            Utils.disableAppMonitoring(project);
+                            if (enableEnhancedDebugMonitoring) {
+                            	Utils.disableAppMonitoring(project);
+                            }
                         }
                     });
                 } else {
