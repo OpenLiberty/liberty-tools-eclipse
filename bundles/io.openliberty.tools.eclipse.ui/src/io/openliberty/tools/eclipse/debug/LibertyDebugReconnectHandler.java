@@ -101,8 +101,10 @@ public class LibertyDebugReconnectHandler extends AbstractHandler {
             DevModeOperations devModeOps = DevModeOperations.getInstance();
 
             String projectName = null;
+            boolean enableEnhancedMonitoring = true;
             try {
                 projectName = launch.getLaunchConfiguration().getAttribute(StartTab.PROJECT_NAME, "");
+                enableEnhancedMonitoring = launch.getLaunchConfiguration().getAttribute(StartTab.PROJECT_DEBUG_ENHANCED_MONITORING, true);
             } catch (CoreException e) {
                 String msg = "An error was detected during debugger reconnect";
                 if (Trace.isEnabled()) {
@@ -117,7 +119,7 @@ public class LibertyDebugReconnectHandler extends AbstractHandler {
                 // Reconnect debugger
                 if (devModeOps.isProjectStarted(projectName)) {
                     DebugModeHandler debugModeHandler = devModeOps.getDebugModeHandler();
-                    debugModeHandler.startDebugAttacher(project, launch, null);
+                    debugModeHandler.startDebugAttacher(project, launch, null, enableEnhancedMonitoring);
                 }
 
                 // Remove old debug target

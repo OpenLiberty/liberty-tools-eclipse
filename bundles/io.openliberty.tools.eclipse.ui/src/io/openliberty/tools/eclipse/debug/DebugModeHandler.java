@@ -65,6 +65,7 @@ import io.openliberty.tools.eclipse.Project.BuildType;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
+import io.openliberty.tools.eclipse.utils.Utils;
 
 public class DebugModeHandler {
 
@@ -214,7 +215,7 @@ public class DebugModeHandler {
      * 
      * @throws Exception
      */
-    public void startDebugAttacher(Project project, ILaunch launch, String port) {
+    public void startDebugAttacher(Project project, ILaunch launch, String port, boolean enableEnhancedDebugMonitoring) {
         String projectName = project.getIProject().getName();
 
         Job job = new Job("Attaching Debugger to JVM...") {
@@ -300,6 +301,9 @@ public class DebugModeHandler {
                     display.syncExec(new Runnable() {
                         public void run() {
                             openDebugPerspective();
+                            if (enableEnhancedDebugMonitoring) {
+                            	Utils.disableAppMonitoring(project);
+                            }
                         }
                     });
                 } else {

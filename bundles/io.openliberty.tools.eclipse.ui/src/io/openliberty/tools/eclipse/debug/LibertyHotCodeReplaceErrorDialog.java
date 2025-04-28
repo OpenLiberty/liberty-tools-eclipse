@@ -75,11 +75,12 @@ public class LibertyHotCodeReplaceErrorDialog extends HotCodeReplaceErrorDialog 
 
                         ILaunch launch = target.getLaunch();
                         String projectName = launch.getLaunchConfiguration().getAttribute(StartTab.PROJECT_NAME, "");
+                        boolean enableEnhancedMonitoring = launch.getLaunchConfiguration().getAttribute(StartTab.PROJECT_DEBUG_ENHANCED_MONITORING, true);
                         Project project = devModeOps.getProjectModel().getProject(projectName);
 
                         launch.removeDebugTarget(target);
                         DebugModeHandler debugModeHandler = devModeOps.getDebugModeHandler();
-                        debugModeHandler.startDebugAttacher(project, launch, null);
+                        debugModeHandler.startDebugAttacher(project, launch, null, enableEnhancedMonitoring);
                     } catch (CoreException e) {
                         ex[0] = e;
                     }

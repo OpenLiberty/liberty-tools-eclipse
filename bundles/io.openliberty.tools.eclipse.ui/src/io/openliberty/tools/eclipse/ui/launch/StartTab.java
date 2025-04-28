@@ -16,6 +16,7 @@ import org.eclipse.core.resources.IProject;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
+import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.ui.AbstractLaunchConfigurationTab;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.preference.PreferenceDialog;
@@ -62,6 +63,9 @@ public class StartTab extends AbstractLaunchConfigurationTab {
     /** Configuration map key with a value stating whether or not the associated project ran in a container. */
     public static final String PROJECT_RUN_IN_CONTAINER = "io.openliberty.tools.eclipse.launch.project.container.run";
 
+    /** Configuration map key with a value stating whether or not the associated project debug with HCR option. */
+    public static final String PROJECT_DEBUG_ENHANCED_MONITORING = "io.openliberty.tools.eclipse.debug.enhanced.monitoring";
+    
     /** Main preference page ID. */
     public static final String MAIN_PREFERENCE_PAGE_ID = "io.openliberty.tools.eclipse.ui.preferences.page";
 
@@ -85,6 +89,9 @@ public class StartTab extends AbstractLaunchConfigurationTab {
     /** Holds the run in container check box. */
     private Button runInContainerCheckBox;
 
+    /** Holds the debug in HCR. */
+    private Button debugEnhancedMonitoringCheckBox;
+    
     /** DevModeOperations instance. */
     private DevModeOperations devModeOps = DevModeOperations.getInstance();
 
@@ -112,7 +119,10 @@ public class StartTab extends AbstractLaunchConfigurationTab {
         Composite parmsGroupComposite = createGroupComposite(mainComposite, "", 2);
         createInputParmText(parmsGroupComposite);
         createRunInContainerButton(parmsGroupComposite);
-
+        if (ILaunchManager.DEBUG_MODE.equals(getLaunchConfigurationDialog().getMode())) {           
+        	createEnhancedDebugMonitoringButton(parmsGroupComposite);
+        }
+        
         createLabelWithPreferenceLink(mainComposite);
     }
 
@@ -135,7 +145,10 @@ public class StartTab extends AbstractLaunchConfigurationTab {
         configuration.setAttribute(PROJECT_START_PARM, getDefaultStartCommand(activeProject));
 
         configuration.setAttribute(PROJECT_RUN_IN_CONTAINER, false);
-
+        
+        if (ILaunchManager.DEBUG_MODE.equals(getLaunchConfigurationDialog().getMode())) {           
+        	configuration.setAttribute(PROJECT_DEBUG_ENHANCED_MONITORING, true);
+        }
         if (Trace.isEnabled()) {
             Trace.getTracer().traceExit(Trace.TRACE_UI);
         }
@@ -160,6 +173,10 @@ public class StartTab extends AbstractLaunchConfigurationTab {
             boolean runInContainer = configuration.getAttribute(PROJECT_RUN_IN_CONTAINER, false);
             runInContainerCheckBox.setSelection(runInContainer);
 
+            if (ILaunchManager.DEBUG_MODE.equals(getLaunchConfigurationDialog().getMode())) {           
+            	boolean enahncedDebugMonitoring = configuration.getAttribute(PROJECT_DEBUG_ENHANCED_MONITORING, true);
+            	debugEnhancedMonitoringCheckBox.setSelection(enahncedDebugMonitoring);
+            }
             String projectName = configuration.getAttribute(PROJECT_NAME, (String) null);
             if (projectName == null) {
                 super.setErrorMessage(
@@ -248,14 +265,23 @@ public class StartTab extends AbstractLaunchConfigurationTab {
         String startParamStr = startParmText.getText();
 
         boolean runInContainerBool = runInContainerCheckBox.getSelection();
-
         configuration.setAttribute(PROJECT_RUN_IN_CONTAINER, runInContainerBool);
+
+        if (ILaunchManager.DEBUG_MODE.equals(getLaunchConfigurationDialog().getMode())) {           
+        	boolean enhancedMonitoringBool = debugEnhancedMonitoringCheckBox.getSelection();
+        	configuration.setAttribute(PROJECT_DEBUG_ENHANCED_MONITORING, enhancedMonitoringBool);
+        }
 
         configuration.setAttribute(PROJECT_START_PARM, startParamStr);
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().trace(Trace.TRACE_UI, "In performApply with project name = " + projectNameLabel.getText() + ", text = "
-                    + startParamStr + ", runInContainer = " + runInContainerBool);
+        	String message = "In performApply with project name = " + projectNameLabel.getText() + ", text = "
+                    + startParamStr + ", runInContainer = " + runInContainerBool;
+            if (ILaunchManager.DEBUG_MODE.equals(getLaunchConfigurationDialog().getMode())) {     
+            	message +=", debug in enhanced monitoringt = "  + debugEnhancedMonitoringCheckBox.getSelection();
+            } 
+        	
+            Trace.getTracer().trace(Trace.TRACE_UI, message);
         }
     }
 
@@ -409,6 +435,34 @@ public class StartTab extends AbstractLaunchConfigurationTab {
         GridDataFactory.swtDefaults().applyTo(emptyColumnLabel);
     }
 
+
+    /**
+     * Creates the button entry that indicates whether or not the debug mode should work with HCR.
+     * 
+     * @param parent The parent composite.
+     */
+	private void createEnhancedDebugMonitoringButton(Composite parent) {
+		debugEnhancedMonitoringCheckBox = new Button(parent, SWT.CHECK);
+		debugEnhancedMonitoringCheckBox.setText("Enhanced Debug Monitoring");
+		debugEnhancedMonitoringCheckBox.setSelection(false);
+		debugEnhancedMonitoringCheckBox.setFont(font);
+		debugEnhancedMonitoringCheckBox.addSelectionListener(new SelectionAdapter() {
+
+			/**
+			 * {@inheritDoc}
+			 */
+			@Override
+			public void widgetSelected(SelectionEvent event) {
+				setDirty(true);
+				updateLaunchConfigurationDialog();
+			}
+		});
+		GridDataFactory.swtDefaults().applyTo(debugEnhancedMonitoringCheckBox);
+
+		Label emptyColumnLabel = new Label(parent, SWT.NONE);
+		GridDataFactory.swtDefaults().applyTo(emptyColumnLabel);
+	}
+	
     /**
      * Returns the default start parameters.
      * 

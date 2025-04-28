@@ -56,6 +56,7 @@ import io.openliberty.tools.eclipse.messages.Messages;
 import io.openliberty.tools.eclipse.process.ProcessController;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
+import io.openliberty.tools.eclipse.utils.Utils;
 
 /**
  * Provides the implementation of all supported dev mode operations.
@@ -166,7 +167,7 @@ public class DevModeOperations {
      * @param launch The launch associated with this run.
      * @param mode The configuration mode.
      */
-    public void start(IProject iProject, String parms, String javaHomePath, ILaunch launch, String mode) {
+    public void start(IProject iProject, String parms, String javaHomePath, ILaunch launch, String mode, boolean enableEnhancedDebugMonitor) {
 
         if (Trace.isEnabled()) {
             Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { iProject, parms, javaHomePath, mode });
@@ -244,7 +245,7 @@ public class DevModeOperations {
 
             // If there is a debugPort, start the job to attach the debugger to the Liberty server JVM.
             if (debugPort != null) {
-                debugModeHandler.startDebugAttacher(project, launch, debugPort);
+                debugModeHandler.startDebugAttacher(project, launch, debugPort, enableEnhancedDebugMonitor);
             }
         } catch (CommandNotFoundException e) {
             String msg = "Maven or Gradle command not found for project " + projectName;
@@ -274,10 +275,10 @@ public class DevModeOperations {
      * @param launch The launch associated with this run.
      * @param mode The configuration mode.
      */
-    public void startInContainer(IProject iProject, String parms, String javaHomePath, ILaunch launch, String mode) {
+    public void startInContainer(IProject iProject, String parms, String javaHomePath, ILaunch launch, String mode, boolean enableEnhancedDebugMonitor) {
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { iProject, parms, javaHomePath, mode });
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { iProject, parms, javaHomePath, mode, enableEnhancedDebugMonitor });
         }
 
         if (iProject == null) {
@@ -351,7 +352,7 @@ public class DevModeOperations {
 
             // If there is a debugPort, start the job to attach the debugger to the Liberty server JVM.
             if (debugPort != null) {
-                debugModeHandler.startDebugAttacher(project, launch, debugPort);
+                debugModeHandler.startDebugAttacher(project, launch, debugPort, enableEnhancedDebugMonitor);
             }
         } catch (Exception e) {
             String msg = "An error was detected during the start in container request on project " + projectName;
@@ -394,6 +395,11 @@ public class DevModeOperations {
         }
 
         String projectName = iProject.getName();
+        Project project = projectModel.getProject(projectName);
+        
+        if (project != null) {
+        	Utils.reEnableAppMonitoring(project);
+        }
 
         // Check if the stop action has already been issued of if a start action was never issued before.
         if (!processController.isProcessStarted(projectName)) {
