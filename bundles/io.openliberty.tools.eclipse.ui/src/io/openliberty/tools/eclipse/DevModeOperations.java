@@ -233,6 +233,17 @@ public class DevModeOperations {
                 cmd = CommandBuilder.getMavenCommandLine(projectPath, (runProjectClean == true ? " clean " : "" ) +  "io.openliberty.tools:liberty-maven-plugin:dev " + startParms,
                         pathEnv);
             } else if (buildType == Project.BuildType.GRADLE) {
+            	if (runProjectClean == true) {
+                    // Step 1: Run gradle --stop
+                    String stopCmd = CommandBuilder.getGradleCommandLine(projectPath, " --stop ", pathEnv);
+                    startDevMode(stopCmd, projectName, projectPath, javaHomePath, launch);
+                    try {
+                        Thread.sleep(3000); // sleep for 3 seconds
+                    } catch (InterruptedException e) {
+                        // Handle interruption
+                        Thread.currentThread().interrupt();
+                    }
+                }
                 cmd = CommandBuilder.getGradleCommandLine(projectPath, (runProjectClean == true ? " clean " : "" ) + "libertyDev " + startParms, pathEnv);
             } else {
                 throw new Exception("Unexpected project build type: " + buildType + ". Project " + projectName
@@ -340,6 +351,17 @@ public class DevModeOperations {
                 cmd = CommandBuilder.getMavenCommandLine(projectPath, (runProjectClean == true ? " clean " : "") + "io.openliberty.tools:liberty-maven-plugin:devc " + startParms,
                         pathEnv);
             } else if (buildType == Project.BuildType.GRADLE) {
+            	if (runProjectClean == true) {
+                    // Step 1: Run gradle --stop
+                    String stopCmd = CommandBuilder.getGradleCommandLine(projectPath, " --stop ", pathEnv);
+                    startDevMode(stopCmd, projectName, projectPath, javaHomePath, launch);
+                    try {
+                        Thread.sleep(3000); // sleep for 3 seconds
+                    } catch (InterruptedException e) {
+                        // Handle interruption
+                        Thread.currentThread().interrupt();
+                    }
+                }
                 cmd = CommandBuilder.getGradleCommandLine(projectPath, (runProjectClean == true ? " clean " : "" ) + "libertyDevc " + startParms, pathEnv);
             } else {
                 throw new Exception("Unexpected project build type: " + buildType + ". Project " + projectName

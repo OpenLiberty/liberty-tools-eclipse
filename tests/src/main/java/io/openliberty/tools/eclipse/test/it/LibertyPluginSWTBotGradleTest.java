@@ -506,7 +506,6 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
                 launchDashboardAction(GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT);
             }
         } finally {
-        	
             // Stop dev mode.
             launchDashboardAction(GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
         	
