@@ -489,6 +489,12 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
 
         // Start dev mode.
         launchDashboardAction(GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_START);
+        try {
+            Thread.sleep(10000); // sleep for 1 min
+        } catch (InterruptedException e) {
+            // Handle interruption
+            Thread.currentThread().interrupt();
+        }
 
         // Validate application is up and running.
         LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_APP_NAME, true, testAppPath + "/build");
@@ -692,6 +698,12 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
 
         // Start dev mode. This should start locally.
         launchDashboardAction(GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_START);
+        try {
+            Thread.sleep(10000); // sleep for 1 min
+        } catch (InterruptedException e) {
+            // Handle interruption
+            Thread.currentThread().interrupt();
+        }
 
         LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_APP_NAME, true, testAppPath + "/build");
         //Reads the text from the console output tab
