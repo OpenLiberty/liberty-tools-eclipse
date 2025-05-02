@@ -22,9 +22,12 @@ import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import org.eclipse.buildship.core.BuildConfiguration;
@@ -256,4 +259,49 @@ public abstract class AbstractLibertyPluginSWTBotTest {
         SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd.HH-mm-ss.SSS");
         return formatter.format(currentTime);
     }
+    
+    /**
+     * Copies all files and directories from the source directory to the destination directory.
+     * @param sourceDirectoryLocation The path to the source directory to copy from.
+     * @param destinationDirectoryLocation The path to the destination directory to copy to.
+     * @throws IOException If an I/O error occurs while copying files.
+     */
+    public static void copyDirectory(Path sourceDir, Path targetDir)
+            throws IOException {
+    	if (!Files.exists(sourceDir) || !Files.isDirectory(sourceDir)) {
+            throw new IllegalArgumentException("Source must be an existing directory");
+        }
+
+        Files.walk(sourceDir).forEach(sourcePath -> {
+            try {
+                Path targetPath = targetDir.resolve(sourceDir.relativize(sourcePath));
+                if (Files.isDirectory(sourcePath)) {
+                    if (!Files.exists(targetPath)) {
+                        Files.createDirectories(targetPath);
+                    }
+                } else {
+                    Files.copy(sourcePath, targetPath, StandardCopyOption.REPLACE_EXISTING);
+                }
+            } catch (IOException e) {
+                throw new RuntimeException("Failed to copy: " + sourcePath, e);
+            }
+        });
+    }
+
+
+public static void deleteDirectory(Path dirPath) throws IOException {
+    if (!Files.exists(dirPath)) {
+        throw new IllegalArgumentException("Path does not exist: " + dirPath);
+    }
+
+    Files.walk(dirPath)
+         .sorted(Comparator.reverseOrder())
+         .forEach(path -> {
+             try {
+                 Files.delete(path);
+             } catch (IOException e) {
+                 throw new RuntimeException("Failed to delete: " + path, e);
+             }
+         });
+}
 }
