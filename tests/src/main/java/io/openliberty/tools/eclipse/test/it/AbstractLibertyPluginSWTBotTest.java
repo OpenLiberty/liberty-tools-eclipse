@@ -288,7 +288,11 @@ public abstract class AbstractLibertyPluginSWTBotTest {
         });
     }
 
-
+/**
+ * Delete the directory with content
+ * @param dirPath
+ * @throws IOException
+ */
 public static void deleteDirectory(Path dirPath) throws IOException {
     if (!Files.exists(dirPath)) {
         throw new IllegalArgumentException("Path does not exist: " + dirPath);
