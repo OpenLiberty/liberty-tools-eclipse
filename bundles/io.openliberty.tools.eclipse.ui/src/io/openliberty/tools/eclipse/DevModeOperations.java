@@ -14,11 +14,13 @@ package io.openliberty.tools.eclipse;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -56,6 +58,7 @@ import io.openliberty.tools.eclipse.messages.Messages;
 import io.openliberty.tools.eclipse.process.ProcessController;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
+import io.openliberty.tools.eclipse.utils.Utils;
 
 /**
  * Provides the implementation of all supported dev mode operations.
@@ -233,18 +236,14 @@ public class DevModeOperations {
                 cmd = CommandBuilder.getMavenCommandLine(projectPath, (runProjectClean == true ? " clean " : "" ) +  "io.openliberty.tools:liberty-maven-plugin:dev " + startParms,
                         pathEnv);
             } else if (buildType == Project.BuildType.GRADLE) {
+            	
             	if (runProjectClean == true) {
-                    // Step 1: Run gradle --stop
-                    String stopCmd = CommandBuilder.getGradleCommandLine(projectPath, " --stop ", pathEnv);
-                    startDevMode(stopCmd, projectName, projectPath, javaHomePath, launch);
-                    try {
-                        Thread.sleep(3000); // sleep for 3 seconds
-                    } catch (InterruptedException e) {
-                        // Handle interruption
-                        Thread.currentThread().interrupt();
-                    }
-                }
-                cmd = CommandBuilder.getGradleCommandLine(projectPath, (runProjectClean == true ? " clean " : "" ) + "libertyDev " + startParms, pathEnv);
+            		stopGradleDaemon(projectPath);
+					
+				}
+					cmd = CommandBuilder.getGradleCommandLine(projectPath, (runProjectClean == true ? " clean " : "" ) + "libertyDev " + startParms, pathEnv);
+
+
             } else {
                 throw new Exception("Unexpected project build type: " + buildType + ". Project " + projectName
                         + "does not appear to be a Maven or Gradle built project.");
@@ -351,17 +350,9 @@ public class DevModeOperations {
                 cmd = CommandBuilder.getMavenCommandLine(projectPath, (runProjectClean == true ? " clean " : "") + "io.openliberty.tools:liberty-maven-plugin:devc " + startParms,
                         pathEnv);
             } else if (buildType == Project.BuildType.GRADLE) {
-            	if (runProjectClean == true) {
-                    // Step 1: Run gradle --stop
-                    String stopCmd = CommandBuilder.getGradleCommandLine(projectPath, " --stop ", pathEnv);
-                    startDevMode(stopCmd, projectName, projectPath, javaHomePath, launch);
-                    try {
-                        Thread.sleep(3000); // sleep for 3 seconds
-                    } catch (InterruptedException e) {
-                        // Handle interruption
-                        Thread.currentThread().interrupt();
-                    }
-                }
+              	if (runProjectClean == true) {
+            		stopGradleDaemon(projectPath);
+				}
                 cmd = CommandBuilder.getGradleCommandLine(projectPath, (runProjectClean == true ? " clean " : "" ) + "libertyDevc " + startParms, pathEnv);
             } else {
                 throw new Exception("Unexpected project build type: " + buildType + ". Project " + projectName
@@ -1140,4 +1131,37 @@ public class DevModeOperations {
         // Cancel will remove job from 'runningJobs' Map
         runningJobs.keySet().forEach(j -> j.cancel());
     }
+    
+    public void stopGradleDaemon(String projectPath) throws IOException, InterruptedException {
+        List<String> command;
+
+        if (Utils.isWindows()) {
+            command = Arrays.asList("cmd.exe", "/c", "gradlew.bat --stop");
+        } else {
+            command = Arrays.asList("/bin/sh", "-c", "./gradlew --stop");
+        }
+        System.out.println("--stop command ::"+command);
+        ProcessBuilder builder = new ProcessBuilder(command);
+        builder.directory(new File(projectPath));
+        Process process = builder.start();
+        
+     // Read the process output
+        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
+        String line;
+        StringBuilder output = new StringBuilder();
+        while ((line = reader.readLine()) != null) {
+            output.append(line).append(System.lineSeparator());
+            System.out.println(line); // Optional: print to console or log
+        }
+
+        int exitCode = process.waitFor();
+
+        if (exitCode == 0 && output.toString().contains("Stopping Daemon")) {
+            System.out.println("Gradle daemon stopped successfully.");
+        } else {
+            System.err.println("Gradle --stop may have failed. Exit code: " + exitCode);
+            System.err.println("Output: " + output.toString());
+        }
+    }
+
 }
