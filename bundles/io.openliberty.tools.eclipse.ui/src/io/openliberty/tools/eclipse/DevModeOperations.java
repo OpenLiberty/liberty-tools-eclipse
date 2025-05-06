@@ -235,16 +235,21 @@ public class DevModeOperations {
             if (buildType == Project.BuildType.MAVEN) {
                 cmd = CommandBuilder.getMavenCommandLine(projectPath, (runProjectClean == true ? " clean " : "" ) +  "io.openliberty.tools:liberty-maven-plugin:dev " + startParms,
                         pathEnv);
-            } else if (buildType == Project.BuildType.GRADLE) {
-            	
-            	if (runProjectClean == true) {
-            		stopGradleDaemon(projectPath);
-					
+			} else if (buildType == Project.BuildType.GRADLE) {
+
+				if (runProjectClean == true) {
+					try {
+						String stopGradleDaemonCmd= CommandBuilder.getGradleCommandLine(projectPath," --stop", pathEnv);
+						executeCommand(stopGradleDaemonCmd, projectPath);
+					} catch (IOException | InterruptedException e) {
+						 Logger.logError("An attempt to stop the Gradle daemon failed....");
+					}
+
 				}
-					cmd = CommandBuilder.getGradleCommandLine(projectPath, (runProjectClean == true ? " clean " : "" ) + "libertyDev " + startParms, pathEnv);
+				cmd = CommandBuilder.getGradleCommandLine(projectPath,
+						(runProjectClean == true ? " clean " : "") + "libertyDev " + startParms, pathEnv);
 
-
-            } else {
+			} else {
                 throw new Exception("Unexpected project build type: " + buildType + ". Project " + projectName
                         + "does not appear to be a Maven or Gradle built project.");
             }
@@ -351,7 +356,13 @@ public class DevModeOperations {
                         pathEnv);
             } else if (buildType == Project.BuildType.GRADLE) {
               	if (runProjectClean == true) {
-            		stopGradleDaemon(projectPath);
+              		try {
+						//stopGradleDaemon(projectPath);
+						String stopGradleDaemonCmd= CommandBuilder.getGradleCommandLine(projectPath," --stop", pathEnv);
+						executeCommand(stopGradleDaemonCmd, projectPath);
+					} catch (IOException | InterruptedException e) {
+						 Logger.logError("An attempt to stop the Gradle daemon failed....");
+					}
 				}
                 cmd = CommandBuilder.getGradleCommandLine(projectPath, (runProjectClean == true ? " clean " : "" ) + "libertyDevc " + startParms, pathEnv);
             } else {
@@ -1132,36 +1143,16 @@ public class DevModeOperations {
         runningJobs.keySet().forEach(j -> j.cancel());
     }
     
-    public void stopGradleDaemon(String projectPath) throws IOException, InterruptedException {
-        List<String> command;
 
-        if (Utils.isWindows()) {
-            command = Arrays.asList("cmd.exe", "/c", "gradlew.bat --stop");
-        } else {
-            command = Arrays.asList("/bin/sh", "-c", "./gradlew --stop");
-        }
-        System.out.println("--stop command ::"+command);
-        ProcessBuilder builder = new ProcessBuilder(command);
-        builder.directory(new File(projectPath));
-        Process process = builder.start();
-        
-     // Read the process output
-        BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()));
-        String line;
-        StringBuilder output = new StringBuilder();
-        while ((line = reader.readLine()) != null) {
-            output.append(line).append(System.lineSeparator());
-            System.out.println(line); // Optional: print to console or log
-        }
+	public void executeCommand(String fullCommand, String projectPath) throws IOException, InterruptedException {
+		// Split the full command into individual arguments
+		List<String> command = Arrays.asList(fullCommand.trim().split("\\s+"));
 
-        int exitCode = process.waitFor();
+		ProcessBuilder builder = new ProcessBuilder(command);
+		builder.directory(new File(projectPath)); // Set working directory
 
-        if (exitCode == 0 && output.toString().contains("Stopping Daemon")) {
-            System.out.println("Gradle daemon stopped successfully.");
-        } else {
-            System.err.println("Gradle --stop may have failed. Exit code: " + exitCode);
-            System.err.println("Output: " + output.toString());
-        }
-    }
+		Process process = builder.start();
+		process.waitFor();
+	}
 
 }
