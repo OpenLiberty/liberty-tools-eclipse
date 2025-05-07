@@ -354,18 +354,20 @@ public class DevModeOperations {
             if (buildType == Project.BuildType.MAVEN) {
                 cmd = CommandBuilder.getMavenCommandLine(projectPath, (runProjectClean == true ? " clean " : "") + "io.openliberty.tools:liberty-maven-plugin:devc " + startParms,
                         pathEnv);
-            } else if (buildType == Project.BuildType.GRADLE) {
-              	if (runProjectClean == true) {
-              		try {
-						//stopGradleDaemon(projectPath);
-						String stopGradleDaemonCmd= CommandBuilder.getGradleCommandLine(projectPath," --stop", pathEnv);
+			} else if (buildType == Project.BuildType.GRADLE) {
+				if (runProjectClean == true) {
+					try {
+
+						String stopGradleDaemonCmd = CommandBuilder.getGradleCommandLine(projectPath, " --stop",
+								pathEnv);
 						executeCommand(stopGradleDaemonCmd, projectPath);
 					} catch (IOException | InterruptedException e) {
-						 Logger.logError("An attempt to stop the Gradle daemon failed....");
+						Logger.logError("An attempt to stop the Gradle daemon failed....");
 					}
 				}
-                cmd = CommandBuilder.getGradleCommandLine(projectPath, (runProjectClean == true ? " clean " : "" ) + "libertyDevc " + startParms, pathEnv);
-            } else {
+				cmd = CommandBuilder.getGradleCommandLine(projectPath,
+						(runProjectClean == true ? " clean " : "") + "libertyDevc " + startParms, pathEnv);
+			} else {
                 throw new Exception("Unexpected project build type: " + buildType + ". Project " + projectName
                         + "does not appear to be a Maven or Gradle built project.");
             }
