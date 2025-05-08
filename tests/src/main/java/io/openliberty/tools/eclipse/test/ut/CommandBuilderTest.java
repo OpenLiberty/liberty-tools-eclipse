@@ -40,7 +40,7 @@ public class CommandBuilderTest {
         unsetBuildCmdPathInPreferences(new SWTWorkbenchBot(), "Maven");
         Path projectPath = Paths.get("resources", "applications", "maven", "liberty-maven-test-wrapper-app");
         String retVal = CommandBuilder.getMavenCommandLine(projectPath.toString(), "-a 123", obfuscatedPath());
-        assertEquals(projectPath.resolve(mvnwName()) + " -a 123", retVal, "Wrong cmd line");
+        assertEquals((mvnwName()) + " -a 123", retVal, "Wrong cmd line");
     }
 
     /**
@@ -78,9 +78,9 @@ public class CommandBuilderTest {
 
     private String mvnwName() {
         if (System.getProperty("os.name").contains("Windows")) {
-            return "mvnw.cmd";
+            return ".\\mvnw.cmd";
         } else {
-            return "mvnw";
+            return "./mvnw";
         }
     }
 
