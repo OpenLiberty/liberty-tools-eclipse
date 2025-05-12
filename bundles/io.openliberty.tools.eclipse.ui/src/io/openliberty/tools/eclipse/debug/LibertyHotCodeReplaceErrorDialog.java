@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2024 IBM Corporation and others.
+* Copyright (c) 2024, 2025 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -30,6 +30,7 @@ import org.eclipse.swt.widgets.Shell;
 import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.Project;
 import io.openliberty.tools.eclipse.ui.launch.StartTab;
+import io.openliberty.tools.eclipse.utils.Utils;
 
 /**
  * This class is an extension of the Eclipse JDT HotCodeReplaceErrorDialog. It provides
@@ -75,14 +76,18 @@ public class LibertyHotCodeReplaceErrorDialog extends HotCodeReplaceErrorDialog 
                         ILaunch launch = target.getLaunch();
                         String projectName = launch.getLaunchConfiguration().getAttribute(StartTab.PROJECT_NAME, "");
                         Project project = devModeOps.getProjectModel().getProject(projectName);
-
+                        String userParms = launch.getLaunchConfiguration().getAttribute(StartTab.PROJECT_START_PARM, "");
                         DebugModeHandler debugModeHandler = devModeOps.getDebugModeHandler();
                         if (devModeOps.isProjectStarted(projectName)) {
                          	devModeOps.restartServer(projectName);
+                         	if (target.canDisconnect()) {
+                         		target.disconnect(); // detaches debugger
+                         	}
                             launch.removeDebugTarget(target);
- 
                          }
-                        debugModeHandler.startDebugAttacher(project, launch, null);
+                        if (Utils.validateLibertyServerStopped(project)) {
+                        	debugModeHandler.startDebugAttacher(project, launch, null);
+                        }
                     } catch (CoreException e) {
                         ex[0] = e;
                     }

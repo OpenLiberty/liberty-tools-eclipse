@@ -12,8 +12,11 @@
 *******************************************************************************/
 package io.openliberty.tools.eclipse.utils;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,6 +38,7 @@ import org.eclipse.ui.PlatformUI;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.LibertyDevPlugin;
+import io.openliberty.tools.eclipse.Project;
 import io.openliberty.tools.eclipse.logging.Trace;
 
 /**
@@ -272,5 +276,47 @@ public class Utils {
         }
 
         return cause;
+    }
+    
+	public static boolean validateLibertyServerStopped(Project project) {
+		String wlpMsgLogPath = getLogFilePath(project);
+		int maxAttempts = 30;
+		boolean foundStoppedMsg = false;
+
+		// Find message CWWKE0036I: The server x stopped after y seconds
+		for (int i = 0; i < maxAttempts; i++) {
+			try (BufferedReader br = new BufferedReader(new FileReader(wlpMsgLogPath))) {
+				String line;
+				while ((line = br.readLine()) != null) {
+					if (line.contains("CWWKE0036I")) {
+						foundStoppedMsg = true;
+						break;
+					}
+				}
+
+				if (foundStoppedMsg) {
+					break;
+				} else {
+					Thread.sleep(3000);
+				}
+			} catch (Exception e) {
+				if (Trace.isEnabled()) {
+					Trace.getTracer().trace(Trace.TRACE_UI, "Caught exception waiting for stop message", e);
+				}
+			}
+		}
+		return foundStoppedMsg;
+	}
+
+    // Get the usr directory path from the maven/gradle output folder.
+    private static String getLogFilePath(Project project) {
+    	if (project.getBuildType() == Project.BuildType.MAVEN) {
+    		return Paths.get(project.getPath(), "target", "liberty", "wlp", "usr", "servers", "defaultServer", "logs",
+    				"messages.log").toString();
+    	} else {
+    		return Paths
+    				.get(project.getPath(), "build", "wlp", "usr", "servers", "defaultServer", "logs", "messages.log")
+    				.toString();
+    	}
     }
 }
