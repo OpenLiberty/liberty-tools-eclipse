@@ -62,6 +62,9 @@ public class StartTab extends AbstractLaunchConfigurationTab {
 
     /** Configuration map key with a value stating whether or not the associated project ran in a container. */
     public static final String PROJECT_RUN_IN_CONTAINER = "io.openliberty.tools.eclipse.launch.project.container.run";
+    
+    /** Configuration map key with a value stating whether or not the associated project ran with clean option. */
+    public static final String PROJECT_CLEAN = "io.openliberty.tools.eclipse.launch.project.clean";
 
     /** Configuration map key with a value stating whether or not the associated project debug with HCR option. */
     public static final String PROJECT_DEBUG_ENHANCED_MONITORING = "io.openliberty.tools.eclipse.debug.enhanced.monitoring";
@@ -88,6 +91,9 @@ public class StartTab extends AbstractLaunchConfigurationTab {
 
     /** Holds the run in container check box. */
     private Button runInContainerCheckBox;
+    
+    /** Holds the project clean check box. */
+    private Button projectCleanCheckBox;
 
     /** Holds the debug in HCR. */
     private Button debugEnhancedMonitoringCheckBox;
@@ -123,6 +129,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
         	createEnhancedDebugMonitoringButton(parmsGroupComposite);
         }
         
+        createProjectCleanButton(parmsGroupComposite);
         createLabelWithPreferenceLink(mainComposite);
     }
 
@@ -172,6 +179,9 @@ public class StartTab extends AbstractLaunchConfigurationTab {
 
             boolean runInContainer = configuration.getAttribute(PROJECT_RUN_IN_CONTAINER, false);
             runInContainerCheckBox.setSelection(runInContainer);
+            
+            boolean projectClean = configuration.getAttribute(PROJECT_CLEAN, false);
+            projectCleanCheckBox.setSelection(projectClean);
 
             if (ILaunchManager.DEBUG_MODE.equals(getLaunchConfigurationDialog().getMode())) {           
             	boolean enahncedDebugMonitoring = configuration.getAttribute(PROJECT_DEBUG_ENHANCED_MONITORING, true);
@@ -265,7 +275,12 @@ public class StartTab extends AbstractLaunchConfigurationTab {
         String startParamStr = startParmText.getText();
 
         boolean runInContainerBool = runInContainerCheckBox.getSelection();
+        
+        boolean projectCleanBool = projectCleanCheckBox.getSelection();
+
         configuration.setAttribute(PROJECT_RUN_IN_CONTAINER, runInContainerBool);
+        
+        configuration.setAttribute(PROJECT_CLEAN, projectCleanBool);
 
         if (ILaunchManager.DEBUG_MODE.equals(getLaunchConfigurationDialog().getMode())) {           
         	boolean enhancedMonitoringBool = debugEnhancedMonitoringCheckBox.getSelection();
@@ -280,8 +295,9 @@ public class StartTab extends AbstractLaunchConfigurationTab {
             if (ILaunchManager.DEBUG_MODE.equals(getLaunchConfigurationDialog().getMode())) {     
             	message +=", debug in enhanced monitoringt = "  + debugEnhancedMonitoringCheckBox.getSelection();
             } 
-        	
             Trace.getTracer().trace(Trace.TRACE_UI, message);
+            Trace.getTracer().trace(Trace.TRACE_UI, "In performApply with project name = " + projectNameLabel.getText() + ", text = "
+                    + startParamStr + ", runInContainer = " + runInContainerBool + ", clean project = " + projectCleanBool);
         }
     }
 
@@ -434,6 +450,33 @@ public class StartTab extends AbstractLaunchConfigurationTab {
         Label emptyColumnLabel = new Label(parent, SWT.NONE);
         GridDataFactory.swtDefaults().applyTo(emptyColumnLabel);
     }
+    
+    /**
+     * Creates the button entry that indicates whether or not the project should run with project clean command.
+     * 
+     * @param parent The parent composite.
+     */
+	private void createProjectCleanButton(Composite parent) {
+		projectCleanCheckBox = new Button(parent, SWT.CHECK);
+		projectCleanCheckBox.setText("Clean project");
+		projectCleanCheckBox.setSelection(false);
+		projectCleanCheckBox.setFont(font);
+		projectCleanCheckBox.addSelectionListener(new SelectionAdapter() {
+
+			/**
+			 * {@inheritDoc}
+			 */
+			@Override
+			public void widgetSelected(SelectionEvent event) {
+				setDirty(true);
+				updateLaunchConfigurationDialog();
+			}
+		});
+		GridDataFactory.swtDefaults().applyTo(projectCleanCheckBox);
+
+		Label emptyColumnLabel = new Label(parent, SWT.NONE);
+		GridDataFactory.swtDefaults().applyTo(emptyColumnLabel);
+	}
 
 
     /**

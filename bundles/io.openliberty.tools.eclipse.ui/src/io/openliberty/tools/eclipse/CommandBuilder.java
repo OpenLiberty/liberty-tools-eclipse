@@ -31,6 +31,14 @@ public class CommandBuilder {
 
     private boolean isMaven;
 
+    private String MVNW_WRAPPER = "./mvnw";
+
+    private String MVNW_WRAPPER_WIN = ".\\mvnw.cmd";
+
+    private String GRADLE_WRAPPER = "./gradlew";
+
+    private String GRADLE_WRAPPER_WIN = ".\\gradlew.bat";
+
     /**
      * @param pathEnv
      * @param isMaven true for Maven, false for Gradle
@@ -111,7 +119,7 @@ public class CommandBuilder {
             throw new CommandNotFoundException(errorMsg);
         }
 
-        return cmd;
+        return encloseCmdInQuotesIfNeeded(cmd);
     }
 
     private String getCommandFromWrapper() {
@@ -122,8 +130,8 @@ public class CommandBuilder {
             Path p2mwProps = Paths.get(projectPath, ".mvn", "wrapper", "maven-wrapper.properties");
 
             if (p2mw.toFile().exists() && p2mwProps.toFile().exists()) {
-                cmd = p2mw.toString();
-            }
+                cmd = Utils.isWindows()? MVNW_WRAPPER_WIN : MVNW_WRAPPER;
+			}
         } else {
             // Check if there is wrapper defined.
             Path p2gw = (Utils.isWindows()) ? Paths.get(projectPath, "gradlew.bat") : Paths.get(projectPath, "gradlew");
@@ -131,7 +139,7 @@ public class CommandBuilder {
             Path p2gwProps = Paths.get(projectPath, "gradle", "wrapper", "gradle-wrapper.properties");
 
             if (p2gw.toFile().exists() && p2gwJar.toFile().exists() && p2gwProps.toFile().exists()) {
-                cmd = p2gw.toString();
+            	cmd = Utils.isWindows()? GRADLE_WRAPPER_WIN : GRADLE_WRAPPER;
             }
         }
         if (cmd != null) {
@@ -247,4 +255,14 @@ public class CommandBuilder {
         }
 
     }
+    
+    /**
+     * Function to enclose the command in double quotes if it contains any spaces
+     */
+	private String encloseCmdInQuotesIfNeeded(String cmd) {
+		if (cmd.contains(" ")) {
+			return "\"" + cmd + "\"";
+		}
+		return cmd;
+	}
 }
