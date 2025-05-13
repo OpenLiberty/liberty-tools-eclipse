@@ -41,12 +41,12 @@ public class LibertyPluginSWTBotGradleWithSpaceTest extends AbstractLibertyPlugi
 	/**
      * Application name.
      */
-    static final String GRADLE_APP_NAME = "liberty-gradle-test-app";
+    static final String GRADLE_APP_NAME = "liberty-gradle-test-app-with-spaces";
 
     /**
      * Application name.
      */
-    static final String GRADLE_WRAPPER_APP_NAME = "liberty-gradle-test-wrapper-app";
+    static final String GRADLE_WRAPPER_APP_NAME = "liberty-gradle-test-wrapper-app-with-spaces";
 
     static ArrayList<File> projectsToInstall = new ArrayList<File>();
 
@@ -54,12 +54,8 @@ public class LibertyPluginSWTBotGradleWithSpaceTest extends AbstractLibertyPlugi
      * Test app relative path.
      */
     
-    static final Path projectPath = Paths.get("resources", "applications", "gradle", "liberty-gradle-test-app");
-    static final Path projectPathCopy = Paths.get("resources", "applications", "gradle", "gradle withSpace", "liberty-gradle-test-app");
-    static final Path wrapperProjectPath = Paths.get("resources", "applications", "gradle", "liberty-gradle-test-wrapper-app");
-    static final Path wrapperProjectPathCopy = Paths.get("resources", "applications", "gradle","gradle withSpace", "liberty-gradle-test-wrapper-app");
-    static final Path projectsPath = Paths.get("resources", "applications", "gradle","gradle withSpace");
-
+    static final Path projectPath = Paths.get("resources", "applications", "apps with spaces", "liberty-gradle-test-app-with-spaces");
+    static final Path wrapperProjectPath = Paths.get("resources", "applications", "apps with spaces", "liberty-gradle-test-wrapper-app-with-spaces");
     static ArrayList<String> projectPaths = new ArrayList<String>();
     
     /**
@@ -71,11 +67,8 @@ public class LibertyPluginSWTBotGradleWithSpaceTest extends AbstractLibertyPlugi
     public static void setup() throws Exception {
 
         commonSetup();
-        copyDirectory(wrapperProjectPath,wrapperProjectPathCopy);
-        copyDirectory(projectPath,projectPathCopy);
-        
-        File mainProject = projectPathCopy.toFile();
-        File wrapperProject = wrapperProjectPathCopy.toFile();
+        File mainProject = projectPath.toFile();
+        File wrapperProject = wrapperProjectPath.toFile();
         
         projectsToInstall.add(mainProject);
         projectsToInstall.add(wrapperProject);
@@ -112,7 +105,6 @@ public class LibertyPluginSWTBotGradleWithSpaceTest extends AbstractLibertyPlugi
             cleanupProject(p);
         }
         unsetBuildCmdPathInPreferences(bot, "Gradle");
-        deleteDirectory(projectsPath);
     }
     
     
@@ -127,7 +119,7 @@ public class LibertyPluginSWTBotGradleWithSpaceTest extends AbstractLibertyPlugi
 
         // Validate application is up and running.
         LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_WRAPPER_APP_NAME, true,
-        		wrapperProjectPathCopy.toAbsolutePath().toString() + "/build");
+        		wrapperProjectPath.toAbsolutePath().toString() + "/build");
 
         // If there are issues with the workspace, close the error dialog.
         pressWorkspaceErrorDialogProceedButton(bot);
@@ -136,7 +128,7 @@ public class LibertyPluginSWTBotGradleWithSpaceTest extends AbstractLibertyPlugi
         launchDashboardAction(GRADLE_WRAPPER_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
 
         // Validate application stopped.
-        LibertyPluginTestUtils.validateLibertyServerStopped(wrapperProjectPathCopy.toAbsolutePath().toString() + "/build");
+        LibertyPluginTestUtils.validateLibertyServerStopped(wrapperProjectPath.toAbsolutePath().toString() + "/build");
     }
     
     /**
@@ -148,7 +140,7 @@ public class LibertyPluginSWTBotGradleWithSpaceTest extends AbstractLibertyPlugi
         launchDashboardAction(GRADLE_WRAPPER_APP_NAME, DashboardView.APP_MENU_ACTION_DEBUG);
 
         // Validate application is up and running.
-        LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_WRAPPER_APP_NAME, true, wrapperProjectPathCopy.toAbsolutePath().toString() + "/build");
+        LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_WRAPPER_APP_NAME, true, wrapperProjectPath.toAbsolutePath().toString() + "/build");
 
         // If there are issues with the workspace, close the error dialog.
         pressWorkspaceErrorDialogProceedButton(bot);
@@ -157,7 +149,7 @@ public class LibertyPluginSWTBotGradleWithSpaceTest extends AbstractLibertyPlugi
         launchDashboardAction(GRADLE_WRAPPER_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
 
         // Validate application stopped.
-        LibertyPluginTestUtils.validateLibertyServerStopped(wrapperProjectPathCopy.toAbsolutePath().toString() + "/build");
+        LibertyPluginTestUtils.validateLibertyServerStopped(wrapperProjectPath.toAbsolutePath().toString() + "/build");
     }
     
     
@@ -172,7 +164,7 @@ public class LibertyPluginSWTBotGradleWithSpaceTest extends AbstractLibertyPlugi
 
         // Validate application is up and running.
         LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_APP_NAME, true,
-        		projectPathCopy.toAbsolutePath().toString() + "/build");
+        		projectPath.toAbsolutePath().toString() + "/build");
 
         // If there are issues with the workspace, close the error dialog.
         pressWorkspaceErrorDialogProceedButton(bot);
@@ -181,7 +173,7 @@ public class LibertyPluginSWTBotGradleWithSpaceTest extends AbstractLibertyPlugi
         launchDashboardAction(GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
 
      // Validate application stopped.
-        LibertyPluginTestUtils.validateLibertyServerStopped(projectPathCopy.toAbsolutePath().toString() + "/build");
+        LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().toString() + "/build");
     }
     
     /**
@@ -193,7 +185,7 @@ public class LibertyPluginSWTBotGradleWithSpaceTest extends AbstractLibertyPlugi
         launchDashboardAction(GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_DEBUG);
 
         // Validate application is up and running.
-        LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_APP_NAME, true, projectPathCopy.toAbsolutePath().toString() + "/build");
+        LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/build");
 
         // If there are issues with the workspace, close the error dialog.
         pressWorkspaceErrorDialogProceedButton(bot);
@@ -202,7 +194,7 @@ public class LibertyPluginSWTBotGradleWithSpaceTest extends AbstractLibertyPlugi
         launchDashboardAction(GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
 
      // Validate application stopped.
-        LibertyPluginTestUtils.validateLibertyServerStopped(projectPathCopy.toAbsolutePath().toString() + "/build");
+        LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().toString() + "/build");
     }
 
 }

@@ -44,17 +44,14 @@ public class LibertyPluginSWTBotMavenWithSpaceTest extends AbstractLibertyPlugin
     /**
      * Application name.
      */
-    static final String MVN_WRAPPER_APP_NAME = "liberty.maven.test.wrapper.app";
-    static final String MVN_APP_NAME = "liberty.maven.test.app";
+    static final String MVN_WRAPPER_APP_NAME = "liberty.maven.test.wrapper.app.with.spaces";
+    static final String MVN_APP_NAME = "liberty.maven.test.app.with.spaces";
 
     /**
      * Test app relative path.
      */
-    static final Path wrapperProjectPath = Paths.get("resources", "applications", "maven", "liberty-maven-test-wrapper-app");
-    static final Path projectPath = Paths.get("resources", "applications", "maven", "liberty-maven-test-app");
-    static final Path projectPathCopy = Paths.get("resources", "applications", "maven", "maven withSpace", "liberty-maven-test-app");
-    static final Path wrapperProjectPathCopy = Paths.get("resources", "applications", "maven","maven withSpace", "liberty-maven-test-wrapper-app");
-    static final Path projectsPath = Paths.get("resources", "applications", "maven","maven withSpace");
+    static final Path wrapperProjectPath = Paths.get("resources", "applications", "apps with spaces", "liberty-maven-test-wrapper-app-with-spaces");
+    static final Path projectPath = Paths.get("resources", "applications", "apps with spaces", "liberty-maven-test-app-with-spaces");
 
     static ArrayList<String> projectPaths = new ArrayList<String>();
 
@@ -67,12 +64,10 @@ public class LibertyPluginSWTBotMavenWithSpaceTest extends AbstractLibertyPlugin
     public static void setup() throws Exception {
 
         commonSetup();
-        copyDirectory(wrapperProjectPath,wrapperProjectPathCopy);
-        copyDirectory(projectPath,projectPathCopy);
 
         File workspaceRoot = ResourcesPlugin.getWorkspace().getRoot().getLocation().toFile();
-        projectPaths.add(wrapperProjectPathCopy.toString());
-        projectPaths.add(projectPathCopy.toString());
+        projectPaths.add(wrapperProjectPath.toString());
+        projectPaths.add(projectPath.toString());
 
         // Maybe redundant but we really want to cleanup. We really want to
         // avoid wasting time debugging tricky differences in behavior because of a dirty re-run
@@ -105,7 +100,6 @@ public class LibertyPluginSWTBotMavenWithSpaceTest extends AbstractLibertyPlugin
             cleanupProject(p);
         }
         unsetBuildCmdPathInPreferences(bot, "Maven");
-        deleteDirectory(projectsPath);
     }
     
     /**
@@ -119,7 +113,7 @@ public class LibertyPluginSWTBotMavenWithSpaceTest extends AbstractLibertyPlugin
 
         // Validate application is up and running.
         LibertyPluginTestUtils.validateApplicationOutcome(MVN_WRAPPER_APP_NAME, true,
-        		wrapperProjectPathCopy.toAbsolutePath().toString() + "/target/liberty");
+        		wrapperProjectPath.toAbsolutePath().toString() + "/target/liberty");
 
         // If there are issues with the workspace, close the error dialog.
         pressWorkspaceErrorDialogProceedButton(bot);
@@ -128,7 +122,7 @@ public class LibertyPluginSWTBotMavenWithSpaceTest extends AbstractLibertyPlugin
         launchDashboardAction(MVN_WRAPPER_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
 
         // Validate application stopped.
-        LibertyPluginTestUtils.validateLibertyServerStopped(wrapperProjectPathCopy.toAbsolutePath().toString() + "/target/liberty");
+        LibertyPluginTestUtils.validateLibertyServerStopped(wrapperProjectPath.toAbsolutePath().toString() + "/target/liberty");
     }
     
     /**
@@ -140,7 +134,7 @@ public class LibertyPluginSWTBotMavenWithSpaceTest extends AbstractLibertyPlugin
         launchDashboardAction(MVN_WRAPPER_APP_NAME, DashboardView.APP_MENU_ACTION_DEBUG);
 
         // Validate application is up and running.
-        LibertyPluginTestUtils.validateApplicationOutcome(MVN_WRAPPER_APP_NAME, true, wrapperProjectPathCopy.toAbsolutePath().toString() + "/target/liberty");
+        LibertyPluginTestUtils.validateApplicationOutcome(MVN_WRAPPER_APP_NAME, true, wrapperProjectPath.toAbsolutePath().toString() + "/target/liberty");
 
         // If there are issues with the workspace, close the error dialog.
         pressWorkspaceErrorDialogProceedButton(bot);
@@ -149,7 +143,7 @@ public class LibertyPluginSWTBotMavenWithSpaceTest extends AbstractLibertyPlugin
         launchDashboardAction(MVN_WRAPPER_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
 
         // Validate application stopped.
-        LibertyPluginTestUtils.validateLibertyServerStopped(wrapperProjectPathCopy.toAbsolutePath().toString() + "/target/liberty");
+        LibertyPluginTestUtils.validateLibertyServerStopped(wrapperProjectPath.toAbsolutePath().toString() + "/target/liberty");
     }
     
     
@@ -164,7 +158,7 @@ public class LibertyPluginSWTBotMavenWithSpaceTest extends AbstractLibertyPlugin
 
         // Validate application is up and running.
         LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true,
-        		projectPathCopy.toAbsolutePath().toString() + "/target/liberty");
+        		projectPath.toAbsolutePath().toString() + "/target/liberty");
 
         // If there are issues with the workspace, close the error dialog.
         pressWorkspaceErrorDialogProceedButton(bot);
@@ -173,7 +167,7 @@ public class LibertyPluginSWTBotMavenWithSpaceTest extends AbstractLibertyPlugin
         launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
 
         // Validate application stopped.
-        LibertyPluginTestUtils.validateLibertyServerStopped(projectPathCopy.toAbsolutePath().toString() + "/target/liberty");
+        LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
     }
     
     /**
@@ -185,7 +179,7 @@ public class LibertyPluginSWTBotMavenWithSpaceTest extends AbstractLibertyPlugin
         launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_DEBUG);
 
         // Validate application is up and running.
-        LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPathCopy.toAbsolutePath().toString() + "/target/liberty");
+        LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
 
         // If there are issues with the workspace, close the error dialog.
         pressWorkspaceErrorDialogProceedButton(bot);
@@ -194,7 +188,7 @@ public class LibertyPluginSWTBotMavenWithSpaceTest extends AbstractLibertyPlugin
         launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
 
         // Validate application stopped.
-        LibertyPluginTestUtils.validateLibertyServerStopped(projectPathCopy.toAbsolutePath().toString() + "/target/liberty");
+        LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
     }
 
 }
