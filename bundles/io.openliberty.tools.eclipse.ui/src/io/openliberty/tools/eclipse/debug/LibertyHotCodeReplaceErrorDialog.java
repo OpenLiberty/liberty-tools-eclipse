@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2024 IBM Corporation and others.
+* Copyright (c) 2024, 2025 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -39,8 +39,8 @@ import io.openliberty.tools.eclipse.ui.launch.StartTab;
 public class LibertyHotCodeReplaceErrorDialog extends HotCodeReplaceErrorDialog {
 
     public LibertyHotCodeReplaceErrorDialog(Shell parentShell, String dialogTitle, String message, IStatus status, String preferenceKey,
-            String toggleMessage, IPreferenceStore store, IDebugTarget target) {
-        super(parentShell, dialogTitle, message, status, preferenceKey, toggleMessage, store, target);
+            String toggleMessage1, String toggleMessage2, IPreferenceStore store, IDebugTarget target) {
+        super(parentShell, dialogTitle, message, status, preferenceKey, toggleMessage1, toggleMessage2, store, target);
     }
 
     @Override

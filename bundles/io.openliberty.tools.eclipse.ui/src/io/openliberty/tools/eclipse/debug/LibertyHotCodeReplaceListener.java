@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2024 IBM Corporation and others.
+* Copyright (c) 2024, 2025 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -20,7 +20,9 @@ import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.ui.DebugUITools;
 import org.eclipse.jdt.debug.core.IJavaDebugTarget;
 import org.eclipse.jdt.debug.core.IJavaHotCodeReplaceListener;
+import org.eclipse.jdt.internal.debug.core.model.JDIDebugTarget;
 import org.eclipse.jdt.internal.debug.ui.DebugUIMessages;
+import org.eclipse.jdt.internal.debug.ui.HotCodeReplaceErrorDialog;
 import org.eclipse.jdt.internal.debug.ui.IJDIPreferencesConstants;
 import org.eclipse.jdt.internal.debug.ui.JDIDebugUIPlugin;
 import org.eclipse.jdt.internal.debug.ui.snippeteditor.ScrapbookLauncher;
@@ -38,9 +40,10 @@ import org.eclipse.swt.widgets.Shell;
  */
 public class LibertyHotCodeReplaceListener implements IJavaHotCodeReplaceListener {
 
-    private LibertyHotCodeReplaceErrorDialog libertyHotCodeReplaceFailedErrorDialog = null;
+    private LibertyHotCodeReplaceErrorDialog fHotCodeReplaceFailedErrorDialog = null;
 
     private ILabelProvider fLabelProvider = DebugUITools.newDebugModelPresentation();
+    private final String toggleMessage = DebugUIMessages.JDIDebugUIPlugin_5;
 
     /**
      * @see IJavaHotCodeReplaceListener#hotCodeReplaceSucceeded(IJavaDebugTarget)
@@ -57,9 +60,11 @@ public class LibertyHotCodeReplaceListener implements IJavaHotCodeReplaceListene
         if ((exception != null
                 && !JDIDebugUIPlugin.getDefault().getPreferenceStore().getBoolean(IJDIPreferencesConstants.PREF_ALERT_HCR_FAILED)) ||
                 ((exception == null) && !JDIDebugUIPlugin.getDefault().getPreferenceStore()
-                        .getBoolean(IJDIPreferencesConstants.PREF_ALERT_HCR_NOT_SUPPORTED))) {
+                        .getBoolean(IJDIPreferencesConstants.PREF_ALERT_HCR_NOT_SUPPORTED))
+                || checkFailurePopUpPref(target)) {
             return;
         }
+
         // do not report errors for snippet editor targets
         // that do not support HCR. HCR is simulated by using
         // a new class loader for each evaluation
@@ -107,24 +112,24 @@ public class LibertyHotCodeReplaceListener implements IJavaHotCodeReplaceListene
                 if (display.isDisposed()) {
                     return;
                 }
-                if (libertyHotCodeReplaceFailedErrorDialog != null) {
-                    Shell shell = libertyHotCodeReplaceFailedErrorDialog.getShell();
+                if (fHotCodeReplaceFailedErrorDialog != null) {
+                    Shell shell = fHotCodeReplaceFailedErrorDialog.getShell();
                     if (shell != null && !shell.isDisposed()) {
                         return;
                     }
                 }
                 Shell shell = JDIDebugUIPlugin.getActiveWorkbenchShell();
-                libertyHotCodeReplaceFailedErrorDialog = new LibertyHotCodeReplaceErrorDialog(shell, title, message, status, preference,
+                fHotCodeReplaceFailedErrorDialog = new LibertyHotCodeReplaceErrorDialog(shell, title, message, status, preference,
                         alertMessage,
-                        JDIDebugUIPlugin.getDefault().getPreferenceStore(), target) {
+                        toggleMessage, JDIDebugUIPlugin.getDefault().getPreferenceStore(), target) {
                     @Override
                     public boolean close() {
-                        libertyHotCodeReplaceFailedErrorDialog = null;
+                        fHotCodeReplaceFailedErrorDialog = null;
                         return super.close();
                     }
                 };
-                libertyHotCodeReplaceFailedErrorDialog.setBlockOnOpen(false);
-                libertyHotCodeReplaceFailedErrorDialog.open();
+                fHotCodeReplaceFailedErrorDialog.setBlockOnOpen(false);
+                fHotCodeReplaceFailedErrorDialog.open();
             }
         });
     }
@@ -134,7 +139,8 @@ public class LibertyHotCodeReplaceListener implements IJavaHotCodeReplaceListene
      */
     @Override
     public void obsoleteMethods(final IJavaDebugTarget target) {
-        if (!JDIDebugUIPlugin.getDefault().getPreferenceStore().getBoolean(IJDIPreferencesConstants.PREF_ALERT_OBSOLETE_METHODS)) {
+        if (!JDIDebugUIPlugin.getDefault().getPreferenceStore().getBoolean(IJDIPreferencesConstants.PREF_ALERT_OBSOLETE_METHODS)
+                || checkFailurePopUpPref(target)) {
             return;
         }
         final Display display = JDIDebugUIPlugin.getStandardDisplay();
@@ -147,6 +153,7 @@ public class LibertyHotCodeReplaceListener implements IJavaHotCodeReplaceListene
         final IStatus status = new Status(IStatus.WARNING, JDIDebugUIPlugin.getUniqueIdentifier(), IStatus.WARNING,
                 DebugUIMessages.JDIDebugUIPlugin_Stepping_may_be_hazardous_1, null);
         final String toggleMessage = DebugUIMessages.JDIDebugUIPlugin_2;
+        final String toggleMessage2 = DebugUIMessages.JDIDebugUIPlugin_5;
         display.asyncExec(new Runnable() {
             @Override
             public void run() {
@@ -154,13 +161,27 @@ public class LibertyHotCodeReplaceListener implements IJavaHotCodeReplaceListene
                     return;
                 }
                 Shell shell = JDIDebugUIPlugin.getActiveWorkbenchShell();
-                LibertyHotCodeReplaceErrorDialog dialog = new LibertyHotCodeReplaceErrorDialog(shell, dialogTitle, message, status,
-                        IJDIPreferencesConstants.PREF_ALERT_OBSOLETE_METHODS,
-                        toggleMessage, JDIDebugUIPlugin.getDefault().getPreferenceStore(), target);
+                HotCodeReplaceErrorDialog dialog = new HotCodeReplaceErrorDialog(shell, dialogTitle, message, status,
+                        IJDIPreferencesConstants.PREF_ALERT_OBSOLETE_METHODS, toggleMessage, toggleMessage2,
+                        JDIDebugUIPlugin.getDefault().getPreferenceStore(), target);
                 dialog.setBlockOnOpen(false);
                 dialog.open();
             }
         });
     }
 
+    /**
+     * Check whether user has enabled or disabled HCR failure error pop up for current debug session
+     *
+     * @param target
+     *        IJavaDebugTarget of current debugging session
+     * 
+     * @return false if user wishes to see failure pop up, else true if user don't want see pop up
+     */
+    private boolean checkFailurePopUpPref(IJavaDebugTarget target) {
+        if (target instanceof JDIDebugTarget jdiTarget) {
+            return jdiTarget.isHcrFailurePopUpEnabled();
+        }
+        return false;
+    }
 }

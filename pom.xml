@@ -42,7 +42,7 @@
         
         <!-- default version of the eclipse IDE to run tests against -->
         <!-- must be one of the target platform files defined in this project under releng -->
-        <eclipse.target>4Q2024</eclipse.target>
+        <eclipse.target>1Q2025</eclipse.target>
             
 	</properties>
 	
