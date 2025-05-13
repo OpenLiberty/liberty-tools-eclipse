@@ -84,10 +84,9 @@ public class LibertyHotCodeReplaceErrorDialog extends HotCodeReplaceErrorDialog 
                          		target.disconnect(); // detaches debugger
                          	}
                             launch.removeDebugTarget(target);
-                         }
-                        if (Utils.validateLibertyServerStopped(project)) {
-                        	debugModeHandler.startDebugAttacher(project, launch, null);
                         }
+                        Utils.restartDebugger(project, launch, debugModeHandler);
+
                     } catch (CoreException e) {
                         ex[0] = e;
                     }

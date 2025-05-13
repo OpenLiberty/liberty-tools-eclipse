@@ -23,6 +23,13 @@ import java.util.List;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.IJobChangeEvent;
+import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.core.runtime.jobs.JobChangeAdapter;
+import org.eclipse.debug.core.ILaunch;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.graphics.Device;
@@ -39,6 +46,7 @@ import org.eclipse.ui.PlatformUI;
 import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.LibertyDevPlugin;
 import io.openliberty.tools.eclipse.Project;
+import io.openliberty.tools.eclipse.debug.DebugModeHandler;
 import io.openliberty.tools.eclipse.logging.Trace;
 
 /**
@@ -278,34 +286,59 @@ public class Utils {
         return cause;
     }
     
-	public static boolean validateLibertyServerStopped(Project project) {
-		String wlpMsgLogPath = getLogFilePath(project);
-		int maxAttempts = 30;
-		boolean foundStoppedMsg = false;
 
-		// Find message CWWKE0036I: The server x stopped after y seconds
-		for (int i = 0; i < maxAttempts; i++) {
-			try (BufferedReader br = new BufferedReader(new FileReader(wlpMsgLogPath))) {
-				String line;
-				while ((line = br.readLine()) != null) {
-					if (line.contains("CWWKE0036I")) {
-						foundStoppedMsg = true;
-						break;
+	public static void restartDebugger(Project project, ILaunch launch, DebugModeHandler debugModeHandler) {
+
+		Job job = new Job("Waiting for application to stop...") {
+			@Override
+			protected IStatus run(IProgressMonitor monitor) {
+				if (monitor.isCanceled()) {
+					return Status.CANCEL_STATUS;
+				}
+
+				String wlpMsgLogPath = Utils.getLogFilePath(project);
+				int maxAttempts = 30;
+
+				// Find message CWWKE0036I: The server x stopped after y seconds
+				for (int i = 0; i < maxAttempts; i++) {
+					try (BufferedReader br = new BufferedReader(new FileReader(wlpMsgLogPath))) {
+						String line;
+						while ((line = br.readLine()) != null) {
+							if (line.contains("CWWKE0036I")) {
+								return Status.OK_STATUS;
+							}
+						}
+
+						Thread.sleep(3000);
+
+					} catch (Exception e) {
+						if (Trace.isEnabled()) {
+							Trace.getTracer().trace(Trace.TRACE_UI, "Caught exception waiting for stop message", e);
+						}
+						return Status.CANCEL_STATUS;
 					}
 				}
 
-				if (foundStoppedMsg) {
-					break;
+				return Status.CANCEL_STATUS;
+			}			
+		};
+
+		job.addJobChangeListener(new JobChangeAdapter() {
+			@Override
+			public void done(IJobChangeEvent event) {
+				IStatus result = event.getResult();
+
+				if (result.isOK()) {
+					debugModeHandler.startDebugAttacher(project, launch, null);
 				} else {
-					Thread.sleep(3000);
-				}
-			} catch (Exception e) {
-				if (Trace.isEnabled()) {
-					Trace.getTracer().trace(Trace.TRACE_UI, "Caught exception waiting for stop message", e);
+					if (Trace.isEnabled()) {
+						Trace.getTracer().trace(Trace.TRACE_UI, "Timed out waiting for server stop message");
+					}
 				}
 			}
-		}
-		return foundStoppedMsg;
+		});
+
+		job.schedule();
 	}
 
     // Get the usr directory path from the maven/gradle output folder.
