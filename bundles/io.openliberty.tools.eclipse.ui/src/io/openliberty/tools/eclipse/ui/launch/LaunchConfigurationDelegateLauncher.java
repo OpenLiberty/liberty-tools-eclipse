@@ -160,9 +160,9 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
 
         // Process the action.
         if (runInContainer) {
-            devModeOps.startInContainer(iProject, configParms, javaHomePath, launch, mode,runProjectClean, enhancedDebugMonitoring);
-        } else {
             devModeOps.startInContainer(iProject, configParms, javaHomePath, launch, mode, runProjectClean, enhancedDebugMonitoring);
+        } else {
+            devModeOps.start(iProject, configParms, javaHomePath, launch, mode, runProjectClean, enhancedDebugMonitoring);
         }
 
         if (Trace.isEnabled()) {
