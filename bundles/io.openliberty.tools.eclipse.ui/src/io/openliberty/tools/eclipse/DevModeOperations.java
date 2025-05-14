@@ -420,6 +420,11 @@ public class DevModeOperations {
         }
 
         String projectName = iProject.getName();
+        Project project = projectModel.getProject(projectName);
+        
+        if (project != null) {
+        	Utils.reEnableAppMonitoring(project);
+        }
 
         // Check if the stop action has already been issued of if a start action was never issued before.
         if (!processController.isProcessStarted(projectName)) {
