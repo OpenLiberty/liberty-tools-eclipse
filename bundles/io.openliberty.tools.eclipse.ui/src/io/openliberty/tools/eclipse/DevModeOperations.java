@@ -14,11 +14,13 @@ package io.openliberty.tools.eclipse;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -167,7 +169,7 @@ public class DevModeOperations {
      * @param launch The launch associated with this run.
      * @param mode The configuration mode.
      */
-    public void start(IProject iProject, String parms, String javaHomePath, ILaunch launch, String mode) {
+    public void start(IProject iProject, String parms, String javaHomePath, ILaunch launch, String mode, boolean runProjectClean) {
 
         if (Trace.isEnabled()) {
             Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { iProject, parms, javaHomePath, mode });
@@ -231,11 +233,23 @@ public class DevModeOperations {
             String cmd = "";
 
             if (buildType == Project.BuildType.MAVEN) {
-                cmd = CommandBuilder.getMavenCommandLine(projectPath, "io.openliberty.tools:liberty-maven-plugin:dev " + startParms,
+                cmd = CommandBuilder.getMavenCommandLine(projectPath, (runProjectClean == true ? " clean " : "" ) +  "io.openliberty.tools:liberty-maven-plugin:dev " + startParms,
                         pathEnv);
-            } else if (buildType == Project.BuildType.GRADLE) {
-                cmd = CommandBuilder.getGradleCommandLine(projectPath, "libertyDev " + startParms, pathEnv);
-            } else {
+			} else if (buildType == Project.BuildType.GRADLE) {
+
+				if (runProjectClean == true) {
+					try {
+						String stopGradleDaemonCmd= CommandBuilder.getGradleCommandLine(projectPath," --stop", pathEnv);
+						executeCommand(stopGradleDaemonCmd, projectPath);
+					} catch (IOException | InterruptedException e) {
+						 Logger.logError("An attempt to stop the Gradle daemon failed....");
+					}
+
+				}
+				cmd = CommandBuilder.getGradleCommandLine(projectPath,
+						(runProjectClean == true ? " clean " : "") + "libertyDev " + startParms, pathEnv);
+
+			} else {
                 throw new Exception("Unexpected project build type: " + buildType + ". Project " + projectName
                         + "does not appear to be a Maven or Gradle built project.");
             }
@@ -275,7 +289,7 @@ public class DevModeOperations {
      * @param launch The launch associated with this run.
      * @param mode The configuration mode.
      */
-    public void startInContainer(IProject iProject, String parms, String javaHomePath, ILaunch launch, String mode) {
+    public void startInContainer(IProject iProject, String parms, String javaHomePath, ILaunch launch, String mode, boolean runProjectClean) {
 
         if (Trace.isEnabled()) {
             Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { iProject, parms, javaHomePath, mode });
@@ -338,11 +352,22 @@ public class DevModeOperations {
             // Prepare the Liberty plugin container dev mode command.
             String cmd = "";
             if (buildType == Project.BuildType.MAVEN) {
-                cmd = CommandBuilder.getMavenCommandLine(projectPath, "io.openliberty.tools:liberty-maven-plugin:devc " + startParms,
+                cmd = CommandBuilder.getMavenCommandLine(projectPath, (runProjectClean == true ? " clean " : "") + "io.openliberty.tools:liberty-maven-plugin:devc " + startParms,
                         pathEnv);
-            } else if (buildType == Project.BuildType.GRADLE) {
-                cmd = CommandBuilder.getGradleCommandLine(projectPath, "libertyDevc " + startParms, pathEnv);
-            } else {
+			} else if (buildType == Project.BuildType.GRADLE) {
+				if (runProjectClean == true) {
+					try {
+
+						String stopGradleDaemonCmd = CommandBuilder.getGradleCommandLine(projectPath, " --stop",
+								pathEnv);
+						executeCommand(stopGradleDaemonCmd, projectPath);
+					} catch (IOException | InterruptedException e) {
+						Logger.logError("An attempt to stop the Gradle daemon failed....");
+					}
+				}
+				cmd = CommandBuilder.getGradleCommandLine(projectPath,
+						(runProjectClean == true ? " clean " : "") + "libertyDevc " + startParms, pathEnv);
+			} else {
                 throw new Exception("Unexpected project build type: " + buildType + ". Project " + projectName
                         + "does not appear to be a Maven or Gradle built project.");
             }
@@ -1124,4 +1149,17 @@ public class DevModeOperations {
         // Cancel will remove job from 'runningJobs' Map
         runningJobs.keySet().forEach(j -> j.cancel());
     }
+    
+
+	public void executeCommand(String fullCommand, String projectPath) throws IOException, InterruptedException {
+		// Split the full command into individual arguments
+		List<String> command = Arrays.asList(fullCommand.trim().split("\\s+"));
+
+		ProcessBuilder builder = new ProcessBuilder(command);
+		builder.directory(new File(projectPath)); // Set working directory
+
+		Process process = builder.start();
+		process.waitFor();
+	}
+
 }
