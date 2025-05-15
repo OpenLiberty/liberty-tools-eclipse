@@ -1,5 +1,6 @@
 package io.openliberty.tools.eclipse.process;
 
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.debug.core.DebugEvent;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.IDebugEventSetListener;
@@ -9,6 +10,8 @@ import org.eclipse.debug.core.model.IProcess;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.Project;
+import io.openliberty.tools.eclipse.logging.Trace;
+import io.openliberty.tools.eclipse.ui.launch.StartTab;
 import io.openliberty.tools.eclipse.utils.Utils;
 
 public class LibertyDebugEventListener implements IDebugEventSetListener {
@@ -24,7 +27,8 @@ public class LibertyDebugEventListener implements IDebugEventSetListener {
         for (int i = 0; i < events.length; i++) {
             Object source = events[i].getSource();
             DevModeOperations devModeOps = DevModeOperations.getInstance();
-
+            boolean enableEnhancedMonitoring = true;
+            
             if (source instanceof IProcess && events[i].getKind() == DebugEvent.TERMINATE) {
 
                 // This is an IProcess terminate event. Check if the IProcess matches
@@ -33,30 +37,42 @@ public class LibertyDebugEventListener implements IDebugEventSetListener {
                     // We match - cleanup
                     Project project = devModeOps.getProjectModel().getProject(projectName);
                     
-                    if (project != null) {
-                    	Utils.reEnableAppMonitoring(project);
-                    }
+                    try {
+						enableEnhancedMonitoring = iProcess.getLaunch().getLaunchConfiguration()
+								.getAttribute(StartTab.PROJECT_DEBUG_ENHANCED_MONITORING, true);
+						if (project != null && enableEnhancedMonitoring) {
+							Utils.reEnableAppMonitoring(project);
+						}
+					} catch (CoreException e) {
+						String msg = "An error detected while getting the start params from the launch configuration.";
+						if (Trace.isEnabled()) {
+							Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
+						}
+					}
                     devModeOps.cleanupProcess(projectName);
                     DebugPlugin.getDefault().removeDebugEventListener(this);
-                }
-            } else if (events[i].getKind() == DebugEvent.CHANGE && source instanceof IDebugTarget) {
-    			IDebugTarget target = (IDebugTarget) source;
-    			if (target.isDisconnected()) {
-    				ILaunch launch = target.getLaunch();
-    				if (launch != null) {
-    					IProcess[] processes = launch.getProcesses();
-    					if (processes.length > 0) {
-    						String label = processes[0].getLabel(); 
-    						if (projectName.equals(label)) {
-    							Project project = devModeOps.getProjectModel().getProject(projectName);
-    							if (project != null) {
-    								Utils.reEnableAppMonitoring(project);
-    							}
-    						}
-    					}
-    				}
-    			}                  
-    		}
+				}
+			} else if (events[i].getKind() == DebugEvent.CHANGE && source instanceof IDebugTarget target
+					&& target.isDisconnected()) {
+				ILaunch launch = target.getLaunch();
+				IProcess[] processes = (launch != null) ? launch.getProcesses() : new IProcess[0];
+
+				if (processes.length > 0 && projectName.equals(processes[0].getLabel())) {
+					Project project = devModeOps.getProjectModel().getProject(projectName);
+					try {
+						enableEnhancedMonitoring = launch.getLaunchConfiguration()
+								.getAttribute(StartTab.PROJECT_DEBUG_ENHANCED_MONITORING, true);
+						if (project != null && enableEnhancedMonitoring) {
+							Utils.reEnableAppMonitoring(project);
+						}
+					} catch (CoreException e) {
+						String msg = "An error detected while getting the start params from the launch configuration.";
+						if (Trace.isEnabled()) {
+							Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
+						}
+					}
+				}
+			}
         }
     }
 

@@ -37,6 +37,7 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.jobs.JobChangeAdapter;
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
+import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.jdt.launching.JavaRuntime;
 import org.eclipse.jface.viewers.ISelection;
@@ -57,6 +58,9 @@ import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.messages.Messages;
 import io.openliberty.tools.eclipse.process.ProcessController;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
+import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher.RuntimeEnv;
+import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationHelper;
+import io.openliberty.tools.eclipse.ui.launch.StartTab;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
 import io.openliberty.tools.eclipse.utils.Utils;
 
@@ -421,10 +425,23 @@ public class DevModeOperations {
 
         String projectName = iProject.getName();
         Project project = projectModel.getProject(projectName);
-        
-        if (project != null) {
-        	Utils.reEnableAppMonitoring(project);
-        }
+       
+        // Get the launch configuration and check for enable enhanced monitoring checkbox value.
+        LaunchConfigurationHelper launchConfigHelper = LaunchConfigurationHelper.getInstance();
+        try {
+			ILaunchConfiguration configuration = launchConfigHelper.getLaunchConfiguration(iProject,
+					ILaunchManager.DEBUG_MODE, RuntimeEnv.UNKNOWN);
+			boolean enhancedDebugMonitoring = configuration.getAttribute(
+					StartTab.PROJECT_DEBUG_ENHANCED_MONITORING, true);
+			 if (project != null && enhancedDebugMonitoring) {
+		        	Utils.reEnableAppMonitoring(project);
+		     }
+		} catch (Exception e) {
+			if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, "An error was dettected while fetching the launch configuration.", e);
+            }
+		}
+       
 
         // Check if the stop action has already been issued of if a start action was never issued before.
         if (!processController.isProcessStarted(projectName)) {
