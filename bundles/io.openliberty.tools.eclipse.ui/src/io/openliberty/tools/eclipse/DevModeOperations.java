@@ -1133,6 +1133,16 @@ public class DevModeOperations {
         return processController.isProcessStarted(projectName);
     }
 
+    public void restartServer(String projectName) {
+    	String restartCommand = "r" + System.lineSeparator();
+    	try {
+    		processController.writeToProcessStream(projectName, restartCommand);
+    	} catch (Exception e) {
+    		if (Trace.isEnabled()) {
+    			Trace.getTracer().trace(Trace.TRACE_TOOLS, "An error was detected during the restart server." + projectName, e);
+    		}
+    	}
+    }
     /**
      * Refreshes the dashboard view.
      */
