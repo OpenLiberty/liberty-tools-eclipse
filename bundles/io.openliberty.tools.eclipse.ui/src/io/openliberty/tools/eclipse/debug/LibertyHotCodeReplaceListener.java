@@ -22,7 +22,6 @@ import org.eclipse.jdt.debug.core.IJavaDebugTarget;
 import org.eclipse.jdt.debug.core.IJavaHotCodeReplaceListener;
 import org.eclipse.jdt.internal.debug.core.model.JDIDebugTarget;
 import org.eclipse.jdt.internal.debug.ui.DebugUIMessages;
-import org.eclipse.jdt.internal.debug.ui.HotCodeReplaceErrorDialog;
 import org.eclipse.jdt.internal.debug.ui.IJDIPreferencesConstants;
 import org.eclipse.jdt.internal.debug.ui.JDIDebugUIPlugin;
 import org.eclipse.jdt.internal.debug.ui.snippeteditor.ScrapbookLauncher;
@@ -161,7 +160,7 @@ public class LibertyHotCodeReplaceListener implements IJavaHotCodeReplaceListene
                     return;
                 }
                 Shell shell = JDIDebugUIPlugin.getActiveWorkbenchShell();
-                HotCodeReplaceErrorDialog dialog = new HotCodeReplaceErrorDialog(shell, dialogTitle, message, status,
+                LibertyHotCodeReplaceErrorDialog dialog = new LibertyHotCodeReplaceErrorDialog(shell, dialogTitle, message, status,
                         IJDIPreferencesConstants.PREF_ALERT_OBSOLETE_METHODS, toggleMessage, toggleMessage2,
                         JDIDebugUIPlugin.getDefault().getPreferenceStore(), target);
                 dialog.setBlockOnOpen(false);

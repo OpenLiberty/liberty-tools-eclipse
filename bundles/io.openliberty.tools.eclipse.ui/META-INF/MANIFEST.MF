@@ -13,7 +13,9 @@ Export-Package: io.openliberty.tools.eclipse;x-friends:="io.openliberty.tools.ec
  io.openliberty.tools.eclipse.ui.launch.shortcuts;x-friends:="io.openliberty.tools.eclipse.tests",
  io.openliberty.tools.eclipse.ui.preferences;x-friends:="io.openliberty.tools.eclipse.tests"
 Require-Bundle: org.eclipse.ui,
- org.eclipse.m2e.maven.runtime
+ org.eclipse.m2e.maven.runtime,
+ org.eclipse.jdt.debug.ui;bundle-version="3.14.0",
+ org.eclipse.jdt.debug;bundle-version="3.22.0"
 Bundle-RequiredExecutionEnvironment: JavaSE-21
 Automatic-Module-Name: io.openliberty.tools.eclipse.ui
 Bundle-ActivationPolicy: lazy
@@ -28,10 +30,6 @@ Import-Package: org.eclipse.cdt.launch.ui,
  org.eclipse.debug.core.commands,
  org.eclipse.debug.core.model,
  org.eclipse.debug.core.sourcelookup,
- org.eclipse.debug.internal.core.commands,
- org.eclipse.debug.internal.ui,
- org.eclipse.debug.internal.ui.actions,
- org.eclipse.debug.internal.ui.commands.actions,
  org.eclipse.debug.ui,
  org.eclipse.debug.ui.actions,
  org.eclipse.debug.ui.sourcelookup,
@@ -39,9 +37,6 @@ Import-Package: org.eclipse.cdt.launch.ui,
  org.eclipse.jdt.core,
  org.eclipse.jdt.debug.core,
  org.eclipse.jdt.debug.ui.launchConfigurations,
- org.eclipse.jdt.internal.debug.core.model,
- org.eclipse.jdt.internal.debug.ui,
- org.eclipse.jdt.internal.debug.ui.snippeteditor,
  org.eclipse.jdt.launching,
  org.eclipse.jdt.launching.sourcelookup.containers,
  org.eclipse.jem.util.emf.workbench,
