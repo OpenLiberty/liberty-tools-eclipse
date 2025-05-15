@@ -30,6 +30,7 @@ import java.util.stream.Stream;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.IStatus;
@@ -56,6 +57,7 @@ import io.openliberty.tools.eclipse.LibertyDevPlugin;
 import io.openliberty.tools.eclipse.Project;
 import io.openliberty.tools.eclipse.debug.DebugModeHandler;
 import io.openliberty.tools.eclipse.logging.Trace;
+import io.openliberty.tools.eclipse.ui.launch.StartTab;
 
 /**
  * Provides a set of utility methods.
@@ -337,7 +339,16 @@ public class Utils {
 				IStatus result = event.getResult();
 
 				if (result.isOK()) {
-					debugModeHandler.startDebugAttacher(project, launch, null);
+					try {
+						boolean enableEnhancedMonitoring = launch.getLaunchConfiguration()
+								.getAttribute(StartTab.PROJECT_DEBUG_ENHANCED_MONITORING, true);
+						debugModeHandler.startDebugAttacher(project, launch, null, enableEnhancedMonitoring);
+					} catch (CoreException e) {
+						String msg = "An error detected while getting the start params from the launch configuration.";
+						if (Trace.isEnabled()) {
+							Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
+						}
+					}
 				} else {
 					if (Trace.isEnabled()) {
 						Trace.getTracer().trace(Trace.TRACE_UI, "Timed out waiting for server stop message");
