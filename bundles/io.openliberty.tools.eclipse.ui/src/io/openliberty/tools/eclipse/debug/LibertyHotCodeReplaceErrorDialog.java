@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2024 IBM Corporation and others.
+* Copyright (c) 2024, 2025 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -30,6 +30,7 @@ import org.eclipse.swt.widgets.Shell;
 import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.Project;
 import io.openliberty.tools.eclipse.ui.launch.StartTab;
+import io.openliberty.tools.eclipse.utils.Utils;
 
 /**
  * This class is an extension of the Eclipse JDT HotCodeReplaceErrorDialog. It provides
@@ -48,7 +49,7 @@ public class LibertyHotCodeReplaceErrorDialog extends HotCodeReplaceErrorDialog 
         createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
         createDetailsButton(parent);
         getButton(IDialogConstants.OK_ID).setText(DebugUIMessages.HotCodeReplaceErrorDialog_0);
-        createButton(parent, DISCONNECT_ID, "Refresh Debugger", false);
+        createButton(parent, DISCONNECT_ID, "Refresh", false);
 
         blockMnemonicWithoutModifier(getToggleButton());
     }
@@ -68,7 +69,6 @@ public class LibertyHotCodeReplaceErrorDialog extends HotCodeReplaceErrorDialog 
                 public void run() {
                     try {
                         operation[0] = DebugUIMessages.HotCodeReplaceErrorDialog_6;
-                        target.disconnect();
 
                         // Restart the debugger
                         DevModeOperations devModeOps = DevModeOperations.getInstance();
@@ -77,10 +77,17 @@ public class LibertyHotCodeReplaceErrorDialog extends HotCodeReplaceErrorDialog 
                         String projectName = launch.getLaunchConfiguration().getAttribute(StartTab.PROJECT_NAME, "");
                         boolean enableEnhancedMonitoring = launch.getLaunchConfiguration().getAttribute(StartTab.PROJECT_DEBUG_ENHANCED_MONITORING, true);
                         Project project = devModeOps.getProjectModel().getProject(projectName);
-
-                        launch.removeDebugTarget(target);
+                        String userParms = launch.getLaunchConfiguration().getAttribute(StartTab.PROJECT_START_PARM, "");
                         DebugModeHandler debugModeHandler = devModeOps.getDebugModeHandler();
-                        debugModeHandler.startDebugAttacher(project, launch, null, enableEnhancedMonitoring);
+                        if (devModeOps.isProjectStarted(projectName)) {
+                         	devModeOps.restartServer(projectName);
+                         	if (target.canDisconnect()) {
+                         		target.disconnect(); // detaches debugger
+                         	}
+                            launch.removeDebugTarget(target);
+                        }
+                        Utils.restartDebugger(project, launch, debugModeHandler);
+
                     } catch (CoreException e) {
                         ex[0] = e;
                     }
