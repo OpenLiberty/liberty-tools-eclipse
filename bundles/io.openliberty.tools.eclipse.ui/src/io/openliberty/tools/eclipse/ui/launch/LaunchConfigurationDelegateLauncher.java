@@ -26,6 +26,7 @@ import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.PlatformUI;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
+import io.openliberty.tools.eclipse.Project;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.messages.Messages;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
@@ -157,7 +158,12 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
         boolean runProjectClean = configuration.getAttribute(StartTab.PROJECT_CLEAN, false);
         String configParms = configuration.getAttribute(StartTab.PROJECT_START_PARM, (String) null);
         String javaHomePath = JRETab.resolveJavaHome(configuration);
-
+        Project project = devModeOps.getProjectModel().getProject(iProject.getName());
+        
+        //Cleanup before the starting dev mode.
+        if (project != null) {
+			Utils.reEnableAppMonitoring(project);
+		}
         // Process the action.
         if (runInContainer) {
             devModeOps.startInContainer(iProject, configParms, javaHomePath, launch, mode, runProjectClean, enhancedDebugMonitoring);

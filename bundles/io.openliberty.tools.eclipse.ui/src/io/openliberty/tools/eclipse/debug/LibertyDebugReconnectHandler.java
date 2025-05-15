@@ -99,33 +99,31 @@ public class LibertyDebugReconnectHandler extends AbstractHandler {
 
         if (launch != null) {
             DevModeOperations devModeOps = DevModeOperations.getInstance();
-
             String projectName = null;
             boolean enableEnhancedMonitoring = true;
             try {
                 projectName = launch.getLaunchConfiguration().getAttribute(StartTab.PROJECT_NAME, "");
                 enableEnhancedMonitoring = launch.getLaunchConfiguration().getAttribute(StartTab.PROJECT_DEBUG_ENHANCED_MONITORING, true);
+                if (projectName != null && !projectName.isBlank()) {
+                    Project project = devModeOps.getProjectModel().getProject(projectName);
+
+                    // Reconnect debugger
+                    if (devModeOps.isProjectStarted(projectName)) {
+                        DebugModeHandler debugModeHandler = devModeOps.getDebugModeHandler();
+                        debugModeHandler.startDebugAttacher(project, launch, null, enableEnhancedMonitoring);
+                    }
+
+                    // Remove old debug target
+                    if (debugTarget != null) {
+                        launch.removeDebugTarget(debugTarget);
+                    }
+                }
             } catch (CoreException e) {
                 String msg = "An error was detected during debugger reconnect";
                 if (Trace.isEnabled()) {
                     Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
                 }
                 ErrorHandler.processErrorMessage(NLS.bind(Messages.project_name_error, null), e, true);
-            }
-
-            if (projectName != null && !projectName.isBlank()) {
-                Project project = devModeOps.getProjectModel().getProject(projectName);
-
-                // Reconnect debugger
-                if (devModeOps.isProjectStarted(projectName)) {
-                    DebugModeHandler debugModeHandler = devModeOps.getDebugModeHandler();
-                    debugModeHandler.startDebugAttacher(project, launch, null, enableEnhancedMonitoring);
-                }
-
-                // Remove old debug target
-                if (debugTarget != null) {
-                    launch.removeDebugTarget(debugTarget);
-                }
             }
         }
         return target;
