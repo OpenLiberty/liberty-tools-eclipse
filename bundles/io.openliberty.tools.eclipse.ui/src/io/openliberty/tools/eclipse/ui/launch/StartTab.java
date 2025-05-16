@@ -125,8 +125,8 @@ public class StartTab extends AbstractLaunchConfigurationTab {
         Composite parmsGroupComposite = createGroupComposite(mainComposite, "", 2);
         createInputParmText(parmsGroupComposite);
         createRunInContainerButton(parmsGroupComposite);
-        if (ILaunchManager.DEBUG_MODE.equals(getLaunchConfigurationDialog().getMode())) {           
-        	createEnhancedDebugMonitoringButton(parmsGroupComposite);
+        if (ILaunchManager.DEBUG_MODE.equals(getLaunchConfigurationDialog().getMode())) {
+            createEnhancedDebugMonitoringButton(parmsGroupComposite);
         }
         
         createProjectCleanButton(parmsGroupComposite);
@@ -153,8 +153,8 @@ public class StartTab extends AbstractLaunchConfigurationTab {
 
         configuration.setAttribute(PROJECT_RUN_IN_CONTAINER, false);
         
-        if (ILaunchManager.DEBUG_MODE.equals(getLaunchConfigurationDialog().getMode())) {           
-        	configuration.setAttribute(PROJECT_DEBUG_ENHANCED_MONITORING, true);
+        if (ILaunchManager.DEBUG_MODE.equals(getLaunchConfigurationDialog().getMode())) {
+            configuration.setAttribute(PROJECT_DEBUG_ENHANCED_MONITORING, true);
         }
         if (Trace.isEnabled()) {
             Trace.getTracer().traceExit(Trace.TRACE_UI);
@@ -282,22 +282,23 @@ public class StartTab extends AbstractLaunchConfigurationTab {
         
         configuration.setAttribute(PROJECT_CLEAN, projectCleanBool);
 
-        if (ILaunchManager.DEBUG_MODE.equals(getLaunchConfigurationDialog().getMode())) {           
-        	boolean enhancedMonitoringBool = debugEnhancedMonitoringCheckBox.getSelection();
-        	configuration.setAttribute(PROJECT_DEBUG_ENHANCED_MONITORING, enhancedMonitoringBool);
+        if (ILaunchManager.DEBUG_MODE.equals(getLaunchConfigurationDialog().getMode())) {
+            boolean enhancedMonitoringBool = debugEnhancedMonitoringCheckBox.getSelection();
+            configuration.setAttribute(PROJECT_DEBUG_ENHANCED_MONITORING, enhancedMonitoringBool);
         }
 
         configuration.setAttribute(PROJECT_START_PARM, startParamStr);
 
         if (Trace.isEnabled()) {
-        	String message = "In performApply with project name = " + projectNameLabel.getText() + ", text = "
+            String message = "In performApply with project name = " + projectNameLabel.getText() + ", text = "
                     + startParamStr + ", runInContainer = " + runInContainerBool;
-            if (ILaunchManager.DEBUG_MODE.equals(getLaunchConfigurationDialog().getMode())) {     
-            	message +=", debug in enhanced monitoringt = "  + debugEnhancedMonitoringCheckBox.getSelection();
-            } 
+            if (ILaunchManager.DEBUG_MODE.equals(getLaunchConfigurationDialog().getMode())) {
+                message += ", debug in enhanced monitoringt = " + debugEnhancedMonitoringCheckBox.getSelection();
+            }
             Trace.getTracer().trace(Trace.TRACE_UI, message);
-            Trace.getTracer().trace(Trace.TRACE_UI, "In performApply with project name = " + projectNameLabel.getText() + ", text = "
-                    + startParamStr + ", runInContainer = " + runInContainerBool + ", clean project = " + projectCleanBool);
+            Trace.getTracer().trace(Trace.TRACE_UI,
+                    "In performApply with project name = " + projectNameLabel.getText() + ", text = " + startParamStr
+                            + ", runInContainer = " + runInContainerBool + ", clean project = " + projectCleanBool);
         }
     }
 
@@ -478,33 +479,33 @@ public class StartTab extends AbstractLaunchConfigurationTab {
 		GridDataFactory.swtDefaults().applyTo(emptyColumnLabel);
 	}
 
-
     /**
-     * Creates the button entry that indicates whether or not the debug mode should work with HCR.
+     * Creates the button entry that indicates whether or not the debug mode should
+     * work with HCR.
      * 
      * @param parent The parent composite.
      */
-	private void createEnhancedDebugMonitoringButton(Composite parent) {
-		debugEnhancedMonitoringCheckBox = new Button(parent, SWT.CHECK);
-		debugEnhancedMonitoringCheckBox.setText("Enhanced Debug Monitoring");
-		debugEnhancedMonitoringCheckBox.setSelection(false);
-		debugEnhancedMonitoringCheckBox.setFont(font);
-		debugEnhancedMonitoringCheckBox.addSelectionListener(new SelectionAdapter() {
+    private void createEnhancedDebugMonitoringButton(Composite parent) {
+        debugEnhancedMonitoringCheckBox = new Button(parent, SWT.CHECK);
+        debugEnhancedMonitoringCheckBox.setText("Enhanced Debug Monitoring");
+        debugEnhancedMonitoringCheckBox.setSelection(false);
+        debugEnhancedMonitoringCheckBox.setFont(font);
+        debugEnhancedMonitoringCheckBox.addSelectionListener(new SelectionAdapter() {
 
-			/**
-			 * {@inheritDoc}
-			 */
-			@Override
-			public void widgetSelected(SelectionEvent event) {
-				setDirty(true);
-				updateLaunchConfigurationDialog();
-			}
-		});
-		GridDataFactory.swtDefaults().applyTo(debugEnhancedMonitoringCheckBox);
+            /**
+             * {@inheritDoc}
+             */
+            @Override
+            public void widgetSelected(SelectionEvent event) {
+                setDirty(true);
+                updateLaunchConfigurationDialog();
+            }
+        });
+        GridDataFactory.swtDefaults().applyTo(debugEnhancedMonitoringCheckBox);
 
-		Label emptyColumnLabel = new Label(parent, SWT.NONE);
-		GridDataFactory.swtDefaults().applyTo(emptyColumnLabel);
-	}
+        Label emptyColumnLabel = new Label(parent, SWT.NONE);
+        GridDataFactory.swtDefaults().applyTo(emptyColumnLabel);
+    }
 	
     /**
      * Returns the default start parameters.

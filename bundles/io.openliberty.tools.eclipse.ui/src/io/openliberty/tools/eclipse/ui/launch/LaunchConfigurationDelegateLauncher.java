@@ -160,10 +160,10 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
         String javaHomePath = JRETab.resolveJavaHome(configuration);
         Project project = devModeOps.getProjectModel().getProject(iProject.getName());
         
-        //Cleanup before the starting dev mode.
+        // Cleanup before the starting dev mode.
         if (project != null) {
-			Utils.reEnableAppMonitoring(project);
-		}
+            Utils.reEnableAppMonitoring(project);
+        }
         // Process the action.
         if (runInContainer) {
             devModeOps.startInContainer(iProject, configParms, javaHomePath, launch, mode, runProjectClean, enhancedDebugMonitoring);

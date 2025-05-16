@@ -425,23 +425,24 @@ public class DevModeOperations {
 
         String projectName = iProject.getName();
         Project project = projectModel.getProject(projectName);
-       
-        // Get the launch configuration and check for enable enhanced monitoring checkbox value.
+
+        // Get the launch configuration and check for enable enhanced monitoring
+        // checkbox value.
         LaunchConfigurationHelper launchConfigHelper = LaunchConfigurationHelper.getInstance();
         try {
-			ILaunchConfiguration configuration = launchConfigHelper.getLaunchConfiguration(iProject,
-					ILaunchManager.DEBUG_MODE, RuntimeEnv.UNKNOWN);
-			boolean enhancedDebugMonitoring = configuration.getAttribute(
-					StartTab.PROJECT_DEBUG_ENHANCED_MONITORING, true);
-			 if (project != null && enhancedDebugMonitoring) {
-		        	Utils.reEnableAppMonitoring(project);
-		     }
-		} catch (Exception e) {
-			if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_TOOLS, "An error was dettected while fetching the launch configuration.", e);
+            ILaunchConfiguration configuration = launchConfigHelper.getLaunchConfiguration(iProject,
+                    ILaunchManager.DEBUG_MODE, RuntimeEnv.UNKNOWN);
+            boolean enhancedDebugMonitoring = configuration.getAttribute(StartTab.PROJECT_DEBUG_ENHANCED_MONITORING,
+                    true);
+            if (project != null && enhancedDebugMonitoring) {
+                Utils.reEnableAppMonitoring(project);
             }
-		}
-       
+        } catch (Exception e) {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_TOOLS,
+                        "An error was dettected while fetching the launch configuration.", e);
+            }
+        }
 
         // Check if the stop action has already been issued of if a start action was never issued before.
         if (!processController.isProcessStarted(projectName)) {

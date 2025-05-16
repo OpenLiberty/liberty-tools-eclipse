@@ -338,23 +338,23 @@ public class Utils {
 			public void done(IJobChangeEvent event) {
 				IStatus result = event.getResult();
 
-				if (result.isOK()) {
-					try {
-						boolean enableEnhancedMonitoring = launch.getLaunchConfiguration()
-								.getAttribute(StartTab.PROJECT_DEBUG_ENHANCED_MONITORING, true);
-						debugModeHandler.startDebugAttacher(project, launch, null, enableEnhancedMonitoring);
-					} catch (CoreException e) {
-						String msg = "An error detected while getting the start params from the launch configuration.";
-						if (Trace.isEnabled()) {
-							Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
-						}
-					}
-				} else {
-					if (Trace.isEnabled()) {
-						Trace.getTracer().trace(Trace.TRACE_UI, "Timed out waiting for server stop message");
-					}
-				}
-			}
+                if (result.isOK()) {
+                    try {
+                        boolean enableEnhancedMonitoring = launch.getLaunchConfiguration()
+                                .getAttribute(StartTab.PROJECT_DEBUG_ENHANCED_MONITORING, true);
+                        debugModeHandler.startDebugAttacher(project, launch, null, enableEnhancedMonitoring);
+                    } catch (CoreException e) {
+                        String msg = "An error detected while getting the start params from the launch configuration.";
+                        if (Trace.isEnabled()) {
+                            Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
+                        }
+                    }
+                } else {
+                    if (Trace.isEnabled()) {
+                        Trace.getTracer().trace(Trace.TRACE_UI, "Timed out waiting for server stop message");
+                    }
+                }
+            }
 		});
 
 		job.schedule();
