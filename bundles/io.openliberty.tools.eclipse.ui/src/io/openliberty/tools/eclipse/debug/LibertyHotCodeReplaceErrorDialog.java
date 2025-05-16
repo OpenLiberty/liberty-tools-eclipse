@@ -29,6 +29,7 @@ import org.eclipse.swt.widgets.Shell;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.Project;
+import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.ui.launch.StartTab;
 import io.openliberty.tools.eclipse.utils.Utils;
 
@@ -46,12 +47,23 @@ public class LibertyHotCodeReplaceErrorDialog extends HotCodeReplaceErrorDialog 
 
     @Override
     protected void createButtonsForButtonBar(Composite parent) {
-        createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
-        createDetailsButton(parent);
-        getButton(IDialogConstants.OK_ID).setText(DebugUIMessages.HotCodeReplaceErrorDialog_0);
-        createButton(parent, DISCONNECT_ID, "Refresh", false);
+        ILaunch launch = target.getLaunch();
+        try {
+            boolean enableEnhancedMonitoring = launch.getLaunchConfiguration()
+                    .getAttribute(StartTab.PROJECT_DEBUG_ENHANCED_MONITORING, true);
+            createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
+            createDetailsButton(parent);
+            getButton(IDialogConstants.OK_ID).setText(DebugUIMessages.HotCodeReplaceErrorDialog_0);
+            createButton(parent, DISCONNECT_ID, enableEnhancedMonitoring == true ? "Refresh" : "Refresh Debugger",
+                    false);
+            blockMnemonicWithoutModifier(getToggleButton());
+        } catch (CoreException e) {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_TOOLS,
+                        "An error was dettected while fetching the launch configuration.", e);
+            }
+        }
 
-        blockMnemonicWithoutModifier(getToggleButton());
     }
 
     /*
@@ -69,25 +81,32 @@ public class LibertyHotCodeReplaceErrorDialog extends HotCodeReplaceErrorDialog 
                 public void run() {
                     try {
                         operation[0] = DebugUIMessages.HotCodeReplaceErrorDialog_6;
-
-                        // Restart the debugger
                         DevModeOperations devModeOps = DevModeOperations.getInstance();
-
                         ILaunch launch = target.getLaunch();
                         String projectName = launch.getLaunchConfiguration().getAttribute(StartTab.PROJECT_NAME, "");
-                        boolean enableEnhancedMonitoring = launch.getLaunchConfiguration().getAttribute(StartTab.PROJECT_DEBUG_ENHANCED_MONITORING, true);
                         Project project = devModeOps.getProjectModel().getProject(projectName);
-                        String userParms = launch.getLaunchConfiguration().getAttribute(StartTab.PROJECT_START_PARM, "");
-                        DebugModeHandler debugModeHandler = devModeOps.getDebugModeHandler();
-                        if (devModeOps.isProjectStarted(projectName)) {
-                         	devModeOps.restartServer(projectName);
-                         	if (target.canDisconnect()) {
-                         		target.disconnect(); // detaches debugger
-                         	}
-                            launch.removeDebugTarget(target);
-                        }
-                        Utils.restartDebugger(project, launch, debugModeHandler);
+                        boolean enableEnhancedMonitoring = launch.getLaunchConfiguration()
+                                .getAttribute(StartTab.PROJECT_DEBUG_ENHANCED_MONITORING, true);
+                        String userParms = launch.getLaunchConfiguration().getAttribute(StartTab.PROJECT_START_PARM,
+                                "");
 
+                        if (enableEnhancedMonitoring) {
+                            DebugModeHandler debugModeHandler = devModeOps.getDebugModeHandler();
+                            if (devModeOps.isProjectStarted(projectName)) {
+                                devModeOps.restartServer(projectName);
+                                if (target.canDisconnect()) {
+                                    target.disconnect(); // detaches debugger
+                                }
+                                launch.removeDebugTarget(target);
+                            }
+                            Utils.restartDebugger(project, launch, debugModeHandler);
+                        } else {
+                            // Restart the debugger
+                            target.disconnect();
+                            launch.removeDebugTarget(target);
+                            DebugModeHandler debugModeHandler = devModeOps.getDebugModeHandler();
+                            debugModeHandler.startDebugAttacher(project, launch, null, enableEnhancedMonitoring);
+                        }
                     } catch (CoreException e) {
                         ex[0] = e;
                     }
