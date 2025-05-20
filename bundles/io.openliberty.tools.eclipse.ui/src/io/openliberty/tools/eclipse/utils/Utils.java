@@ -335,15 +335,22 @@ public class Utils {
 			@Override
 			public void done(IJobChangeEvent event) {
 				IStatus result = event.getResult();
-
-				if (result.isOK()) {
-					debugModeHandler.startDebugAttacher(project, launch, null);
-				} else {
-					if (Trace.isEnabled()) {
-						Trace.getTracer().trace(Trace.TRACE_UI, "Timed out waiting for server stop message");
-					}
-				}
-			}
+                if (result.isOK()) {
+                    try {
+                        Thread.sleep(5000);
+                        debugModeHandler.startDebugAttacher(project, launch, null);
+                    } catch (InterruptedException e) {
+                        if (Trace.isEnabled()) {
+                            Trace.getTracer().trace(Trace.TRACE_UI, "Caught exception waiting for attaching debugger",
+                                    e);
+                        }
+                    }
+                } else {
+                    if (Trace.isEnabled()) {
+                        Trace.getTracer().trace(Trace.TRACE_UI, "Timed out waiting for server stop message");
+                    }
+                }
+            }
 		});
 
 		job.schedule();
