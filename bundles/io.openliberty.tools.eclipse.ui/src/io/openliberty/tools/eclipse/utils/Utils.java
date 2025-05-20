@@ -331,10 +331,10 @@ public class Utils {
 			}			
 		};
 
-		job.addJobChangeListener(new JobChangeAdapter() {
-			@Override
-			public void done(IJobChangeEvent event) {
-				IStatus result = event.getResult();
+        job.addJobChangeListener(new JobChangeAdapter() {
+            @Override
+            public void done(IJobChangeEvent event) {
+                IStatus result = event.getResult();
                 if (result.isOK()) {
                     try {
                         Thread.sleep(5000);
@@ -351,10 +351,10 @@ public class Utils {
                     }
                 }
             }
-		});
+        });
 
-		job.schedule();
-	}
+        job.schedule();
+    }
 
     // Get the usr directory path from the maven/gradle output folder.
     private static String getLogFilePath(Project project) {
