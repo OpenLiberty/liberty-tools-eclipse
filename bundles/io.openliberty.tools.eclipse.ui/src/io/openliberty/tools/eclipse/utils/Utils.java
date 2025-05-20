@@ -337,6 +337,7 @@ public class Utils {
                 IStatus result = event.getResult();
                 if (result.isOK()) {
                     try {
+                        //Added a delay before attaching the debugger. 
                         Thread.sleep(5000);
                         debugModeHandler.startDebugAttacher(project, launch, null);
                     } catch (InterruptedException e) {
