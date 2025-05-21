@@ -14,8 +14,8 @@ package io.openliberty.tools.eclipse.test.it;
 
 import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.context;
 import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.go;
-import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.checkRunInContainerCheckBox;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.checkRunCleanProjectCheckBox;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.checkRunInContainerCheckBox;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.deleteLibertyToolsRunConfigEntriesFromAppRunAs;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.enableLibertyTools;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getAppDebugAsMenu;
@@ -416,6 +416,11 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         // making it look like an "outer", actual test is failing, so we skip the tests.
         String cmd = CommandBuilder.getMavenCommandLine(projAbsolutePath.toString(),
                 "clean io.openliberty.tools:liberty-maven-plugin:dev -DskipITs=true", null);
+
+        if (LibertyPluginTestUtils.onWindows()) {
+            cmd = "cmd.exe /c" + cmd;
+        }
+
         String[] cmdParts = cmd.split(" ");
         ProcessBuilder pb = new ProcessBuilder(cmdParts).inheritIO().directory(projAbsolutePath.toFile()).redirectErrorStream(true);
         pb.environment().put("JAVA_HOME", JavaRuntime.getDefaultVMInstall().getInstallLocation().getAbsolutePath());
@@ -966,9 +971,9 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
     }
 
     /**
-     * Tests the Clean project option provided under liberty run configuration option. Test will check 
-     * if the application has started and also will check for the presence of project clean and dev mode commands 
-     * from the console tab 
+     * Tests the Clean project option provided under liberty run configuration option. Test will check
+     * if the application has started and also will check for the presence of project clean and dev mode commands
+     * from the console tab
      */
 
     @Test
@@ -990,9 +995,9 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_START);
 
         LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
-        //Reads the text from the console output tab
-        String consoleText =LibertyPluginTestUtils.getConsoleOutput();
-        Assertions.assertTrue(consoleText.contains("clean io.openliberty.tools:liberty-maven-plugin:dev"), 
+        // Reads the text from the console output tab
+        String consoleText = LibertyPluginTestUtils.getConsoleOutput();
+        Assertions.assertTrue(consoleText.contains("clean io.openliberty.tools:liberty-maven-plugin:dev"),
                 "Console text should contain 'clean io.openliberty.tools:liberty-maven-plugin:dev'");
         // If there are issues with the workspace, close the error dialog.
         pressWorkspaceErrorDialogProceedButton(bot);

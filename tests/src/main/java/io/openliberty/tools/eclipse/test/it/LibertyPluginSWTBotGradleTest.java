@@ -385,6 +385,10 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
 
         // Doing a 'clean' first in case server was started previously and terminated abruptly
         String cmd = CommandBuilder.getGradleCommandLine(wrapperProject.toString(), "clean libertyDev", null);
+
+        if (LibertyPluginTestUtils.onWindows()) {
+            cmd = "cmd.exe /c" + cmd;
+        }
         String[] cmdParts = cmd.split(" ");
         ProcessBuilder pb = new ProcessBuilder(cmdParts).inheritIO().directory(wrapperProject.toFile()).redirectErrorStream(true);
         pb.environment().put("JAVA_HOME", JavaRuntime.getDefaultVMInstall().getInstallLocation().getAbsolutePath());
@@ -506,6 +510,14 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
             // Run Tests.
             launchDashboardAction(GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_RUN_TESTS);
 
+            // Sleep for a bit to allow tests to complete and not have the console tab take focus
+            try {
+                Thread.sleep(10000);
+            } catch (InterruptedException e) {
+                // Handle interruption
+                Thread.currentThread().interrupt();
+            }
+
             // Validate that the reports were generated and the the browser editor was launched.
             LibertyPluginTestUtils.validateTestReportExists(pathToTestReport);
             if (LibertyPluginTestUtils.isInternalBrowserSupportAvailable()) {
@@ -514,7 +526,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         } finally {
             // Stop dev mode.
             launchDashboardAction(GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
-        	
+
             // Validate application stopped.
             LibertyPluginTestUtils.validateLibertyServerStopped(testAppPath + "/build");
 
@@ -674,11 +686,11 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
             LibertyPluginTestUtils.validateLibertyServerStopped(testAppPath + "/build");
         }
     }
-    
+
     /**
-     * Tests the Clean project option provided under liberty run configuration option. Test will check 
-     * if the application has started and also will check for the presence of project clean and dev mode commands 
-     * from the console tab 
+     * Tests the Clean project option provided under liberty run configuration option. Test will check
+     * if the application has started and also will check for the presence of project clean and dev mode commands
+     * from the console tab
      */
 
     @Test
@@ -706,9 +718,9 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         }
 
         LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_APP_NAME, true, testAppPath + "/build");
-        //Reads the text from the console output tab
-        String consoleText =LibertyPluginTestUtils.getConsoleOutput();
-        Assertions.assertTrue(consoleText.contains("clean libertyDev"),"Console text should contain 'clean libertyDev'");
+        // Reads the text from the console output tab
+        String consoleText = LibertyPluginTestUtils.getConsoleOutput();
+        Assertions.assertTrue(consoleText.contains("clean libertyDev"), "Console text should contain 'clean libertyDev'");
         // If there are issues with the workspace, close the error dialog.
         pressWorkspaceErrorDialogProceedButton(bot);
 
@@ -716,7 +728,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         launchDashboardAction(GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
 
         // Validate application stopped.
-        LibertyPluginTestUtils.validateLibertyServerStopped( testAppPath + "/build");
+        LibertyPluginTestUtils.validateLibertyServerStopped(testAppPath + "/build");
 
     }
 

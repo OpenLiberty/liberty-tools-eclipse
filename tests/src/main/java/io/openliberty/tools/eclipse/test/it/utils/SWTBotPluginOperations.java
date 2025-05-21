@@ -308,6 +308,7 @@ public class SWTBotPluginOperations {
 
         Object dashboardView = MagicWidgetFinder.findGlobal(DASHBOARD_VIEW_TITLE);
         Object project = MagicWidgetFinder.find(appName, dashboardView, Option.factory().widgetClass(TableItem.class).build());
+        MagicWidgetFinder.go(project);
         MagicWidgetFinder.context(project, action);
     }
 
@@ -658,10 +659,10 @@ public class SWTBotPluginOperations {
 
         go(button);
     }
-    
 
     /**
      * Selects the project clean option under liberty in run configurations
+     * 
      * @param shell
      * @param runDebugConfigName
      */
