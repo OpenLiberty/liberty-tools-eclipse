@@ -23,6 +23,8 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.FileTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -306,6 +308,10 @@ public class Utils {
 
 				String wlpMsgLogPath = Utils.getLogFilePath(project);
 				int maxAttempts = 30;
+				
+				// Get current timestamp
+				Instant now = Instant.now();
+				System.out.println("Current timestamp: " + now);
 
 				// Find message CWWKE0036I: The server x stopped after y seconds
 				for (int i = 0; i < maxAttempts; i++) {
@@ -313,7 +319,24 @@ public class Utils {
 						String line;
 						while ((line = br.readLine()) != null) {
 							if (line.contains("CWWKE0036I")) {
-								return Status.OK_STATUS;
+								for (int j = 0; i < maxAttempts; i++) {
+
+								// Get file's last modified timestamp
+								File usrDir = new File(getUsrDirPath(project).toString());
+								Path serverEnvFilePath = findFileByName(usrDir, "server.env").toPath();
+
+								FileTime fileTime = Files.getLastModifiedTime(serverEnvFilePath);
+								Instant fileModifiedInstant = fileTime.toInstant();
+								System.out.println("File last modified: " + fileModifiedInstant);
+
+								// Compare the timestamps
+								if (fileModifiedInstant.isAfter(now)) {
+									return Status.OK_STATUS;
+								} else {
+									Thread.sleep(3000);
+								}
+
+								}
 							}
 						}
 
@@ -335,17 +358,8 @@ public class Utils {
             @Override
             public void done(IJobChangeEvent event) {
                 IStatus result = event.getResult();
-                if (result.isOK()) {
-                    try {
-                        //Added a delay before attaching the debugger. 
-                        Thread.sleep(5000);
-                        debugModeHandler.startDebugAttacher(project, launch, null);
-                    } catch (InterruptedException e) {
-                        if (Trace.isEnabled()) {
-                            Trace.getTracer().trace(Trace.TRACE_UI, "Caught exception waiting for attaching debugger",
-                                    e);
-                        }
-                    }
+                if (result.isOK()) {      
+                    debugModeHandler.startDebugAttacher(project, launch, null);
                 } else {
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_UI, "Timed out waiting for server stop message");
