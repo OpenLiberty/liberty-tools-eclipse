@@ -308,11 +308,9 @@ public class Utils {
 
 				String wlpMsgLogPath = Utils.getLogFilePath(project);
 				int maxAttempts = 30;
-				
+
 				// Get current timestamp
 				Instant now = Instant.now();
-				System.out.println("Current timestamp: " + now);
-
 				// Find message CWWKE0036I: The server x stopped after y seconds
 				for (int i = 0; i < maxAttempts; i++) {
 					try (BufferedReader br = new BufferedReader(new FileReader(wlpMsgLogPath))) {
@@ -321,27 +319,22 @@ public class Utils {
 							if (line.contains("CWWKE0036I")) {
 								for (int j = 0; i < maxAttempts; i++) {
 
-								// Get file's last modified timestamp
-								File usrDir = new File(getUsrDirPath(project).toString());
-								Path serverEnvFilePath = findFileByName(usrDir, "server.env").toPath();
+									// Get file's last modified timestamp
+									File usrDir = new File(getUsrDirPath(project).toString());
+									Path serverEnvFilePath = findFileByName(usrDir, "server.env").toPath();
+									FileTime fileTime = Files.getLastModifiedTime(serverEnvFilePath);
+									Instant fileModifiedInstant = fileTime.toInstant();
 
-								FileTime fileTime = Files.getLastModifiedTime(serverEnvFilePath);
-								Instant fileModifiedInstant = fileTime.toInstant();
-								System.out.println("File last modified: " + fileModifiedInstant);
-
-								// Compare the timestamps
-								if (fileModifiedInstant.isAfter(now)) {
-									return Status.OK_STATUS;
-								} else {
-									Thread.sleep(3000);
-								}
-
+									// Compare the timestamps
+									if (fileModifiedInstant.isAfter(now)) {
+										return Status.OK_STATUS;
+									} else {
+										Thread.sleep(3000);
+									}
 								}
 							}
 						}
-
 						Thread.sleep(3000);
-
 					} catch (Exception e) {
 						if (Trace.isEnabled()) {
 							Trace.getTracer().trace(Trace.TRACE_UI, "Caught exception waiting for stop message", e);
