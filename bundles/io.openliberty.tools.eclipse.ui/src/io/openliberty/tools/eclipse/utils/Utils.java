@@ -23,6 +23,8 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.attribute.FileTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -307,18 +309,32 @@ public class Utils {
 				String wlpMsgLogPath = Utils.getLogFilePath(project);
 				int maxAttempts = 30;
 
+				// Get current timestamp
+				Instant now = Instant.now();
 				// Find message CWWKE0036I: The server x stopped after y seconds
 				for (int i = 0; i < maxAttempts; i++) {
 					try (BufferedReader br = new BufferedReader(new FileReader(wlpMsgLogPath))) {
 						String line;
 						while ((line = br.readLine()) != null) {
 							if (line.contains("CWWKE0036I")) {
-								return Status.OK_STATUS;
+								for (int j = 0; i < maxAttempts; i++) {
+
+									// Get file's last modified timestamp
+									File usrDir = new File(getUsrDirPath(project).toString());
+									Path serverEnvFilePath = findFileByName(usrDir, "server.env").toPath();
+									FileTime fileTime = Files.getLastModifiedTime(serverEnvFilePath);
+									Instant fileModifiedInstant = fileTime.toInstant();
+
+									// Compare the timestamps
+									if (fileModifiedInstant.isAfter(now)) {
+										return Status.OK_STATUS;
+									} else {
+										Thread.sleep(3000);
+									}
+								}
 							}
 						}
-
 						Thread.sleep(3000);
-
 					} catch (Exception e) {
 						if (Trace.isEnabled()) {
 							Trace.getTracer().trace(Trace.TRACE_UI, "Caught exception waiting for stop message", e);
@@ -331,23 +347,22 @@ public class Utils {
 			}			
 		};
 
-		job.addJobChangeListener(new JobChangeAdapter() {
-			@Override
-			public void done(IJobChangeEvent event) {
-				IStatus result = event.getResult();
+        job.addJobChangeListener(new JobChangeAdapter() {
+            @Override
+            public void done(IJobChangeEvent event) {
+                IStatus result = event.getResult();
+                if (result.isOK()) {      
+                    debugModeHandler.startDebugAttacher(project, launch, null);
+                } else {
+                    if (Trace.isEnabled()) {
+                        Trace.getTracer().trace(Trace.TRACE_UI, "Timed out waiting for server stop message");
+                    }
+                }
+            }
+        });
 
-				if (result.isOK()) {
-					debugModeHandler.startDebugAttacher(project, launch, null);
-				} else {
-					if (Trace.isEnabled()) {
-						Trace.getTracer().trace(Trace.TRACE_UI, "Timed out waiting for server stop message");
-					}
-				}
-			}
-		});
-
-		job.schedule();
-	}
+        job.schedule();
+    }
 
     // Get the usr directory path from the maven/gradle output folder.
     private static String getLogFilePath(Project project) {
