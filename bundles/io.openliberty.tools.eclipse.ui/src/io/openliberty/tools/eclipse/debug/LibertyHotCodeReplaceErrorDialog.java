@@ -12,6 +12,8 @@
 *******************************************************************************/
 package io.openliberty.tools.eclipse.debug;
 
+import java.time.Instant;
+
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
 import org.eclipse.debug.core.DebugException;
@@ -76,16 +78,19 @@ public class LibertyHotCodeReplaceErrorDialog extends HotCodeReplaceErrorDialog 
                         ILaunch launch = target.getLaunch();
                         String projectName = launch.getLaunchConfiguration().getAttribute(StartTab.PROJECT_NAME, "");
                         Project project = devModeOps.getProjectModel().getProject(projectName);
-                        String userParms = launch.getLaunchConfiguration().getAttribute(StartTab.PROJECT_START_PARM, "");
                         DebugModeHandler debugModeHandler = devModeOps.getDebugModeHandler();
-                        if (devModeOps.isProjectStarted(projectName)) {
-                         	devModeOps.restartServer(projectName);
-                         	if (target.canDisconnect()) {
-                         		target.disconnect(); // detaches debugger
-                         	}
-                            launch.removeDebugTarget(target);
+
+                        // Get time before server restart
+                        Instant preRestartTime = Instant.now();
+
+                        // Restart the server
+                        devModeOps.restartServer(projectName);
+                        if (target.canDisconnect()) {
+                            target.disconnect(); // detaches debugger
                         }
-                        Utils.restartDebugger(project, launch, debugModeHandler);
+                        launch.removeDebugTarget(target);
+
+                        Utils.restartDebugger(project, launch, debugModeHandler, preRestartTime);
 
                     } catch (CoreException e) {
                         ex[0] = e;
