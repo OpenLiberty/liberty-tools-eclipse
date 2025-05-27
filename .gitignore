@@ -7,3 +7,7 @@ bin/
 **/.polyglot*
 */pom.tycho
 .settings
+releng/**/.project
+bundles/.project
+features/.project
+features/io.openliberty.tools.eclipse.feature/.project
