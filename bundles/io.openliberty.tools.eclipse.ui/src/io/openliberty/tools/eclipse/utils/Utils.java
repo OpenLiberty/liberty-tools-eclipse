@@ -12,10 +12,6 @@
 *******************************************************************************/
 package io.openliberty.tools.eclipse.utils;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.InputStream;
-import java.net.URL;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -275,7 +271,7 @@ public class Utils {
 
         return sb.toString();
     }
-    
+
     /**
      * Returns the input throwable's root throwable cause.
      * 
@@ -295,67 +291,63 @@ public class Utils {
 
         return cause;
     }
-    
 
-	public static void restartDebugger(Project project, ILaunch launch, DebugModeHandler debugModeHandler) {
+    /**
+     * Runs a background job to wait for a new server.env file to be created, signifying the restart of the application,
+     * and then reconnects the Liberty debugger.
+     * 
+     * @param project
+     * @param launch
+     * @param debugModeHandler
+     * @param preRestartTime - The current time prior to restarting the server
+     */
+    public static void restartDebugger(Project project, ILaunch launch, DebugModeHandler debugModeHandler, Instant preRestartTime) {
 
-		Job job = new Job("Waiting for application to stop...") {
-			@Override
-			protected IStatus run(IProgressMonitor monitor) {
-				if (monitor.isCanceled()) {
-					return Status.CANCEL_STATUS;
-				}
+        Job job = new Job("Waiting for application to restart...") {
+            @Override
+            protected IStatus run(IProgressMonitor monitor) {
+                if (monitor.isCanceled()) {
+                    return Status.CANCEL_STATUS;
+                }
 
-				String wlpMsgLogPath = Utils.getLogFilePath(project);
-				int maxAttempts = 30;
+                int maxAttempts = 30;
 
-				// Get current timestamp
-				Instant now = Instant.now();
-				// Find message CWWKE0036I: The server x stopped after y seconds
-				for (int i = 0; i < maxAttempts; i++) {
-					try (BufferedReader br = new BufferedReader(new FileReader(wlpMsgLogPath))) {
-						String line;
-						while ((line = br.readLine()) != null) {
-							if (line.contains("CWWKE0036I")) {
-								for (int j = 0; i < maxAttempts; i++) {
+                // Check to see if a new server.env file has been created.
+                for (int i = 0; i < maxAttempts; i++) {
+                    try {
+                        // Get server.env file's last modified timestamp
+                        File usrDir = new File(getUsrDirPath(project).toString());
+                        Path serverEnvFilePath = findFileByName(usrDir, "server.env").toPath();
+                        FileTime fileTime = Files.getLastModifiedTime(serverEnvFilePath);
+                        Instant fileModifiedInstant = fileTime.toInstant();
 
-									// Get file's last modified timestamp
-									File usrDir = new File(getUsrDirPath(project).toString());
-									Path serverEnvFilePath = findFileByName(usrDir, "server.env").toPath();
-									FileTime fileTime = Files.getLastModifiedTime(serverEnvFilePath);
-									Instant fileModifiedInstant = fileTime.toInstant();
+                        // Compare the timestamps
+                        if (fileModifiedInstant.isAfter(preRestartTime)) {
+                            return Status.OK_STATUS;
+                        }
 
-									// Compare the timestamps
-									if (fileModifiedInstant.isAfter(now)) {
-										return Status.OK_STATUS;
-									} else {
-										Thread.sleep(3000);
-									}
-								}
-							}
-						}
-						Thread.sleep(3000);
-					} catch (Exception e) {
-						if (Trace.isEnabled()) {
-							Trace.getTracer().trace(Trace.TRACE_UI, "Caught exception waiting for stop message", e);
-						}
-						return Status.CANCEL_STATUS;
-					}
-				}
+                        Thread.sleep(3000);
+                    } catch (Exception e) {
+                        if (Trace.isEnabled()) {
+                            Trace.getTracer().trace(Trace.TRACE_UI, "Caught exception waiting for application to restart", e);
+                        }
+                        return Status.CANCEL_STATUS;
+                    }
+                }
 
-				return Status.CANCEL_STATUS;
-			}			
-		};
+                return Status.CANCEL_STATUS;
+            }
+        };
 
         job.addJobChangeListener(new JobChangeAdapter() {
             @Override
             public void done(IJobChangeEvent event) {
                 IStatus result = event.getResult();
-                if (result.isOK()) {      
+                if (result.isOK()) {
                     debugModeHandler.startDebugAttacher(project, launch, null);
                 } else {
                     if (Trace.isEnabled()) {
-                        Trace.getTracer().trace(Trace.TRACE_UI, "Timed out waiting for server stop message");
+                        Trace.getTracer().trace(Trace.TRACE_UI, "Timed out waiting for application to restart");
                     }
                 }
             }
@@ -364,168 +356,152 @@ public class Utils {
         job.schedule();
     }
 
-    // Get the usr directory path from the maven/gradle output folder.
-    private static String getLogFilePath(Project project) {
-    	if (project.getBuildType() == Project.BuildType.MAVEN) {
-    		return Paths.get(project.getPath(), "target", "liberty", "wlp", "usr", "servers", "defaultServer", "logs",
-    				"messages.log").toString();
-    	} else {
-    		return Paths
-    				.get(project.getPath(), "build", "wlp", "usr", "servers", "defaultServer", "logs", "messages.log")
-    				.toString();
-    	}
+    /**
+     * Disable app monitoring by placing an XML file containing the app monitoring
+     * configuration into the 'configDropins/overrides' folder inside the target
+     * directory.
+     * 
+     * @param project a project in the Liberty dashboard.
+     */
+    public static void disableAppMonitoring(Project project) {
+
+        String fileNameTofind = "server.xml";
+        String fileContent = "<server> <applicationMonitor updateTrigger=\"disabled\"/> </server>";
+        try {
+            validateProjectIsGradleOrMaven(project);
+            // Find the 'usr' directory inside 'wlp'
+            File usrDir = new File(getUsrDirPath(project).toString());
+            // Locate the server.xml file inside the server directory.
+            // The configDropins directory should be created at the same level as
+            // server.xml.
+            Path serverXmlFilePath = findFileByName(usrDir, fileNameTofind).toPath();
+            if (serverXmlFilePath != null) {
+                createXmlFile(serverXmlFilePath.getParent().toString(), fileContent);
+            } else {
+                if (Trace.isEnabled()) {
+                    Trace.getTracer().trace(Trace.TRACE_UI,
+                            "File '" + fileNameTofind + "' not found in the 'usr'folder.");
+                }
+            }
+        } catch (Exception e) {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UI, "Error encountered while adding xml file in the configDropins.",
+                        e);
+            }
+        }
     }
 
-	/**
-	 * Disable app monitoring by placing an XML file containing the app monitoring
-	 * configuration into the 'configDropins/overrides' folder inside the target
-	 * directory.
-	 * 
-	 * 
-	 * @param project a project in the Liberty dashboard.
-	 * 
-	 */
-	public static void disableAppMonitoring(Project project) {
+    /**
+     * Re-enable app monitoring by removing the XML file containing the app
+     * monitoring configuration from the 'configDropins/overrides' folder inside the
+     * target directory.
+     * 
+     * @param project a project in the Liberty dashboard.
+     */
+    public static void reEnableAppMonitoring(Project project) {
 
-		String fileNameTofind = "server.xml";
-		String fileContent = "<server> <applicationMonitor updateTrigger=\"disabled\"/> </server>";
-		try {
-			validateProjectIsGradleOrMaven(project);
-			// Find the 'usr' directory inside 'wlp'
-			File usrDir = new File(getUsrDirPath(project).toString());
-			// Locate the server.xml file inside the server directory.
-			// The configDropins directory should be created at the same level as
-			// server.xml.
-			Path serverXmlFilePath = findFileByName(usrDir, fileNameTofind).toPath();
-			if (serverXmlFilePath != null) {
-				createXmlFile(serverXmlFilePath.getParent().toString(), fileContent);
-			} else {
-				if (Trace.isEnabled()) {
-					Trace.getTracer().trace(Trace.TRACE_UI,
-							"File '" + fileNameTofind + "' not found in the 'usr'folder.");
-				}
-			}
-		} catch (Exception e) {
-			if (Trace.isEnabled()) {
-				Trace.getTracer().trace(Trace.TRACE_UI, "Error encountered while adding xml file in the configDropins.",
-						e);
-			}
-		}
-	}
+        try {
+            validateProjectIsGradleOrMaven(project);
+            String fileNameTofind = "disableApplicationMonitor.xml";
+            File xmlFile = findFileByName(getUsrDirPath(project), fileNameTofind);
+            if (xmlFile != null) {
+                // Delete the file if exists.
+                deleteFileByName(xmlFile.toPath());
+            }
+        } catch (Exception e) {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UI, "Error encountered while removing xml file from configDropins.",
+                        e);
+            }
+        }
+    }
 
-	/**
-	 * Re-enable app monitoring by removing the XML file containing the app
-	 * monitoring configuration from the 'configDropins/overrides' folder inside the
-	 * target directory.
-	 * 
-	 * 
-	 * @param project a project in the Liberty dashboard.
-	 * 
-	 */
-	public static void reEnableAppMonitoring(Project project) {
+    // Method to find a specific file in a folder.
+    private static File findFileByName(File rootDir, String targetFileName) {
+        if (rootDir == null || !rootDir.isDirectory()) {
+            return null;
+        }
 
-		try {
-			validateProjectIsGradleOrMaven(project);
-			String fileNameTofind = "disableApplicationMonitor.xml";
-			File xmlFile = findFileByName(getUsrDirPath(project), fileNameTofind);
-			if (xmlFile != null) {
-				// Delete the file if exists.
-				deleteFileByName(xmlFile.toPath());
-			}
-		} catch (Exception e) {
-			if (Trace.isEnabled()) {
-				Trace.getTracer().trace(Trace.TRACE_UI, "Error encountered while removing xml file from configDropins.",
-						e);
-			}
-		}
-	}
+        try (Stream<Path> paths = Files.walk(rootDir.toPath())) {
+            Optional<Path> match = paths.filter(Files::isRegularFile)
+                    .filter(path -> path.getFileName().toString().equals(targetFileName)).findFirst();
+            return match.map(Path::toFile).orElse(null);
+        } catch (IOException e) {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UI, "An error occurred while searching for the file.", e);
+            }
+        }
+        return null; // file not found
+    }
 
-	// Method to find a specific file in a folder.
-	private static File findFileByName(File rootDir, String targetFileName) {
-		if (rootDir == null || !rootDir.isDirectory()) {
-			return null;
-		}
+    // Create a directory and a file containing the specified content.
+    private static void createXmlFile(String filePath, String content) {
+        try {
+            Files.createDirectories(getConfigDropinsPath(filePath));
+            Path xmlFilePath = getXmlFilePath(filePath);
+            if (Files.notExists(xmlFilePath)) {
+                Files.createFile(xmlFilePath);
+                Files.writeString(xmlFilePath, content);
+            }
+        } catch (IOException e) {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UI, "An error occurred while creating the file: " + e.getMessage());
+            }
+        }
+    }
 
-		try (Stream<Path> paths = Files.walk(rootDir.toPath())) {
-			Optional<Path> match = paths.filter(Files::isRegularFile)
-					.filter(path -> path.getFileName().toString().equals(targetFileName)).findFirst();
-			return match.map(Path::toFile).orElse(null);
-		} catch (IOException e) {
-			if (Trace.isEnabled()) {
-				Trace.getTracer().trace(Trace.TRACE_UI, "An error occurred while searching for the file.", e);
-			}
-		}
-		return null; // file not found
-	}
+    // Method to delete a file by path.
+    private static void deleteFileByName(Path filePath) {
+        try {
+            Files.walk(filePath).filter(Files::isRegularFile).forEach(path -> {
+                try {
+                    Files.delete(path);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
+        } catch (IOException e) {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UI, "Error during file deletion: " + e.getMessage());
+            }
+        }
+    }
 
-	// Create a directory and a file containing the specified content.
-	private static void createXmlFile(String filePath, String content) {
-		try {
-			Files.createDirectories(getConfigDropinsPath(filePath));
-			Path xmlFilePath = getXmlFilePath(filePath);
-			if (Files.notExists(xmlFilePath)) {
-				Files.createFile(xmlFilePath);
-				Files.writeString(xmlFilePath, content);
-			}
-		} catch (IOException e) {
-			if (Trace.isEnabled()) {
-				Trace.getTracer().trace(Trace.TRACE_UI, "An error occurred while creating the file: " + e.getMessage());
-			}
-		}
-	}
+    // Method to check for project instance is null or project buildtype is unknowm.
+    private static void validateProjectIsGradleOrMaven(Project project) throws Exception {
 
-	// Method to delete a file by path.
-	private static void deleteFileByName(Path filePath) {
-		try {
-			Files.walk(filePath).filter(Files::isRegularFile).forEach(path -> {
-				try {
-					Files.delete(path);
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			});
-		} catch (IOException e) {
-			if (Trace.isEnabled()) {
-				Trace.getTracer().trace(Trace.TRACE_UI, "Error during file deletion: " + e.getMessage());
-			}
-		}
-	}
+        if (project == null) {
+            throw new Exception("Unable to find internal instance of project.");
+        }
+        // Get the absolute path to the application project.
+        if (project.getPath() == null) {
+            throw new Exception("Unable to find the path to selected project.");
+        }
+        if (project.getBuildType() == Project.BuildType.UNKNOWN) {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UI, "Unexpected project build type: " + project.getBuildType()
+                        + ". " + "Project does not appear to be a Maven or Gradle built project.");
+                return;
+            }
+        }
+    }
 
-	// Method to check for project instance is null or project buildtype is unknowm.
-	private static void validateProjectIsGradleOrMaven(Project project) throws Exception {
+    // Get the usr directory path from the maven/gradle output folder.
+    private static File getUsrDirPath(Project project) {
+        if (project.getBuildType() == Project.BuildType.MAVEN) {
+            return Paths.get(project.getPath(), "target", "liberty", "wlp", "usr").toFile();
+        } else {
+            return Paths.get(project.getPath(), "build", "wlp", "usr").toFile();
+        }
+    }
 
-		if (project == null) {
-			throw new Exception("Unable to find internal instance of project.");
-		}
-		// Get the absolute path to the application project.
-		if (project.getPath() == null) {
-			throw new Exception("Unable to find the path to selected project.");
-		}
-		if (project.getBuildType() == Project.BuildType.UNKNOWN) {
-			if (Trace.isEnabled()) {
-				Trace.getTracer().trace(Trace.TRACE_UI, "Unexpected project build type: " + project.getBuildType()
-						+ ". " + "Project does not appear to be a Maven or Gradle built project.");
-				return;
-			}
-		}
-	}
+    // Get the "configDropins/overrides" directory path.
+    private static Path getConfigDropinsPath(String serverDirPath) {
+        return Paths.get(serverDirPath, "configDropins", "overrides");
+    }
 
-	// Get the usr directory path from the maven/gradle output folder.
-	private static File getUsrDirPath(Project project) {
-		if (project.getBuildType() == Project.BuildType.MAVEN) {
-			return Paths.get(project.getPath(), "target", "liberty", "wlp", "usr").toFile();
-		} else {
-			return Paths.get(project.getPath(), "build", "wlp", "usr").toFile();
-		}
-	}
-
-	// Get the "configDropins/overrides" directory path.
-	private static Path getConfigDropinsPath(String serverDirPath) {
-		return Paths.get(serverDirPath, "configDropins", "overrides");
-	}
-
-	// Get the xml file path.
-	private static Path getXmlFilePath(String serverDirPath) {
-		return Paths.get(serverDirPath, "configDropins", "overrides", "disableApplicationMonitor.xml");
-	}
+    // Get the xml file path.
+    private static Path getXmlFilePath(String serverDirPath) {
+        return Paths.get(serverDirPath, "configDropins", "overrides", "disableApplicationMonitor.xml");
+    }
 }
