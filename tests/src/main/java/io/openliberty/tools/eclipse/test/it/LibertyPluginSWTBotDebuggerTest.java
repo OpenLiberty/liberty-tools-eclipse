@@ -35,6 +35,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
+import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
 
@@ -188,5 +189,128 @@ public class LibertyPluginSWTBotDebuggerTest extends AbstractLibertyPluginSWTBot
 
         // Validate button enabled
         Assertions.assertTrue(getDebuggerConnectMenuForDebugObject(launch).isEnabled());
+    }
+    
+    /**
+     * Tests the "Enhanced debug monitoring", that the XML file is added in the
+     * overrides directory during the debug mode.
+     * 
+     */
+    @Test
+    public void testEnhancedDebugMode_configXmlFilePresentOnDebugMode() {
+    	// Start dev mode.
+    	launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_DEBUG);
+
+    	// Validate application is up and running.
+    	LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true,
+    			projectPath.toAbsolutePath().toString() + "/target/liberty");
+
+    	// If there are issues with the workspace, close the error dialog.
+    	pressWorkspaceErrorDialogProceedButton(bot);
+
+    	// Validate app monitoring is disabled by checking the xml file is present in
+    	// the overrides directory.
+    	Path pathToXmlFile = DevModeOperations.getMavenXmlFilePathInOverridesDirectory(projectPath.toString());
+    	boolean isDisabled = LibertyPluginTestUtils.validateXmlFilePresentInOverridesDirectory(pathToXmlFile);
+
+    	if (!isDisabled) {
+    		Assertions.fail("Xml file not found on " + pathToXmlFile + ".");
+    	}
+    	// Stop dev mode.
+    	launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
+
+    	// Validate application stopped.
+    	LibertyPluginTestUtils
+    	.validateLibertyServerStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
+
+    }
+
+    /**
+     * Tests the "Enhanced debug monitoring", that the XML file is added in the
+     * overrides directory during the debug mode.
+     * 
+     */
+    @Test
+    public void testEnhancedDebugMode_onStopRemoveXmlFile() {
+    	boolean isDisabled = false;
+    	// Start dev mode.
+    	launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_DEBUG);
+
+    	// Validate application is up and running.
+    	LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true,
+    			projectPath.toAbsolutePath().toString() + "/target/liberty");
+
+    	// If there are issues with the workspace, close the error dialog.
+    	pressWorkspaceErrorDialogProceedButton(bot);
+
+    	// Validate app monitoring is disabled by checking the xml file is present in
+    	// the overrides directory.
+    	Path pathToXmlFile = DevModeOperations.getMavenXmlFilePathInOverridesDirectory(projectPath.toString());
+    	isDisabled = LibertyPluginTestUtils.validateXmlFilePresentInOverridesDirectory(pathToXmlFile);
+
+    	if (!isDisabled) {
+    		Assertions.fail("Xml file not found on " + pathToXmlFile + ".");
+    	}
+    	// Stop dev mode.
+    	launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
+
+    	// Validate application stopped.
+    	LibertyPluginTestUtils
+    	.validateLibertyServerStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
+
+    	isDisabled = LibertyPluginTestUtils.validateXmlFileNotPresentInOverridesDirectory(pathToXmlFile);
+    	if (!isDisabled) {
+    		Assertions.fail("Xml file " + pathToXmlFile
+    				+ " is not removed from overrides directory on disconnecting debugger.");
+    	}
+    }
+
+    /**
+     * Tests that the XML file is removed from the overrides directory when the
+     * debugger is disconnected.
+     */
+    @Test
+    public void testEnhancedDebugMode_disconnectDebuggerRemoveXmlFile() {
+    	boolean isDisabled = false;
+
+    	// Start dev mode.
+    	launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_DEBUG);
+
+    	// Validate application is up and running.
+    	LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true,
+    			projectPath.toAbsolutePath().toString() + "/target/liberty");
+
+    	// If there are issues with the workspace, close the error dialog.
+    	pressWorkspaceErrorDialogProceedButton(bot);
+
+    	// Validate app monitoring is disabled by checking the xml file is present in
+    	// the overrides directory.
+    	Path pathToXmlFile = DevModeOperations.getMavenXmlFilePathInOverridesDirectory(projectPath.toString());
+    	isDisabled = LibertyPluginTestUtils.validateXmlFilePresentInOverridesDirectory(pathToXmlFile);
+    	if (!isDisabled) {
+    		Assertions.fail("Xml file not found on " + pathToXmlFile + ".");
+    	}
+
+    	// Verify button is disabled
+    	Object launch = getObjectInDebugView(MVN_APP_NAME + " [Liberty]");
+    	SWTBotMenu connectDebuggerMenu = getDebuggerConnectMenuForDebugObject(launch);
+    	Assertions.assertFalse(connectDebuggerMenu.isEnabled());
+
+    	// Disconnected Debugger
+    	Object debugTarget = getObjectInDebugView("Liberty Application Debug");
+    	disconnectDebugTarget(debugTarget);
+
+    	isDisabled = LibertyPluginTestUtils.validateXmlFileNotPresentInOverridesDirectory(pathToXmlFile);
+    	if (!isDisabled) {
+    		Assertions.fail("Xml file " + pathToXmlFile
+    				+ " is not removed from overrides directory on disconnecting debugger.");
+    	}
+    	// Stop dev mode.
+    	launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
+
+    	// Validate application stopped.
+    	LibertyPluginTestUtils
+    	.validateLibertyServerStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
+
     }
 }

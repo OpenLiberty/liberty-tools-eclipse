@@ -1060,6 +1060,22 @@ public class DevModeOperations {
         return path;
     }
 
+	/**
+	 * Returns the path of the xml file containing app monitoring configuration.
+	 *
+	 * @param projectPath The project's path.
+	 *
+	 * @return The custom path of the xml file containing the config to
+	 *         enable/disable app monitoring.
+	 */
+	public static Path getMavenXmlFilePathInOverridesDirectory(String projectPath) {
+
+		Path path = Paths.get(projectPath, "target", "liberty", "wlp", "usr", "servers", "defaultServer",
+				"configDropins", "overrides", "disableApplicationMonitor.xml");
+
+		return path;
+	}
+    
     /**
      * Returns the project instance associated with the currently selected view object in the workspace.
      *
