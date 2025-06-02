@@ -1059,7 +1059,7 @@ public class DevModeOperations {
 
         return path;
     }
-    
+
     /**
      * Returns the project instance associated with the currently selected view object in the workspace.
      *
