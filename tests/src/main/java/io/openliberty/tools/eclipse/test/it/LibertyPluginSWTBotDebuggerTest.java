@@ -211,9 +211,9 @@ public class LibertyPluginSWTBotDebuggerTest extends AbstractLibertyPluginSWTBot
     	// Validate app monitoring is disabled by checking the xml file is present in
     	// the overrides directory.
     	Path pathToXmlFile = LibertyPluginTestUtils.getMavenXmlFilePathInOverridesDirectory(projectPath.toString());
-    	boolean isDisabled = LibertyPluginTestUtils.validateXmlFilePresentInOverridesDirectory(pathToXmlFile);
+    	boolean isExist = LibertyPluginTestUtils.appMonitorDisabledXmlExists(pathToXmlFile);
 
-    	if (!isDisabled) {
+    	if (!isExist) {
     		Assertions.fail("Xml file not found on " + pathToXmlFile + ".");
     	}
     	// Stop dev mode.
@@ -232,7 +232,7 @@ public class LibertyPluginSWTBotDebuggerTest extends AbstractLibertyPluginSWTBot
      */
     @Test
     public void testEnhancedDebugMode_onStopRemoveXmlFile() {
-    	boolean isDisabled = false;
+    	boolean isExist = false;
     	// Start dev mode.
     	launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_DEBUG);
 
@@ -246,9 +246,9 @@ public class LibertyPluginSWTBotDebuggerTest extends AbstractLibertyPluginSWTBot
     	// Validate app monitoring is disabled by checking the xml file is present in
     	// the overrides directory.
     	Path pathToXmlFile = LibertyPluginTestUtils.getMavenXmlFilePathInOverridesDirectory(projectPath.toString());
-    	isDisabled = LibertyPluginTestUtils.validateXmlFilePresentInOverridesDirectory(pathToXmlFile);
+    	isExist = LibertyPluginTestUtils.appMonitorDisabledXmlExists(pathToXmlFile);
 
-    	if (!isDisabled) {
+    	if (!isExist) {
     		Assertions.fail("Xml file not found on " + pathToXmlFile + ".");
     	}
     	// Stop dev mode.
@@ -258,8 +258,8 @@ public class LibertyPluginSWTBotDebuggerTest extends AbstractLibertyPluginSWTBot
     	LibertyPluginTestUtils
     	.validateLibertyServerStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
 
-    	isDisabled = LibertyPluginTestUtils.validateXmlFileNotPresentInOverridesDirectory(pathToXmlFile);
-    	if (!isDisabled) {
+    	isExist = LibertyPluginTestUtils.appMonitorDisabledXmlExists(pathToXmlFile);
+    	if (isExist) {
     		Assertions.fail("Xml file " + pathToXmlFile
     				+ " is not removed from overrides directory on disconnecting debugger.");
     	}
@@ -271,7 +271,7 @@ public class LibertyPluginSWTBotDebuggerTest extends AbstractLibertyPluginSWTBot
      */
     @Test
     public void testEnhancedDebugMode_disconnectDebuggerRemoveXmlFile() {
-    	boolean isDisabled = false;
+    	boolean isExist = false;
 
     	// Start dev mode.
     	launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_DEBUG);
@@ -286,8 +286,8 @@ public class LibertyPluginSWTBotDebuggerTest extends AbstractLibertyPluginSWTBot
     	// Validate app monitoring is disabled by checking the xml file is present in
     	// the overrides directory.
     	Path pathToXmlFile = LibertyPluginTestUtils.getMavenXmlFilePathInOverridesDirectory(projectPath.toString());
-    	isDisabled = LibertyPluginTestUtils.validateXmlFilePresentInOverridesDirectory(pathToXmlFile);
-    	if (!isDisabled) {
+    	isExist = LibertyPluginTestUtils.appMonitorDisabledXmlExists(pathToXmlFile);
+    	if (!isExist) {
     		Assertions.fail("Xml file not found on " + pathToXmlFile + ".");
     	}
 
@@ -300,8 +300,8 @@ public class LibertyPluginSWTBotDebuggerTest extends AbstractLibertyPluginSWTBot
     	Object debugTarget = getObjectInDebugView("Liberty Application Debug");
     	disconnectDebugTarget(debugTarget);
 
-    	isDisabled = LibertyPluginTestUtils.validateXmlFileNotPresentInOverridesDirectory(pathToXmlFile);
-    	if (!isDisabled) {
+    	isExist = LibertyPluginTestUtils.appMonitorDisabledXmlExists(pathToXmlFile);
+    	if (isExist) {
     		Assertions.fail("Xml file " + pathToXmlFile
     				+ " is not removed from overrides directory on disconnecting debugger.");
     	}

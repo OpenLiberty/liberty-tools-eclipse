@@ -248,8 +248,8 @@ public class LibertyPluginTestUtils {
      *
      * @param pathToTestReport The path to the report.
      */
-    public static boolean validateXmlFilePresentInOverridesDirectory(Path xmlFilePath) {
-        int retryCountLimit = 100;
+    public static boolean appMonitorDisabledXmlExists(Path xmlFilePath) {
+        int retryCountLimit = 20;
         int reryIntervalSecs = 1;
         int retryCount = 0;
 
@@ -258,36 +258,6 @@ public class LibertyPluginTestUtils {
 
             boolean fileExists = fileExists(xmlFilePath.toAbsolutePath());
             if (!fileExists) {
-                try {
-                    Thread.sleep(reryIntervalSecs * 1000);
-                } catch (Exception e) {
-                    e.printStackTrace(System.out);
-                    continue;
-                }
-                continue;
-            }
-
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
-     * Validates the xml file with config for disabling app monitoring not exsist in 'configDropins/overrides' folder.
-     *
-     * @param pathToTestReport The path to the report.
-     */
-    public static boolean validateXmlFileNotPresentInOverridesDirectory(Path xmlFilePath) {
-        int retryCountLimit = 10;
-        int reryIntervalSecs = 1;
-        int retryCount = 0;
-
-        while (retryCount < retryCountLimit) {
-            retryCount++;
-
-            boolean fileExists = fileExists(xmlFilePath.toAbsolutePath());
-            if (fileExists) {
                 try {
                     Thread.sleep(reryIntervalSecs * 1000);
                 } catch (Exception e) {
