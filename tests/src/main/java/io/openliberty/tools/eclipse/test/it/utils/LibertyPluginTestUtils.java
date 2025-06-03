@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2022, 2023 IBM Corporation and others.
+ * Copyright (c) 2022, 2025 IBM Corporation and others.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -241,6 +241,36 @@ public class LibertyPluginTestUtils {
         }
 
         throw new IllegalStateException("Timed out waiting for test report: " + pathToTestReport + " file to be created.");
+    }
+
+    /**
+     * Validates the xml file with config for disabling app monitoring exsist in 'configDropins/overrides' folder.
+     *
+     * @param pathToTestReport The path to the report.
+     */
+    public static boolean appMonitorDisabledXmlExists(Path xmlFilePath) {
+        int retryCountLimit = 20;
+        int reryIntervalSecs = 1;
+        int retryCount = 0;
+
+        while (retryCount < retryCountLimit) {
+            retryCount++;
+
+            boolean fileExists = fileExists(xmlFilePath.toAbsolutePath());
+            if (!fileExists) {
+                try {
+                    Thread.sleep(reryIntervalSecs * 1000);
+                } catch (Exception e) {
+                    e.printStackTrace(System.out);
+                    continue;
+                }
+                continue;
+            }
+
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -498,4 +528,20 @@ public class LibertyPluginTestUtils {
 
         return jre;
     }
+
+	/**
+	 * Returns the path of the xml file containing app monitoring configuration.
+	 *
+	 * @param projectPath The project's path.
+	 *
+	 * @return The custom path of the xml file containing the config to
+	 *         enable/disable app monitoring.
+	 */
+	public static Path getMavenXmlFilePathInOverridesDirectory(String projectPath) {
+
+		Path path = Paths.get(projectPath, "target", "liberty", "wlp", "usr", "servers", "defaultServer",
+				"configDropins", "overrides", "disableApplicationMonitor.xml");
+
+		return path;
+	}
 }
