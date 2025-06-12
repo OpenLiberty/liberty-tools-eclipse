@@ -52,7 +52,7 @@ org.eclipse.lsp4j:org.eclipse.lsp4j.jsonrpc | https://repo1.maven.org/maven2/org
 org.eclipse.lsp4j:org.eclipse.lsp4j.jsonrpc | https://repo1.maven.org/maven2/org/eclipse/lsp4j/org.eclipse.lsp4j.jsonrpc/0.21.0/org.eclipse.lsp4j.jsonrpc-0.21.0-sources.jar
 org.eclipse.lsp4jakarta:org.eclipse.lsp4jakarta.ls | https://github.com/eclipse/lsp4jakarta/tree/0.2.3
 org.eclipse.lsp4jakarta:org.eclipse.lsp4jakarta.jdt.core | https://github.com/eclipse/lsp4jakarta/tree/0.2.3
-org.eclipse.lsp4mp:org.eclipse.lsp4mp.ls | https://github.com/eclipse/lsp4mp/tree/0.10.0
+org.eclipse.lsp4mp:org.eclipse.lsp4mp.ls | https://github.com/eclipse/lsp4mp/tree/0.13.2
 org.eclipse.xtend:org.eclipse.xtend.lib | https://mvnrepository.com/artifact/org.eclipse.xtend/org.eclipse.xtend.lib/2.28.0
 org.eclipse.xtend:org.eclipse.xtend.lib.macro | https://mvnrepository.com/artifact/org.eclipse.xtend/org.eclipse.xtend.lib.macro/2.28.0
 org.eclipse.xtext:org.eclipse.xtext.xbase.lib | https://mvnrepository.com/artifact/org.eclipse.xtext/org.eclipse.xtext.xbase.lib/2.28.0
@@ -132,10 +132,10 @@ com.google.code.gson:gson
 com.google.errorprone:error_prone_annotations
 com.google.guava:failureaccess
 com.google.guava:guava
-com.google.guava:listenablefuture
 com.google.j2objc:j2objc-annotations
 commons-cli:commons-cli
 commons-io:commons-io
+io.openliberty.tools:ci.common
 io.openliberty.tools:liberty-ant-tasks
 io.smallrye.common:smallrye-common-constraint
 io.smallrye.common:smallrye-common-expression
@@ -144,7 +144,6 @@ org.apache.ant:ant
 org.apache.ant:ant-launcher
 org.apache.aries.spifly:org.apache.aries.spifly.dynamic.bundle
 org.apache.commons:commons-lang3
-org.apache.maven.wrapper:maven-wrapper
 org.codehaus.plexus:plexus-component-annotations
 org.jboss.logging:jboss-logging
 org.osgi:org.osgi.service.prefs
