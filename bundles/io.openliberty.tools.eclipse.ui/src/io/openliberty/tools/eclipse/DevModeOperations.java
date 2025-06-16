@@ -1134,7 +1134,7 @@ public class DevModeOperations {
     }
 
     public void restartServer(String projectName) {
-    	String restartCommand = "r" + System.lineSeparator();
+    	String restartCommand = "r";
     	try {
     		processController.writeToProcessStream(projectName, restartCommand);
     	} catch (Exception e) {
