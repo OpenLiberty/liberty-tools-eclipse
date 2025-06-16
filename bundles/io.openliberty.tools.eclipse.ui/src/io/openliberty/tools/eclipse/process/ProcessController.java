@@ -155,9 +155,23 @@ public class ProcessController {
      * @return True if the process is alive. False otherwise.
      */
     public boolean isProcessStarted(String projectName) {
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, projectName);
+        }
         Process process = projectProcessMap.get(projectName);
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().trace(null, "process is not null");
+        }
         if (process != null) {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(null, "process is not null");
+            }
             return process.isAlive();
+        } else {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(null, "process is null");
+            }
         }
 
         return false;
