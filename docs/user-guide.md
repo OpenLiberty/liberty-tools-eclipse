@@ -49,6 +49,7 @@ This guide provides detailed instructions on how to use Liberty Tools for the Ec
 |  24.0.9       | 2024-06 - Eclipse v4.32 |
 |  24.0.12      | 2024-09 - Eclipse v4.33 |
 |  25.0.3       | 2024-12 - Eclipse v4.34 |
+|  25.0.6       | 2025-03 - Eclipse v4.35 |
 
 **NOTE:** Tested with each of the `Eclipse IDE for Enterprise Java and Web Developers` and `Eclipse IDE for Java Developers` packages
 
@@ -149,7 +150,7 @@ A new Console opens to run the application in dev mode.
 
 To start your application in dev mode with customizations, you can either right-click on the application listed in the Liberty dashboard and click the  **Start...** action, or you can right-click the application in the project explorer, select **Run As** from the menu, and click the **Liberty Start...** launch shortcut. This action opens the Liberty configuration dialog that provides two customization tabs: **Start** and **JRE**.
 
-Use the **Start** tab to customize how and where dev mode is run. On this tab, you can specify parameters such as `-DhotTests=true` and whether or not you want your application to run in a container.
+Use the **Start** tab to customize how and where dev mode is run. On this tab, you can specify parameters such as `-DhotTests=true` and whether or not you want your application to run in a container. You can also specify if you want to run a clean before building the application. 
 
 ![Liberty configuration dialog start tab](images/maven-runConfigurationsDialogStartTab.png)
 
@@ -242,6 +243,13 @@ Additionally, if you do not start your application with the Debug option, you ca
 From the Debug View in the Debug Perspective, right-click on the launched application and select **Connect Liberty Debugger**. 
 
 ![Connect Liberty Debugger action](images/maven-ConnectLibertyDebuggerAction.png)
+
+### Enhanced application monitoring
+
+The Liberty Debugger is automatically launched with enhanced application monitoring. When this happens, application monitoring is disabled in the Liberty runtime and updates are automatically hot swapped into the running JVM using Eclipse's Hot Code Replace (HCR) functionality. 
+This provides a significant performance improvement, removing the need to restart the application on every code change. For changes that cannot be hot swapped due to JVM limitations, an option to restart the server is presented. 
+
+Note: For multi-module applications, the application must be launched from the module that contains the liberty server configuration. 
 
 ## Manually adding the Liberty nature to a project
 

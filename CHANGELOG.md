@@ -1,9 +1,18 @@
 # Liberty Tools Eclipse Changelog
 
+## 25.0.6 [changes](https://github.com/OpenLiberty/liberty-tools-eclipse/milestone/11) / [release](https://github.com/OpenLiberty/liberty-tools-eclipse/releases/tag/liberty-tools-25.0.6.202506241559) (June 24, 2025)
+
+### Eclipse Platform target release upgrade
+ * 4.35 (2025-03)
+
+### Enhancements
+ * Enhanced debug monitoring: https://github.com/OpenLiberty/liberty-tools-eclipse/issues/557
+ * Add a "clean" option when starting an application: https://github.com/OpenLiberty/liberty-tools-eclipse/issues/239
+
 ## 25.0.3 [changes](https://github.com/OpenLiberty/liberty-tools-eclipse/milestone/10) / [release](https://github.com/OpenLiberty/liberty-tools-eclipse/releases/tag/liberty-tools-25.0.3.202503281600) (March 28, 2025)
 
 ### Eclipse Platform target release upgrade
- * 4.34 (2025-03)
+ * 4.34 (2024-12)
 
 ### Dependency Upgrades
  * Liberty Config Language Server (LCLS) => 2.2.1
