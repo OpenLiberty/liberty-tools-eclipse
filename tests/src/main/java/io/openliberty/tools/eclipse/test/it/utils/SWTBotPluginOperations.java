@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.eclipse.core.commands.Command;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Button;
@@ -49,6 +50,7 @@ import org.eclipse.swtbot.swt.finder.SWTBot;
 import org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory;
 import org.eclipse.swtbot.swt.finder.utils.SWTUtils;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotCTabItem;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotCheckBox;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotCombo;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotMenu;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotRootMenu;
@@ -62,6 +64,8 @@ import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.WorkbenchException;
+import org.eclipse.ui.commands.ICommandService;
+import org.eclipse.ui.handlers.IHandlerService;
 import org.eclipse.ui.part.ViewPart;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
@@ -1083,4 +1087,37 @@ public class SWTBotPluginOperations {
         }
     }
 
+    public static void stopConsoleFromStealingFocus(SWTWorkbenchBot bot) {
+        Display.getDefault().asyncExec(() -> {
+            try {
+                ICommandService commandService = PlatformUI.getWorkbench().getService(ICommandService.class);
+                IHandlerService handlerService = PlatformUI.getWorkbench().getService(IHandlerService.class);
+
+                Command command = commandService.getCommand("org.eclipse.ui.window.preferences");
+                if (command != null && command.isDefined()) {
+                    handlerService.executeCommand(command.getId(), null);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+
+        bot.sleep(1500);
+        bot.shell("Preferences").activate();
+        bot.tree().expandNode("Run/Debug").select("Console");
+        bot.sleep(1500);
+        Object stoutButton = findGlobal("Show when program writes to standard out", Option.factory().widgetClass(Button.class).build());
+        SWTBotCheckBox stoutCB = new SWTBotCheckBox((Button) stoutButton);
+        if (stoutCB.isChecked()) {
+            stoutCB.click();
+        }
+
+        Object sterrorButton = findGlobal("Show when program writes to standard error", Option.factory().widgetClass(Button.class).build());
+        SWTBotCheckBox sterrorCB = new SWTBotCheckBox((Button) sterrorButton);
+        if (sterrorCB.isChecked()) {
+            sterrorCB.click();
+        }
+        bot.button("Apply and Close").click();
+        bot.sleep(1000);
+    }
 }
