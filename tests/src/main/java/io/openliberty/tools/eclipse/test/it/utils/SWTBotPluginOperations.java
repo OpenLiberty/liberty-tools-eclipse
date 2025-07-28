@@ -410,7 +410,7 @@ public class SWTBotPluginOperations {
         finalGradleExecutableLoc = AbstractLibertyPluginSWTBotTest.getGradleCmdPath();
 
         Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
-        goMenuItem(windowMenu, "Preferences");
+        goMenuItem(windowMenu, "Preferences...");
 
         TreeItem liberty = (TreeItem) findGlobal("Liberty", Option.factory().widgetClass(TreeItem.class).build());
         go(liberty);
@@ -437,7 +437,7 @@ public class SWTBotPluginOperations {
         }
 
         Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
-        goMenuItem(windowMenu, "Preferences");
+        goMenuItem(windowMenu, "Preferences...");
 
         findGlobal("Liberty", Option.factory().widgetClass(TreeItem.class).build());
 
