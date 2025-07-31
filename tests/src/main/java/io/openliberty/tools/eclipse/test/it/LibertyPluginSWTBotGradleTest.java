@@ -494,7 +494,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         // Start dev mode.
         launchDashboardAction(GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_START);
         try {
-            Thread.sleep(10000); // sleep for 1 min
+            Thread.sleep(10000); // sleep for 10 seconds
         } catch (InterruptedException e) {
             // Handle interruption
             Thread.currentThread().interrupt();
@@ -509,14 +509,6 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         try {
             // Run Tests.
             launchDashboardAction(GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_RUN_TESTS);
-
-            // Sleep for a bit to allow tests to complete and not have the console tab take focus
-            try {
-                Thread.sleep(10000);
-            } catch (InterruptedException e) {
-                // Handle interruption
-                Thread.currentThread().interrupt();
-            }
 
             // Validate that the reports were generated and the the browser editor was launched.
             LibertyPluginTestUtils.validateTestReportExists(pathToTestReport);

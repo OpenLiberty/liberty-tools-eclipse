@@ -428,17 +428,25 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         Process p = pb.start();
         p.waitFor(3, TimeUnit.SECONDS);
 
-        // Validate application is up and running.
-        LibertyPluginTestUtils.validateApplicationOutcome(MVN_WRAPPER_APP_NAME, true,
-                wrapperProjectPath.toAbsolutePath().toString() + "/target/liberty");
+        try {
+            // Validate application is up and running.
+            LibertyPluginTestUtils.validateApplicationOutcome(MVN_WRAPPER_APP_NAME, true,
+                    wrapperProjectPath.toAbsolutePath().toString() + "/target/liberty");
 
-        // Stop dev mode.
-        launchDashboardAction(MVN_WRAPPER_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
+            // Stop dev mode.
+            launchDashboardAction(MVN_WRAPPER_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
 
-        bot.button("Yes").click();
+            bot.button("Yes").click();
 
-        // Validate application stopped.
-        LibertyPluginTestUtils.validateLibertyServerStopped(wrapperProjectPath.toAbsolutePath().toString() + "/target/liberty");
+            // Validate application stopped.
+            LibertyPluginTestUtils.validateLibertyServerStopped(wrapperProjectPath.toAbsolutePath().toString() + "/target/liberty");
+
+        } finally {
+            // If there was a failure, destroy the process so subsequent tests do not fail.
+            if (p.isAlive()) {
+                p.destroy();
+            }
+        }
     }
 
     /**
