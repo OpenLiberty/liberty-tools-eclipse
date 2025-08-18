@@ -1,5 +1,13 @@
 # Liberty Tools Eclipse Changelog
 
+## 25.0.8 [changes](https://github.com/OpenLiberty/liberty-tools-eclipse/milestone/12) / [release](https://github.com/OpenLiberty/liberty-tools-eclipse/releases/tag/liberty-tools-25.0.8.202508151719) (August 18, 2025)
+
+### Eclipse Platform target release upgrade
+ * 4.36 (2025-06)
+
+### Dependency Upgrades
+ * Liberty Config Language Server (LCLS) => 2.3.2
+
 ## 25.0.6 [changes](https://github.com/OpenLiberty/liberty-tools-eclipse/milestone/11) / [release](https://github.com/OpenLiberty/liberty-tools-eclipse/releases/tag/liberty-tools-25.0.6.202506241559) (June 24, 2025)
 
 ### Eclipse Platform target release upgrade
