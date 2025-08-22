@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.eclipse.core.commands.Command;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Button;
@@ -49,6 +50,7 @@ import org.eclipse.swtbot.swt.finder.SWTBot;
 import org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory;
 import org.eclipse.swtbot.swt.finder.utils.SWTUtils;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotCTabItem;
+import org.eclipse.swtbot.swt.finder.widgets.SWTBotCheckBox;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotCombo;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotMenu;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotRootMenu;
@@ -62,6 +64,8 @@ import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.WorkbenchException;
+import org.eclipse.ui.commands.ICommandService;
+import org.eclipse.ui.handlers.IHandlerService;
 import org.eclipse.ui.part.ViewPart;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
@@ -135,12 +139,25 @@ public class SWTBotPluginOperations {
      */
     public static SWTBotMenu getDebuggerConnectMenuForDebugObject(Object debugObject) {
         openDebugPerspective();
-        Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
-        goMenuItem(windowMenu, "Show View", "Debug");
-
-        SWTBotTreeItem obj = new SWTBotTreeItem((TreeItem) debugObject);
-
-        return obj.contextMenu("Connect Liberty Debugger");
+        
+        final SWTBotMenu[] resultMenu = new SWTBotMenu[1];
+        
+        Display.getDefault().syncExec(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
+                    goMenuItem(windowMenu, "Show View", "Debug");
+                    
+                    SWTBotTreeItem obj = new SWTBotTreeItem((TreeItem) debugObject);
+                    resultMenu[0] = obj.contextMenu("Connect Liberty Debugger");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    
+        return resultMenu[0];
     }
 
     /**
@@ -152,40 +169,64 @@ public class SWTBotPluginOperations {
      */
     public static void disconnectDebugTarget(Object debugTarget) {
         openDebugPerspective();
-        Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
-        goMenuItem(windowMenu, "Show View", "Debug");
-
-        MagicWidgetFinder.context(debugTarget, "Disconnect");
-
+        
+        Display.getDefault().syncExec(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
+                    goMenuItem(windowMenu, "Show View", "Debug");
+                    
+                    MagicWidgetFinder.context(debugTarget, "Disconnect");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        
         MagicWidgetFinder.pause(3000);
     }
+
 
     /**
      * Terminate the launch
      */
     public static void terminateLaunch() {
         openDebugPerspective();
-        Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
-        goMenuItem(windowMenu, "Show View", "Debug");
-
-        Object debugView = MagicWidgetFinder.findGlobal("Debug");
-
-        Object launch = MagicWidgetFinder.find("[Liberty]", debugView,
-                Option.factory().useContains(true).setThrowExceptionOnNotFound(false).build());
-
-        MagicWidgetFinder.context(launch, "Terminate and Remove");
-
-        try {
-            Shell confirm = (Shell) findGlobal("Terminate and Remove", Option.factory().widgetClass(Shell.class).build());
-
-            MagicWidgetFinder.go("Yes", confirm);
-            MagicWidgetFinder.pause(3000);
-        } catch (Exception e) {
-            // The configrmation pop up window only shows if the launch has not yet been terminated.
-            // If it has been terminated (or stopped), there is no confirmation.
-        }
-
+        
+        Display.getDefault().syncExec(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
+                    goMenuItem(windowMenu, "Show View", "Debug");
+                    
+                    Object debugView = MagicWidgetFinder.findGlobal("Debug");
+                    
+                    Object launch = MagicWidgetFinder.find("[Liberty]", debugView,
+                            Option.factory().useContains(true).setThrowExceptionOnNotFound(false).build());
+                    
+                    if (launch != null) {
+                        MagicWidgetFinder.context(launch, "Terminate and Remove");
+                        
+                        try {
+                            Shell confirm = (Shell) findGlobal("Terminate and Remove", Option.factory().widgetClass(Shell.class).build());
+                            
+                            MagicWidgetFinder.go("Yes", confirm);
+                        } catch (Exception e) {
+                            // The confirmation pop up window only shows if the launch has not yet been terminated.
+                            // If it has been terminated (or stopped), there is no confirmation.
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        
+        MagicWidgetFinder.pause(3000);
     }
+
 
     /**
      * Returns the debug object item in the Debug View with the given name.
@@ -197,14 +238,30 @@ public class SWTBotPluginOperations {
      */
     public static Object getObjectInDebugView(String objectName) {
         openDebugPerspective();
-        Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
-        goMenuItem(windowMenu, "Show View", "Debug");
-
-        Object debugView = MagicWidgetFinder.findGlobal("Debug");
-
-        return MagicWidgetFinder.find(objectName, debugView,
-                Option.factory().useContains(true).setThrowExceptionOnNotFound(false).widgetClass(TreeItem.class).build());
+        
+        // Create a container for the result
+        final Object[] result = new Object[1];
+        
+        Display.getDefault().syncExec(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
+                    goMenuItem(windowMenu, "Show View", "Debug");
+                    
+                    Object debugView = MagicWidgetFinder.findGlobal("Debug");
+                    
+                    result[0] = MagicWidgetFinder.find(objectName, debugView,
+                            Option.factory().useContains(true).setThrowExceptionOnNotFound(false).widgetClass(TreeItem.class).build());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        
+        return result[0];
     }
+
 
     /**
      * Open the Eclipse debug perspective.
@@ -305,12 +362,22 @@ public class SWTBotPluginOperations {
      */
     public static void launchDashboardAction(String appName, String action) {
         openDashboardUsingToolbar();
-
-        Object dashboardView = MagicWidgetFinder.findGlobal(DASHBOARD_VIEW_TITLE);
-        Object project = MagicWidgetFinder.find(appName, dashboardView, Option.factory().widgetClass(TableItem.class).build());
-        MagicWidgetFinder.go(project);
-        MagicWidgetFinder.context(project, action);
+        
+        Display.getDefault().syncExec(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Object dashboardView = MagicWidgetFinder.findGlobal(DASHBOARD_VIEW_TITLE);
+                    Object project = MagicWidgetFinder.find(appName, dashboardView, Option.factory().widgetClass(TableItem.class).build());
+                    MagicWidgetFinder.go(project);
+                    MagicWidgetFinder.context(project, action);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
+
 
     /**
      * Returns the object representing the active project matching the input project name.
@@ -406,7 +473,7 @@ public class SWTBotPluginOperations {
         finalGradleExecutableLoc = AbstractLibertyPluginSWTBotTest.getGradleCmdPath();
 
         Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
-        goMenuItem(windowMenu, "Preferences");
+        goMenuItem(windowMenu, "Preferences...");
 
         TreeItem liberty = (TreeItem) findGlobal("Liberty", Option.factory().widgetClass(TreeItem.class).build());
         go(liberty);
@@ -433,7 +500,7 @@ public class SWTBotPluginOperations {
         }
 
         Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
-        goMenuItem(windowMenu, "Preferences");
+        goMenuItem(windowMenu, "Preferences...");
 
         findGlobal("Liberty", Option.factory().widgetClass(TreeItem.class).build());
 
@@ -1083,4 +1150,37 @@ public class SWTBotPluginOperations {
         }
     }
 
+    public static void stopConsoleFromStealingFocus(SWTWorkbenchBot bot) {
+        Display.getDefault().asyncExec(() -> {
+            try {
+                ICommandService commandService = PlatformUI.getWorkbench().getService(ICommandService.class);
+                IHandlerService handlerService = PlatformUI.getWorkbench().getService(IHandlerService.class);
+
+                Command command = commandService.getCommand("org.eclipse.ui.window.preferences");
+                if (command != null && command.isDefined()) {
+                    handlerService.executeCommand(command.getId(), null);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        });
+
+        bot.sleep(1500);
+        bot.shell("Preferences").activate();
+        bot.tree().expandNode("Run/Debug").select("Console");
+        bot.sleep(1500);
+        Object stoutButton = findGlobal("Show when program writes to standard out", Option.factory().widgetClass(Button.class).build());
+        SWTBotCheckBox stoutCB = new SWTBotCheckBox((Button) stoutButton);
+        if (stoutCB.isChecked()) {
+            stoutCB.click();
+        }
+
+        Object sterrorButton = findGlobal("Show when program writes to standard error", Option.factory().widgetClass(Button.class).build());
+        SWTBotCheckBox sterrorCB = new SWTBotCheckBox((Button) sterrorButton);
+        if (sterrorCB.isChecked()) {
+            sterrorCB.click();
+        }
+        bot.button("Apply and Close").click();
+        bot.sleep(1000);
+    }
 }
