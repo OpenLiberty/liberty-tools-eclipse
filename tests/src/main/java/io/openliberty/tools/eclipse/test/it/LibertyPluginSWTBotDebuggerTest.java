@@ -42,7 +42,6 @@ import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
 /**
  * Tests Open Liberty Eclipse plugin functions for the Debugger
  */
-@Disabled
 public class LibertyPluginSWTBotDebuggerTest extends AbstractLibertyPluginSWTBotTest {
 
     /**

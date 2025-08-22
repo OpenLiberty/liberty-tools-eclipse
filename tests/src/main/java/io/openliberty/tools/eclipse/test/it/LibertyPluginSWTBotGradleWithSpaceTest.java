@@ -39,7 +39,6 @@ import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
 /**
  * Tests Open Liberty Eclipse plugin functions for the Gradle project with spaces in the path
  */
-@Disabled
 public class LibertyPluginSWTBotGradleWithSpaceTest extends AbstractLibertyPluginSWTBotTest {
 
     /**

@@ -139,12 +139,25 @@ public class SWTBotPluginOperations {
      */
     public static SWTBotMenu getDebuggerConnectMenuForDebugObject(Object debugObject) {
         openDebugPerspective();
-        Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
-        goMenuItem(windowMenu, "Show View", "Debug");
-
-        SWTBotTreeItem obj = new SWTBotTreeItem((TreeItem) debugObject);
-
-        return obj.contextMenu("Connect Liberty Debugger");
+        
+        final SWTBotMenu[] resultMenu = new SWTBotMenu[1];
+        
+        Display.getDefault().syncExec(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
+                    goMenuItem(windowMenu, "Show View", "Debug");
+                    
+                    SWTBotTreeItem obj = new SWTBotTreeItem((TreeItem) debugObject);
+                    resultMenu[0] = obj.contextMenu("Connect Liberty Debugger");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+    
+        return resultMenu[0];
     }
 
     /**
@@ -156,40 +169,64 @@ public class SWTBotPluginOperations {
      */
     public static void disconnectDebugTarget(Object debugTarget) {
         openDebugPerspective();
-        Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
-        goMenuItem(windowMenu, "Show View", "Debug");
-
-        MagicWidgetFinder.context(debugTarget, "Disconnect");
-
+        
+        Display.getDefault().syncExec(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
+                    goMenuItem(windowMenu, "Show View", "Debug");
+                    
+                    MagicWidgetFinder.context(debugTarget, "Disconnect");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        
         MagicWidgetFinder.pause(3000);
     }
+
 
     /**
      * Terminate the launch
      */
     public static void terminateLaunch() {
         openDebugPerspective();
-        Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
-        goMenuItem(windowMenu, "Show View", "Debug");
-
-        Object debugView = MagicWidgetFinder.findGlobal("Debug");
-
-        Object launch = MagicWidgetFinder.find("[Liberty]", debugView,
-                Option.factory().useContains(true).setThrowExceptionOnNotFound(false).build());
-
-        MagicWidgetFinder.context(launch, "Terminate and Remove");
-
-        try {
-            Shell confirm = (Shell) findGlobal("Terminate and Remove", Option.factory().widgetClass(Shell.class).build());
-
-            MagicWidgetFinder.go("Yes", confirm);
-            MagicWidgetFinder.pause(3000);
-        } catch (Exception e) {
-            // The configrmation pop up window only shows if the launch has not yet been terminated.
-            // If it has been terminated (or stopped), there is no confirmation.
-        }
-
+        
+        Display.getDefault().syncExec(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
+                    goMenuItem(windowMenu, "Show View", "Debug");
+                    
+                    Object debugView = MagicWidgetFinder.findGlobal("Debug");
+                    
+                    Object launch = MagicWidgetFinder.find("[Liberty]", debugView,
+                            Option.factory().useContains(true).setThrowExceptionOnNotFound(false).build());
+                    
+                    if (launch != null) {
+                        MagicWidgetFinder.context(launch, "Terminate and Remove");
+                        
+                        try {
+                            Shell confirm = (Shell) findGlobal("Terminate and Remove", Option.factory().widgetClass(Shell.class).build());
+                            
+                            MagicWidgetFinder.go("Yes", confirm);
+                        } catch (Exception e) {
+                            // The confirmation pop up window only shows if the launch has not yet been terminated.
+                            // If it has been terminated (or stopped), there is no confirmation.
+                        }
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        
+        MagicWidgetFinder.pause(3000);
     }
+
 
     /**
      * Returns the debug object item in the Debug View with the given name.
@@ -201,14 +238,30 @@ public class SWTBotPluginOperations {
      */
     public static Object getObjectInDebugView(String objectName) {
         openDebugPerspective();
-        Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
-        goMenuItem(windowMenu, "Show View", "Debug");
-
-        Object debugView = MagicWidgetFinder.findGlobal("Debug");
-
-        return MagicWidgetFinder.find(objectName, debugView,
-                Option.factory().useContains(true).setThrowExceptionOnNotFound(false).widgetClass(TreeItem.class).build());
+        
+        // Create a container for the result
+        final Object[] result = new Object[1];
+        
+        Display.getDefault().syncExec(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
+                    goMenuItem(windowMenu, "Show View", "Debug");
+                    
+                    Object debugView = MagicWidgetFinder.findGlobal("Debug");
+                    
+                    result[0] = MagicWidgetFinder.find(objectName, debugView,
+                            Option.factory().useContains(true).setThrowExceptionOnNotFound(false).widgetClass(TreeItem.class).build());
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
+        
+        return result[0];
     }
+
 
     /**
      * Open the Eclipse debug perspective.
@@ -309,12 +362,22 @@ public class SWTBotPluginOperations {
      */
     public static void launchDashboardAction(String appName, String action) {
         openDashboardUsingToolbar();
-
-        Object dashboardView = MagicWidgetFinder.findGlobal(DASHBOARD_VIEW_TITLE);
-        Object project = MagicWidgetFinder.find(appName, dashboardView, Option.factory().widgetClass(TableItem.class).build());
-        MagicWidgetFinder.go(project);
-        MagicWidgetFinder.context(project, action);
+        
+        Display.getDefault().syncExec(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Object dashboardView = MagicWidgetFinder.findGlobal(DASHBOARD_VIEW_TITLE);
+                    Object project = MagicWidgetFinder.find(appName, dashboardView, Option.factory().widgetClass(TableItem.class).build());
+                    MagicWidgetFinder.go(project);
+                    MagicWidgetFinder.context(project, action);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
+
 
     /**
      * Returns the object representing the active project matching the input project name.
