@@ -38,7 +38,7 @@ pipeline {
             }
         }
         
-        stage('Test on Eclipse 2Q2025') {
+        stage('Test on Eclipse 3Q2025') {
             steps {
                 dir('liberty-tools-eclipse') {
                     script {
@@ -48,16 +48,16 @@ pipeline {
                                 sh '''
                                    MVNPATH="$(dirname $(which mvn))/.."
                                    GRADLEPATH="$(dirname $(which gradle))/.."
-                                   mvn clean verify -DmvnLogFile -DmvnPath=$MVNPATH -DgradlePath=$GRADLEPATH -Dtycho.disableP2Mirrors=true -Declipse.target=2Q2025 -Dosgi.debug=./tests/resources/ci/debug.opts -DtestAppImportWait=120000 -Dtycho.showEclipseLog -e -X
+                                   mvn clean verify -DmvnLogFile -DmvnPath=$MVNPATH -DgradlePath=$GRADLEPATH -Dtycho.disableP2Mirrors=true -Declipse.target=3Q2025 -Dosgi.debug=./tests/resources/ci/debug.opts -DtestAppImportWait=120000 -Dtycho.showEclipseLog -e -X
                                 '''
                             }
                         } finally {
                             sh "find tests -type f -name \"lte-dev-mode-output-*.log\""
                             sh "mkdir lte-dev-mode-output-logs && find tests -type f -name \"lte-dev-mode-output-*.log\" -exec cp {} lte-dev-mode-output-logs \\;"
                             sh "zip -r lte-dev-mode-output-logs.zip lte-dev-mode-output-logs"
-                            sh "cd tests/target/surefire-reports && zip -r 2Q2025-test-reports.zip ."
+                            sh "cd tests/target/surefire-reports && zip -r 3Q2025-test-reports.zip ."
                             
-                            archiveArtifacts artifacts: 'tests/target/surefire-reports/2Q2025-test-reports.zip', fingerprint: true
+                            archiveArtifacts artifacts: 'tests/target/surefire-reports/3Q2025-test-reports.zip', fingerprint: true
                             archiveArtifacts artifacts: 'lte-dev-mode-output-logs.zip', fingerprint: true
                             archiveArtifacts artifacts: 'tests/target/work/data/.metadata/.log', fingerprint: true
                         }
