@@ -389,56 +389,61 @@ public class SWTBotPluginOperations {
      * @param buildTool the build tool to be used (Maven or Gradle)
      */
     public static void setBuildCmdPathInPreferences(SWTWorkbenchBot bot, String buildTool) {
-
-        /* Preferences are accessed from a different menu on macOS than on Windows and Linux */
-        /* Currently not possible to access the Preferences dialog panel on macOS so we */
-        /* will return and just use an app configured with a wrapper */
-        if (Platform.getOS().equals(Platform.OS_MACOSX)) {
-            return;
+        // Use Eclipse preference store API directly instead of UI navigation
+        // This avoids issues with menu accessibility in headless CI environments
+        
+        String finalMvnExecutableLoc = AbstractLibertyPluginSWTBotTest.getMvnCmdPath();
+        String finalGradleExecutableLoc = AbstractLibertyPluginSWTBotTest.getGradleCmdPath();
+        
+        // Get the preference store for the Liberty Tools plugin
+        org.eclipse.jface.preference.IPreferenceStore prefStore =
+            new org.eclipse.ui.preferences.ScopedPreferenceStore(
+                org.eclipse.core.runtime.preferences.InstanceScope.INSTANCE,
+                "io.openliberty.tools.eclipse.ui");
+        
+        if ("Maven".equals(buildTool)) {
+            prefStore.setValue("MVNPATH", finalMvnExecutableLoc);
+        } else if ("Gradle".equals(buildTool)) {
+            prefStore.setValue("GRADLEPATH", finalGradleExecutableLoc);
         }
-
-        String finalMvnExecutableLoc = null;
-        String finalGradleExecutableLoc = null;
-        Object locationLabel = null;
-        Object locationText = null;
-
-        finalMvnExecutableLoc = AbstractLibertyPluginSWTBotTest.getMvnCmdPath();
-        finalGradleExecutableLoc = AbstractLibertyPluginSWTBotTest.getGradleCmdPath();
-
-        Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
-        goMenuItem(windowMenu, "Preferences");
-
-        TreeItem liberty = (TreeItem) findGlobal("Liberty", Option.factory().widgetClass(TreeItem.class).build());
-        go(liberty);
-        if (buildTool == "Maven") {
-            locationLabel = findGlobal("Maven Install Location:", Option.factory().widgetClass(Label.class).build());
-            locationText = ControlFinder.findControlInRange(locationLabel, Text.class, Direction.EAST);
-            set(locationText, finalMvnExecutableLoc);
-        } else if (buildTool == "Gradle") {
-            locationLabel = findGlobal("Gradle Install Location:", Option.factory().widgetClass(Label.class).build());
-            locationText = ControlFinder.findControlInRange(locationLabel, Text.class, Direction.EAST);
-            set(locationText, finalGradleExecutableLoc);
+        
+        // Save the preference store
+        if (prefStore instanceof org.eclipse.ui.preferences.ScopedPreferenceStore) {
+            try {
+                ((org.eclipse.ui.preferences.ScopedPreferenceStore) prefStore).save();
+            } catch (java.io.IOException e) {
+                System.err.println("Failed to save preferences: " + e.getMessage());
+                e.printStackTrace();
+            }
         }
-
-        goGlobal("Apply and Close");
     }
 
     public static void unsetBuildCmdPathInPreferences(SWTWorkbenchBot bot, String buildTool) {
-
-        /* Preferences are accessed from a different menu on macOS than on Windows and Linux */
-        /* Currently not possible to access the Preferences dialog panel on macOS so we */
-        /* will return and just use an app configured with a wrapper */
-        if (Platform.getOS().equals(Platform.OS_MACOSX)) {
-            return;
+        // Use Eclipse preference store API directly instead of UI navigation
+        // This avoids issues with menu accessibility in headless CI environments
+        
+        // Get the preference store for the Liberty Tools plugin
+        org.eclipse.jface.preference.IPreferenceStore prefStore =
+            new org.eclipse.ui.preferences.ScopedPreferenceStore(
+                org.eclipse.core.runtime.preferences.InstanceScope.INSTANCE,
+                "io.openliberty.tools.eclipse.ui");
+        
+        // Reset to default values (empty strings)
+        if ("Maven".equals(buildTool)) {
+            prefStore.setToDefault("MVNPATH");
+        } else if ("Gradle".equals(buildTool)) {
+            prefStore.setToDefault("GRADLEPATH");
         }
-
-        Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
-        goMenuItem(windowMenu, "Preferences");
-
-        findGlobal("Liberty", Option.factory().widgetClass(TreeItem.class).build());
-
-        goGlobal("Restore Defaults");
-        goGlobal("Apply and Close");
+        
+        // Save the preference store
+        if (prefStore instanceof org.eclipse.ui.preferences.ScopedPreferenceStore) {
+            try {
+                ((org.eclipse.ui.preferences.ScopedPreferenceStore) prefStore).save();
+            } catch (java.io.IOException e) {
+                System.err.println("Failed to save preferences: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
     }
 
     /**
