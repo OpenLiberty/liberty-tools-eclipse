@@ -239,7 +239,33 @@ public class SWTBotPluginOperations {
 
     public static SWTBotTable getDashboardTable() {
         openDashboardUsingToolbar();
+        
+        // Ensure the dashboard view is actually shown and has focus
+        // This prevents finding the wrong view (like ConsoleView) when the console takes focus after server start
         Object dashboardView = findGlobal(DASHBOARD_VIEW_TITLE, Option.factory().widgetClass(ViewPart.class).build());
+        
+        // Explicitly show and activate the dashboard view to ensure it has focus
+        if (dashboardView instanceof ViewPart) {
+            final ViewPart vp = (ViewPart) dashboardView;
+            Display.getDefault().syncExec(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        IWorkbench wb = PlatformUI.getWorkbench();
+                        IWorkbenchWindow window = wb.getActiveWorkbenchWindow();
+                        if (window != null && window.getActivePage() != null) {
+                            window.getActivePage().activate(vp);
+                        }
+                    } catch (Exception e) {
+                        System.err.println("Failed to activate dashboard view: " + e.getMessage());
+                    }
+                }
+            });
+            
+            // Give the UI a moment to update after activation
+            pause(500);
+        }
+        
         Table table = ((DashboardView) dashboardView).getTable();
         return new SWTBotTable(table);
     }
