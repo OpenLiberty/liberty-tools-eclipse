@@ -29,8 +29,39 @@ jobs:
       - name: 'Setup: Checkout plugin'
         uses: actions/checkout@v2
 
+      # Cache Maven and Tycho dependencies
+      - name: 'Cache: Maven and Tycho repository'
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.m2/repository
+            !~/.m2/repository/io/openliberty/tools/eclipse
+          key: ${{ runner.os }}-maven-tycho-${{ hashFiles('pom.xml', '.mvn/**', 'releng/**') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-tycho-
+
+      # Cache Gradle dependencies
+      - name: 'Cache: Gradle'
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      # Cache downloaded tools (JDK, Maven, Gradle)
+      - name: 'Cache: Downloaded tools'
+        uses: actions/cache@v4
+        with:
+          path: test-tools/liberty-dev-tools
+          key: ${{ runner.os }}-tools-jdk21.0.3-maven3.9.6-gradle8.8
+          restore-keys: |
+            ${{ runner.os }}-tools-
+
       # Install the required software.
-      - name: 'Setup: Install required software' 
+      - name: 'Setup: Install required software'
         run: bash ./tests/resources/ci/scripts/setup.sh
         
       # Build the plugin.

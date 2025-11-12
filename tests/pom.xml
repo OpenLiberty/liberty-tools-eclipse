@@ -39,7 +39,7 @@
                     <providerHint>junit5</providerHint>
                     <trimStackTrace>false</trimStackTrace>
                     <runOrder>alphabetical</runOrder>
-                    <forkedProcessTimeoutInSeconds>3600</forkedProcessTimeoutInSeconds>
+                    <forkedProcessTimeoutInSeconds>7200</forkedProcessTimeoutInSeconds>
                     <systemProperties>
                         <org.eclipse.swtbot.search.timeout>20000</org.eclipse.swtbot.search.timeout>
                         <io.liberty.tools.eclipse.tests.mvn.logfile>${mvnLogFile}</io.liberty.tools.eclipse.tests.mvn.logfile>

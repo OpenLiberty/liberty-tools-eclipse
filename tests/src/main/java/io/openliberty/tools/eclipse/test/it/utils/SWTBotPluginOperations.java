@@ -27,7 +27,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
@@ -60,6 +59,7 @@ import org.eclipse.swtbot.swt.finder.widgets.SWTBotToolbarPushButton;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTree;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
 import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.WorkbenchException;
 import org.eclipse.ui.part.ViewPart;
@@ -239,11 +239,11 @@ public class SWTBotPluginOperations {
 
     public static SWTBotTable getDashboardTable() {
         openDashboardUsingToolbar();
-        
+
         // Ensure the dashboard view is actually shown and has focus
         // This prevents finding the wrong view (like ConsoleView) when the console takes focus after server start
         Object dashboardView = findGlobal(DASHBOARD_VIEW_TITLE, Option.factory().widgetClass(ViewPart.class).build());
-        
+
         // Explicitly show and activate the dashboard view to ensure it has focus
         if (dashboardView instanceof ViewPart) {
             final ViewPart vp = (ViewPart) dashboardView;
@@ -261,11 +261,11 @@ public class SWTBotPluginOperations {
                     }
                 }
             });
-            
+
             // Give the UI a moment to update after activation
-            pause(500);
+            MagicWidgetFinder.pause(500);
         }
-        
+
         Table table = ((DashboardView) dashboardView).getTable();
         return new SWTBotTable(table);
     }
@@ -417,22 +417,21 @@ public class SWTBotPluginOperations {
     public static void setBuildCmdPathInPreferences(SWTWorkbenchBot bot, String buildTool) {
         // Use Eclipse preference store API directly instead of UI navigation
         // This avoids issues with menu accessibility in headless CI environments
-        
+
         String finalMvnExecutableLoc = AbstractLibertyPluginSWTBotTest.getMvnCmdPath();
         String finalGradleExecutableLoc = AbstractLibertyPluginSWTBotTest.getGradleCmdPath();
-        
+
         // Get the preference store for the Liberty Tools plugin
-        org.eclipse.jface.preference.IPreferenceStore prefStore =
-            new org.eclipse.ui.preferences.ScopedPreferenceStore(
+        org.eclipse.jface.preference.IPreferenceStore prefStore = new org.eclipse.ui.preferences.ScopedPreferenceStore(
                 org.eclipse.core.runtime.preferences.InstanceScope.INSTANCE,
                 "io.openliberty.tools.eclipse.ui");
-        
+
         if ("Maven".equals(buildTool)) {
             prefStore.setValue("MVNPATH", finalMvnExecutableLoc);
         } else if ("Gradle".equals(buildTool)) {
             prefStore.setValue("GRADLEPATH", finalGradleExecutableLoc);
         }
-        
+
         // Save the preference store
         if (prefStore instanceof org.eclipse.ui.preferences.ScopedPreferenceStore) {
             try {
@@ -447,20 +446,19 @@ public class SWTBotPluginOperations {
     public static void unsetBuildCmdPathInPreferences(SWTWorkbenchBot bot, String buildTool) {
         // Use Eclipse preference store API directly instead of UI navigation
         // This avoids issues with menu accessibility in headless CI environments
-        
+
         // Get the preference store for the Liberty Tools plugin
-        org.eclipse.jface.preference.IPreferenceStore prefStore =
-            new org.eclipse.ui.preferences.ScopedPreferenceStore(
+        org.eclipse.jface.preference.IPreferenceStore prefStore = new org.eclipse.ui.preferences.ScopedPreferenceStore(
                 org.eclipse.core.runtime.preferences.InstanceScope.INSTANCE,
                 "io.openliberty.tools.eclipse.ui");
-        
+
         // Reset to default values (empty strings)
         if ("Maven".equals(buildTool)) {
             prefStore.setToDefault("MVNPATH");
         } else if ("Gradle".equals(buildTool)) {
             prefStore.setToDefault("GRADLEPATH");
         }
-        
+
         // Save the preference store
         if (prefStore instanceof org.eclipse.ui.preferences.ScopedPreferenceStore) {
             try {
