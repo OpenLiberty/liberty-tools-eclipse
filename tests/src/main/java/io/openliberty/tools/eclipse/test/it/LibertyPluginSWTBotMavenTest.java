@@ -71,10 +71,12 @@ import org.eclipse.swtbot.swt.finder.widgets.SWTBotCombo;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotMenu;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 
 import io.openliberty.tools.eclipse.CommandBuilder;
 import io.openliberty.tools.eclipse.CommandBuilder.CommandNotFoundException;
@@ -83,6 +85,9 @@ import io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils;
 import io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher;
+
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getObjectInDebugView;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.terminateLaunch;
 
 /**
  * Tests Open Liberty Eclipse plugin functions.
@@ -199,6 +204,17 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
 
         // Check basic plugin artifacts are functioning before running tests.
         validateBeforeTestRun();
+    }
+
+    @AfterEach
+    public void afterEach(TestInfo info) {
+        terminateLaunch();
+
+        // Validate that launch has been removed
+        Object launch = getObjectInDebugView("[Liberty]");
+        Assertions.assertNull(launch);
+
+        super.afterEach(info);
     }
 
     @AfterAll
