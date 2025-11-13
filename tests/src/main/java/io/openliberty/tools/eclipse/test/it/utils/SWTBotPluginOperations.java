@@ -176,16 +176,19 @@ public class SWTBotPluginOperations {
                 Object launch = MagicWidgetFinder.find("[Liberty]", debugView,
                         Option.factory().useContains(true).setThrowExceptionOnNotFound(false).build());
 
-                MagicWidgetFinder.context(launch, "Terminate and Remove");
+                // Only attempt to terminate if launch exists
+                if (launch != null) {
+                    MagicWidgetFinder.context(launch, "Terminate and Remove");
 
-                try {
-                    Shell confirm = (Shell) findGlobal("Terminate and Remove", Option.factory().widgetClass(Shell.class).build());
+                    try {
+                        Shell confirm = (Shell) findGlobal("Terminate and Remove", Option.factory().widgetClass(Shell.class).build());
 
-                    MagicWidgetFinder.go("Yes", confirm);
-                    MagicWidgetFinder.pause(3000);
-                } catch (Exception e) {
-                    // The configrmation pop up window only shows if the launch has not yet been terminated.
-                    // If it has been terminated (or stopped), there is no confirmation.
+                        MagicWidgetFinder.go("Yes", confirm);
+                        MagicWidgetFinder.pause(3000);
+                    } catch (Exception e) {
+                        // The configrmation pop up window only shows if the launch has not yet been terminated.
+                        // If it has been terminated (or stopped), there is no confirmation.
+                    }
                 }
             }
         });
