@@ -164,46 +164,57 @@ public class SWTBotPluginOperations {
      * Terminate the launch
      */
     public static void terminateLaunch() {
-        openDebugPerspective();
-        Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
-        goMenuItem(windowMenu, "Show View", "Debug");
+        Display.getDefault().syncExec(new Runnable() {
+            @Override
+            public void run() {
+                openDebugPerspective();
+                Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
+                goMenuItem(windowMenu, "Show View", "Debug");
 
-        Object debugView = MagicWidgetFinder.findGlobal("Debug");
+                Object debugView = MagicWidgetFinder.findGlobal("Debug");
 
-        Object launch = MagicWidgetFinder.find("[Liberty]", debugView,
-                Option.factory().useContains(true).setThrowExceptionOnNotFound(false).build());
+                Object launch = MagicWidgetFinder.find("[Liberty]", debugView,
+                        Option.factory().useContains(true).setThrowExceptionOnNotFound(false).build());
 
-        MagicWidgetFinder.context(launch, "Terminate and Remove");
+                MagicWidgetFinder.context(launch, "Terminate and Remove");
 
-        try {
-            Shell confirm = (Shell) findGlobal("Terminate and Remove", Option.factory().widgetClass(Shell.class).build());
+                try {
+                    Shell confirm = (Shell) findGlobal("Terminate and Remove", Option.factory().widgetClass(Shell.class).build());
 
-            MagicWidgetFinder.go("Yes", confirm);
-            MagicWidgetFinder.pause(3000);
-        } catch (Exception e) {
-            // The configrmation pop up window only shows if the launch has not yet been terminated.
-            // If it has been terminated (or stopped), there is no confirmation.
-        }
-
+                    MagicWidgetFinder.go("Yes", confirm);
+                    MagicWidgetFinder.pause(3000);
+                } catch (Exception e) {
+                    // The configrmation pop up window only shows if the launch has not yet been terminated.
+                    // If it has been terminated (or stopped), there is no confirmation.
+                }
+            }
+        });
     }
 
     /**
      * Returns the debug object item in the Debug View with the given name.
      * The debug object can either be a launch, a debug target, or a process in the Debug View.
-     * 
+     *
      * @param objectName - The name of the object in the Debug View.
-     * 
+     *
      * @return
      */
-    public static Object getObjectInDebugView(String objectName) {
-        openDebugPerspective();
-        Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
-        goMenuItem(windowMenu, "Show View", "Debug");
+    public static Object getObjectInDebugView(final String objectName) {
+        final Object[] result = new Object[1];
+        Display.getDefault().syncExec(new Runnable() {
+            @Override
+            public void run() {
+                openDebugPerspective();
+                Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
+                goMenuItem(windowMenu, "Show View", "Debug");
 
-        Object debugView = MagicWidgetFinder.findGlobal("Debug");
+                Object debugView = MagicWidgetFinder.findGlobal("Debug");
 
-        return MagicWidgetFinder.find(objectName, debugView,
-                Option.factory().useContains(true).setThrowExceptionOnNotFound(false).widgetClass(TreeItem.class).build());
+                result[0] = MagicWidgetFinder.find(objectName, debugView,
+                        Option.factory().useContains(true).setThrowExceptionOnNotFound(false).widgetClass(TreeItem.class).build());
+            }
+        });
+        return result[0];
     }
 
     /**
