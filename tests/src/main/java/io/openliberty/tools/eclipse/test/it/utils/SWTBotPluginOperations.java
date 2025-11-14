@@ -135,10 +135,17 @@ public class SWTBotPluginOperations {
      */
     public static SWTBotMenu getDebuggerConnectMenuForDebugObject(Object debugObject) {
         openDebugPerspective();
-        Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
-        goMenuItem(windowMenu, "Show View", "Debug");
+        // Open Debug view using Eclipse API instead of menu navigation
+        // This is more reliable in headless CI environments
+        showDebugView();
 
         SWTBotTreeItem obj = new SWTBotTreeItem((TreeItem) debugObject);
+        
+        // Ensure the tree item is properly selected and focused before accessing context menu
+        // This is critical for headless CI environments where context menus can hang
+        obj.select();
+        obj.setFocus();
+        MagicWidgetFinder.pause(500);
 
         return obj.contextMenu("Connect Liberty Debugger");
     }
@@ -152,8 +159,15 @@ public class SWTBotPluginOperations {
      */
     public static void disconnectDebugTarget(Object debugTarget) {
         openDebugPerspective();
-        Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
-        goMenuItem(windowMenu, "Show View", "Debug");
+        // Open Debug view using Eclipse API instead of menu navigation
+        // This is more reliable in headless CI environments
+        showDebugView();
+
+        // Ensure proper selection before accessing context menu
+        SWTBotTreeItem obj = new SWTBotTreeItem((TreeItem) debugTarget);
+        obj.select();
+        obj.setFocus();
+        MagicWidgetFinder.pause(500);
 
         MagicWidgetFinder.context(debugTarget, "Disconnect");
 
@@ -164,34 +178,30 @@ public class SWTBotPluginOperations {
      * Terminate the launch
      */
     public static void terminateLaunch() {
-        Display.getDefault().syncExec(new Runnable() {
-            @Override
-            public void run() {
-                openDebugPerspective();
-                Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
-                goMenuItem(windowMenu, "Show View", "Debug");
+        // Don't wrap in syncExec - MagicWidgetFinder methods already handle thread synchronization
+        // Nested syncExec calls can cause deadlocks in headless CI environments
+        openDebugPerspective();
+        showDebugView();
 
-                Object debugView = MagicWidgetFinder.findGlobal("Debug");
+        Object debugView = MagicWidgetFinder.findGlobal("Debug");
 
-                Object launch = MagicWidgetFinder.find("[Liberty]", debugView,
-                        Option.factory().useContains(true).setThrowExceptionOnNotFound(false).build());
+        Object launch = MagicWidgetFinder.find("[Liberty]", debugView,
+                Option.factory().useContains(true).setThrowExceptionOnNotFound(false).build());
 
-                // Only attempt to terminate if launch exists
-                if (launch != null) {
-                    MagicWidgetFinder.context(launch, "Terminate and Remove");
+        // Only attempt to terminate if launch exists
+        if (launch != null) {
+            MagicWidgetFinder.context(launch, "Terminate and Remove");
 
-                    try {
-                        Shell confirm = (Shell) findGlobal("Terminate and Remove", Option.factory().widgetClass(Shell.class).build());
+            try {
+                Shell confirm = (Shell) findGlobal("Terminate and Remove", Option.factory().widgetClass(Shell.class).build());
 
-                        MagicWidgetFinder.go("Yes", confirm);
-                        MagicWidgetFinder.pause(3000);
-                    } catch (Exception e) {
-                        // The configrmation pop up window only shows if the launch has not yet been terminated.
-                        // If it has been terminated (or stopped), there is no confirmation.
-                    }
-                }
+                MagicWidgetFinder.go("Yes", confirm);
+                MagicWidgetFinder.pause(3000);
+            } catch (Exception e) {
+                // The configrmation pop up window only shows if the launch has not yet been terminated.
+                // If it has been terminated (or stopped), there is no confirmation.
             }
-        });
+        }
     }
 
     /**
@@ -203,21 +213,37 @@ public class SWTBotPluginOperations {
      * @return
      */
     public static Object getObjectInDebugView(final String objectName) {
-        final Object[] result = new Object[1];
-        Display.getDefault().syncExec(new Runnable() {
-            @Override
-            public void run() {
-                openDebugPerspective();
-                Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
-                goMenuItem(windowMenu, "Show View", "Debug");
+        // Don't wrap in syncExec - MagicWidgetFinder methods already handle thread synchronization
+        // Nested syncExec calls can cause deadlocks in headless CI environments
+        openDebugPerspective();
+        showDebugView();
 
-                Object debugView = MagicWidgetFinder.findGlobal("Debug");
+        Object debugView = MagicWidgetFinder.findGlobal("Debug");
 
-                result[0] = MagicWidgetFinder.find(objectName, debugView,
-                        Option.factory().useContains(true).setThrowExceptionOnNotFound(false).widgetClass(TreeItem.class).build());
-            }
-        });
-        return result[0];
+        // Explicitly activate the Debug view to ensure widgets are properly rendered
+        // This is critical for headless CI environments
+        if (debugView instanceof ViewPart) {
+            final ViewPart vp = (ViewPart) debugView;
+            Display.getDefault().syncExec(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        IWorkbench wb = PlatformUI.getWorkbench();
+                        IWorkbenchWindow window = wb.getActiveWorkbenchWindow();
+                        if (window != null && window.getActivePage() != null) {
+                            window.getActivePage().activate(vp);
+                        }
+                    } catch (Exception e) {
+                        System.err.println("Failed to activate Debug view: " + e.getMessage());
+                    }
+                }
+            });
+            // Give the view time to activate
+            MagicWidgetFinder.pause(500);
+        }
+
+        return MagicWidgetFinder.find(objectName, debugView,
+                Option.factory().useContains(true).setThrowExceptionOnNotFound(false).widgetClass(TreeItem.class).build());
     }
 
     /**
@@ -238,6 +264,31 @@ public class SWTBotPluginOperations {
         };
 
         Display.getDefault().syncExec(runnable);
+    }
+
+    /**
+     * Opens the Debug view using Eclipse API directly.
+     * This is more reliable than menu navigation in headless CI environments.
+     */
+    private static void showDebugView() {
+        Display.getDefault().syncExec(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    IWorkbench wb = PlatformUI.getWorkbench();
+                    IWorkbenchWindow window = wb.getActiveWorkbenchWindow();
+                    if (window != null && window.getActivePage() != null) {
+                        // Show the Debug view using its ID
+                        window.getActivePage().showView("org.eclipse.debug.ui.DebugView");
+                    }
+                } catch (Exception e) {
+                    System.err.println("Failed to open Debug view: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+        });
+        // Give the view time to open
+        MagicWidgetFinder.pause(500);
     }
 
     public static void openJavaPerspectiveViaMenu() {
@@ -723,8 +774,9 @@ public class SWTBotPluginOperations {
 
     public static Object getAppInPackageExplorerTree(String appName) {
         openJavaPerspectiveViaMenu();
-        Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
-        goMenuItem(windowMenu, "Show View", "Package Explorer");
+        // Open Package Explorer view using Eclipse API instead of menu navigation
+        // This is more reliable in headless CI environments
+        showPackageExplorerView();
         Object peView = MagicWidgetFinder.findGlobal("Package Explorer");
 
         Object project = MagicWidgetFinder.find(appName, peView, Option.factory().useContains(true).widgetClass(TreeItem.class).build());
@@ -986,6 +1038,31 @@ public class SWTBotPluginOperations {
         if (dashboard.isActive()) {
             dashboard.close();
         }
+    }
+
+    /**
+     * Opens the Package Explorer view using Eclipse API directly.
+     * This is more reliable than menu navigation in headless CI environments.
+     */
+    private static void showPackageExplorerView() {
+        Display.getDefault().syncExec(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    IWorkbench wb = PlatformUI.getWorkbench();
+                    IWorkbenchWindow window = wb.getActiveWorkbenchWindow();
+                    if (window != null && window.getActivePage() != null) {
+                        // Show the Package Explorer view using its ID
+                        window.getActivePage().showView("org.eclipse.jdt.ui.PackageExplorer");
+                    }
+                } catch (Exception e) {
+                    System.err.println("Failed to open Package Explorer view: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+        });
+        // Give the view time to open
+        MagicWidgetFinder.pause(500);
     }
 
     /**
