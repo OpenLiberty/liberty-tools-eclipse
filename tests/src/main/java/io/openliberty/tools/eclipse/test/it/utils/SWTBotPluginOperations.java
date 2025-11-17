@@ -27,7 +27,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
@@ -60,6 +59,7 @@ import org.eclipse.swtbot.swt.finder.widgets.SWTBotToolbarPushButton;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTree;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
 import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.WorkbenchException;
 import org.eclipse.ui.part.ViewPart;
@@ -135,10 +135,17 @@ public class SWTBotPluginOperations {
      */
     public static SWTBotMenu getDebuggerConnectMenuForDebugObject(Object debugObject) {
         openDebugPerspective();
-        Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
-        goMenuItem(windowMenu, "Show View", "Debug");
+        // Open Debug view using Eclipse API instead of menu navigation
+        // This is more reliable in headless CI environments
+        showDebugView();
 
         SWTBotTreeItem obj = new SWTBotTreeItem((TreeItem) debugObject);
+        
+        // Ensure the tree item is properly selected and focused before accessing context menu
+        // This is critical for headless CI environments where context menus can hang
+        obj.select();
+        obj.setFocus();
+        MagicWidgetFinder.pause(500);
 
         return obj.contextMenu("Connect Liberty Debugger");
     }
@@ -152,8 +159,15 @@ public class SWTBotPluginOperations {
      */
     public static void disconnectDebugTarget(Object debugTarget) {
         openDebugPerspective();
-        Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
-        goMenuItem(windowMenu, "Show View", "Debug");
+        // Open Debug view using Eclipse API instead of menu navigation
+        // This is more reliable in headless CI environments
+        showDebugView();
+
+        // Ensure proper selection before accessing context menu
+        SWTBotTreeItem obj = new SWTBotTreeItem((TreeItem) debugTarget);
+        obj.select();
+        obj.setFocus();
+        MagicWidgetFinder.pause(500);
 
         MagicWidgetFinder.context(debugTarget, "Disconnect");
 
@@ -164,46 +178,93 @@ public class SWTBotPluginOperations {
      * Terminate the launch
      */
     public static void terminateLaunch() {
-        openDebugPerspective();
-        Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
-        goMenuItem(windowMenu, "Show View", "Debug");
+        // Use getObjectInDebugView to find the Liberty launch with retry logic
+        Object launch = getObjectInDebugView("[Liberty]");
 
-        Object debugView = MagicWidgetFinder.findGlobal("Debug");
+        // Only attempt to terminate if launch exists
+        if (launch != null) {
+            System.out.println("Found Liberty launch, attempting to terminate");
+            MagicWidgetFinder.context(launch, "Terminate and Remove");
 
-        Object launch = MagicWidgetFinder.find("[Liberty]", debugView,
-                Option.factory().useContains(true).setThrowExceptionOnNotFound(false).build());
+            try {
+                Shell confirm = (Shell) findGlobal("Terminate and Remove", Option.factory().widgetClass(Shell.class).build());
 
-        MagicWidgetFinder.context(launch, "Terminate and Remove");
-
-        try {
-            Shell confirm = (Shell) findGlobal("Terminate and Remove", Option.factory().widgetClass(Shell.class).build());
-
-            MagicWidgetFinder.go("Yes", confirm);
-            MagicWidgetFinder.pause(3000);
-        } catch (Exception e) {
-            // The configrmation pop up window only shows if the launch has not yet been terminated.
-            // If it has been terminated (or stopped), there is no confirmation.
+                MagicWidgetFinder.go("Yes", confirm);
+                MagicWidgetFinder.pause(3000);
+            } catch (Exception e) {
+                // The confirmation pop up window only shows if the launch has not yet been terminated.
+                // If it has been terminated (or stopped), there is no confirmation.
+            }
+        } else {
+            System.out.println("No Liberty launch found in Debug view to terminate");
         }
-
     }
 
     /**
      * Returns the debug object item in the Debug View with the given name.
      * The debug object can either be a launch, a debug target, or a process in the Debug View.
-     * 
+     *
      * @param objectName - The name of the object in the Debug View.
-     * 
+     *
      * @return
      */
-    public static Object getObjectInDebugView(String objectName) {
+    public static Object getObjectInDebugView(final String objectName) {
+        // Don't wrap in syncExec - MagicWidgetFinder methods already handle thread synchronization
+        // Nested syncExec calls can cause deadlocks in headless CI environments
         openDebugPerspective();
-        Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
-        goMenuItem(windowMenu, "Show View", "Debug");
+        showDebugView();
 
-        Object debugView = MagicWidgetFinder.findGlobal("Debug");
+        // Get the Debug view directly using Eclipse API instead of text search
+        // This is more reliable than findGlobal("Debug") which could find the wrong view
+        final Object[] debugViewHolder = new Object[1];
+        Display.getDefault().syncExec(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    IWorkbench wb = PlatformUI.getWorkbench();
+                    IWorkbenchWindow window = wb.getActiveWorkbenchWindow();
+                    if (window != null && window.getActivePage() != null) {
+                        // Get the Debug view by its ID
+                        ViewPart debugView = (ViewPart) window.getActivePage().findView("org.eclipse.debug.ui.DebugView");
+                        if (debugView != null) {
+                            // Activate it to ensure widgets are rendered
+                            window.getActivePage().activate(debugView);
+                            debugViewHolder[0] = debugView;
+                        }
+                    }
+                } catch (Exception e) {
+                    System.err.println("Failed to get Debug view: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+        });
+        
+        // Give the view time to activate and render
+        MagicWidgetFinder.pause(500);
+        
+        Object debugView = debugViewHolder[0];
+        if (debugView == null) {
+            System.err.println("Debug view not found, cannot find object: " + objectName);
+            return null;
+        }
 
-        return MagicWidgetFinder.find(objectName, debugView,
-                Option.factory().useContains(true).setThrowExceptionOnNotFound(false).widgetClass(TreeItem.class).build());
+        // Try multiple times to find the object, as it may take time to appear in headless CI
+        Object result = null;
+        for (int attempt = 0; attempt < 3 && result == null; attempt++) {
+            if (attempt > 0) {
+                System.out.println("Retry attempt " + attempt + " to find object: " + objectName);
+                MagicWidgetFinder.pause(1000);
+            }
+            
+            result = MagicWidgetFinder.find(objectName, debugView,
+                    Option.factory().useContains(true).setThrowExceptionOnNotFound(false).widgetClass(TreeItem.class).build());
+        }
+
+        if (result == null) {
+            System.out.println("Object not found in Debug view after 3 attempts: " + objectName);
+        }
+
+        return result;
     }
 
     /**
@@ -226,6 +287,31 @@ public class SWTBotPluginOperations {
         Display.getDefault().syncExec(runnable);
     }
 
+    /**
+     * Opens the Debug view using Eclipse API directly.
+     * This is more reliable than menu navigation in headless CI environments.
+     */
+    private static void showDebugView() {
+        Display.getDefault().syncExec(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    IWorkbench wb = PlatformUI.getWorkbench();
+                    IWorkbenchWindow window = wb.getActiveWorkbenchWindow();
+                    if (window != null && window.getActivePage() != null) {
+                        // Show the Debug view using its ID
+                        window.getActivePage().showView("org.eclipse.debug.ui.DebugView");
+                    }
+                } catch (Exception e) {
+                    System.err.println("Failed to open Debug view: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+        });
+        // Give the view time to open
+        MagicWidgetFinder.pause(500);
+    }
+
     public static void openJavaPerspectiveViaMenu() {
         Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
 
@@ -239,7 +325,33 @@ public class SWTBotPluginOperations {
 
     public static SWTBotTable getDashboardTable() {
         openDashboardUsingToolbar();
+
+        // Ensure the dashboard view is actually shown and has focus
+        // This prevents finding the wrong view (like ConsoleView) when the console takes focus after server start
         Object dashboardView = findGlobal(DASHBOARD_VIEW_TITLE, Option.factory().widgetClass(ViewPart.class).build());
+
+        // Explicitly show and activate the dashboard view to ensure it has focus
+        if (dashboardView instanceof ViewPart) {
+            final ViewPart vp = (ViewPart) dashboardView;
+            Display.getDefault().syncExec(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        IWorkbench wb = PlatformUI.getWorkbench();
+                        IWorkbenchWindow window = wb.getActiveWorkbenchWindow();
+                        if (window != null && window.getActivePage() != null) {
+                            window.getActivePage().activate(vp);
+                        }
+                    } catch (Exception e) {
+                        System.err.println("Failed to activate dashboard view: " + e.getMessage());
+                    }
+                }
+            });
+
+            // Give the UI a moment to update after activation
+            MagicWidgetFinder.pause(500);
+        }
+
         Table table = ((DashboardView) dashboardView).getTable();
         return new SWTBotTable(table);
     }
@@ -389,56 +501,59 @@ public class SWTBotPluginOperations {
      * @param buildTool the build tool to be used (Maven or Gradle)
      */
     public static void setBuildCmdPathInPreferences(SWTWorkbenchBot bot, String buildTool) {
+        // Use Eclipse preference store API directly instead of UI navigation
+        // This avoids issues with menu accessibility in headless CI environments
 
-        /* Preferences are accessed from a different menu on macOS than on Windows and Linux */
-        /* Currently not possible to access the Preferences dialog panel on macOS so we */
-        /* will return and just use an app configured with a wrapper */
-        if (Platform.getOS().equals(Platform.OS_MACOSX)) {
-            return;
+        String finalMvnExecutableLoc = AbstractLibertyPluginSWTBotTest.getMvnCmdPath();
+        String finalGradleExecutableLoc = AbstractLibertyPluginSWTBotTest.getGradleCmdPath();
+
+        // Get the preference store for the Liberty Tools plugin
+        org.eclipse.jface.preference.IPreferenceStore prefStore = new org.eclipse.ui.preferences.ScopedPreferenceStore(
+                org.eclipse.core.runtime.preferences.InstanceScope.INSTANCE,
+                "io.openliberty.tools.eclipse.ui");
+
+        if ("Maven".equals(buildTool)) {
+            prefStore.setValue("MVNPATH", finalMvnExecutableLoc);
+        } else if ("Gradle".equals(buildTool)) {
+            prefStore.setValue("GRADLEPATH", finalGradleExecutableLoc);
         }
 
-        String finalMvnExecutableLoc = null;
-        String finalGradleExecutableLoc = null;
-        Object locationLabel = null;
-        Object locationText = null;
-
-        finalMvnExecutableLoc = AbstractLibertyPluginSWTBotTest.getMvnCmdPath();
-        finalGradleExecutableLoc = AbstractLibertyPluginSWTBotTest.getGradleCmdPath();
-
-        Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
-        goMenuItem(windowMenu, "Preferences");
-
-        TreeItem liberty = (TreeItem) findGlobal("Liberty", Option.factory().widgetClass(TreeItem.class).build());
-        go(liberty);
-        if (buildTool == "Maven") {
-            locationLabel = findGlobal("Maven Install Location:", Option.factory().widgetClass(Label.class).build());
-            locationText = ControlFinder.findControlInRange(locationLabel, Text.class, Direction.EAST);
-            set(locationText, finalMvnExecutableLoc);
-        } else if (buildTool == "Gradle") {
-            locationLabel = findGlobal("Gradle Install Location:", Option.factory().widgetClass(Label.class).build());
-            locationText = ControlFinder.findControlInRange(locationLabel, Text.class, Direction.EAST);
-            set(locationText, finalGradleExecutableLoc);
+        // Save the preference store
+        if (prefStore instanceof org.eclipse.ui.preferences.ScopedPreferenceStore) {
+            try {
+                ((org.eclipse.ui.preferences.ScopedPreferenceStore) prefStore).save();
+            } catch (java.io.IOException e) {
+                System.err.println("Failed to save preferences: " + e.getMessage());
+                e.printStackTrace();
+            }
         }
-
-        goGlobal("Apply and Close");
     }
 
     public static void unsetBuildCmdPathInPreferences(SWTWorkbenchBot bot, String buildTool) {
+        // Use Eclipse preference store API directly instead of UI navigation
+        // This avoids issues with menu accessibility in headless CI environments
 
-        /* Preferences are accessed from a different menu on macOS than on Windows and Linux */
-        /* Currently not possible to access the Preferences dialog panel on macOS so we */
-        /* will return and just use an app configured with a wrapper */
-        if (Platform.getOS().equals(Platform.OS_MACOSX)) {
-            return;
+        // Get the preference store for the Liberty Tools plugin
+        org.eclipse.jface.preference.IPreferenceStore prefStore = new org.eclipse.ui.preferences.ScopedPreferenceStore(
+                org.eclipse.core.runtime.preferences.InstanceScope.INSTANCE,
+                "io.openliberty.tools.eclipse.ui");
+
+        // Reset to default values (empty strings)
+        if ("Maven".equals(buildTool)) {
+            prefStore.setToDefault("MVNPATH");
+        } else if ("Gradle".equals(buildTool)) {
+            prefStore.setToDefault("GRADLEPATH");
         }
 
-        Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
-        goMenuItem(windowMenu, "Preferences");
-
-        findGlobal("Liberty", Option.factory().widgetClass(TreeItem.class).build());
-
-        goGlobal("Restore Defaults");
-        goGlobal("Apply and Close");
+        // Save the preference store
+        if (prefStore instanceof org.eclipse.ui.preferences.ScopedPreferenceStore) {
+            try {
+                ((org.eclipse.ui.preferences.ScopedPreferenceStore) prefStore).save();
+            } catch (java.io.IOException e) {
+                System.err.println("Failed to save preferences: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
     }
 
     /**
@@ -680,8 +795,9 @@ public class SWTBotPluginOperations {
 
     public static Object getAppInPackageExplorerTree(String appName) {
         openJavaPerspectiveViaMenu();
-        Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
-        goMenuItem(windowMenu, "Show View", "Package Explorer");
+        // Open Package Explorer view using Eclipse API instead of menu navigation
+        // This is more reliable in headless CI environments
+        showPackageExplorerView();
         Object peView = MagicWidgetFinder.findGlobal("Package Explorer");
 
         Object project = MagicWidgetFinder.find(appName, peView, Option.factory().useContains(true).widgetClass(TreeItem.class).build());
@@ -943,6 +1059,31 @@ public class SWTBotPluginOperations {
         if (dashboard.isActive()) {
             dashboard.close();
         }
+    }
+
+    /**
+     * Opens the Package Explorer view using Eclipse API directly.
+     * This is more reliable than menu navigation in headless CI environments.
+     */
+    private static void showPackageExplorerView() {
+        Display.getDefault().syncExec(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    IWorkbench wb = PlatformUI.getWorkbench();
+                    IWorkbenchWindow window = wb.getActiveWorkbenchWindow();
+                    if (window != null && window.getActivePage() != null) {
+                        // Show the Package Explorer view using its ID
+                        window.getActivePage().showView("org.eclipse.jdt.ui.PackageExplorer");
+                    }
+                } catch (Exception e) {
+                    System.err.println("Failed to open Package Explorer view: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+        });
+        // Give the view time to open
+        MagicWidgetFinder.pause(500);
     }
 
     /**

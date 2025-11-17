@@ -29,8 +29,39 @@ jobs:
       - name: 'Setup: Checkout plugin'
         uses: actions/checkout@v2
 
+      # Restore Maven and Tycho dependencies cache
+      - name: 'Cache: Maven and Tycho repository (restore)'
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.m2/repository
+            !~/.m2/repository/io/openliberty/tools/eclipse
+          key: ${{ runner.os }}-maven-tycho-${{ hashFiles('pom.xml', '.mvn/**', 'releng/**') }}
+          restore-keys: |
+            ${{ runner.os }}-maven-tycho-
+
+      # Restore Gradle dependencies cache
+      - name: 'Cache: Gradle (restore)'
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      # Restore downloaded tools cache (JDK, Maven, Gradle)
+      - name: 'Cache: Downloaded tools (restore)'
+        uses: actions/cache/restore@v4
+        with:
+          path: test-tools/liberty-dev-tools
+          key: ${{ runner.os }}-tools-jdk21.0.3-maven3.9.6-gradle8.8
+          restore-keys: |
+            ${{ runner.os }}-tools-
+
       # Install the required software.
-      - name: 'Setup: Install required software' 
+      - name: 'Setup: Install required software'
         run: bash ./tests/resources/ci/scripts/setup.sh
         
       # Build the plugin.
@@ -50,3 +81,31 @@ jobs:
         with:
           name: test-app-logs
           path: logs
+
+      # Save Maven and Tycho dependencies cache (even on failure)
+      - name: 'Cache: Maven and Tycho repository (save)'
+        uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: |
+            ~/.m2/repository
+            !~/.m2/repository/io/openliberty/tools/eclipse
+          key: ${{ runner.os }}-maven-tycho-${{ hashFiles('pom.xml', '.mvn/**', 'releng/**') }}
+
+      # Save Gradle dependencies cache (even on failure)
+      - name: 'Cache: Gradle (save)'
+        uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+
+      # Save downloaded tools cache (even on failure)
+      - name: 'Cache: Downloaded tools (save)'
+        uses: actions/cache/save@v4
+        if: always()
+        with:
+          path: test-tools/liberty-dev-tools
+          key: ${{ runner.os }}-tools-jdk21.0.3-maven3.9.6-gradle8.8
