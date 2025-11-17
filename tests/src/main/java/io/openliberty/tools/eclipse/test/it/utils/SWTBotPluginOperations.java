@@ -178,18 +178,12 @@ public class SWTBotPluginOperations {
      * Terminate the launch
      */
     public static void terminateLaunch() {
-        // Don't wrap in syncExec - MagicWidgetFinder methods already handle thread synchronization
-        // Nested syncExec calls can cause deadlocks in headless CI environments
-        openDebugPerspective();
-        showDebugView();
-
-        Object debugView = MagicWidgetFinder.findGlobal("Debug");
-
-        Object launch = MagicWidgetFinder.find("[Liberty]", debugView,
-                Option.factory().useContains(true).setThrowExceptionOnNotFound(false).build());
+        // Use getObjectInDebugView to find the Liberty launch with retry logic
+        Object launch = getObjectInDebugView("[Liberty]");
 
         // Only attempt to terminate if launch exists
         if (launch != null) {
+            System.out.println("Found Liberty launch, attempting to terminate");
             MagicWidgetFinder.context(launch, "Terminate and Remove");
 
             try {
@@ -198,9 +192,11 @@ public class SWTBotPluginOperations {
                 MagicWidgetFinder.go("Yes", confirm);
                 MagicWidgetFinder.pause(3000);
             } catch (Exception e) {
-                // The configrmation pop up window only shows if the launch has not yet been terminated.
+                // The confirmation pop up window only shows if the launch has not yet been terminated.
                 // If it has been terminated (or stopped), there is no confirmation.
             }
+        } else {
+            System.out.println("No Liberty launch found in Debug view to terminate");
         }
     }
 
@@ -218,32 +214,57 @@ public class SWTBotPluginOperations {
         openDebugPerspective();
         showDebugView();
 
-        Object debugView = MagicWidgetFinder.findGlobal("Debug");
-
-        // Explicitly activate the Debug view to ensure widgets are properly rendered
-        // This is critical for headless CI environments
-        if (debugView instanceof ViewPart) {
-            final ViewPart vp = (ViewPart) debugView;
-            Display.getDefault().syncExec(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        IWorkbench wb = PlatformUI.getWorkbench();
-                        IWorkbenchWindow window = wb.getActiveWorkbenchWindow();
-                        if (window != null && window.getActivePage() != null) {
-                            window.getActivePage().activate(vp);
+        // Get the Debug view directly using Eclipse API instead of text search
+        // This is more reliable than findGlobal("Debug") which could find the wrong view
+        final Object[] debugViewHolder = new Object[1];
+        Display.getDefault().syncExec(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    IWorkbench wb = PlatformUI.getWorkbench();
+                    IWorkbenchWindow window = wb.getActiveWorkbenchWindow();
+                    if (window != null && window.getActivePage() != null) {
+                        // Get the Debug view by its ID
+                        ViewPart debugView = (ViewPart) window.getActivePage().findView("org.eclipse.debug.ui.DebugView");
+                        if (debugView != null) {
+                            // Activate it to ensure widgets are rendered
+                            window.getActivePage().activate(debugView);
+                            debugViewHolder[0] = debugView;
                         }
-                    } catch (Exception e) {
-                        System.err.println("Failed to activate Debug view: " + e.getMessage());
                     }
+                } catch (Exception e) {
+                    System.err.println("Failed to get Debug view: " + e.getMessage());
+                    e.printStackTrace();
                 }
-            });
-            // Give the view time to activate
-            MagicWidgetFinder.pause(500);
+            }
+        });
+        
+        // Give the view time to activate and render
+        MagicWidgetFinder.pause(500);
+        
+        Object debugView = debugViewHolder[0];
+        if (debugView == null) {
+            System.err.println("Debug view not found, cannot find object: " + objectName);
+            return null;
         }
 
-        return MagicWidgetFinder.find(objectName, debugView,
-                Option.factory().useContains(true).setThrowExceptionOnNotFound(false).widgetClass(TreeItem.class).build());
+        // Try multiple times to find the object, as it may take time to appear in headless CI
+        Object result = null;
+        for (int attempt = 0; attempt < 3 && result == null; attempt++) {
+            if (attempt > 0) {
+                System.out.println("Retry attempt " + attempt + " to find object: " + objectName);
+                MagicWidgetFinder.pause(1000);
+            }
+            
+            result = MagicWidgetFinder.find(objectName, debugView,
+                    Option.factory().useContains(true).setThrowExceptionOnNotFound(false).widgetClass(TreeItem.class).build());
+        }
+
+        if (result == null) {
+            System.out.println("Object not found in Debug view after 3 attempts: " + objectName);
+        }
+
+        return result;
     }
 
     /**

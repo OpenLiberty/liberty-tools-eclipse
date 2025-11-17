@@ -92,7 +92,7 @@ public class LibertyPluginSWTBotMavenWithSpaceTest extends AbstractLibertyPlugin
         Assertions.assertNull(launch);
 
         super.afterEach(info);
-    } 
+    }
     
     @AfterAll
     public static void cleanup() throws IOException {
