@@ -27,6 +27,8 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
@@ -140,7 +142,7 @@ public class SWTBotPluginOperations {
         showDebugView();
 
         SWTBotTreeItem obj = new SWTBotTreeItem((TreeItem) debugObject);
-        
+
         // Ensure the tree item is properly selected and focused before accessing context menu
         // This is critical for headless CI environments where context menus can hang
         obj.select();
@@ -238,10 +240,10 @@ public class SWTBotPluginOperations {
                 }
             }
         });
-        
+
         // Give the view time to activate and render
         MagicWidgetFinder.pause(500);
-        
+
         Object debugView = debugViewHolder[0];
         if (debugView == null) {
             System.err.println("Debug view not found, cannot find object: " + objectName);
@@ -255,7 +257,7 @@ public class SWTBotPluginOperations {
                 System.out.println("Retry attempt " + attempt + " to find object: " + objectName);
                 MagicWidgetFinder.pause(1000);
             }
-            
+
             result = MagicWidgetFinder.find(objectName, debugView,
                     Option.factory().useContains(true).setThrowExceptionOnNotFound(false).widgetClass(TreeItem.class).build());
         }
@@ -802,6 +804,14 @@ public class SWTBotPluginOperations {
 
         Object project = MagicWidgetFinder.find(appName, peView, Option.factory().useContains(true).widgetClass(TreeItem.class).build());
         go(project);
+        
+        // Add pause to ensure UI is fully ready after selection
+        // This helps prevent race conditions where TreeItem data isn't fully initialized
+        // particularly on Windows in headless CI environments where selection events
+        // can trigger cascading calls to getSelectedDashboardProject() before the
+        // selection is fully resolved, causing infinite loops
+        MagicWidgetFinder.pause(5000);  
+        
         return project;
     }
 
