@@ -50,7 +50,7 @@
         </location>
         <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
             <repository location="https://download.eclipse.org/tools/cdt/releases/11.6"/>
-            <unit id="org.eclipse.cdt.launch" version="0.0.0"/>
+            <unit id="org.eclipse.cdt.launch" version="10.4.400.202402230238"/>
         </location>
         <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
             <repository location="http://download.eclipse.org/lsp4mp/releases/0.13.2/repository/"/>
@@ -62,16 +62,16 @@
             <unit id="org.eclipse.lsp4j.jsonrpc" version="0.24.0.v20250131-1745"/>
         </location>
         <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-            <repository location="https://download.eclipse.org/jdtls/milestones/1.42.0/repository/"/>
-            <unit id="org.eclipse.jdt.ls.core" version="1.42.0.202411281516"/>
+            <repository location="https://download.eclipse.org/jdtls/milestones/1.52.0/repository/"/>
+            <unit id="org.eclipse.jdt.ls.core" version="1.52.0.202510301627"/>
         </location>
         <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
             <repository location="https://download.eclipse.org/buildship/updates/e427/releases/3.x/3.1.9.v20240115-1636/"/>
             <unit id="org.eclipse.buildship.ui" version="3.1.9.v20240115-1636"/>
         </location>
 	    <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-		    <repository location="https://download.eclipse.org/lsp4jakarta/releases/0.2.3/repository/"/>
-		    <unit id="org.eclipse.lsp4jakarta.jdt.core" version="0.2.3"/>
+		    <repository location="https://download.eclipse.org/lsp4jakarta/releases/0.2.5/repository/"/>
+		    <unit id="org.eclipse.lsp4jakarta.jdt.core" version="0.2.5"/>
 	    </location>
 	    <location includeDependencyDepth="none" includeDependencyScopes="compile" missingManifest="generate" type="Maven">
 		    <dependencies>
