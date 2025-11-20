@@ -62,8 +62,8 @@
             <unit id="org.eclipse.lsp4j.jsonrpc" version="0.24.0.v20250131-1745"/>
         </location>
         <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-            <repository location="https://download.eclipse.org/jdtls/milestones/1.42.0/repository/"/>
-            <unit id="org.eclipse.jdt.ls.core" version="1.42.0.202411281516"/>
+            <repository location="https://download.eclipse.org/jdtls/milestones/1.52.0/repository/"/>
+            <unit id="org.eclipse.jdt.ls.core" version="1.52.0.202510301627"/>
         </location>
         <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
             <repository location="https://download.eclipse.org/buildship/updates/e427/releases/3.x/3.1.9.v20240115-1636/"/>
