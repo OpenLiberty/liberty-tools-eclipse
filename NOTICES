@@ -25,12 +25,8 @@ under the Eclipse Public License (source code available via the
 indicated URL):
 
 io.takari.m2e.workspace:org.eclipse.m2e.workspace.cli | https://git.eclipse.org/c/m2e/org.eclipse.m2e.workspace.git/tree/org.eclipse.m2e.workspace.cli/pom.xml?h=m2e-workspace-0.3.1
-org.eclipse.xtend:org.eclipse.xtend.lib | https://mvnrepository.com/artifact/org.eclipse.xtend/org.eclipse.xtend.lib/2.24.0
-org.eclipse.xtend:org.eclipse.xtend.lib.macro | https://mvnrepository.com/artifact/org.eclipse.xtend/org.eclipse.xtend.lib.macro/2.24.0
-org.eclipse.xtext:org.eclipse.xtext.xbase.lib | https://mvnrepository.com/artifact/org.eclipse.xtext/org.eclipse.xtext.xbase.lib/2.24.0
 
 END OF ECLIPSE PUBLIC LICENSE, VERSION 1 NOTICES AND INFORMATION
-
 
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
@@ -40,22 +36,17 @@ The Program includes some or all of the following that IBM obtained
 under the Eclipse Public License (source code available via the
 indicated URL):
 
-io.openliberty.tools:liberty-langserver | https://mvnrepository.com/artifact/io.openliberty.tools/liberty-langserver/2.2.1
-io.openliberty.tools:liberty-langserver-lemminx | https://mvnrepository.com/artifact/io.openliberty.tools/liberty-langserver-lemminx/2.2.1
+io.openliberty.tools:liberty-langserver | https://mvnrepository.com/artifact/io.openliberty.tools/liberty-langserver/2.4
+io.openliberty.tools:liberty-langserver-lemminx | https://mvnrepository.com/artifact/io.openliberty.tools/liberty-langserver-lemminx/2.4
 org.eclipse.lsp4j:org.eclipse.lsp4j | https://repo1.maven.org/maven2/org/eclipse/lsp4j/org.eclipse.lsp4j/0.14.0/org.eclipse.lsp4j-0.14.0-sources.jar
-org.eclipse.lsp4j:org.eclipse.lsp4j | https://repo1.maven.org/maven2/org/eclipse/lsp4j/org.eclipse.lsp4j/0.20.1/org.eclipse.lsp4j-0.20.1-sources.jar
-org.eclipse.lsp4j:org.eclipse.lsp4j | https://repo1.maven.org/maven2/org/eclipse/lsp4j/org.eclipse.lsp4j/0.21.0/org.eclipse.lsp4j-0.21.0-sources.jar
 org.eclipse.lsp4j:org.eclipse.lsp4j.generator | https://mvnrepository.com/artifact/org.eclipse.lsp4j/org.eclipse.lsp4j.generator/0.14.0
-org.eclipse.lsp4j:org.eclipse.lsp4j.generator | https://mvnrepository.com/artifact/org.eclipse.lsp4j/org.eclipse.lsp4j.generator/0.20.1
 org.eclipse.lsp4j:org.eclipse.lsp4j.jsonrpc | https://repo1.maven.org/maven2/org/eclipse/lsp4j/org.eclipse.lsp4j.jsonrpc/0.14.0/org.eclipse.lsp4j.jsonrpc-0.14.0-sources.jar
-org.eclipse.lsp4j:org.eclipse.lsp4j.jsonrpc | https://repo1.maven.org/maven2/org/eclipse/lsp4j/org.eclipse.lsp4j.jsonrpc/0.20.1/org.eclipse.lsp4j.jsonrpc-0.20.1-sources.jar
-org.eclipse.lsp4j:org.eclipse.lsp4j.jsonrpc | https://repo1.maven.org/maven2/org/eclipse/lsp4j/org.eclipse.lsp4j.jsonrpc/0.21.0/org.eclipse.lsp4j.jsonrpc-0.21.0-sources.jar
-org.eclipse.lsp4jakarta:org.eclipse.lsp4jakarta.ls | https://github.com/eclipse/lsp4jakarta/tree/0.2.3
-org.eclipse.lsp4jakarta:org.eclipse.lsp4jakarta.jdt.core | https://github.com/eclipse/lsp4jakarta/tree/0.2.3
+org.eclipse.lsp4jakarta:org.eclipse.lsp4jakarta.ls | https://github.com/eclipse/lsp4jakarta/tree/0.2.5
+org.eclipse.lsp4jakarta:org.eclipse.lsp4jakarta.jdt.core | https://github.com/eclipse/lsp4jakarta/tree/0.2.5
 org.eclipse.lsp4mp:org.eclipse.lsp4mp.ls | https://github.com/eclipse/lsp4mp/tree/0.13.2
-org.eclipse.xtend:org.eclipse.xtend.lib | https://mvnrepository.com/artifact/org.eclipse.xtend/org.eclipse.xtend.lib/2.28.0
-org.eclipse.xtend:org.eclipse.xtend.lib.macro | https://mvnrepository.com/artifact/org.eclipse.xtend/org.eclipse.xtend.lib.macro/2.28.0
-org.eclipse.xtext:org.eclipse.xtext.xbase.lib | https://mvnrepository.com/artifact/org.eclipse.xtext/org.eclipse.xtext.xbase.lib/2.28.0
+org.eclipse.xtend:org.eclipse.xtend.lib | https://mvnrepository.com/artifact/org.eclipse.xtend/org.eclipse.xtend.lib/2.24.0
+org.eclipse.xtend:org.eclipse.xtend.lib.macro | https://mvnrepository.com/artifact/org.eclipse.xtend/org.eclipse.xtend.lib.macro/2.24.0
+org.eclipse.xtext:org.eclipse.xtext.xbase.lib | https://mvnrepository.com/artifact/org.eclipse.xtext/org.eclipse.xtext.xbase.lib/2.24.0
 
 END OF ECLIPSE PUBLIC LICENSE, VERSION 2 NOTICES AND INFORMATION
 
@@ -67,6 +58,11 @@ BSD-3-Clause LICENSE
 The Program includes some or all of the following packages that IBM 
 obtained under the BSD-3-Clause License:
 
+org.ow2.asm:asm | Copyright (c) 2000-2011 INRIA, France Telecom.
+org.ow2.asm:asm-analysis | Copyright (c) 2000-2011 INRIA, France Telecom.
+org.ow2.asm:asm-commons | Copyright (c) 2000-2011 INRIA, France Telecom.
+org.ow2.asm:asm-tree | Copyright (c) 2000-2011 INRIA, France Telecom.
+org.ow2.asm:asm-util | Copyright (c) 2000-2011 INRIA, France Telecom.
 com.sun.istack:istack-commons-runtime | Copyright (c) 2007, Eclipse Foundation, Inc. and its licensors.
 jakarta.activation:jakarta.activation-api | Copyright (c) 2007, Eclipse Foundation, Inc. and its licensors.
 jakarta.xml.bind:jakarta.xml.bind-api | Copyright (c) 2007, Eclipse Foundation, Inc. and its licensors.
@@ -148,11 +144,7 @@ org.codehaus.plexus:plexus-component-annotations
 org.jboss.logging:jboss-logging
 org.osgi:org.osgi.service.prefs
 org.osgi:osgi.annotation
-org.ow2.asm:asm
-org.ow2.asm:asm-analysis
-org.ow2.asm:asm-commons
-org.ow2.asm:asm-tree
-org.ow2.asm:asm-util
+
 maven-wrapper.jar
 
 Apache License
