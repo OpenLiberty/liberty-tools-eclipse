@@ -63,6 +63,7 @@ import io.openliberty.tools.eclipse.LibertyDevPlugin;
 import io.openliberty.tools.eclipse.Project;
 import io.openliberty.tools.eclipse.Project.BuildType;
 import io.openliberty.tools.eclipse.logging.Trace;
+import io.openliberty.tools.eclipse.messages.Messages;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
 import io.openliberty.tools.eclipse.utils.Utils;
@@ -484,8 +485,6 @@ public class DebugModeHandler {
      */
     private Path getServerEnvFile(Project project) throws Exception {
 
-    
-
         Path libertyPluginConfigXmlPath = devModeOps.getLibertyPluginConfigXmlPath(project);
 
         // Read server.env path from liberty-plugin-config.xml
@@ -593,7 +592,6 @@ public class DebugModeHandler {
 
         throw new Exception(Messages.getMessage("debugger_timeout_error", host, port));
     }
-
 
     private class DataHolder {
         boolean started;

@@ -71,7 +71,7 @@ public class DashboardView extends ViewPart {
     /**
      * Menu Constants.
      */
-    public static final String APP_MENU_ACTION_START = "Start";
+    public static final String APP_MENU_ACTION_START = Messages.getMessage("dashboard_action_start");
     public static final String APP_MENU_ACTION_START_CONFIG = Messages.getMessage("dashboard_action_start_config");
     public static final String APP_MENU_ACTION_START_IN_CONTAINER = Messages.getMessage("dashboard_action_start_in_container");
     public static final String APP_MENU_ACTION_DEBUG = Messages.getMessage("dashboard_action_debug");

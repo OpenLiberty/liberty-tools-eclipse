@@ -20,7 +20,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.model.LaunchConfigurationDelegate;
-import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.PlatformUI;
@@ -104,7 +103,8 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
 
                 if (!configProjectName.equals(selectedProject.getName())) {
                     String configurationName = configuration.getName();
-                    String msg = Messages.getMessage("config_project_mismatch", configurationName, selectedProject.getName(), configProjectName);
+                    String msg = Messages.getMessage("config_project_mismatch", configurationName, selectedProject.getName(),
+                            configProjectName);
                     throw new IllegalStateException(msg);
                 }
             }
@@ -133,7 +133,7 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
         }
 
         if (iProject == null) {
-            throw new Exception(Messages.getMessage("invalid_project_selection"));
+            throw new Exception(Messages.getMessage("project_not_valid"));
         }
 
         // Validate that the project is supported.

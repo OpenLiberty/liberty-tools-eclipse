@@ -54,6 +54,7 @@ import io.openliberty.tools.eclipse.LibertyDevPlugin;
 import io.openliberty.tools.eclipse.Project;
 import io.openliberty.tools.eclipse.debug.DebugModeHandler;
 import io.openliberty.tools.eclipse.logging.Trace;
+import io.openliberty.tools.eclipse.messages.Messages;
 
 /**
  * Provides a set of utility methods.
