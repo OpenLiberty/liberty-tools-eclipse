@@ -10,89 +10,56 @@
  *******************************************************************************/
 package io.openliberty.tools.eclipse.messages;
 
-import org.eclipse.osgi.util.NLS;
+import java.text.MessageFormat;
+import java.util.Locale;
+import java.util.ResourceBundle;
 
 /**
- * Translated messages.
+ * Provides access to NLS Messages.
  */
-public class Messages extends NLS {
+public class Messages {
 
-    /** DebugModeHandler */
-    public static String multiple_server_env;
-
-    /** DevModeOperations */
-    public static String start_no_project_found;
-    public static String start_already_issued;
-    public static String start_general_error;
-
-    public static String start_container_no_project_found;
-    public static String start_container_already_issued;
-    public static String start_container_general_error;
-
-    public static String stop_no_project_found;
-    public static String stop_already_issued;
-    public static String stop_general_error;
-
-    public static String run_tests_no_project_found;
-    public static String run_tests_no_prior_start;
-    public static String run_tests_general_error;
-
-    public static String mvn_int_test_report_no_project_found;
-    public static String mvn_int_test_report_none_found;
-    public static String mvn_int_test_report_general_error;
-
-    public static String mvn_unit_test_report_no_project_found;
-    public static String mvn_unit_test_report_none_found;
-    public static String mvn_unit_test_report_general_error;
-
-    public static String gradle_test_report_no_project_found;
-    public static String gradle_test_report_none_found;
-    public static String gradle_test_report_general_error;
-
-    public static String issue_stop_prompt;
-    public static String plugin_stop_issue_error;
-    public static String plugin_stop_timeout;
-    public static String plugin_stop_failed;
-    public static String plugin_stop_general_error;
-
-    /** WorkspaceProjectsModel */
-    public static String project_analyze_error;
-
-    /** DashboardView */
-    public static String project_not_gradle_or_maven;
-    public static String image_descriptions_error;
-    public static String action_general_error;
-    public static String dashboard_refresh_error;
-
-    /** JRETab */
-    public static String java_default_set_error;
-    public static String java_resolution_error;
-
-    /** LaunchConfigurationDelegateLauncher */
-    public static String launch_config_error;
-
-    /** StartTab */
-    public static String start_parm_retrieve_error;
-    public static String project_name_error;
-    public static String run_config_initialize_error;
-
-    /** All *Action classes */
-    public static String launch_shortcut_error;
-
-    /** ExplorerMenuHandler */
-    public static String project_not_valid;
-    public static String menu_command_retrieve_error;
-    public static String menu_command_process_error;
-
-    /** CommandBuilder */
-    public static String maven_exec_not_found;
-    public static String gradle_exec_not_found;
-
-    /** Project */
-    public static String determine_java_project_error;
-    public static String liberty_nature_add_error;
-
+    /** Message Resource bundle */
+    private static ResourceBundle NLS_BUNDLE;
     static {
-        NLS.initializeMessages("io.openliberty.tools.eclipse.messages.Messages", Messages.class);
+        try {
+            NLS_BUNDLE = ResourceBundle.getBundle("io.openliberty.tools.eclipse.messages.Messages", Locale.getDefault());
+        } catch (Exception e) {
+            NLS_BUNDLE = ResourceBundle.getBundle("io.openliberty.tools.eclipse.messages.Messages");
+        }
+    }
+
+    /**
+     * Returns a translated message with no arguments.
+     * 
+     * @param key The message Key.
+     * 
+     * @return The translated message without arguments.
+     */
+    public static String getMessage(String key) {
+        return getMessage(key, (Object) null);
+    }
+
+    /**
+     * Returns a translated message with arguments.
+     * 
+     * @param key  The message key.
+     * @param args The arguments associated with the message.
+     * 
+     * @return A translated message with arguments.
+     */
+    public static String getMessage(String key, Object... args) {
+        String msg = null;
+
+        try {
+            msg = NLS_BUNDLE.getString(key);
+            if (msg != null && args != null) {
+                msg = MessageFormat.format(msg, args);
+            }
+        } catch (Exception e) {
+            msg = key;
+        }
+
+        return msg;
     }
 }

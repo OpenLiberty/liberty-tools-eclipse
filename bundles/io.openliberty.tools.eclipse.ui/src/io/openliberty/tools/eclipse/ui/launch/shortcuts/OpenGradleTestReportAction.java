@@ -50,7 +50,7 @@ public class OpenGradleTestReportAction implements ILaunchShortcut {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }
             ErrorHandler.processErrorMessage(
-                    NLS.bind(Messages.launch_shortcut_error, LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_GRADLE_VIEW_TEST_REPORT),
+                    Messages.getMessage("launch_shortcut_error", LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_GRADLE_VIEW_TEST_REPORT),
                     e, true);
             return;
         }
@@ -80,7 +80,7 @@ public class OpenGradleTestReportAction implements ILaunchShortcut {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }
             ErrorHandler.processErrorMessage(
-                    NLS.bind(Messages.launch_shortcut_error, LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_GRADLE_VIEW_TEST_REPORT),
+                    Messages.getMessage("launch_shortcut_error", LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_GRADLE_VIEW_TEST_REPORT),
                     e, true);
             return;
         }

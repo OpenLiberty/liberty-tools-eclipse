@@ -50,7 +50,7 @@ public class OpenMavenUTestReportAction implements ILaunchShortcut {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }
             ErrorHandler.processErrorMessage(
-                    NLS.bind(Messages.launch_shortcut_error, LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_MVN_VIEW_UT_REPORT), e,
+                    Messages.getMessage("launch_shortcut_error", LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_MVN_VIEW_UT_REPORT), e,
                     true);
             return;
         }
@@ -80,7 +80,7 @@ public class OpenMavenUTestReportAction implements ILaunchShortcut {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }
             ErrorHandler.processErrorMessage(
-                    NLS.bind(Messages.launch_shortcut_error, LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_MVN_VIEW_UT_REPORT), e,
+                    Messages.getMessage("launch_shortcut_error", LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_MVN_VIEW_UT_REPORT), e,
                     true);
             return;
         }

@@ -211,7 +211,7 @@ public class DashboardView extends ViewPart {
                 if (Trace.isEnabled()) {
                     Trace.getTracer().trace(Trace.TRACE_UI, msg);
                 }
-                ErrorHandler.processErrorMessage(NLS.bind(Messages.project_not_gradle_or_maven, projectName), true);
+                ErrorHandler.processErrorMessage(Messages.getMessage("project_not_gradle_or_maven", projectName), true);
                 return;
             }
         }
@@ -235,7 +235,7 @@ public class DashboardView extends ViewPart {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }
-            ErrorHandler.processWarningMessage(NLS.bind(Messages.image_descriptions_error, null), e, true);
+            ErrorHandler.processWarningMessage(Messages.getMessage("image_descriptions_error"), e, true);
         }
 
         // Activate the Liberty tools context.
@@ -254,7 +254,7 @@ public class DashboardView extends ViewPart {
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
                     }
-                    ErrorHandler.processErrorMessage(NLS.bind(Messages.action_general_error, APP_MENU_ACTION_START), e, true);
+                    ErrorHandler.processErrorMessage(Messages.getMessage("action_general_error", APP_MENU_ACTION_START), e, true);
                 }
             }
         };
@@ -277,7 +277,7 @@ public class DashboardView extends ViewPart {
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
                     }
-                    ErrorHandler.processErrorMessage(NLS.bind(Messages.action_general_error, APP_MENU_ACTION_START_CONFIG), e,
+                    ErrorHandler.processErrorMessage(Messages.getMessage("action_general_error", APP_MENU_ACTION_START_CONFIG), e,
                             true);
                 }
             }
@@ -300,7 +300,7 @@ public class DashboardView extends ViewPart {
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
                     }
-                    ErrorHandler.processErrorMessage(NLS.bind(Messages.action_general_error, APP_MENU_ACTION_START_IN_CONTAINER), e, true);
+                    ErrorHandler.processErrorMessage(Messages.getMessage("action_general_error", APP_MENU_ACTION_START_IN_CONTAINER), e, true);
                 }
             }
         };
@@ -322,7 +322,7 @@ public class DashboardView extends ViewPart {
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
                     }
-                    ErrorHandler.processErrorMessage(NLS.bind(Messages.action_general_error, APP_MENU_ACTION_DEBUG_IN_CONTAINER), e, true);
+                    ErrorHandler.processErrorMessage(Messages.getMessage("action_general_error", APP_MENU_ACTION_DEBUG_IN_CONTAINER), e, true);
                 }
             }
         };
@@ -343,7 +343,7 @@ public class DashboardView extends ViewPart {
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
                     }
-                    ErrorHandler.processErrorMessage(NLS.bind(Messages.action_general_error, APP_MENU_ACTION_DEBUG), e, true);
+                    ErrorHandler.processErrorMessage(Messages.getMessage("action_general_error", APP_MENU_ACTION_DEBUG), e, true);
                 }
             }
         };
@@ -365,7 +365,7 @@ public class DashboardView extends ViewPart {
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
                     }
-                    ErrorHandler.processErrorMessage(NLS.bind(Messages.action_general_error, APP_MENU_ACTION_DEBUG_CONFIG), e, true);
+                    ErrorHandler.processErrorMessage(Messages.getMessage("action_general_error", APP_MENU_ACTION_DEBUG_CONFIG), e, true);
                 }
             }
         };
@@ -386,7 +386,7 @@ public class DashboardView extends ViewPart {
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
                     }
-                    ErrorHandler.processErrorMessage(NLS.bind(Messages.action_general_error, APP_MENU_ACTION_STOP), e, true);
+                    ErrorHandler.processErrorMessage(Messages.getMessage("action_general_error", APP_MENU_ACTION_STOP), e, true);
                 }
             }
         };
@@ -407,7 +407,7 @@ public class DashboardView extends ViewPart {
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
                     }
-                    ErrorHandler.processErrorMessage(NLS.bind(Messages.action_general_error, APP_MENU_ACTION_RUN_TESTS), e, true);
+                    ErrorHandler.processErrorMessage(Messages.getMessage("action_general_error", APP_MENU_ACTION_RUN_TESTS), e, true);
                 }
             }
         };
@@ -429,7 +429,7 @@ public class DashboardView extends ViewPart {
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
                     }
-                    ErrorHandler.processErrorMessage(NLS.bind(Messages.action_general_error, APP_MENU_ACTION_VIEW_MVN_IT_REPORT), e, true);
+                    ErrorHandler.processErrorMessage(Messages.getMessage("action_general_error", APP_MENU_ACTION_VIEW_MVN_IT_REPORT), e, true);
                 }
             }
         };
@@ -451,7 +451,7 @@ public class DashboardView extends ViewPart {
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
                     }
-                    ErrorHandler.processErrorMessage(NLS.bind(Messages.action_general_error, APP_MENU_ACTION_VIEW_MVN_UT_REPORT), e, true);
+                    ErrorHandler.processErrorMessage(Messages.getMessage("action_general_error", APP_MENU_ACTION_VIEW_MVN_UT_REPORT), e, true);
                 }
             }
         };
@@ -473,7 +473,7 @@ public class DashboardView extends ViewPart {
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
                     }
-                    ErrorHandler.processErrorMessage(NLS.bind(Messages.action_general_error, APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT), e,
+                    ErrorHandler.processErrorMessage(Messages.getMessage("action_general_error", APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT), e,
                             true);
                 }
             }
@@ -511,7 +511,7 @@ public class DashboardView extends ViewPart {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }
-            ErrorHandler.processErrorMessage(NLS.bind(Messages.dashboard_refresh_error, null), e, reportError);
+            ErrorHandler.processErrorMessage(Messages.getMessage("dashboard_refresh_error"), e, reportError);
             return;
         }
     }

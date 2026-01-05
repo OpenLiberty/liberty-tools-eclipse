@@ -108,7 +108,7 @@ public class LibertyDebugReconnectHandler extends AbstractHandler {
                 if (Trace.isEnabled()) {
                     Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
                 }
-                ErrorHandler.processErrorMessage(NLS.bind(Messages.project_name_error, null), e, true);
+                ErrorHandler.processErrorMessage(Messages.getMessage("project_name_error"), e, true);
             }
 
             if (projectName != null && !projectName.isBlank()) {

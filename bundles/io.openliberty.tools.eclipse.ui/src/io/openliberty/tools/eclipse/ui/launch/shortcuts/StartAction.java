@@ -54,7 +54,7 @@ public class StartAction implements ILaunchShortcut {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }
             ErrorHandler.processErrorMessage(
-                    NLS.bind(Messages.launch_shortcut_error, LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START), e, true);
+                    Messages.getMessage("launch_shortcut_error", LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START), e, true);
         }
 
         if (Trace.isEnabled()) {
@@ -82,7 +82,7 @@ public class StartAction implements ILaunchShortcut {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }
             ErrorHandler.processErrorMessage(
-                    NLS.bind(Messages.launch_shortcut_error, LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START), e, true);
+                    Messages.getMessage("launch_shortcut_error", LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START), e, true);
         }
 
         if (Trace.isEnabled()) {
@@ -111,7 +111,7 @@ public class StartAction implements ILaunchShortcut {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, "The start request was already issued on project " + projectName);
             }
-            ErrorHandler.processErrorMessage(NLS.bind(Messages.start_already_issued, projectName), true);
+            ErrorHandler.processErrorMessage(Messages.getMessage("start_already_issued", projectName), true);
             return;
         }
 

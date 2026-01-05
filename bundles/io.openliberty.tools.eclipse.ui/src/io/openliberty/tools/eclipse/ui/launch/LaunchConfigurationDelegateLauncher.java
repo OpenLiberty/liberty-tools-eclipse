@@ -87,7 +87,7 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
                     }
-                    ErrorHandler.processErrorMessage(NLS.bind(Messages.launch_config_error, configuration.getName()), e, true);
+                    ErrorHandler.processErrorMessage(Messages.getMessage("launch_config_error", configuration.getName()), e, true);
                     return;
                 }
             }

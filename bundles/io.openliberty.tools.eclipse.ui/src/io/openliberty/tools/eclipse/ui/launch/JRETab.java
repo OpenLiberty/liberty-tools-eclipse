@@ -81,7 +81,7 @@ public class JRETab extends JavaJRETab {
             }
         } catch (Exception e) {
             ErrorHandler.processWarningMessage(
-                    NLS.bind(Messages.java_default_set_error, new String[] { activeProject.getName(), configuration.getName() }), e);
+                    Messages.getMessage("java_default_set_error", activeProject.getName(), configuration.getName()), e);
         }
 
         super.setDefaults(configuration);
@@ -109,7 +109,7 @@ public class JRETab extends JavaJRETab {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }
-            ErrorHandler.processWarningMessage(NLS.bind(Messages.java_resolution_error, configuration.getName()), e);
+            ErrorHandler.processWarningMessage(Messages.getMessage("java_resolution_error", configuration.getName()), e);
         }
 
         if (keyValue != null) {

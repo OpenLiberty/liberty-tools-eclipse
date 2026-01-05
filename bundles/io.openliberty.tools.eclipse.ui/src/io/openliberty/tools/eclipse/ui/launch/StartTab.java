@@ -185,7 +185,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, ce);
             }
-            ErrorHandler.processErrorMessage(NLS.bind(Messages.run_config_initialize_error, null), ce, true);
+            ErrorHandler.processErrorMessage(Messages.getMessage("run_config_initialize_error"), ce, true);
         }
 
         if (Trace.isEnabled()) {
@@ -235,7 +235,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
                     Trace.getTracer().trace(Trace.TRACE_TOOLS, "The start request was already issued on project " + configProjectName);
                 }
 
-                super.setErrorMessage(NLS.bind(Messages.start_already_issued, configProjectName));
+                super.setErrorMessage(Messages.getMessage("start_already_issued", configProjectName));
                 return false;
             }
         } catch (CoreException ce) {
@@ -243,7 +243,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, ce);
             }
-            ErrorHandler.processErrorMessage(NLS.bind(Messages.project_name_error, null), ce, true);
+            ErrorHandler.processErrorMessage(Messages.getMessage("project_name_error"), ce, true);
             return false;
         }
         return checkForIncorrectTerms();
@@ -472,7 +472,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }
-            ErrorHandler.processErrorMessage(NLS.bind(Messages.start_parm_retrieve_error, null), e, true);
+            ErrorHandler.processErrorMessage(Messages.getMessage("start_parm_retrieve_error"), e, true);
         }
 
         return parms;
