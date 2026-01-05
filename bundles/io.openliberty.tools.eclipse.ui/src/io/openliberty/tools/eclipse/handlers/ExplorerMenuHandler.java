@@ -68,12 +68,12 @@ public class ExplorerMenuHandler extends AbstractHandler {
         try {
             commandName = command.getName();
         } catch (Exception e) {
-            String msg = "Unable to retrieve menu command.";
+            String msg = Messages.getMessage("menu_command_retrieve_error");
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_HANDLERS, msg, e);
             }
 
-            ErrorHandler.processErrorMessage(Messages.getMessage("menu_command_retrieve_error"), e, true);
+            ErrorHandler.processErrorMessage(msg, e, true);
             return null;
         }
 

@@ -176,11 +176,11 @@ public class DevModeOperations {
         }
 
         if (iProject == null) {
-            String msg = "An error was detected when the start request was processed. The object that represents the selected project was not found.";
+            String msg = Messages.getMessage("start_no_project_found");
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op.");
             }
-            ErrorHandler.processErrorMessage(Messages.getMessage("start_no_project_found"), true);
+            ErrorHandler.processErrorMessage(msg, true);
             return;
         }
 
@@ -268,10 +268,11 @@ public class DevModeOperations {
             }
             return;
         } catch (Exception e) {
+            String msg = Messages.getMessage("start_general_error", projectName);
             if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_TOOLS, "An error was detected during the start request on project " + projectName, e);
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
             }
-            ErrorHandler.processErrorMessage(Messages.getMessage("start_general_error", projectName), e, true);
+            ErrorHandler.processErrorMessage(msg, e, true);
             return;
         }
 
@@ -296,11 +297,11 @@ public class DevModeOperations {
         }
 
         if (iProject == null) {
-            String msg = "An error was detected when the start in container request was processed. The object that represents the selected project was not found.";
+            String msg = Messages.getMessage("start_container_no_project_found");
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op.");
             }
-            ErrorHandler.processErrorMessage(Messages.getMessage("start_container_no_project_found"), true);
+            ErrorHandler.processErrorMessage(msg, true);
             return;
         }
 
@@ -380,11 +381,11 @@ public class DevModeOperations {
                 debugModeHandler.startDebugAttacher(project, launch, debugPort);
             }
         } catch (Exception e) {
-            String msg = "An error was detected during the start in container request on project " + projectName;
+            String msg = Messages.getMessage("start_container_general_error", projectName);
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
             }
-            ErrorHandler.processErrorMessage(Messages.getMessage("start_container_general_error", projectName), e, true);
+            ErrorHandler.processErrorMessage(msg, e, true);
             return;
         }
 

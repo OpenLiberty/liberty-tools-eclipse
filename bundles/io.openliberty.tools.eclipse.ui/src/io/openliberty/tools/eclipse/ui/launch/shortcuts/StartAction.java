@@ -48,13 +48,11 @@ public class StartAction implements ILaunchShortcut {
         try {
             run(iProject, mode);
         } catch (Exception e) {
-            String msg = "An error was detected when the \"" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START
-                    + "\" launch shortcut was processed.";
+            String msg = Messages.getMessage("launch_shortcut_error", LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START);
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }
-            ErrorHandler.processErrorMessage(
-                    Messages.getMessage("launch_shortcut_error", LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START), e, true);
+            ErrorHandler.processErrorMessage(msg, e, true);
         }
 
         if (Trace.isEnabled()) {
@@ -76,13 +74,11 @@ public class StartAction implements ILaunchShortcut {
         try {
             run(iProject, mode);
         } catch (Exception e) {
-            String msg = "An error was detected when the \"" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START
-                    + "\" launch shortcut was processed.";
+            String msg = Messages.getMessage("launch_shortcut_error", LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START);
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }
-            ErrorHandler.processErrorMessage(
-                    Messages.getMessage("launch_shortcut_error", LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START), e, true);
+            ErrorHandler.processErrorMessage(msg, e, true);
         }
 
         if (Trace.isEnabled()) {
