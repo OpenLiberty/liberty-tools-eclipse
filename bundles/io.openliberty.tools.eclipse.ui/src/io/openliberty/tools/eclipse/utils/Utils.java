@@ -303,7 +303,7 @@ public class Utils {
      */
     public static void restartDebugger(Project project, ILaunch launch, DebugModeHandler debugModeHandler, Instant preRestartTime) {
 
-        Job job = new Job("Waiting for application to restart...") {
+        Job job = new Job(Messages.getMessage("waiting_for_restart_job")) {
             @Override
             protected IStatus run(IProgressMonitor monitor) {
                 if (monitor.isCanceled()) {

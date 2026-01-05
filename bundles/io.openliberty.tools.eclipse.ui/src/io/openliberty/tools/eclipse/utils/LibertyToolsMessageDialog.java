@@ -24,6 +24,8 @@ import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.dialogs.PreferencesUtil;
 
+import io.openliberty.tools.eclipse.messages.Messages;
+
 public class LibertyToolsMessageDialog extends MessageDialog {
 
     public LibertyToolsMessageDialog(Shell parentShell, String dialogTitle, Image dialogTitleImage, String dialogMessage,
@@ -34,8 +36,7 @@ public class LibertyToolsMessageDialog extends MessageDialog {
     @Override
     protected Control createCustomArea(Composite parent) {
         Link link = new Link(parent, SWT.WRAP);
-        link.setText(
-                "To fix: either generate wrapper for project, or set the executable in <a>Liberty Preferences</a>, or on the PATH env var");
+        link.setText(Messages.getMessage("preference_link_text"));
         link.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {

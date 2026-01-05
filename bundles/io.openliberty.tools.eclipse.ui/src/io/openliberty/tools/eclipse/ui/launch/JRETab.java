@@ -54,7 +54,7 @@ public class JRETab extends JavaJRETab {
         java.nio.file.Path javacPath = Paths.get(javaHome, "bin", (Utils.isWindows() ? "javac.exe" : "javac"));
         File javacFile = javacPath.toFile();
         if (!javacFile.exists()) {
-            super.setErrorMessage("A Java Development Kit (JDK) is required to use Liberty dev mode.");
+            super.setErrorMessage(Messages.getMessage("jdk_required_error"));
             return false;
         }
         return true;
