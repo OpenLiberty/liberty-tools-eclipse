@@ -20,7 +20,6 @@ import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.model.LaunchConfigurationDelegate;
-import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.PlatformUI;
@@ -87,7 +86,7 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
                     }
-                    ErrorHandler.processErrorMessage(NLS.bind(Messages.launch_config_error, configuration.getName()), e, true);
+                    ErrorHandler.processErrorMessage(Messages.getMessage("launch_config_error", configuration.getName()), e, true);
                     return;
                 }
             }
@@ -104,10 +103,8 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
 
                 if (!configProjectName.equals(selectedProject.getName())) {
                     String configurationName = configuration.getName();
-                    String msg = "The selected  Run/Debug configuration '" + configurationName
-                            + "' cannot be used to run selected project '" + selectedProject.getName()
-                            + ", because the configuration is associated with project '" + configProjectName
-                            + "'. Create a new configuration, or use an existing configuration associated with the selected project.";
+                    String msg = Messages.getMessage("config_project_mismatch", configurationName, selectedProject.getName(),
+                            configProjectName);
                     throw new IllegalStateException(msg);
                 }
             }
@@ -136,7 +133,7 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
         }
 
         if (iProject == null) {
-            throw new Exception("Invalid project. Be sure to select a project first.");
+            throw new Exception(Messages.getMessage("project_not_valid"));
         }
 
         // Validate that the project is supported.

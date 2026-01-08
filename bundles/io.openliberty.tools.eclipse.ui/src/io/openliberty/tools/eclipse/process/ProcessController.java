@@ -23,6 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.eclipse.debug.core.DebugPlugin;
 
 import io.openliberty.tools.eclipse.logging.Trace;
+import io.openliberty.tools.eclipse.messages.Messages;
 import io.openliberty.tools.eclipse.utils.Utils;
 
 /**
@@ -133,8 +134,7 @@ public class ProcessController {
         Process process = projectProcessMap.get(projectName);
 
         if (process == null) {
-            String msg = "Unable to write to the process associated with project " + projectName
-                    + ". Internal process object not found.";
+            String msg = Messages.getMessage("process_write_error", projectName);
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg + ". Data to write: " + new String(data));
             }

@@ -185,7 +185,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, ce);
             }
-            ErrorHandler.processErrorMessage(NLS.bind(Messages.run_config_initialize_error, null), ce, true);
+            ErrorHandler.processErrorMessage(Messages.getMessage("run_config_initialize_error"), ce, true);
         }
 
         if (Trace.isEnabled()) {
@@ -198,11 +198,11 @@ public class StartTab extends AbstractLaunchConfigurationTab {
         String startParamStr = startParmText.getText();
 
         if (startParamStr.startsWith("mvn") || startParamStr.startsWith("gradle")) {
-            super.setErrorMessage("Don't include mvn or gradle executables, just the parameters");
+            super.setErrorMessage(Messages.getMessage("start_params_error"));
             valid = false;
         }
         if (startParamStr.contains("liberty:dev") || startParamStr.contains("libertyDev")) {
-            super.setErrorMessage("Dev mode detected");
+            super.setErrorMessage(Messages.getMessage("dev_mode_detected_error"));
             valid = false;
         }
         return valid;
@@ -223,8 +223,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
             if (selectedProject != null) {
                 String selectedProjectName = selectedProject.getName();
                 if (!configProjectName.equals(selectedProjectName)) {
-                    super.setWarningMessage(
-                            "Must use an existing (or new) configuration associated with selected project: " + selectedProjectName);
+                    super.setWarningMessage(Messages.getMessage("config_project_warning", selectedProjectName));
                     return false;
                 }
             }
@@ -235,7 +234,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
                     Trace.getTracer().trace(Trace.TRACE_TOOLS, "The start request was already issued on project " + configProjectName);
                 }
 
-                super.setErrorMessage(NLS.bind(Messages.start_already_issued, configProjectName));
+                super.setErrorMessage(Messages.getMessage("start_already_issued", configProjectName));
                 return false;
             }
         } catch (CoreException ce) {
@@ -243,7 +242,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, ce);
             }
-            ErrorHandler.processErrorMessage(NLS.bind(Messages.project_name_error, null), ce, true);
+            ErrorHandler.processErrorMessage(Messages.getMessage("project_name_error"), ce, true);
             return false;
         }
         return checkForIncorrectTerms();
@@ -335,7 +334,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
 
         Label projectLabel = new Label(projectComposite, SWT.NONE);
         projectLabel.setFont(font);
-        projectLabel.setText("Project: ");
+        projectLabel.setText(Messages.getMessage("project_label"));
         GridDataFactory.swtDefaults().applyTo(projectLabel);
 
         projectNameLabel = new Label(projectComposite, SWT.NONE);
@@ -352,7 +351,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
     private void createInputParmText(Composite parent) {
         Label inputParmLabel = new Label(parent, SWT.NONE);
         inputParmLabel.setFont(font);
-        inputParmLabel.setText("Start &parameters:");
+        inputParmLabel.setText(Messages.getMessage("start_parameters_label"));
         GridDataFactory.swtDefaults().indent(20, 0).applyTo(inputParmLabel);
 
         startParmText = new Text(parent, SWT.BORDER);
@@ -385,7 +384,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
 
         Link link = new Link(parent, SWT.WRAP);
         link.setFont(font);
-        link.setText("Maven/Gradle executable paths can be set in <a>Liberty Preferences</a>");
+        link.setText(Messages.getMessage("maven_gradle_prefs_link"));
         link.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
@@ -403,7 +402,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
      */
     private void createRunInContainerButton(Composite parent) {
         runInContainerCheckBox = new Button(parent, SWT.CHECK);
-        runInContainerCheckBox.setText("Run in &Container");
+        runInContainerCheckBox.setText(Messages.getMessage("run_in_container_label"));
         runInContainerCheckBox.setSelection(false);
         runInContainerCheckBox.setFont(font);
         runInContainerCheckBox.addSelectionListener(new SelectionAdapter() {
@@ -430,7 +429,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
      */
 	private void createProjectCleanButton(Composite parent) {
 		projectCleanCheckBox = new Button(parent, SWT.CHECK);
-		projectCleanCheckBox.setText("Clean project");
+		projectCleanCheckBox.setText(Messages.getMessage("clean_project_label"));
 		projectCleanCheckBox.setSelection(false);
 		projectCleanCheckBox.setFont(font);
 		projectCleanCheckBox.addSelectionListener(new SelectionAdapter() {
@@ -472,7 +471,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }
-            ErrorHandler.processErrorMessage(NLS.bind(Messages.start_parm_retrieve_error, null), e, true);
+            ErrorHandler.processErrorMessage(Messages.getMessage("start_parm_retrieve_error"), e, true);
         }
 
         return parms;

@@ -18,6 +18,7 @@ import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.ui.handlers.HandlerUtil;
 
 import io.openliberty.tools.eclipse.logging.Trace;
+import io.openliberty.tools.eclipse.messages.Messages;
 
 public class DashboardHandler extends AbstractHandler {
 
@@ -26,7 +27,7 @@ public class DashboardHandler extends AbstractHandler {
         try {
             HandlerUtil.getActiveWorkbenchWindow(event).getActivePage().showView("io.openliberty.tools.eclipse.views.liberty.devmode.dashboard");
         } catch (Exception e) {
-            String msg = "Unable to open the Liberty dashboard view";
+            String msg = Messages.getMessage("dashboard_open_error");
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_HANDLERS, msg, e);
             }

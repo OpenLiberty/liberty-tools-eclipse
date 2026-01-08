@@ -111,9 +111,9 @@ public class CommandBuilder {
             }
 
             if (isMaven) {
-                ErrorHandler.processPreferenceErrorMessage(NLS.bind(Messages.maven_exec_not_found, null), true);
+                ErrorHandler.processPreferenceErrorMessage(Messages.getMessage("maven_exec_not_found"), true);
             } else {
-                ErrorHandler.processPreferenceErrorMessage(NLS.bind(Messages.gradle_exec_not_found, null), true);
+                ErrorHandler.processPreferenceErrorMessage(Messages.getMessage("gradle_exec_not_found"), true);
             }
 
             throw new CommandNotFoundException(errorMsg);

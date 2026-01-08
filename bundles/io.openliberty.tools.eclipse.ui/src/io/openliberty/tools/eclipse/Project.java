@@ -212,7 +212,7 @@ public class Project {
                     javaProjecs.add(child);
                 }
             } catch (CoreException e) {
-                ErrorHandler.processWarningMessage(NLS.bind(Messages.determine_java_project_error, child.getName()), e, false);
+                ErrorHandler.processWarningMessage(Messages.getMessage("determine_java_project_error", child.getName()), e, false);
             }
         }
         return javaProjecs;
@@ -269,7 +269,7 @@ public class Project {
                 libertyServerModule = false;
             }
         } catch (Exception e) {
-            ErrorHandler.processWarningMessage(NLS.bind(Messages.liberty_nature_add_error, null), e, false);
+            ErrorHandler.processWarningMessage(Messages.getMessage("liberty_nature_add_error"), e, false);
         }
     }
 
@@ -292,7 +292,7 @@ public class Project {
                 }
             }
         } catch (Exception e) {
-            ErrorHandler.processWarningMessage(NLS.bind(Messages.liberty_nature_add_error, null), e, false);
+            ErrorHandler.processWarningMessage(Messages.getMessage("liberty_nature_add_error"), e, false);
         }
     }
 

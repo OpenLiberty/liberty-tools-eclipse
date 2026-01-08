@@ -148,7 +148,7 @@ public class WorkspaceProjectsModel {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " Workspace projects: " + projectsByLocation.values(), e);
             }
-            ErrorHandler.processWarningMessage(NLS.bind(Messages.project_analyze_error, null), e, false);
+            ErrorHandler.processWarningMessage(Messages.getMessage("project_analyze_error"), e, false);
         }
 
         if (Trace.isEnabled()) {

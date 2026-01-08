@@ -54,7 +54,7 @@ public class JRETab extends JavaJRETab {
         java.nio.file.Path javacPath = Paths.get(javaHome, "bin", (Utils.isWindows() ? "javac.exe" : "javac"));
         File javacFile = javacPath.toFile();
         if (!javacFile.exists()) {
-            super.setErrorMessage("A Java Development Kit (JDK) is required to use Liberty dev mode.");
+            super.setErrorMessage(Messages.getMessage("jdk_required_error"));
             return false;
         }
         return true;
@@ -81,7 +81,7 @@ public class JRETab extends JavaJRETab {
             }
         } catch (Exception e) {
             ErrorHandler.processWarningMessage(
-                    NLS.bind(Messages.java_default_set_error, new String[] { activeProject.getName(), configuration.getName() }), e);
+                    Messages.getMessage("java_default_set_error", activeProject.getName(), configuration.getName()), e);
         }
 
         super.setDefaults(configuration);
@@ -109,7 +109,7 @@ public class JRETab extends JavaJRETab {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }
-            ErrorHandler.processWarningMessage(NLS.bind(Messages.java_resolution_error, configuration.getName()), e);
+            ErrorHandler.processWarningMessage(Messages.getMessage("java_resolution_error", configuration.getName()), e);
         }
 
         if (keyValue != null) {
