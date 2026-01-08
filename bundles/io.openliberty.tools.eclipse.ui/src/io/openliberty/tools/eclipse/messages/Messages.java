@@ -43,7 +43,7 @@ public class Messages {
     /**
      * Returns a translated message with arguments.
      * 
-     * @param key  The message key.
+     * @param key The message key.
      * @param args The arguments associated with the message.
      * 
      * @return A translated message with arguments.
@@ -53,10 +53,9 @@ public class Messages {
 
         try {
             msg = NLS_BUNDLE.getString(key);
-            if (msg != null && args != null) {
-                msg = MessageFormat.format(msg, args);
-            }
+            msg = MessageFormat.format(msg, args);
         } catch (Exception e) {
+
             msg = key;
         }
 
