@@ -167,7 +167,7 @@ public class LibertyMPLSClientImpl extends LanguageClientImpl implements MicroPr
                 }
 
                 return (List<CodeAction>) PropertiesManagerForJava.getInstance().codeAction(javaParams, JDTUtilsLSImpl.getInstance(),
-                        monitor);
+                                                                                            monitor);
             } catch (JavaModelException e) {
                 LibertyToolsLSPlugin.logException(e.getLocalizedMessage(), e);
                 return Collections.emptyList();
@@ -218,9 +218,9 @@ public class LibertyMPLSClientImpl extends LanguageClientImpl implements MicroPr
             IProgressMonitor monitor = getProgressMonitor(cancelChecker);
             try {
                 CompletionList completionList = PropertiesManagerForJava.getInstance().completion(javaParams, JDTUtilsLSImpl.getInstance(),
-                        monitor);
+                                                                                                  monitor);
                 JavaCursorContextResult javaCursorContext = PropertiesManagerForJava.getInstance().javaCursorContext(javaParams,
-                        JDTUtilsLSImpl.getInstance(), monitor);
+                                                                                                                     JDTUtilsLSImpl.getInstance(), monitor);
                 return new MicroProfileJavaCompletionResult(completionList, javaCursorContext);
             } catch (JavaModelException e) {
                 LibertyToolsLSPlugin.logException(e.getLocalizedMessage(), e);

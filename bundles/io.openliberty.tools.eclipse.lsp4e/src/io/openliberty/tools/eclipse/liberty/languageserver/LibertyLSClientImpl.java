@@ -83,8 +83,8 @@ public class LibertyLSClientImpl extends LanguageClientImpl {
 
                                 // Look for changes to liberty-plugin-config.xml, *.properties, and *.env
                                 if ("liberty-plugin-config.xml".equalsIgnoreCase(resource.getName())
-                                        || "properties".equalsIgnoreCase(resource.getFileExtension())
-                                        || "env".equalsIgnoreCase(resource.getFileExtension())) {
+                                    || "properties".equalsIgnoreCase(resource.getFileExtension())
+                                    || "env".equalsIgnoreCase(resource.getFileExtension())) {
                                     changed.add(resource.getLocationURI().toString());
                                 }
                             }
