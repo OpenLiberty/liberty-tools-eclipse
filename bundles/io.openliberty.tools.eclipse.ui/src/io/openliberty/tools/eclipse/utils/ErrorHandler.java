@@ -33,7 +33,7 @@ public class ErrorHandler {
     /**
      * Logs a message to the platform log.
      *
-     * @param message The message to display.
+     * @param message   The message to display.
      * @param throwable The Throwable object.
      */
     public static void processErrorMessage(String message, Throwable throwable) {
@@ -44,8 +44,8 @@ public class ErrorHandler {
     /**
      * Logs a message to the platform log and opens the error dialog, if indicated.
      *
-     * @param message The message to log/display.
-     * @param throwable The Throwable object.
+     * @param message       The message to log/display.
+     * @param throwable     The Throwable object.
      * @param displayDialog The indicator to open a dialog.
      */
     public static void processErrorMessage(String message, Throwable throwable, boolean displayDialog) {
@@ -71,7 +71,7 @@ public class ErrorHandler {
     /**
      * Logs a message to the platform log and opens the error dialog, if indicated.
      *
-     * @param message The message to display.
+     * @param message       The message to display.
      * @param displayDialog The indicator to open a dialog.
      */
     public static void processErrorMessage(String message, boolean displayDialog) {
@@ -103,9 +103,9 @@ public class ErrorHandler {
     /**
      * Logs a message to the platform log and opens the error dialog, if indicated.
      *
-     * @param message The message to display.
+     * @param message       The message to display.
      * @param displayDialog The indicator to open a dialog.
-     * @param buttonLabels The array of button labels to be display on the dialog.
+     * @param buttonLabels  The array of button labels to be display on the dialog.
      * @param defaultButton The index number representing the button to be selected as default.
      * 
      * @return The index number representing the button that the user selected.
@@ -127,7 +127,7 @@ public class ErrorHandler {
     /**
      * Logs a message to the platform log.
      *
-     * @param message The message to display.
+     * @param message   The message to display.
      * @param throwable The Throwable object.
      */
     public static void processWarningMessage(String message, Throwable throwable) {
@@ -138,8 +138,8 @@ public class ErrorHandler {
     /**
      * Logs a message to the platform log and opens the error dialog, if indicated.
      *
-     * @param message The message to log/display.
-     * @param throwable The Throwable object.
+     * @param message       The message to log/display.
+     * @param throwable     The Throwable object.
      * @param displayDialog The indicator to open a dialog.
      */
     public static void processWarningMessage(String message, Throwable throwable, boolean displayDialog) {
@@ -165,7 +165,7 @@ public class ErrorHandler {
     /**
      * Logs a message to the platform log and opens the error dialog, if indicated.
      *
-     * @param message The message to display.
+     * @param message       The message to display.
      * @param displayDialog The indicator to open a dialog.
      */
     public static void processWarningMessage(String message, boolean displayDialog) {
@@ -182,7 +182,7 @@ public class ErrorHandler {
     /**
      * Logs a message to the platform log and opens the error dialog, if indicated.
      *
-     * @param message The message to display.
+     * @param message       The message to display.
      * @param displayDialog The indicator to open a dialog.
      */
     public static void processPreferenceErrorMessage(String message, boolean displayDialog) {
@@ -190,8 +190,7 @@ public class ErrorHandler {
 
         if (displayDialog) {
             Shell shell = Display.getCurrent().getActiveShell();
-            LibertyToolsMessageDialog ltdialog = new LibertyToolsMessageDialog(shell, TITLE, null, message, MessageDialog.ERROR,
-                    new String[] { "OK" }, 0);
+            LibertyToolsMessageDialog ltdialog = new LibertyToolsMessageDialog(shell, TITLE, null, message, MessageDialog.ERROR, new String[] { "OK" }, 0);
             ltdialog.open();
         }
     }
@@ -199,7 +198,7 @@ public class ErrorHandler {
     /**
      * Returns the input message with the input suffix appended.
      * 
-     * @param msg The message.
+     * @param msg    The message.
      * @param suffix The suffix to add to message.
      * 
      * @return The input message with the input suffix appended.

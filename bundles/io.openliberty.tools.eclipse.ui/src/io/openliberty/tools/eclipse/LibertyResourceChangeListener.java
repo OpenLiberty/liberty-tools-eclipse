@@ -60,34 +60,34 @@ public class LibertyResourceChangeListener implements IResourceChangeListener {
                     int updateFlag = resourceChanged.getFlags();
 
                     switch (resourceChanged.getKind()) {
-                    // Project opened/closed.
-                    // Flag OPEN (16384): "Change constant (bit mask) indicating that the resource was opened or closed"
-                    // Flag 147456: Although IResourceDelta does not have a predefined constant, this flag value is used to
-                    // denote open/close actions.
-                    case IResourceDelta.CHANGED:
-                        if (updateFlag == IResourceDelta.OPEN || updateFlag == 147456) {
-                            refreshNeeded = true;
-                        }
-                        break;
-                    // Project created/imported.
-                    // Flag OPEN (16384): "This flag is ... set when the project did not exist in the "before" state."
-                    // Flag 147456: Although IResourceDelta does not have a predefined constant, this flag
-                    // value is set when a project, that previously did not exist, is created.
-                    case IResourceDelta.ADDED:
-                        if (project == null && (updateFlag == IResourceDelta.OPEN || updateFlag == 147456)) {
-                            refreshNeeded = true;
-                        }
-                        break;
-                    // Project deleted.
-                    // Flag NO_CHANGE (0).
-                    // Flag MARKERS (130172).
-                    case IResourceDelta.REMOVED:
-                        if (project != null && (updateFlag == IResourceDelta.NO_CHANGE || updateFlag == IResourceDelta.MARKERS)) {
-                            refreshNeeded = true;
-                        }
-                        break;
-                    default:
-                        break;
+                        // Project opened/closed.
+                        // Flag OPEN (16384): "Change constant (bit mask) indicating that the resource was opened or closed"
+                        // Flag 147456: Although IResourceDelta does not have a predefined constant, this flag value is used to
+                        // denote open/close actions.
+                        case IResourceDelta.CHANGED:
+                            if (updateFlag == IResourceDelta.OPEN || updateFlag == 147456) {
+                                refreshNeeded = true;
+                            }
+                            break;
+                        // Project created/imported.
+                        // Flag OPEN (16384): "This flag is ... set when the project did not exist in the "before" state."
+                        // Flag 147456: Although IResourceDelta does not have a predefined constant, this flag
+                        // value is set when a project, that previously did not exist, is created.
+                        case IResourceDelta.ADDED:
+                            if (project == null && (updateFlag == IResourceDelta.OPEN || updateFlag == 147456)) {
+                                refreshNeeded = true;
+                            }
+                            break;
+                        // Project deleted.
+                        // Flag NO_CHANGE (0).
+                        // Flag MARKERS (130172).
+                        case IResourceDelta.REMOVED:
+                            if (project != null && (updateFlag == IResourceDelta.NO_CHANGE || updateFlag == IResourceDelta.MARKERS)) {
+                                refreshNeeded = true;
+                            }
+                            break;
+                        default:
+                            break;
                     }
                 }
 

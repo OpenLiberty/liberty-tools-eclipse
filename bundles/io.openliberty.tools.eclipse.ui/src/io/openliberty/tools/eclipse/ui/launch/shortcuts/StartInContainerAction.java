@@ -49,12 +49,12 @@ public class StartInContainerAction implements ILaunchShortcut {
             run(iProject, mode);
         } catch (Exception e) {
             String msg = "An error was detected when the \""
-                    + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONTAINER + "\" launch shortcut was processed.";
+                         + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONTAINER + "\" launch shortcut was processed.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }
             ErrorHandler.processErrorMessage(
-                    NLS.bind(Messages.launch_shortcut_error, LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONTAINER), e, true);
+                                             NLS.bind(Messages.launch_shortcut_error, LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONTAINER), e, true);
             return;
         }
 
@@ -78,12 +78,12 @@ public class StartInContainerAction implements ILaunchShortcut {
             run(iProject, mode);
         } catch (Exception e) {
             String msg = "An error was detected when the \""
-                    + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONTAINER + "\" launch shortcut was processed.";
+                         + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONTAINER + "\" launch shortcut was processed.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }
             ErrorHandler.processErrorMessage(
-                    NLS.bind(Messages.launch_shortcut_error, LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONTAINER), e, true);
+                                             NLS.bind(Messages.launch_shortcut_error, LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONTAINER), e, true);
             return;
         }
 
@@ -95,9 +95,9 @@ public class StartInContainerAction implements ILaunchShortcut {
     /**
      * Processes the start in container shortcut action.
      * 
-     * @param iProject The project to process.
+     * @param iProject       The project to process.
      * @param iConfiguration The configuration associated with the project.
-     * @param mode The configuration mode.
+     * @param mode           The configuration mode.
      * 
      * @throws Exception
      */

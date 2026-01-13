@@ -73,8 +73,7 @@ public class LibertyDebugReconnectHandler extends AbstractHandler {
     public Object execute(ExecutionEvent event) throws ExecutionException {
 
         Object target = null;
-        ISelection selection = HandlerUtil.getActiveWorkbenchWindow(event)
-                .getActivePage().getSelection();
+        ISelection selection = HandlerUtil.getActiveWorkbenchWindow(event).getActivePage().getSelection();
         if (selection != null & selection instanceof IStructuredSelection) {
             IStructuredSelection strucSelection = (IStructuredSelection) selection;
             Object[] elements = strucSelection.toArray();

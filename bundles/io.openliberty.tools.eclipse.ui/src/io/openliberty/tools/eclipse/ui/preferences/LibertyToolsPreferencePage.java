@@ -53,7 +53,7 @@ public class LibertyToolsPreferencePage extends FieldEditorPreferencePage implem
         // second parameter is typically the plug-in id
         setPreferenceStore(new ScopedPreferenceStore(InstanceScope.INSTANCE, "io.openliberty.tools.eclipse.ui"));
         setDescription(
-                "Use the Browse buttons to specify the Maven and Gradle installation locations to be used for starting the application in dev mode, which will be used if no mvnw/gradlew wrapper is found.");
+                       "Use the Browse buttons to specify the Maven and Gradle installation locations to be used for starting the application in dev mode, which will be used if no mvnw/gradlew wrapper is found.");
     }
 
     @Override

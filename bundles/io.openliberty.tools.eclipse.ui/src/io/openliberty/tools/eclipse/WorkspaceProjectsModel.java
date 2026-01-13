@@ -85,7 +85,7 @@ public class WorkspaceProjectsModel {
 
     /**
      * @param projectsToScan Projects to include in model update
-     * @param classify Whether to classify
+     * @param classify       Whether to classify
      */
     private void buildMultiProjectModel(List<IProject> projectsToScan, boolean classify) {
 
@@ -205,7 +205,7 @@ public class WorkspaceProjectsModel {
                 } else {
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_TOOLS,
-                                "Project " + p.getIProject().getName() + " could not be identified as being a Maven or Gradle project.");
+                                                "Project " + p.getIProject().getName() + " could not be identified as being a Maven or Gradle project.");
                     }
                 }
             }
