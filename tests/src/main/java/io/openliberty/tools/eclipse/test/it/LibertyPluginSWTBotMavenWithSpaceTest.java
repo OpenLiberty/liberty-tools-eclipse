@@ -93,7 +93,7 @@ public class LibertyPluginSWTBotMavenWithSpaceTest extends AbstractLibertyPlugin
 
         super.afterEach(info);
     }
-    
+
     @AfterAll
     public static void cleanup() throws IOException {
         for (String p : projectPaths) {
@@ -101,7 +101,7 @@ public class LibertyPluginSWTBotMavenWithSpaceTest extends AbstractLibertyPlugin
         }
         unsetBuildCmdPathInPreferences(bot, "Maven");
     }
-    
+
     /**
      * Tests the start menu action on a dashboard listed application for wrapper project.
      */
@@ -113,7 +113,7 @@ public class LibertyPluginSWTBotMavenWithSpaceTest extends AbstractLibertyPlugin
 
         // Validate application is up and running.
         LibertyPluginTestUtils.validateApplicationOutcome(MVN_WRAPPER_APP_NAME, true,
-        		wrapperProjectPath.toAbsolutePath().toString() + "/target/liberty");
+                                                          wrapperProjectPath.toAbsolutePath().toString() + "/target/liberty");
 
         // If there are issues with the workspace, close the error dialog.
         pressWorkspaceErrorDialogProceedButton(bot);
@@ -124,7 +124,7 @@ public class LibertyPluginSWTBotMavenWithSpaceTest extends AbstractLibertyPlugin
         // Validate application stopped.
         LibertyPluginTestUtils.validateLibertyServerStopped(wrapperProjectPath.toAbsolutePath().toString() + "/target/liberty");
     }
-    
+
     /**
      * Tests the debug menu action on a dashboard listed application for wrapper project.
      */
@@ -145,8 +145,7 @@ public class LibertyPluginSWTBotMavenWithSpaceTest extends AbstractLibertyPlugin
         // Validate application stopped.
         LibertyPluginTestUtils.validateLibertyServerStopped(wrapperProjectPath.toAbsolutePath().toString() + "/target/liberty");
     }
-    
-    
+
     /**
      * Tests the start menu action on a dashboard listed application.
      */
@@ -158,7 +157,7 @@ public class LibertyPluginSWTBotMavenWithSpaceTest extends AbstractLibertyPlugin
 
         // Validate application is up and running.
         LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true,
-        		projectPath.toAbsolutePath().toString() + "/target/liberty");
+                                                          projectPath.toAbsolutePath().toString() + "/target/liberty");
 
         // If there are issues with the workspace, close the error dialog.
         pressWorkspaceErrorDialogProceedButton(bot);
@@ -169,7 +168,7 @@ public class LibertyPluginSWTBotMavenWithSpaceTest extends AbstractLibertyPlugin
         // Validate application stopped.
         LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
     }
-    
+
     /**
      * Tests the debug menu action on a dashboard listed application.
      */

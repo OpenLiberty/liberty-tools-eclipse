@@ -14,11 +14,6 @@ package io.openliberty.tools.eclipse.test.it.utils;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import org.eclipse.ui.console.ConsolePlugin;
-import org.eclipse.ui.console.IConsole;
-import org.eclipse.ui.console.IConsoleManager;
-import org.eclipse.ui.console.TextConsole;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -44,6 +39,10 @@ import org.eclipse.jdt.launching.IJavaLaunchConfigurationConstants;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
+import org.eclipse.ui.console.ConsolePlugin;
+import org.eclipse.ui.console.IConsole;
+import org.eclipse.ui.console.IConsoleManager;
+import org.eclipse.ui.console.TextConsole;
 import org.junit.jupiter.api.Assertions;
 import org.osgi.service.prefs.Preferences;
 
@@ -55,9 +54,9 @@ public class LibertyPluginTestUtils {
     /**
      * Validates the state of the application (active/inactive) based on the expectation of success (true/false).
      * 
-     * @param ctxRoot The applications context root.
+     * @param ctxRoot       The applications context root.
      * @param expectSuccess True for success. False for failure.
-     * @param testAppPath The base path to the liberty installation.
+     * @param testAppPath   The base path to the liberty installation.
      */
     public static void validateApplicationOutcome(String ctxRoot, boolean expectSuccess, String testAppPath) {
         String expectedResponse = "Hello! How are you today?";
@@ -107,10 +106,10 @@ public class LibertyPluginTestUtils {
     /**
      * Validates the state of the application (active/inactive) based on the expectation of success (true/false).
      * 
-     * @param appUrl The application URL.
-     * @param expectSuccess True to check for success. False to check for failure.
+     * @param appUrl           The application URL.
+     * @param expectSuccess    True to check for success. False to check for failure.
      * @param expectedResponse The expected application response payload.
-     * @param testAppPath The base path to the liberty installation.
+     * @param testAppPath      The base path to the liberty installation.
      */
     public static void validateApplicationOutcomeCustom(String appUrl, boolean expectSuccess, String expectedResponse, String testAppPath) {
         int retryCountLimit = 60;
@@ -172,7 +171,7 @@ public class LibertyPluginTestUtils {
             } catch (Exception e) {
                 if (expectSuccess) {
                     System.out.println(
-                            "INFO: Retrying application connection: Response code: " + status + ". Error message: " + e.getMessage());
+                                       "INFO: Retrying application connection: Response code: " + status + ". Error message: " + e.getMessage());
                     try {
                         Thread.sleep(reryIntervalSecs * 1000);
                     } catch (Exception ee) {
@@ -276,7 +275,7 @@ public class LibertyPluginTestUtils {
     /**
      * Validates that a wrapper is found at the the input path.
      *
-     * @param isExpected to indicate the wrapper should or should not exist
+     * @param isExpected    to indicate the wrapper should or should not exist
      * @param pathToWrapper The path to the wrapper file in question.
      */
     public static void validateWrapperInProject(boolean isExpected, String pathToWrapper) {
@@ -301,10 +300,10 @@ public class LibertyPluginTestUtils {
             assertNotNull(preferences, "preferences file not found for Liberty Tools");
         }
     }
-    
 
     /**
-     * Reads and returns the text from the console output tab 
+     * Reads and returns the text from the console output tab
+     * 
      * @return
      */
     public static String getConsoleOutput() {
@@ -420,7 +419,7 @@ public class LibertyPluginTestUtils {
      * Updates browser configuration preferences.
      * 
      * @param useInternal Determines whether an internal or external browser setting is set. If true, the internal browser setting is
-     *        set. If false the external browser setting is set.
+     *                        set. If false the external browser setting is set.
      * 
      * @return True if the browser settings were updated successfully or if it already contains the desired value. False, otherwise.
      */
@@ -511,8 +510,7 @@ public class LibertyPluginTestUtils {
                     String[] jreParts = line.split("path=");
                     if (jreParts.length == 2) {
                         String jrePathRaw = jreParts[1];
-                        String jrePath = (jrePathRaw.endsWith("/>")) ? jrePathRaw.substring(1, jrePathRaw.length() - 3)
-                                : jrePathRaw.substring(1, jrePathRaw.length() - 2);
+                        String jrePath = (jrePathRaw.endsWith("/>")) ? jrePathRaw.substring(1, jrePathRaw.length() - 3) : jrePathRaw.substring(1, jrePathRaw.length() - 2);
                         jrePath = (jrePath.endsWith("/")) ? jrePath.substring(0, jrePath.length() - 1) : jrePath;
 
                         String[] jrePathParts = jrePath.split("/");
@@ -529,19 +527,19 @@ public class LibertyPluginTestUtils {
         return jre;
     }
 
-	/**
-	 * Returns the path of the xml file containing app monitoring configuration.
-	 *
-	 * @param projectPath The project's path.
-	 *
-	 * @return The custom path of the xml file containing the config to
-	 *         enable/disable app monitoring.
-	 */
-	public static Path getMavenXmlFilePathInOverridesDirectory(String projectPath) {
+    /**
+     * Returns the path of the xml file containing app monitoring configuration.
+     *
+     * @param projectPath The project's path.
+     *
+     * @return The custom path of the xml file containing the config to
+     *         enable/disable app monitoring.
+     */
+    public static Path getMavenXmlFilePathInOverridesDirectory(String projectPath) {
 
-		Path path = Paths.get(projectPath, "target", "liberty", "wlp", "usr", "servers", "defaultServer",
-				"configDropins", "overrides", "disableApplicationMonitor.xml");
+        Path path = Paths.get(projectPath, "target", "liberty", "wlp", "usr", "servers", "defaultServer",
+                              "configDropins", "overrides", "disableApplicationMonitor.xml");
 
-		return path;
-	}
+        return path;
+    }
 }

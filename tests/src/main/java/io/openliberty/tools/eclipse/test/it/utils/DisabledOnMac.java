@@ -19,10 +19,9 @@ import java.lang.annotation.Target;
 
 import org.junit.jupiter.api.extension.ExtendWith;
 
-/* 
+/**
  * Annotation for turning off an individual JUnit5 testcase if running on MacOS
  */
-        
 @Target({ ElementType.TYPE, ElementType.METHOD })
 @Retention(RetentionPolicy.RUNTIME)
 @ExtendWith(DisableOnMacCondition.class)

@@ -17,17 +17,18 @@ import org.junit.jupiter.api.extension.ExecutionCondition;
 import org.junit.jupiter.api.extension.ExtensionContext;
 
 public class DisableOnMacCondition implements ExecutionCondition {
-    
-    /* This class introduces a JUNIT5 mecahnism for turning off individual testcases if running on MacOS
+
+    /**
+     * This class introduces a JUNIT5 mechanism for turning off individual test cases if running on MacOS
      * via an annotation. See DisabledOnMac for the annotation class which uses this class
      */
     @Override
     public ConditionEvaluationResult evaluateExecutionCondition(ExtensionContext context) {
-       String osName = System.getProperty("os.name");
-       if(osName.equalsIgnoreCase("Mac OS X")) {
-          return ConditionEvaluationResult.disabled("Test disabled on mac");
-       } else {
-          return ConditionEvaluationResult.enabled("Test enabled");
-       }
+        String osName = System.getProperty("os.name");
+        if (osName.equalsIgnoreCase("Mac OS X")) {
+            return ConditionEvaluationResult.disabled("Test disabled on mac");
+        } else {
+            return ConditionEvaluationResult.enabled("Test enabled");
+        }
     }
- }
+}

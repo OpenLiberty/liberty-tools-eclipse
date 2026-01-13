@@ -32,7 +32,7 @@ public class SWTBotTestCondition {
     /**
      * Returns true if the view is active. False, otherwise.
      * 
-     * @param view The view to check.
+     * @param view     The view to check.
      * @param viewName The name of the view.
      * 
      * @return True if the view is active. False, otherwise.
@@ -55,7 +55,7 @@ public class SWTBotTestCondition {
     /**
      * Returns true if the view is active. False, otherwise.
      * 
-     * @param view The view to check.
+     * @param view     The view to check.
      * @param viewName The name of the view.
      * 
      * @return True if the view is active. False, otherwise.
@@ -190,7 +190,7 @@ public class SWTBotTestCondition {
     /**
      * Returns true if the editor containing the input name is active. False, otherwise.
      * 
-     * @param wbbot The Workbench bot instance.
+     * @param wbbot    The Workbench bot instance.
      * @param fileName The editor title or a subset of the title name.
      * 
      * @return True if the editor containing the input name is active. False, otherwise.
