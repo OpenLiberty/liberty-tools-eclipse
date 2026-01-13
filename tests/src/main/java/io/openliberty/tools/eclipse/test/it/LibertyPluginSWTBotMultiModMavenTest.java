@@ -90,19 +90,19 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
      * Expected menu items.
      */
     static String[] mvnMenuItems = new String[] { DashboardView.APP_MENU_ACTION_START, DashboardView.APP_MENU_ACTION_START_CONFIG,
-            DashboardView.APP_MENU_ACTION_START_IN_CONTAINER, DashboardView.APP_MENU_ACTION_DEBUG,
-            DashboardView.APP_MENU_ACTION_DEBUG_CONFIG, DashboardView.APP_MENU_ACTION_DEBUG_IN_CONTAINER,
-            DashboardView.APP_MENU_ACTION_STOP, DashboardView.APP_MENU_ACTION_RUN_TESTS, DashboardView.APP_MENU_ACTION_VIEW_MVN_IT_REPORT,
-            DashboardView.APP_MENU_ACTION_VIEW_MVN_UT_REPORT };
+                                                  DashboardView.APP_MENU_ACTION_START_IN_CONTAINER, DashboardView.APP_MENU_ACTION_DEBUG,
+                                                  DashboardView.APP_MENU_ACTION_DEBUG_CONFIG, DashboardView.APP_MENU_ACTION_DEBUG_IN_CONTAINER,
+                                                  DashboardView.APP_MENU_ACTION_STOP, DashboardView.APP_MENU_ACTION_RUN_TESTS, DashboardView.APP_MENU_ACTION_VIEW_MVN_IT_REPORT,
+                                                  DashboardView.APP_MENU_ACTION_VIEW_MVN_UT_REPORT };
 
     /**
      * Run As configuration menu items.
      */
     static String[] runAsShortcuts = new String[] { LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START,
-            LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONTAINER, LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_STOP,
-            LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_RUN_TESTS,
-            LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_MVN_VIEW_IT_REPORT,
-            LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_MVN_VIEW_UT_REPORT, };
+                                                    LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONTAINER, LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_STOP,
+                                                    LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_RUN_TESTS,
+                                                    LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_MVN_VIEW_IT_REPORT,
+                                                    LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_MVN_VIEW_UT_REPORT, };
 
     static File workspaceRoot = ResourcesPlugin.getWorkspace().getRoot().getLocation().toFile();
 
@@ -181,16 +181,16 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
         // Check that the menu that the application in the dashboard contains the required actions.
         List<String> menuItems = getDashboardItemMenuActions(MVN_APP_NAME);
         Assertions.assertTrue(menuItems.size() == mvnMenuItems.length,
-                () -> "Maven application " + MVN_APP_NAME + " does not contain the expected number of menu items: " + mvnMenuItems.length);
+                              () -> "Maven application " + MVN_APP_NAME + " does not contain the expected number of menu items: " + mvnMenuItems.length);
         Assertions.assertTrue(menuItems.containsAll(Arrays.asList(mvnMenuItems)),
-                () -> "Maven application " + MVN_APP_NAME + " does not contain the expected menu items: " + mvnMenuItems);
+                              () -> "Maven application " + MVN_APP_NAME + " does not contain the expected menu items: " + mvnMenuItems);
 
         // Check that the Run As menu contains the expected shortcut
         SWTBotMenu runAsMenu = SWTBotPluginOperations.getAppRunAsMenu(bot, MVN_APP_NAME);
         Assertions.assertTrue(runAsMenu != null, "The runAs menu associated with project: " + MVN_APP_NAME + " is null.");
         List<String> runAsMenuItems = runAsMenu.menuItems();
         Assertions.assertTrue(runAsMenuItems != null && !runAsMenuItems.isEmpty(),
-                "The runAs menu associated with project: " + MVN_APP_NAME + " is null or empty.");
+                              "The runAs menu associated with project: " + MVN_APP_NAME + " is null or empty.");
         int foundItems = 0;
 
         for (String expectedItem : runAsShortcuts) {
@@ -203,9 +203,9 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
         }
 
         Assertions.assertTrue(foundItems == runAsShortcuts.length,
-                "The runAs menu associated with project: " + MVN_APP_NAME
-                        + " does not contain one or more expected entries. Expected number of entries: " + runAsShortcuts.length
-                        + "Found entry count: " + foundItems + ". Found menu entries: " + runAsMenuItems);
+                              "The runAs menu associated with project: " + MVN_APP_NAME
+                                                                   + " does not contain one or more expected entries. Expected number of entries: " + runAsShortcuts.length
+                                                                   + "Found entry count: " + foundItems + ". Found menu entries: " + runAsMenuItems);
 
         // Check that the Run As -> Run Configurations... contains the Liberty entry in the menu.
         Shell configShell = launchRunConfigurationsDialogFromAppRunAs(MVN_APP_NAME);
@@ -233,9 +233,9 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
         SWTBotPluginOperations.launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_START);
 
         LibertyPluginTestUtils.validateApplicationOutcomeCustom("http://localhost:9080/converter1/heights.jsp?heightCm=10", true,
-                "Height in feet and inches", serverModule1Path + "/target/liberty");
+                                                                "Height in feet and inches", serverModule1Path + "/target/liberty");
         LibertyPluginTestUtils.validateApplicationOutcomeCustom("http://localhost:9080/converter2/heights.jsp?heightCm=20", true,
-                "Height in feet and inches", serverModule1Path + "/target/liberty");
+                                                                "Height in feet and inches", serverModule1Path + "/target/liberty");
 
         // If there are issues with the workspace, close the error dialog.
         SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
@@ -268,7 +268,7 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
 
         // Validate application is up and running.
         LibertyPluginTestUtils.validateApplicationOutcomeCustom("http://localhost:9080/converter1/heights.jsp?heightCm=30", true,
-                "Height in feet and inches", serverModule1Path + "/target/liberty");
+                                                                "Height in feet and inches", serverModule1Path + "/target/liberty");
 
         // If there are issues with the workspace, close the error dialog.
         pressWorkspaceErrorDialogProceedButton(bot);
@@ -324,9 +324,9 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
 
         // Validate dependency projects are in source lookup list
         Assertions.assertTrue(jarEntryFound,
-                "The sibling module project, " + MVN_JAR_NAME + ", was not listed in the source lookup list for project " + MVN_APP_NAME);
+                              "The sibling module project, " + MVN_JAR_NAME + ", was not listed in the source lookup list for project " + MVN_APP_NAME);
         Assertions.assertTrue(warEntryFound,
-                "The sibling module project, " + MVN_WAR_NAME + ", was not listed in the source lookup list for project " + MVN_APP_NAME);
+                              "The sibling module project, " + MVN_WAR_NAME + ", was not listed in the source lookup list for project " + MVN_APP_NAME);
 
     }
 
@@ -372,9 +372,9 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
 
         // Validate dependency projects are in source lookup list
         Assertions.assertTrue(jarEntryFound,
-                "The child module project, " + MVN_JAR_NAME + ", was not listed in the source lookup list for project " + MVN_PARENT_NAME);
+                              "The child module project, " + MVN_JAR_NAME + ", was not listed in the source lookup list for project " + MVN_PARENT_NAME);
         Assertions.assertTrue(warEntryFound,
-                "The child module project, " + MVN_WAR_NAME + ", was not listed in the source lookup list for project " + MVN_PARENT_NAME);
+                              "The child module project, " + MVN_WAR_NAME + ", was not listed in the source lookup list for project " + MVN_PARENT_NAME);
 
     }
 }

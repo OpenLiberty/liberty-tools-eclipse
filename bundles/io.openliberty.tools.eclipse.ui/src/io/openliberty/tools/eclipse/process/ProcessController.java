@@ -60,13 +60,12 @@ public class ProcessController {
      *
      * @param projectName The application project name.
      * @param projectPath The application project path.
-     * @param command The command to execute.
-     * @param envs The environment properties to be set for the process.
+     * @param command     The command to execute.
+     * @param envs        The environment properties to be set for the process.
      * 
      * @throws IOException
      */
-    public Process runProcess(String projectName, String projectPath, String command, List<String> envs, boolean printCmd)
-            throws IOException {
+    public Process runProcess(String projectName, String projectPath, String command, List<String> envs, boolean printCmd) throws IOException {
 
         List<String> commandList = new ArrayList<String>();
 
@@ -125,7 +124,7 @@ public class ProcessController {
      * Writes the input data to the running process associated with the input project name.
      *
      * @param projectName The application project name.
-     * @param content The data to write.
+     * @param content     The data to write.
      *
      * @throws Exception
      */
@@ -134,7 +133,7 @@ public class ProcessController {
 
         if (process == null) {
             String msg = "Unable to write to the process associated with project " + projectName
-                    + ". Internal process object not found.";
+                         + ". Internal process object not found.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg + ". Data to write: " + new String(data));
             }

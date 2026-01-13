@@ -59,12 +59,12 @@ public class StartConfigurationDialogAction implements ILaunchShortcut {
             run(iProject, mode);
         } catch (Exception e) {
             String msg = "An error was detected when the \"" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONFIG
-                    + "\" launch shortcut was processed.";
+                         + "\" launch shortcut was processed.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }
             ErrorHandler.processErrorMessage(
-                    NLS.bind(Messages.launch_shortcut_error, LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONFIG), e, true);
+                                             NLS.bind(Messages.launch_shortcut_error, LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONFIG), e, true);
             return;
         }
 
@@ -88,12 +88,12 @@ public class StartConfigurationDialogAction implements ILaunchShortcut {
             run(iProject, mode);
         } catch (Exception e) {
             String msg = "An error was detected when the \"" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONFIG
-                    + "\" launch shortcut was processed.";
+                         + "\" launch shortcut was processed.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }
             ErrorHandler.processErrorMessage(
-                    NLS.bind(Messages.launch_shortcut_error, LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONFIG), e, true);
+                                             NLS.bind(Messages.launch_shortcut_error, LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONFIG), e, true);
             return;
         }
 
@@ -106,7 +106,7 @@ public class StartConfigurationDialogAction implements ILaunchShortcut {
      * Processes the start... shortcut action.
      * 
      * @param iProject The project to process.
-     * @param mode The operation mode type. Run or debug.
+     * @param mode     The operation mode type. Run or debug.
      * 
      * @throws Exception
      */

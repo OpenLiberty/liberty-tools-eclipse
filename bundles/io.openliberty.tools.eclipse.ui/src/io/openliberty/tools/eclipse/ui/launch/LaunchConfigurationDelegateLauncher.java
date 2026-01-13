@@ -105,9 +105,9 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
                 if (!configProjectName.equals(selectedProject.getName())) {
                     String configurationName = configuration.getName();
                     String msg = "The selected  Run/Debug configuration '" + configurationName
-                            + "' cannot be used to run selected project '" + selectedProject.getName()
-                            + ", because the configuration is associated with project '" + configProjectName
-                            + "'. Create a new configuration, or use an existing configuration associated with the selected project.";
+                                 + "' cannot be used to run selected project '" + selectedProject.getName()
+                                 + ", because the configuration is associated with project '" + configProjectName
+                                 + "'. Create a new configuration, or use an existing configuration associated with the selected project.";
                     throw new IllegalStateException(msg);
                 }
             }
@@ -122,10 +122,10 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
     /**
      * Starts dev mode
      * 
-     * @param iProject The project to process.
+     * @param iProject       The project to process.
      * @param iConfiguration The configuration for this start.
-     * @param launch The launch associated with this start
-     * @param mode The operation mode type. Run or debug.
+     * @param launch         The launch associated with this start
+     * @param mode           The operation mode type. Run or debug.
      * 
      * @throws Exception
      */
@@ -145,8 +145,7 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
 
         // If the configuration was not provided by the caller, determine what configuration to use.
         LaunchConfigurationHelper launchConfigHelper = LaunchConfigurationHelper.getInstance();
-        ILaunchConfiguration configuration = (iConfiguration != null) ? iConfiguration
-                : launchConfigHelper.getLaunchConfiguration(iProject, mode, RuntimeEnv.LOCAL);
+        ILaunchConfiguration configuration = (iConfiguration != null) ? iConfiguration : launchConfigHelper.getLaunchConfiguration(iProject, mode, RuntimeEnv.LOCAL);
 
         // Save the time when this configuration was processed.
         launchConfigHelper.saveConfigProcessingTime(configuration);

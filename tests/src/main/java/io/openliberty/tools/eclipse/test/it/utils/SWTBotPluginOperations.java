@@ -27,8 +27,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.eclipse.core.resources.IProject;
-import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
@@ -259,7 +257,7 @@ public class SWTBotPluginOperations {
             }
 
             result = MagicWidgetFinder.find(objectName, debugView,
-                    Option.factory().useContains(true).setThrowExceptionOnNotFound(false).widgetClass(TreeItem.class).build());
+                                            Option.factory().useContains(true).setThrowExceptionOnNotFound(false).widgetClass(TreeItem.class).build());
         }
 
         if (result == null) {
@@ -377,9 +375,9 @@ public class SWTBotPluginOperations {
     /**
      * Returns a list of menu actions associated with the input application item.
      *
-     * @param bot The SWTWorkbenchBot instance.
+     * @param bot       The SWTWorkbenchBot instance.
      * @param dashboard An instance representing the Open Liberty dashboard view.
-     * @param item The application name to select.
+     * @param item      The application name to select.
      *
      * @return A list of menu actions for the input application item.
      */
@@ -415,7 +413,7 @@ public class SWTBotPluginOperations {
      * Launches a dashboard action for the specified application name.
      * 
      * @param appName The application name to select.
-     * @param action The action to select
+     * @param action  The action to select
      */
     public static void launchDashboardAction(String appName, String action) {
         openDashboardUsingToolbar();
@@ -429,7 +427,7 @@ public class SWTBotPluginOperations {
     /**
      * Returns the object representing the active project matching the input project name.
      * 
-     * @param bot The SWTWorkbenchBot instance.
+     * @param bot  The SWTWorkbenchBot instance.
      * @param item The application name.
      * 
      * @return The object representing the active project matching the input project name.
@@ -453,7 +451,7 @@ public class SWTBotPluginOperations {
     /**
      * Returns the object representing the explorer->project->right-click->Run As menu.
      * 
-     * @param bot The SWTWorkbenchBot instance.
+     * @param bot  The SWTWorkbenchBot instance.
      * @param item The application name.
      * 
      * @return The object representing the Run As menu.
@@ -475,7 +473,7 @@ public class SWTBotPluginOperations {
     /**
      * Returns the object representing the explorer->project->right-click->Debug As menu.
      * 
-     * @param bot The SWTWorkbenchBot instance.
+     * @param bot  The SWTWorkbenchBot instance.
      * @param item The application name.
      * 
      * @return The object representing the Debug As menu.
@@ -499,7 +497,7 @@ public class SWTBotPluginOperations {
      * Sets the absolute path to the maven and gradle executables that should be used for build into the Liberty Tools Plugin
      * Preferences page
      * 
-     * @param bot The SWTWorkbenchBot instance.
+     * @param bot       The SWTWorkbenchBot instance.
      * @param buildTool the build tool to be used (Maven or Gradle)
      */
     public static void setBuildCmdPathInPreferences(SWTWorkbenchBot bot, String buildTool) {
@@ -510,9 +508,7 @@ public class SWTBotPluginOperations {
         String finalGradleExecutableLoc = AbstractLibertyPluginSWTBotTest.getGradleCmdPath();
 
         // Get the preference store for the Liberty Tools plugin
-        org.eclipse.jface.preference.IPreferenceStore prefStore = new org.eclipse.ui.preferences.ScopedPreferenceStore(
-                org.eclipse.core.runtime.preferences.InstanceScope.INSTANCE,
-                "io.openliberty.tools.eclipse.ui");
+        org.eclipse.jface.preference.IPreferenceStore prefStore = new org.eclipse.ui.preferences.ScopedPreferenceStore(org.eclipse.core.runtime.preferences.InstanceScope.INSTANCE, "io.openliberty.tools.eclipse.ui");
 
         if ("Maven".equals(buildTool)) {
             prefStore.setValue("MVNPATH", finalMvnExecutableLoc);
@@ -536,9 +532,7 @@ public class SWTBotPluginOperations {
         // This avoids issues with menu accessibility in headless CI environments
 
         // Get the preference store for the Liberty Tools plugin
-        org.eclipse.jface.preference.IPreferenceStore prefStore = new org.eclipse.ui.preferences.ScopedPreferenceStore(
-                org.eclipse.core.runtime.preferences.InstanceScope.INSTANCE,
-                "io.openliberty.tools.eclipse.ui");
+        org.eclipse.jface.preference.IPreferenceStore prefStore = new org.eclipse.ui.preferences.ScopedPreferenceStore(org.eclipse.core.runtime.preferences.InstanceScope.INSTANCE, "io.openliberty.tools.eclipse.ui");
 
         // Reset to default values (empty strings)
         if ("Maven".equals(buildTool)) {
@@ -629,7 +623,7 @@ public class SWTBotPluginOperations {
     /**
      * Deletes Liberty run configuration entries.
      * 
-     * @param bot The SWTWorkbenchBot instance..
+     * @param bot     The SWTWorkbenchBot instance..
      * @param appName The application name.
      */
     public static void deleteLibertyToolsRunConfigEntriesFromAppRunAs(String appName) {
@@ -655,7 +649,7 @@ public class SWTBotPluginOperations {
     /**
      * Deletes Liberty debug configuration entries.
      * 
-     * @param bot The SWTWorkbenchBot instance..
+     * @param bot     The SWTWorkbenchBot instance..
      * @param appName The application name.
      */
     public static void deleteLibertyToolsDebugConfigEntriesFromMenu() {
@@ -698,7 +692,7 @@ public class SWTBotPluginOperations {
      * Launches dev mode with parms using a new Liberty configuration: project -> Run As -> Run Configurations -> Liberty -> New
      * configuration (default) -> update parms -> Run. Note that the changes are not saved.
      * 
-     * @param appName The application name.
+     * @param appName     The application name.
      * @param customParms The parameter(s) to pass to the dev mode start action.
      */
     public static void launchStartWithNewCustomRunConfig(String appName, String customParms) {
@@ -711,7 +705,7 @@ public class SWTBotPluginOperations {
      * Launches dev mode with parms using a new Liberty configuration: project -> Debug As -> Debug Configurations -> Liberty -> New
      * configuration (default) -> update parms -> Debug. Note that the changes are not saved.
      * 
-     * @param appName The application name.
+     * @param appName     The application name.
      * @param customParms The parameter(s) to pass to the dev mode start action.
      */
     public static void launchStartWithNewCustomDebugConfig(String appName, String customParms) {
@@ -757,7 +751,7 @@ public class SWTBotPluginOperations {
         Object libertyConfigTree = getLibertyTreeItem(shell);
 
         Object appConfigEntry = find(runDebugConfigName, libertyConfigTree,
-                Option.factory().useContains(true).widgetClass(TreeItem.class).build());
+                                     Option.factory().useContains(true).widgetClass(TreeItem.class).build());
         go(appConfigEntry);
         Object parmLabel = find("Start parameters:", appConfigEntry, Option.factory().widgetClass(Label.class).build());
 
@@ -770,7 +764,7 @@ public class SWTBotPluginOperations {
         Object libertyConfigTree = getLibertyTreeItem(shell);
 
         Object appConfigEntry = find(runDebugConfigName, libertyConfigTree,
-                Option.factory().useContains(true).widgetClass(TreeItem.class).build());
+                                     Option.factory().useContains(true).widgetClass(TreeItem.class).build());
         go(appConfigEntry);
         Object button = find("Run in Container", appConfigEntry, Option.factory().widgetClass(Button.class).build());
 
@@ -788,7 +782,7 @@ public class SWTBotPluginOperations {
         Object libertyConfigTree = getLibertyTreeItem(shell);
 
         Object appConfigEntry = find(runDebugConfigName, libertyConfigTree,
-                Option.factory().useContains(true).widgetClass(TreeItem.class).build());
+                                     Option.factory().useContains(true).widgetClass(TreeItem.class).build());
         go(appConfigEntry);
         Object button = find("Clean project", appConfigEntry, Option.factory().widgetClass(Button.class).build());
 
@@ -804,39 +798,39 @@ public class SWTBotPluginOperations {
 
         Object project = MagicWidgetFinder.find(appName, peView, Option.factory().useContains(true).widgetClass(TreeItem.class).build());
         go(project);
-        
+
         // Add pause to ensure UI is fully ready after selection
         // This helps prevent race conditions where TreeItem data isn't fully initialized
         // particularly on Windows in headless CI environments where selection events
         // can trigger cascading calls to getSelectedDashboardProject() before the
         // selection is fully resolved, causing infinite loops
-        MagicWidgetFinder.pause(5000);  
-        
+        MagicWidgetFinder.pause(5000);
+
         return project;
     }
 
     /**
      * Launches the start action using the debug as configuration shortcut.
      * 
-     * @param bot The SWTWorkbenchBot instance.
+     * @param bot     The SWTWorkbenchBot instance.
      * @param appName The application name.
      */
     public static void launchStartWithDebugAsShortcut(String appName) {
         Object project = getAppInPackageExplorerTree(appName);
         MagicWidgetFinder.context(project, "Debug As",
-                WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START + ".*"));
+                                  WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START + ".*"));
     }
 
     /**
      * Launches the start action using the run as configuration shortcut.
      * 
-     * @param bot The SWTWorkbenchBot instance.
+     * @param bot     The SWTWorkbenchBot instance.
      * @param appName The application name.
      */
     public static void launchStartWithRunAsShortcut(String appName) {
         Object project = getAppInPackageExplorerTree(appName);
         MagicWidgetFinder.context(project, "Run As",
-                WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START + ".*"));
+                                  WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START + ".*"));
     }
 
     /**
@@ -847,7 +841,7 @@ public class SWTBotPluginOperations {
     public static void launchStopWithRunAsShortcut(String appName) {
         Object project = getAppInPackageExplorerTree(appName);
         MagicWidgetFinder.context(project, "Run As",
-                WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_STOP + ".*"));
+                                  WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_STOP + ".*"));
     }
 
     /**
@@ -858,7 +852,7 @@ public class SWTBotPluginOperations {
     public static void launchRunTestsWithRunAsShortcut(String appName) {
         Object project = getAppInPackageExplorerTree(appName);
         MagicWidgetFinder.context(project, "Run As",
-                WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_RUN_TESTS + ".*"));
+                                  WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_RUN_TESTS + ".*"));
     }
 
     /**
@@ -869,20 +863,20 @@ public class SWTBotPluginOperations {
     public static void launchRunTestsWithDebugAsShortcut(String appName) {
         Object project = getAppInPackageExplorerTree(appName);
         MagicWidgetFinder.context(project, "Debug As",
-                WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_RUN_TESTS + ".*"));
+                                  WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_RUN_TESTS + ".*"));
     }
 
     /**
      * Launches the view (Maven) integration test report action using the run/debug as configuration shortcut.
      * 
-     * @param bot The SWTWorkbenchBot instance.
+     * @param bot  The SWTWorkbenchBot instance.
      * @param item The application name.
      */
     public static void launchViewITReportWithRunDebugAsShortcut(SWTWorkbenchBot bot, String item) {
         SWTBotMenu runAsMenu = SWTBotPluginOperations.getAppRunAsMenu(bot, item);
         SWTBotMenu stopShortcut = runAsMenu.menu(
-                WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_MVN_VIEW_IT_REPORT + ".*"), false,
-                0);
+                                                 WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_MVN_VIEW_IT_REPORT + ".*"), false,
+                                                 0);
         stopShortcut.setFocus();
         stopShortcut.click();
 
@@ -892,14 +886,14 @@ public class SWTBotPluginOperations {
     /**
      * Launches the view (Maven) unit test report action using the run/debug as configuration shortcut.
      * 
-     * @param bot The SWTWorkbenchBot instance.
+     * @param bot  The SWTWorkbenchBot instance.
      * @param item The application name.
      */
     public static void launchViewUTReportWithRunDebugAsShortcut(SWTWorkbenchBot bot, String item) {
         SWTBotMenu runAsMenu = SWTBotPluginOperations.getAppRunAsMenu(bot, item);
         SWTBotMenu stopShortcut = runAsMenu.menu(
-                WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_MVN_VIEW_UT_REPORT + ".*"), false,
-                0);
+                                                 WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_MVN_VIEW_UT_REPORT + ".*"), false,
+                                                 0);
         stopShortcut.setFocus();
         stopShortcut.click();
 
@@ -909,14 +903,14 @@ public class SWTBotPluginOperations {
     /**
      * Launches the view (Gradle) test report action using the run/debug as configuration shortcut.
      * 
-     * @param bot The SWTWorkbenchBot instance.
+     * @param bot  The SWTWorkbenchBot instance.
      * @param item The application name.
      */
     public static void launchViewTestReportWithRunDebugAsShortcut(SWTWorkbenchBot bot, String item) {
         SWTBotMenu runAsMenu = SWTBotPluginOperations.getAppRunAsMenu(bot, item);
         SWTBotMenu stopShortcut = runAsMenu.menu(
-                WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_GRADLE_VIEW_TEST_REPORT + ".*"),
-                false, 0);
+                                                 WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_GRADLE_VIEW_TEST_REPORT + ".*"),
+                                                 false, 0);
         stopShortcut.setFocus();
         stopShortcut.click();
 
@@ -938,7 +932,7 @@ public class SWTBotPluginOperations {
     /**
      * Get the content of a text editor view obtained associated with the input title name.
      *
-     * @param bot The SWTWorkbenchBot instance.
+     * @param bot   The SWTWorkbenchBot instance.
      * @param title The complete title view name.
      *
      * @return The content of a text editor view obtained associated with the input title name.
@@ -953,7 +947,7 @@ public class SWTBotPluginOperations {
     /**
      * Searches for the text editor that contains the complete or partial input title name.
      *
-     * @param bot The SWTWorkbenchBot instance.
+     * @param bot          The SWTWorkbenchBot instance.
      * @param titleContent The complete or partial title name.
      *
      * @return The text editor object associated with input title name.
@@ -974,10 +968,10 @@ public class SWTBotPluginOperations {
     /**
      * Returns the content of the file associated with the the input file name under the input application name.
      *
-     * @param bot The SWTWorkbenchBot instance.
+     * @param bot          The SWTWorkbenchBot instance.
      * @param appViewTitle The title of the view (i.e. Project Explorer) where to look.
-     * @param appName The application where to find the file.
-     * @param fileName The name of the file from which to retrieve content.
+     * @param appName      The application where to find the file.
+     * @param fileName     The name of the file from which to retrieve content.
      *
      * @return The content of the file associated with the the input file name under the input application name.
      */
@@ -1007,9 +1001,9 @@ public class SWTBotPluginOperations {
     /**
      * Writes the input content to a text editor view.
      *
-     * @param bot The SWTWorkbenchBot instance.
+     * @param bot          The SWTWorkbenchBot instance.
      * @param titleContent The title or part of the title of the text editor view to update.
-     * @param content The content with which the text editor view is updated.
+     * @param content      The content with which the text editor view is updated.
      */
     public static void setEditorText(SWTWorkbenchBot bot, String titleContent, String content) {
         SWTBotEditor editor = searchForEditor(bot, titleContent);
@@ -1022,7 +1016,7 @@ public class SWTBotPluginOperations {
     /**
      * Returns the content to a text editor view.
      *
-     * @param bot The SWTWorkbenchBot instance.
+     * @param bot          The SWTWorkbenchBot instance.
      * @param titleContent The title or part of the title of the text editor view.
      *
      * @return The content to a text editor view.
@@ -1154,7 +1148,7 @@ public class SWTBotPluginOperations {
     /**
      * Returns a SWTBotToolbarButton instance representing the toolbar button with the input tooltip prefix.
      *
-     * @param bot The SWTWorkbenchBot instance.
+     * @param bot           The SWTWorkbenchBot instance.
      * @param toolTipPrefix The tooltip prefix.
      *
      * @return A SWTBotToolbarButton instance representing the toolbar button with the input tooltip prefix.
@@ -1170,8 +1164,7 @@ public class SWTBotPluginOperations {
             }
         }
 
-        throw new RuntimeException(
-                "toolbar button of type ToolItem, with style push, and tooltip prefix of " + toolTipPrefix + " was not found.");
+        throw new RuntimeException("toolbar button of type ToolItem, with style push, and tooltip prefix of " + toolTipPrefix + " was not found.");
     }
 
     @SuppressWarnings("unchecked")

@@ -73,7 +73,7 @@ public class Utils {
      * Returns a org.eclipse.swt.graphics.Image object representing the image under the input path.
      * 
      * @param device The device display.
-     * @param path The path to the image.
+     * @param path   The path to the image.
      * 
      * @return A org.eclipse.swt.graphics.Image object representing the Open Liberty image.
      */
@@ -299,7 +299,7 @@ public class Utils {
      * @param project
      * @param launch
      * @param debugModeHandler
-     * @param preRestartTime - The current time prior to restarting the server
+     * @param preRestartTime   - The current time prior to restarting the server
      */
     public static void restartDebugger(Project project, ILaunch launch, DebugModeHandler debugModeHandler, Instant preRestartTime) {
 
@@ -380,13 +380,13 @@ public class Utils {
             } else {
                 if (Trace.isEnabled()) {
                     Trace.getTracer().trace(Trace.TRACE_UI,
-                            "File '" + fileNameTofind + "' not found in the 'usr'folder.");
+                                            "File '" + fileNameTofind + "' not found in the 'usr'folder.");
                 }
             }
         } catch (Exception e) {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, "Error encountered while adding xml file in the configDropins.",
-                        e);
+                                        e);
             }
         }
     }
@@ -411,7 +411,7 @@ public class Utils {
         } catch (Exception e) {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, "Error encountered while removing xml file from configDropins.",
-                        e);
+                                        e);
             }
         }
     }
@@ -423,8 +423,7 @@ public class Utils {
         }
 
         try (Stream<Path> paths = Files.walk(rootDir.toPath())) {
-            Optional<Path> match = paths.filter(Files::isRegularFile)
-                    .filter(path -> path.getFileName().toString().equals(targetFileName)).findFirst();
+            Optional<Path> match = paths.filter(Files::isRegularFile).filter(path -> path.getFileName().toString().equals(targetFileName)).findFirst();
             return match.map(Path::toFile).orElse(null);
         } catch (IOException e) {
             if (Trace.isEnabled()) {
@@ -480,7 +479,7 @@ public class Utils {
         if (project.getBuildType() == Project.BuildType.UNKNOWN) {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, "Unexpected project build type: " + project.getBuildType()
-                        + ". " + "Project does not appear to be a Maven or Gradle built project.");
+                                                        + ". " + "Project does not appear to be a Maven or Gradle built project.");
                 return;
             }
         }

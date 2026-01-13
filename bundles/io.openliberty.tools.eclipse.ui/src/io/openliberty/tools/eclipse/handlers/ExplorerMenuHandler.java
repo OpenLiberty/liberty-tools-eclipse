@@ -106,7 +106,7 @@ public class ExplorerMenuHandler extends AbstractHandler {
                 }
 
                 ErrorHandler.processErrorMessage(
-                        NLS.bind(Messages.menu_command_process_error, new String[] { commandName, iProject.getName() }), e);
+                                                 NLS.bind(Messages.menu_command_process_error, new String[] { commandName, iProject.getName() }), e);
             }
         }
 

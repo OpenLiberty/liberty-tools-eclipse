@@ -32,31 +32,31 @@ public class LibertyDebugEventListener implements IDebugEventSetListener {
                 if (projectName.equals(iProcess.getLabel())) {
                     // We match - cleanup
                     Project project = devModeOps.getProjectModel().getProject(projectName);
-                    
+
                     if (project != null) {
-                    	Utils.reEnableAppMonitoring(project);
+                        Utils.reEnableAppMonitoring(project);
                     }
                     devModeOps.cleanupProcess(projectName);
                     DebugPlugin.getDefault().removeDebugEventListener(this);
                 }
             } else if (events[i].getKind() == DebugEvent.CHANGE && source instanceof IDebugTarget) {
-    			IDebugTarget target = (IDebugTarget) source;
-    			if (target.isDisconnected()) {
-    				ILaunch launch = target.getLaunch();
-    				if (launch != null) {
-    					IProcess[] processes = launch.getProcesses();
-    					if (processes.length > 0) {
-    						String label = processes[0].getLabel(); 
-    						if (projectName.equals(label)) {
-    							Project project = devModeOps.getProjectModel().getProject(projectName);
-    							if (project != null) {
-    								Utils.reEnableAppMonitoring(project);
-    							}
-    						}
-    					}
-    				}
-    			}                  
-    		}
+                IDebugTarget target = (IDebugTarget) source;
+                if (target.isDisconnected()) {
+                    ILaunch launch = target.getLaunch();
+                    if (launch != null) {
+                        IProcess[] processes = launch.getProcesses();
+                        if (processes.length > 0) {
+                            String label = processes[0].getLabel();
+                            if (projectName.equals(label)) {
+                                Project project = devModeOps.getProjectModel().getProject(projectName);
+                                if (project != null) {
+                                    Utils.reEnableAppMonitoring(project);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 

@@ -27,7 +27,7 @@ import org.eclipse.ui.dialogs.PreferencesUtil;
 public class LibertyToolsMessageDialog extends MessageDialog {
 
     public LibertyToolsMessageDialog(Shell parentShell, String dialogTitle, Image dialogTitleImage, String dialogMessage,
-            int dialogImageType, String[] dialogButtonLabels, int defaultIndex) {
+                                     int dialogImageType, String[] dialogButtonLabels, int defaultIndex) {
         super(parentShell, dialogTitle, dialogTitleImage, dialogMessage, dialogImageType, defaultIndex, dialogButtonLabels);
     }
 
@@ -35,12 +35,12 @@ public class LibertyToolsMessageDialog extends MessageDialog {
     protected Control createCustomArea(Composite parent) {
         Link link = new Link(parent, SWT.WRAP);
         link.setText(
-                "To fix: either generate wrapper for project, or set the executable in <a>Liberty Preferences</a>, or on the PATH env var");
+                     "To fix: either generate wrapper for project, or set the executable in <a>Liberty Preferences</a>, or on the PATH env var");
         link.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
                 PreferenceDialog dialog = PreferencesUtil.createPreferenceDialogOn(null, "io.openliberty.tools.eclipse.ui.preferences.page",
-                        new String[] { "io.openliberty.tools.eclipse.ui.preferences.page" }, null);
+                                                                                   new String[] { "io.openliberty.tools.eclipse.ui.preferences.page" }, null);
                 dialog.open();
             }
         });

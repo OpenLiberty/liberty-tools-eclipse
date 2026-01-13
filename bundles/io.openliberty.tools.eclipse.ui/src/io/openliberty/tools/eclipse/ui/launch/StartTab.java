@@ -61,7 +61,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
 
     /** Configuration map key with a value stating whether or not the associated project ran in a container. */
     public static final String PROJECT_RUN_IN_CONTAINER = "io.openliberty.tools.eclipse.launch.project.container.run";
-    
+
     /** Configuration map key with a value stating whether or not the associated project ran with clean option. */
     public static final String PROJECT_CLEAN = "io.openliberty.tools.eclipse.launch.project.clean";
 
@@ -87,7 +87,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
 
     /** Holds the run in container check box. */
     private Button runInContainerCheckBox;
-    
+
     /** Holds the project clean check box. */
     private Button projectCleanCheckBox;
 
@@ -166,14 +166,14 @@ public class StartTab extends AbstractLaunchConfigurationTab {
 
             boolean runInContainer = configuration.getAttribute(PROJECT_RUN_IN_CONTAINER, false);
             runInContainerCheckBox.setSelection(runInContainer);
-            
+
             boolean projectClean = configuration.getAttribute(PROJECT_CLEAN, false);
             projectCleanCheckBox.setSelection(projectClean);
 
             String projectName = configuration.getAttribute(PROJECT_NAME, (String) null);
             if (projectName == null) {
                 super.setErrorMessage(
-                        "A project must be selected in order to provide a context to associate the run configuration with.  Either use a tree view like Package Explorer or have an editor window.");
+                                      "A project must be selected in order to provide a context to associate the run configuration with.  Either use a tree view like Package Explorer or have an editor window.");
             } else {
                 projectNameLabel.setText(projectName);
             }
@@ -215,7 +215,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
 
             if (configProjectName == null) {
                 super.setErrorMessage(
-                        "This Run/Debug config is corrupted and can't be used since no project was selected before creating. To create a new Run/Debug config first select a project in the Liberty dashboard, Project/Package explorer view, or via editor.");
+                                      "This Run/Debug config is corrupted and can't be used since no project was selected before creating. To create a new Run/Debug config first select a project in the Liberty dashboard, Project/Package explorer view, or via editor.");
                 return false;
             }
 
@@ -224,7 +224,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
                 String selectedProjectName = selectedProject.getName();
                 if (!configProjectName.equals(selectedProjectName)) {
                     super.setWarningMessage(
-                            "Must use an existing (or new) configuration associated with selected project: " + selectedProjectName);
+                                            "Must use an existing (or new) configuration associated with selected project: " + selectedProjectName);
                     return false;
                 }
             }
@@ -258,18 +258,18 @@ public class StartTab extends AbstractLaunchConfigurationTab {
         String startParamStr = startParmText.getText();
 
         boolean runInContainerBool = runInContainerCheckBox.getSelection();
-        
+
         boolean projectCleanBool = projectCleanCheckBox.getSelection();
 
         configuration.setAttribute(PROJECT_RUN_IN_CONTAINER, runInContainerBool);
-        
+
         configuration.setAttribute(PROJECT_CLEAN, projectCleanBool);
 
         configuration.setAttribute(PROJECT_START_PARM, startParamStr);
 
         if (Trace.isEnabled()) {
             Trace.getTracer().trace(Trace.TRACE_UI, "In performApply with project name = " + projectNameLabel.getText() + ", text = "
-                    + startParamStr + ", runInContainer = " + runInContainerBool + ", clean project = " + projectCleanBool);
+                                                    + startParamStr + ", runInContainer = " + runInContainerBool + ", clean project = " + projectCleanBool);
         }
     }
 
@@ -302,8 +302,8 @@ public class StartTab extends AbstractLaunchConfigurationTab {
     /**
      * Creates a composite that will display a set of elements as a group.
      * 
-     * @param parent The parent composite.
-     * @param groupName The title of the group to be created.
+     * @param parent     The parent composite.
+     * @param groupName  The title of the group to be created.
      * @param numColumns The number of columns of the grid layout in the composite to be created.
      * 
      * @return A composite that will display a set of elements as a group.
@@ -422,33 +422,33 @@ public class StartTab extends AbstractLaunchConfigurationTab {
         Label emptyColumnLabel = new Label(parent, SWT.NONE);
         GridDataFactory.swtDefaults().applyTo(emptyColumnLabel);
     }
-    
+
     /**
      * Creates the button entry that indicates whether or not the project should run with project clean command.
      * 
      * @param parent The parent composite.
      */
-	private void createProjectCleanButton(Composite parent) {
-		projectCleanCheckBox = new Button(parent, SWT.CHECK);
-		projectCleanCheckBox.setText("Clean project");
-		projectCleanCheckBox.setSelection(false);
-		projectCleanCheckBox.setFont(font);
-		projectCleanCheckBox.addSelectionListener(new SelectionAdapter() {
+    private void createProjectCleanButton(Composite parent) {
+        projectCleanCheckBox = new Button(parent, SWT.CHECK);
+        projectCleanCheckBox.setText("Clean project");
+        projectCleanCheckBox.setSelection(false);
+        projectCleanCheckBox.setFont(font);
+        projectCleanCheckBox.addSelectionListener(new SelectionAdapter() {
 
-			/**
-			 * {@inheritDoc}
-			 */
-			@Override
-			public void widgetSelected(SelectionEvent event) {
-				setDirty(true);
-				updateLaunchConfigurationDialog();
-			}
-		});
-		GridDataFactory.swtDefaults().applyTo(projectCleanCheckBox);
+            /**
+             * {@inheritDoc}
+             */
+            @Override
+            public void widgetSelected(SelectionEvent event) {
+                setDirty(true);
+                updateLaunchConfigurationDialog();
+            }
+        });
+        GridDataFactory.swtDefaults().applyTo(projectCleanCheckBox);
 
-		Label emptyColumnLabel = new Label(parent, SWT.NONE);
-		GridDataFactory.swtDefaults().applyTo(emptyColumnLabel);
-	}
+        Label emptyColumnLabel = new Label(parent, SWT.NONE);
+        GridDataFactory.swtDefaults().applyTo(emptyColumnLabel);
+    }
 
     /**
      * Returns the default start parameters.

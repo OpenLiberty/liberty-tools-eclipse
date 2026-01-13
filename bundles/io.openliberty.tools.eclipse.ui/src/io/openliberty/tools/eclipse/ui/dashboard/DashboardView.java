@@ -227,8 +227,7 @@ public class DashboardView extends ViewPart {
         // Get the image descriptors for the menu actions and toolbar.
         // If there is a failure, display the error and proceed without the icons.
         try {
-            ActionImg = ImageDescriptor
-                    .createFromURL(new URL("platform:/plugin/org.eclipse.jdt.debug.ui/icons/full/elcl16/thread_view.gif"));
+            ActionImg = ImageDescriptor.createFromURL(new URL("platform:/plugin/org.eclipse.jdt.debug.ui/icons/full/elcl16/thread_view.gif"));
             refreshImg = ImageDescriptor.createFromURL(new URL("platform:/plugin/org.eclipse.ui.browser/icons/clcl16/nav_refresh.png"));
         } catch (Exception e) {
             String msg = "An error was detected while retrieving image descriptions.";
@@ -278,7 +277,7 @@ public class DashboardView extends ViewPart {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
                     }
                     ErrorHandler.processErrorMessage(NLS.bind(Messages.action_general_error, APP_MENU_ACTION_START_CONFIG), e,
-                            true);
+                                                     true);
                 }
             }
         };
@@ -296,7 +295,7 @@ public class DashboardView extends ViewPart {
                     StartInContainerAction.run(iProject, ILaunchManager.RUN_MODE);
                 } catch (Exception e) {
                     String msg = "An error was detected during the " + APP_MENU_ACTION_START_IN_CONTAINER
-                            + " action.";
+                                 + " action.";
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
                     }
@@ -318,7 +317,7 @@ public class DashboardView extends ViewPart {
                     StartInContainerAction.run(iProject, ILaunchManager.DEBUG_MODE);
                 } catch (Exception e) {
                     String msg = "An error was detected during the " + APP_MENU_ACTION_DEBUG_IN_CONTAINER
-                            + " action.";
+                                 + " action.";
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
                     }
@@ -425,7 +424,7 @@ public class DashboardView extends ViewPart {
                     OpenMavenITestReportAction.run(iProject);
                 } catch (Exception e) {
                     String msg = "An error was detected during the " + APP_MENU_ACTION_VIEW_MVN_IT_REPORT
-                            + " action.";
+                                 + " action.";
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
                     }
@@ -447,7 +446,7 @@ public class DashboardView extends ViewPart {
                     OpenMavenUTestReportAction.run(iProject);
                 } catch (Exception e) {
                     String msg = "An error was detected during the " + APP_MENU_ACTION_VIEW_MVN_UT_REPORT
-                            + " action.";
+                                 + " action.";
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
                     }
@@ -469,12 +468,12 @@ public class DashboardView extends ViewPart {
                     OpenGradleTestReportAction.run(iProject);
                 } catch (Exception e) {
                     String msg = "An error was detected during the " + APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT
-                            + " action.";
+                                 + " action.";
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
                     }
                     ErrorHandler.processErrorMessage(NLS.bind(Messages.action_general_error, APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT), e,
-                            true);
+                                                     true);
                 }
             }
         };

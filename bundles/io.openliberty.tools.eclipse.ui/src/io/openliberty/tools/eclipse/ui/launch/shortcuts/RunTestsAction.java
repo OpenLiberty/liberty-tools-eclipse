@@ -45,12 +45,12 @@ public class RunTestsAction implements ILaunchShortcut {
             run(iProject);
         } catch (Exception e) {
             String msg = "An error was detected when the \"" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_RUN_TESTS
-                    + "\" launch shortcut was processed.";
+                         + "\" launch shortcut was processed.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }
             ErrorHandler.processErrorMessage(
-                    NLS.bind(Messages.launch_shortcut_error, LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_RUN_TESTS), e, true);
+                                             NLS.bind(Messages.launch_shortcut_error, LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_RUN_TESTS), e, true);
             return;
         }
 
@@ -74,12 +74,12 @@ public class RunTestsAction implements ILaunchShortcut {
             run(iProject);
         } catch (Exception e) {
             String msg = "An error was detected when the \"" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_RUN_TESTS
-                    + "\" launch shortcut was processed.";
+                         + "\" launch shortcut was processed.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }
             ErrorHandler.processErrorMessage(
-                    NLS.bind(Messages.launch_shortcut_error, LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_RUN_TESTS), e, true);
+                                             NLS.bind(Messages.launch_shortcut_error, LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_RUN_TESTS), e, true);
             return;
         }
 

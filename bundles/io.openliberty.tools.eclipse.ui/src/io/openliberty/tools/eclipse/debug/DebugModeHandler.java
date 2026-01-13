@@ -106,8 +106,8 @@ public class DebugModeHandler {
     /**
      * Returns the input configuration parameters with the debug port argument appended.
      * 
-     * @param project The project associated with this call.
-     * @param debugPort The debug port to add to the config parameters.
+     * @param project     The project associated with this call.
+     * @param debugPort   The debug port to add to the config parameters.
      * @param configParms The input parameters from the Run configuration's dialog.
      * 
      * @return The input configuration parameters with the debug port argument appended.
@@ -134,7 +134,7 @@ public class DebugModeHandler {
                 }
             } else {
                 throw new Exception("Unexpected project build type: " + buildType + ". Project" + project.getIProject().getName()
-                        + "does not appear to be a Maven or Gradle built project.");
+                                    + "does not appear to be a Maven or Gradle built project.");
             }
         }
 
@@ -154,7 +154,7 @@ public class DebugModeHandler {
     /**
      * Determines and returns the debug port to be used.
      * 
-     * @param project The project
+     * @param project    The project
      * @param inputParms
      * 
      * @return The debug port to be used.
@@ -176,7 +176,7 @@ public class DebugModeHandler {
             searchKey = GRADLE_DEVMODE_DEBUG_PORT_PARM;
         } else {
             throw new Exception("Unexpected project build type: " + buildType + ". Project " + project.getIProject().getName()
-                    + "does not appear to be a Maven or Gradle built project.");
+                                + "does not appear to be a Maven or Gradle built project.");
         }
 
         if (inputParms.contains(searchKey)) {
@@ -209,8 +209,8 @@ public class DebugModeHandler {
     /**
      * Starts the job that will attempt to connect the debugger with the server's JVM.
      * 
-     * @param project The project for which the debugger needs to be attached.
-     * @param launch The launch to which the debug target will be added.
+     * @param project   The project for which the debugger needs to be attached.
+     * @param launch    The launch to which the debug target will be added.
      * @param debugPort The debug port to use to attach the debugger to.
      * 
      * @throws Exception
@@ -275,14 +275,13 @@ public class DebugModeHandler {
                     Map<String, Argument> map = connector.defaultArguments();
                     configureConnector(map, DEFAULT_ATTACH_HOST, Integer.parseInt(portToConnect));
                     IDebugTarget debugTarget = createRemoteJDTDebugTarget(launch, Integer.parseInt(portToConnect),
-                            DEFAULT_ATTACH_HOST,
-                            connector, map);
+                                                                          DEFAULT_ATTACH_HOST,
+                                                                          connector, map);
 
                     launch.addDebugTarget(debugTarget);
 
                 } catch (Exception e) {
-                    return new Status(IStatus.ERROR, LibertyDevPlugin.PLUGIN_ID, JOB_STATUS_DEBUGGER_CONN_ERROR,
-                            "An error was detected while attaching the debugger to the JVM.", e);
+                    return new Status(IStatus.ERROR, LibertyDevPlugin.PLUGIN_ID, JOB_STATUS_DEBUGGER_CONN_ERROR, "An error was detected while attaching the debugger to the JVM.", e);
                 }
 
                 return Status.OK_STATUS;
@@ -335,8 +334,8 @@ public class DebugModeHandler {
     /**
      * Configure the connector properties.
      *
-     * @param map argument map
-     * @param host the host name or IP address
+     * @param map        argument map
+     * @param host       the host name or IP address
      * @param portNumber the port number
      */
     private void configureConnector(Map<String, Argument> map, String host, int portNumber) {
@@ -352,16 +351,16 @@ public class DebugModeHandler {
         Connector.IntegerArgument timeoutArg = (Connector.IntegerArgument) map.get("timeout");
         if (timeoutArg != null) {
             int timeout = Platform.getPreferencesService().getInt(
-                    "org.eclipse.jdt.launching",
-                    JavaRuntime.PREF_CONNECT_TIMEOUT,
-                    JavaRuntime.DEF_CONNECT_TIMEOUT,
-                    null);
+                                                                  "org.eclipse.jdt.launching",
+                                                                  JavaRuntime.PREF_CONNECT_TIMEOUT,
+                                                                  JavaRuntime.DEF_CONNECT_TIMEOUT,
+                                                                  null);
             timeoutArg.setValue(timeout);
         }
     }
 
     private IDebugTarget createRemoteJDTDebugTarget(ILaunch launch, int remoteDebugPortNum, String hostName,
-            AttachingConnector connector, Map<String, Argument> map) throws CoreException {
+                                                    AttachingConnector connector, Map<String, Argument> map) throws CoreException {
         if (launch == null || hostName == null || hostName.length() == 0) {
             return null;
         }
@@ -373,8 +372,7 @@ public class DebugModeHandler {
             ex = e;
         }
         if (remoteVM == null) {
-            throw new CoreException(
-                    new Status(IStatus.ERROR, this.getClass(), IJavaLaunchConfigurationConstants.ERR_CONNECTION_FAILED, "", ex));
+            throw new CoreException(new Status(IStatus.ERROR, this.getClass(), IJavaLaunchConfigurationConstants.ERR_CONNECTION_FAILED, "", ex));
         }
         LibertyDebugTarget libertyDebugTarget = new LibertyDebugTarget(launch, remoteVM, hostName + ":" + remoteDebugPortNum);
 
@@ -413,7 +411,7 @@ public class DebugModeHandler {
             } catch (IOException e) {
                 if (Trace.isEnabled()) {
                     Trace.getTracer().trace(Trace.TRACE_UI,
-                            "Error occured while trying to connect to the remote virtual machine " + e.getMessage(), e);
+                                            "Error occured while trying to connect to the remote virtual machine " + e.getMessage(), e);
                 }
             } catch (TimeoutException e2) {
                 // do nothing
@@ -486,8 +484,6 @@ public class DebugModeHandler {
      */
     private Path getServerEnvFile(Project project) throws Exception {
 
-    
-
         Path libertyPluginConfigXmlPath = devModeOps.getLibertyPluginConfigXmlPath(project);
 
         // Read server.env path from liberty-plugin-config.xml
@@ -553,8 +549,8 @@ public class DebugModeHandler {
     /**
      * Waits for the JDWP socket on the JVM to start listening for connections.
      * 
-     * @param host The host to connect to.
-     * @param port The port to connect to.
+     * @param host    The host to connect to.
+     * @param port    The port to connect to.
      * @param monitor The progress monitor instance.
      * 
      * @returns The port that the debugger actually connected to.
@@ -594,9 +590,8 @@ public class DebugModeHandler {
         }
 
         throw new Exception("Timed out trying to attach the debugger to JVM on host: " + host + " and port: " + port
-                + ".  If the server starts later you might try to manually connect the debugger from the launch in the Debug view  You can confirm the debug port used in the console output looking for a message like  'Liberty debug port: [ 63624 ]'.");
+                            + ".  If the server starts later you might try to manually connect the debugger from the launch in the Debug view  You can confirm the debug port used in the console output looking for a message like  'Liberty debug port: [ 63624 ]'.");
     }
-
 
     private class DataHolder {
         boolean started;

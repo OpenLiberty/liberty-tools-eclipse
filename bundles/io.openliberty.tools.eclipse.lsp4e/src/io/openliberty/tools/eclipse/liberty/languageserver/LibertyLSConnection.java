@@ -48,8 +48,7 @@ public class LibertyLSConnection extends ProcessStreamConnectionProvider {
             setCommands(commands);
             setWorkingDirectory(System.getProperty("user.dir"));
         } catch (IOException e) {
-            LibertyToolsLSPlugin.getDefault().getLog()
-                    .log(new Status(IStatus.ERROR, LibertyToolsLSPlugin.getDefault().getBundle().getSymbolicName(), e.getMessage(), e));
+            LibertyToolsLSPlugin.getDefault().getLog().log(new Status(IStatus.ERROR, LibertyToolsLSPlugin.getDefault().getBundle().getSymbolicName(), e.getMessage(), e));
         }
     }
 

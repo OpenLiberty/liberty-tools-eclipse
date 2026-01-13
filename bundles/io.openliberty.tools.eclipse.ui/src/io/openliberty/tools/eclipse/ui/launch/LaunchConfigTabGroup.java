@@ -12,10 +12,10 @@
 *******************************************************************************/
 package io.openliberty.tools.eclipse.ui.launch;
 
+import org.eclipse.cdt.launch.ui.CommonTabLite;
 import org.eclipse.debug.ui.AbstractLaunchConfigurationTabGroup;
 import org.eclipse.debug.ui.ILaunchConfigurationDialog;
 import org.eclipse.debug.ui.ILaunchConfigurationTab;
-import org.eclipse.cdt.launch.ui.CommonTabLite;
 import org.eclipse.debug.ui.sourcelookup.SourceLookupTab;
 
 /**

@@ -81,7 +81,7 @@ public class JRETab extends JavaJRETab {
             }
         } catch (Exception e) {
             ErrorHandler.processWarningMessage(
-                    NLS.bind(Messages.java_default_set_error, new String[] { activeProject.getName(), configuration.getName() }), e);
+                                               NLS.bind(Messages.java_default_set_error, new String[] { activeProject.getName(), configuration.getName() }), e);
         }
 
         super.setDefaults(configuration);
@@ -105,7 +105,7 @@ public class JRETab extends JavaJRETab {
             keyValue = configWorkingCopy.getAttribute(IJavaLaunchConfigurationConstants.ATTR_JRE_CONTAINER_PATH, (String) null);
         } catch (Exception e) {
             String msg = "Unable to resolve the Java installation path by using configuration." + configuration.getName()
-                    + ". Using the workspace Java installation";
+                         + ". Using the workspace Java installation";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }

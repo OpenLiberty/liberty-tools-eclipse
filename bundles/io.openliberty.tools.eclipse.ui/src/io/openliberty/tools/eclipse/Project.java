@@ -89,7 +89,7 @@ public class Project {
         } catch (Exception e) {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS,
-                        "An error occurred while attempting to find the nature of project " + iProject.getName(), e);
+                                        "An error occurred while attempting to find the nature of project " + iProject.getName(), e);
             }
             return false;
         }
@@ -120,7 +120,7 @@ public class Project {
         } catch (Exception e) {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS,
-                        "An error occurred while attempting to find the nature of project " + iProject.getName(), e);
+                                        "An error occurred while attempting to find the nature of project " + iProject.getName(), e);
             }
         }
 
@@ -299,7 +299,7 @@ public class Project {
     /**
      * Adds the specified nature ID to the project's description/metadata (.project).
      * 
-     * @param project The project to process.
+     * @param project  The project to process.
      * @param natureId The nature ID to add.
      * 
      * @throws Exception
@@ -331,7 +331,7 @@ public class Project {
     /**
      * Removes the specified nature ID from the project's description/metadata (.project).
      *
-     * @param project The project to process.
+     * @param project  The project to process.
      * @param natureId The nature ID to remove.
      *
      * @throws Exception
@@ -403,9 +403,9 @@ public class Project {
     @Override
     public String toString() {
         return "IProject: " + iProject.toString() + ". BuildType: " + type + ". Liberty Server Module: " + libertyServerModule
-                + ". isParentOfServerModule:" + isParentOfServerModule + ". parentDirProj: "
-                + (parentDirProject != null ? parentDirProject.getName() : "<null> ") + ". childDirProjects: "
-                + formatChildProjectToString() + ";";
+               + ". isParentOfServerModule:" + isParentOfServerModule + ". parentDirProj: "
+               + (parentDirProject != null ? parentDirProject.getName() : "<null> ") + ". childDirProjects: "
+               + formatChildProjectToString() + ";";
     }
 
     public boolean isLibertyServerModule() {
