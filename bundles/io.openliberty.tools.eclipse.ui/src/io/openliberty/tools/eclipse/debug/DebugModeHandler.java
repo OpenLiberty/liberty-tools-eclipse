@@ -411,7 +411,7 @@ public class DebugModeHandler {
             } catch (IOException e) {
                 if (Trace.isEnabled()) {
                     Trace.getTracer().trace(Trace.TRACE_UI,
-                                            "Error occured while trying to connect to the remote virtual machine " + e.getMessage(), e);
+                                            "Error occurred while trying to connect to the remote virtual machine " + e.getMessage(), e);
                 }
             } catch (TimeoutException e2) {
                 // do nothing
