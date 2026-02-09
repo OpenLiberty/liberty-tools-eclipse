@@ -315,7 +315,7 @@ Liberty Tools editing assistance provides code completion, diagnostics, and quic
 
 4. To use Jakarta EE-specific quick-fixes, hover over a supported Jakarta EE error. A drop-down list of quick-fixes appears.
 
-![Jakarta EE quick-dix](images/jakarta-ee-ls-quick-fix.png)
+![Jakarta EE quick-fix](images/jakarta-ee-ls-quick-fix.png)
 
 Jakarta EE API configuration assistance is offered through Eclipse LSP4Jakarta, the Language Server for Jakarta EE. For more information, see the [project documentation in GitHub](https://github.com/eclipse/lsp4jakarta#eclipse-lsp4jakarta).
 

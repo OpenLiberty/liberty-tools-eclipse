@@ -47,7 +47,7 @@ You can use the **Install New Software** option in the Eclipse **Help** menu to 
 
     Download this zip to your local workstation and copy the path to the downloaded archive.
 
-    Click on the **Add...** button to open the **Add Repository** view. Specify a **Name** of your choice (optional), and click the **Add** button. paste the location of the downloaded archive, and click the **Add** button.
+    Click on the **Add...** button to open the **Add Repository** dialog. Copy and paste the location of the downloaded archive as the **Location**, specify a **Name** of your choice (optional), and click the **Add** button.
 
     ![Step 2b. Add repository](images/install-addRepoArchive.png)
 
