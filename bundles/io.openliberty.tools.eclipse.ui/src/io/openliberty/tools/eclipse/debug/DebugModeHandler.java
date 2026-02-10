@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2022, 2025 IBM Corporation and others.
+* Copyright (c) 2022, 2026 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -411,7 +411,7 @@ public class DebugModeHandler {
             } catch (IOException e) {
                 if (Trace.isEnabled()) {
                     Trace.getTracer().trace(Trace.TRACE_UI,
-                                            "Error occured while trying to connect to the remote virtual machine " + e.getMessage(), e);
+                                            "Error occurred while trying to connect to the remote virtual machine " + e.getMessage(), e);
                 }
             } catch (TimeoutException e2) {
                 // do nothing
