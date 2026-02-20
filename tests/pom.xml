@@ -17,7 +17,7 @@
     <parent>
         <groupId>io.openliberty.tools.eclipse</groupId>
         <artifactId>parent</artifactId>
-        <version>25.0.12-SNAPSHOT</version>
+        <version>26.0.2-SNAPSHOT</version>
     </parent>
 
     <artifactId>io.openliberty.tools.eclipse.tests</artifactId>
