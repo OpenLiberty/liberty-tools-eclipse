@@ -1,5 +1,14 @@
 # Liberty Tools Eclipse Changelog
 
+
+## 26.0.12 [changes](https://github.com/OpenLiberty/liberty-tools-eclipse/milestone/14) / [release](https://github.com/OpenLiberty/liberty-tools-eclipse/releases/tag/liberty-tools-26.0.2.202602260639) (February 27, 2025)
+
+### Eclipse Platform target release upgrade
+ * 4.38 (2025-12)
+
+### Dependency Upgrades
+ * Language Server for MicroProfile (LSP4MP) => 0.16.0
+ 
 ## 25.0.12 [changes](https://github.com/OpenLiberty/liberty-tools-eclipse/milestone/13) / [release](https://github.com/OpenLiberty/liberty-tools-eclipse/releases/tag/liberty-tools-25.0.12.202512101531) (December 10, 2025)
 
 ### Eclipse Platform target release upgrade
