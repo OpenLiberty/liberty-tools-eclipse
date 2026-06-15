@@ -1,4 +1,5 @@
 /*******************************************************************************
+/*******************************************************************************
 * Copyright (c) 2022, 2023 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
@@ -42,10 +43,12 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
+import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotEclipseEditor;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotEditor;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotView;
 import org.eclipse.swtbot.swt.finder.SWTBot;
 import org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory;
+import org.eclipse.swtbot.swt.finder.utils.SWTBotPreferences;
 import org.eclipse.swtbot.swt.finder.utils.SWTUtils;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotCTabItem;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotCombo;
@@ -1225,6 +1228,136 @@ public class SWTBotPluginOperations {
 
             return matchFound;
         }
+    }
+    
+    /**
+     * Creates a new class in the application
+     * 
+     * @param appName The application under which to create the class
+     * @param className The name to give to the new class
+     * @param clearContent Flag to clear content of newly created file
+     */
+    public static void createNewClass(SWTWorkbenchBot bot, String appName, String className, boolean clearContent) {
+
+        System.out.println("INFO: Creating new Java class: " + className);
+
+        Object project = getAppInPackageExplorerTree(appName);
+        context(project, "New", "Class");
+
+        Shell newClassShell = (Shell) findGlobal("New Java Class", Option.factory().widgetClass(Shell.class).build());
+
+        Object nameLabel = find("Name:", newClassShell, Option.factory().widgetClass(Label.class).build());
+        Control nameText = ControlFinder.findControlInRange(nameLabel, Text.class, Direction.EAST);
+        set(nameText, className);
+
+        go("Finish", newClassShell);
+
+        if (clearContent) {
+            bot.sleep(2000);
+            SWTBotEditor editor = searchForEditor(bot, className + ".java");
+            SWTBotEclipseEditor e = editor.toTextEditor();
+            e.setText("");
+            editor.save();
+        }
+    }
+
+    /**
+     * Gets the list of options when type-ahead is invoked on the file.
+     * 
+     * @param bot - the SWTWorkbenchBot to lookup the editor
+     * @param editorFileName - Name of the open file editor
+     * @param insertText - the text to enter for type-ahead options
+     * @param cursorRow - the row position for the cursor
+     * @param cursorColumn - the column position for the cursor
+     * 
+     * @return
+     */
+    public static List<String> getTypeAheadList(SWTWorkbenchBot bot, String editorFileName, String insertText, int cursorRow,
+            int cursorColumn) {
+
+        System.out.println("INFO: Getting type-ahead list");
+
+        SWTBotPreferences.PLAYBACK_DELAY = 1000;
+
+        SWTBotEditor editor = searchForEditor(bot, editorFileName);
+        SWTBotEclipseEditor e = editor.toTextEditor();
+        e.navigateTo(cursorRow, cursorColumn);
+        List<String> options = e.getAutoCompleteProposals(insertText);
+
+        SWTBotPreferences.PLAYBACK_DELAY = 0;
+
+        return options;
+    }
+
+    /**
+     * Select the type-ahead option
+     * 
+     * @param bot - the SWTWorkbenchBot to lookup the editor
+     * @param editorFileName - Name of the open file editor
+     * @param option - the text to enter for type-ahead options
+     * @param cursorRow - the row position for the cursor
+     * @param cursorColumn - the column position for the cursor
+     * 
+     * @return
+     */
+    public static void selectTypeAheadOption(SWTWorkbenchBot bot, String editorFileName, String option, int cursorRow,
+            int cursorColumn) {
+
+        System.out.println("INFO: Selecting type-ahead option: " + option);
+
+        SWTBotPreferences.PLAYBACK_DELAY = 1000;
+        SWTBotEditor editor = searchForEditor(bot, editorFileName);
+        SWTBotEclipseEditor e = editor.toTextEditor();
+        e.navigateTo(cursorRow, cursorColumn);
+        e.autoCompleteProposal(option, option);
+        SWTBotPreferences.PLAYBACK_DELAY = 0;
+    }
+
+    /**
+     * Gets the list of quick-fixes in the editor
+     * 
+     * @param bot - the SWTWorkbenchBot to lookup the editor
+     * @param editorFileName - Name of the open file editor
+     * 
+     * @return
+     */
+    public static List<String> getQuickFixList(SWTWorkbenchBot bot, String editorFileName) {
+        System.out.println("INFO: Getting quick-fix list for class: " + editorFileName);
+
+        SWTBotPreferences.PLAYBACK_DELAY = 1000;
+
+        SWTBotEditor editor = searchForEditor(bot, editorFileName);
+        SWTBotEclipseEditor e = editor.toTextEditor();
+        List<String> quickFixes = e.getQuickFixes();
+        SWTBotPreferences.PLAYBACK_DELAY = 0;
+
+        return quickFixes;
+    }
+
+    /**
+     * Add text at a specified position in the editor
+     * 
+     * @param bot - the SWTWorkbenchBot to lookup the editor
+     * @param editorFileName - Name of the open file editor
+     * @param textToAdd - the text to add to the editor
+     * @param cursorRow - the row position for the cursor
+     * @param cursorColumn - the column position for the cursor
+     * @param newline - flag to set if the text should be put on a new line
+     * 
+     * @return
+     */
+    public static void addTextToEditor(SWTWorkbenchBot bot, String editorFileName, String textToAdd, int cursorRow,
+            int cursorColumn) {
+        SWTBotPreferences.PLAYBACK_DELAY = 1000;
+
+        SWTBotEditor editor = searchForEditor(bot, editorFileName);
+        SWTBotEclipseEditor e = editor.toTextEditor();
+
+        e.insertText(cursorRow, cursorColumn, textToAdd);
+        e.save();
+        bot.sleep(2000);
+
+        SWTBotPreferences.PLAYBACK_DELAY = 0;
     }
 
 }
