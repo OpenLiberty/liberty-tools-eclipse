@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2022 IBM Corporation and others.
+* Copyright (c) 2022, 2026 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -24,9 +24,9 @@ import org.eclipse.osgi.util.NLS;
 import org.eclipse.ui.handlers.HandlerUtil;
 
 import io.openliberty.tools.eclipse.LibertyNature;
-import io.openliberty.tools.eclipse.Project;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.messages.Messages;
+import io.openliberty.tools.eclipse.model.ProjectModel;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
 import io.openliberty.tools.eclipse.utils.Utils;
 
@@ -93,7 +93,7 @@ public class ExplorerMenuHandler extends AbstractHandler {
 
                 switch (commandName) {
                     case ADD_NATURE_ACTION:
-                        Project.addNature(iProject, LibertyNature.NATURE_ID);
+                        ProjectModel.addNature(iProject, LibertyNature.NATURE_ID);
                         break;
                     default:
                         throw new Exception("invalid command");

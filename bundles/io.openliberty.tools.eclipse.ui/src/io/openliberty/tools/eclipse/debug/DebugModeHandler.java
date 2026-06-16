@@ -60,10 +60,10 @@ import com.sun.jdi.connect.IllegalConnectorArgumentsException;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.LibertyDevPlugin;
-import io.openliberty.tools.eclipse.Project;
-import io.openliberty.tools.eclipse.Project.BuildType;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.messages.Messages;
+import io.openliberty.tools.eclipse.model.ProjectModel;
+import io.openliberty.tools.eclipse.model.ProjectModel.BuildType;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
 import io.openliberty.tools.eclipse.utils.Utils;
@@ -115,7 +115,7 @@ public class DebugModeHandler {
      * 
      * @throws Exception
      */
-    public String addDebugDataToStartParms(Project project, String debugPort, String configParms) throws Exception {
+    public String addDebugDataToStartParms(ProjectModel project, String debugPort, String configParms) throws Exception {
         if (Trace.isEnabled()) {
             Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { project, debugPort, configParms });
         }
@@ -159,7 +159,7 @@ public class DebugModeHandler {
      * 
      * @return The debug port to be used.
      */
-    public String calculateDebugPort(Project project, String inputParms) throws Exception {
+    public String calculateDebugPort(ProjectModel project, String inputParms) throws Exception {
         if (Trace.isEnabled()) {
             Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { project, inputParms });
         }
@@ -214,7 +214,7 @@ public class DebugModeHandler {
      * 
      * @throws Exception
      */
-    public void startDebugAttacher(Project project, ILaunch launch, String port) {
+    public void startDebugAttacher(ProjectModel project, ILaunch launch, String port) {
         String projectName = project.getIProject().getName();
 
         Job job = new Job(Messages.getMessage("attaching_debugger_job")) {
@@ -482,7 +482,7 @@ public class DebugModeHandler {
      * 
      * @throws Exception
      */
-    private Path getServerEnvFile(Project project) throws Exception {
+    private Path getServerEnvFile(ProjectModel project) throws Exception {
 
         Path libertyPluginConfigXmlPath = devModeOps.getLibertyPluginConfigXmlPath(project);
 
@@ -557,7 +557,7 @@ public class DebugModeHandler {
      * 
      * @throws Exception
      */
-    private String waitForSocketActivation(Project project, String host, String port, IProgressMonitor monitor) throws Exception {
+    private String waitForSocketActivation(ProjectModel project, String host, String port, IProgressMonitor monitor) throws Exception {
 
         // This is the first of several timeout mechanisms during the debugger connection. This method
         // will attempt a write to the debug port of the target VM (Liberty server) once every second for

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2022, 2023 IBM Corporation and others.
+* Copyright (c) 2022, 2026 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -77,7 +77,7 @@ public class LaunchConfigurationHelper {
                 String newName = iLaunchMgr.generateLaunchConfigurationName(iProject.getName());
                 ILaunchConfigurationWorkingCopy workingCopy = iLaunchConfigType.newInstance(null, newName);
                 workingCopy.setAttribute(StartTab.PROJECT_NAME, iProject.getName());
-                workingCopy.setAttribute(StartTab.PROJECT_START_PARM, devModeOps.getProjectModel().getDefaultStartParameters(iProject));
+                workingCopy.setAttribute(StartTab.PROJECT_START_PARM, devModeOps.getWorkspaceModel().getDefaultStartParameters(iProject));
                 // default to 'false', no container
                 boolean runInContainer = runtimeEnv.equals(RuntimeEnv.CONTAINER);
                 workingCopy.setAttribute(StartTab.PROJECT_RUN_IN_CONTAINER, runInContainer);

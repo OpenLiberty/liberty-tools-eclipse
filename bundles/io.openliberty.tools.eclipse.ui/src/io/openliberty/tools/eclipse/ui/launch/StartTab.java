@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2022, 2023 IBM Corporation and others.
+ * Copyright (c) 2022, 2026 IBM Corporation and others.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -463,7 +463,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
                 // Verify that the existing projects are projects are read and classified. This maybe the first time
                 // this plugin's function is being used.
                 devModeOps.verifyProjectSupport(iProject);
-                parms = devModeOps.getProjectModel().getDefaultStartParameters(iProject);
+                parms = devModeOps.getWorkspaceModel().getDefaultStartParameters(iProject);
             }
         } catch (Exception e) {
             // Report the issue and continue without a initial start command.
