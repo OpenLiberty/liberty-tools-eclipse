@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2022, 2025 IBM Corporation and others.
+* Copyright (c) 2022, 2026 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -83,9 +83,9 @@ import org.junit.jupiter.api.TestInfo;
 
 import io.openliberty.tools.eclipse.CommandBuilder;
 import io.openliberty.tools.eclipse.CommandBuilder.CommandNotFoundException;
+import io.openliberty.tools.eclipse.model.ProjectModel;
 import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.LibertyNature;
-import io.openliberty.tools.eclipse.Project;
 import io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils;
 import io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
@@ -562,7 +562,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         IProject iProject = LibertyPluginTestUtils.getProject(GRADLE_APP_NAME);
         String projectName = iProject.getName();
 
-        Project.removeNature(iProject, LibertyNature.NATURE_ID);
+        ProjectModel.removeNature(iProject, LibertyNature.NATURE_ID);
 
         // Rename the server.xml file.
         Path originalPath = Paths.get("resources", "applications", "gradle", "liberty-gradle-test-app", "src", "main", "liberty", "config", "server.xml").toAbsolutePath();

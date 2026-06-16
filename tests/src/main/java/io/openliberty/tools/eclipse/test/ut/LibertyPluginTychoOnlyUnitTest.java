@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2023 IBM Corporation and others.
+* Copyright (c) 2023, 2026 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -31,7 +31,7 @@ import org.junit.jupiter.api.TestInfo;
 import org.mockito.MockedStatic;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
-import io.openliberty.tools.eclipse.WorkspaceProjectsModel;
+import io.openliberty.tools.eclipse.model.WorkspaceModel;
 import io.openliberty.tools.eclipse.ui.launch.JRETab;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher.RuntimeEnv;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationHelper;
@@ -74,14 +74,14 @@ public class LibertyPluginTychoOnlyUnitTest {
     public void testGetLaunchConfiguration() throws Exception {
 
         DevModeOperations devModeOps = mock(DevModeOperations.class);
-        WorkspaceProjectsModel projModel = mock(WorkspaceProjectsModel.class);
+        WorkspaceModel projModel = mock(WorkspaceModel.class);
         try (MockedStatic<DevModeOperations> devModeOpsMock = mockStatic(DevModeOperations.class);
                         MockedStatic<JRETab> jreTabMock = mockStatic(JRETab.class)) {
 
             devModeOpsMock.when(DevModeOperations::getInstance).thenReturn(devModeOps);
             jreTabMock.when(() -> JRETab.getDefaultJavaFromBuildPath(any())).thenReturn("mock-build-path");
 
-            when(devModeOps.getProjectModel()).thenReturn(projModel);
+            when(devModeOps.getWorkspaceModel()).thenReturn(projModel);
             when(projModel.getDefaultStartParameters(any())).thenReturn("");
 
             LaunchConfigurationHelper launchConfigHelper = LaunchConfigurationHelper.getInstance();
