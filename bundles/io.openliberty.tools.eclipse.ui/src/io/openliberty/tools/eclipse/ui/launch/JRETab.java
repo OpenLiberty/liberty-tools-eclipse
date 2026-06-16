@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2022, 2023 IBM Corporation and others.
+* Copyright (c) 2022, 2026 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -29,10 +29,10 @@ import org.eclipse.jdt.launching.JavaRuntime;
 import org.eclipse.osgi.util.NLS;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
-import io.openliberty.tools.eclipse.Project;
-import io.openliberty.tools.eclipse.WorkspaceProjectsModel;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.messages.Messages;
+import io.openliberty.tools.eclipse.model.ProjectModel;
+import io.openliberty.tools.eclipse.model.WorkspaceModel;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
 import io.openliberty.tools.eclipse.utils.Utils;
 
@@ -141,9 +141,9 @@ public class JRETab extends JavaJRETab {
         IProject jIProject = iProject;
         if (!iProject.hasNature(JavaCore.NATURE_ID)) {
             DevModeOperations devModeOps = DevModeOperations.getInstance();
-            WorkspaceProjectsModel model = devModeOps.getProjectModel();
-            Project project = model.getProject(iProject.getName());
-            Project associatedJavaProject = project.getAssociatedJavaProject(project);
+            WorkspaceModel model = devModeOps.getWorkspaceModel();
+            ProjectModel project = model.getProjectByName(iProject.getName());
+            ProjectModel associatedJavaProject = project.getAssociatedJavaProject(project);
             if (associatedJavaProject == null) {
                 return null;
             }

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2025 IBM Corporation and others.
+* Copyright (c) 2025, 2026 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -26,9 +26,9 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.handlers.HandlerUtil;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
-import io.openliberty.tools.eclipse.Project;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.messages.Messages;
+import io.openliberty.tools.eclipse.model.ProjectModel;
 import io.openliberty.tools.eclipse.ui.launch.StartTab;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
 
@@ -111,7 +111,7 @@ public class LibertyDebugReconnectHandler extends AbstractHandler {
             }
 
             if (projectName != null && !projectName.isBlank()) {
-                Project project = devModeOps.getProjectModel().getProject(projectName);
+                ProjectModel project = devModeOps.getWorkspaceModel().getProjectByName(projectName);
 
                 // Reconnect debugger
                 if (devModeOps.isProjectStarted(projectName)) {

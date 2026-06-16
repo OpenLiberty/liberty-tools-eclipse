@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2022, 2023 IBM Corporation and others.
+ * Copyright (c) 2022, 2026 IBM Corporation and others.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -36,10 +36,10 @@ import org.eclipse.ui.handlers.IHandlerService;
 import org.eclipse.ui.part.ViewPart;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
-import io.openliberty.tools.eclipse.Project;
-import io.openliberty.tools.eclipse.WorkspaceProjectsModel;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.messages.Messages;
+import io.openliberty.tools.eclipse.model.ProjectModel;
+import io.openliberty.tools.eclipse.model.WorkspaceModel;
 import io.openliberty.tools.eclipse.ui.launch.shortcuts.OpenGradleTestReportAction;
 import io.openliberty.tools.eclipse.ui.launch.shortcuts.OpenMavenITestReportAction;
 import io.openliberty.tools.eclipse.ui.launch.shortcuts.OpenMavenUTestReportAction;
@@ -189,7 +189,7 @@ public class DashboardView extends ViewPart {
     private void addActionsToContextMenu(IMenuManager mgr) {
         IProject iProject = Utils.getActiveProject();
         String projectName = iProject.getName();
-        Project project = devModeOps.getProjectModel().getProject(projectName);
+        ProjectModel project = devModeOps.getWorkspaceModel().getProjectByName(projectName);
 
         if (project != null) {
             mgr.add(startAction);
@@ -201,10 +201,10 @@ public class DashboardView extends ViewPart {
             mgr.add(stopAction);
             mgr.add(runTestAction);
 
-            if (project.getBuildType() == Project.BuildType.MAVEN) {
+            if (project.getBuildType() == ProjectModel.BuildType.MAVEN) {
                 mgr.add(viewMavenITestReportsAction);
                 mgr.add(viewMavenUTestReportsAction);
-            } else if (project.getBuildType() == Project.BuildType.GRADLE) {
+            } else if (project.getBuildType() == ProjectModel.BuildType.GRADLE) {
                 mgr.add(viewGradleTestReportsAction);
             } else {
                 String msg = "Project" + projectName + "is not a Gradle or Maven project.";
@@ -501,7 +501,7 @@ public class DashboardView extends ViewPart {
     /**
      * Refreshes the dashboard view.
      */
-    public void refreshDashboardView(WorkspaceProjectsModel projectModel, boolean reportError) {
+    public void refreshDashboardView(WorkspaceModel projectModel, boolean reportError) {
         try {
             projectModel.createNewCompleteWorkspaceModelWithClassify();
             setInput(projectModel.getSortedDashboardProjectList());
