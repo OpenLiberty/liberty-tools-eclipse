@@ -11,9 +11,12 @@
   Contributors:
       IBM Corporation - initial implementation
 -->
-<server description="Sample Servlet server">
+<server description="Sample Liberty server with Jakarta EE 10">
     <featureManager>
-        <feature>jsp-2.3</feature>
+        <feature>restfulWS-3.1</feature>
+        <feature>jsonb-3.0</feature>
+        <feature>cdi-4.0</feature>
+        <feature>servlet-6.0</feature>
     </featureManager>
     
     <httpEndpoint  host="*" httpPort="9080" httpsPort="9443" id="defaultHttpEndpoint" />
