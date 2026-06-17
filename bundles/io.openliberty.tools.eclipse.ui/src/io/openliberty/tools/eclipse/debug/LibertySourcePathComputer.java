@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2023, 2024 IBM Corporation and others.
+* Copyright (c) 2023, 2026 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -41,7 +41,7 @@ import org.gradle.tooling.model.GradleModuleVersion;
 import org.gradle.tooling.model.eclipse.EclipseProject;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
-import io.openliberty.tools.eclipse.Project;
+import io.openliberty.tools.eclipse.model.ProjectModel;
 import io.openliberty.tools.eclipse.ui.launch.StartTab;
 import io.openliberty.tools.eclipse.utils.Utils;
 
@@ -75,13 +75,13 @@ public class LibertySourcePathComputer implements ISourcePathComputerDelegate {
         // Get current project
         String projectName = configuration.getAttribute(StartTab.PROJECT_NAME, (String) null);
 
-        Project project = DevModeOperations.getInstance().getProjectModel().getProject(projectName);
+        ProjectModel project = DevModeOperations.getInstance().getWorkspaceModel().getProjectByName(projectName);
 
         // Get full list of projects (multi-mod, children, siblings, etc)
-        List<Project> baseProjects = getBaseProjects(project);
+        List<ProjectModel> baseProjects = getBaseProjects(project);
 
         // Loop through each
-        for (Project baseProject : baseProjects) {
+        for (ProjectModel baseProject : baseProjects) {
 
             addRuntimeDependencies(baseProject.getIProject());
 
@@ -113,8 +113,8 @@ public class LibertySourcePathComputer implements ISourcePathComputerDelegate {
         return containers;
     }
 
-    private List<Project> getBaseProjects(Project project) {
-        List<Project> baseProjects = new ArrayList<Project>();
+    private List<ProjectModel> getBaseProjects(ProjectModel project) {
+        List<ProjectModel> baseProjects = new ArrayList<ProjectModel>();
 
         baseProjects.add(project);
 
@@ -124,10 +124,10 @@ public class LibertySourcePathComputer implements ISourcePathComputerDelegate {
         return baseProjects;
     }
 
-    private List<IProject> getProjectDependencies(Project project) throws CoreException {
+    private List<IProject> getProjectDependencies(ProjectModel project) throws CoreException {
         List<IProject> projectDependencies = new ArrayList<IProject>();
 
-        if (project.getBuildType() == Project.BuildType.MAVEN) {
+        if (project.getBuildType() == ProjectModel.BuildType.MAVEN) {
 
             MavenProject mavenModuleProject = MavenPlugin.getMavenModelManager().readMavenProject(project.getIProject().getFile("pom.xml"),
                                                                                                   new NullProgressMonitor());

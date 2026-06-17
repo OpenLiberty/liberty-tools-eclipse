@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2022, 2025 IBM Corporation and others.
+* Copyright (c) 2022, 2026 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -37,7 +37,9 @@ import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.jobs.JobChangeAdapter;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.jface.viewers.ISelection;
+import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.graphics.Device;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.IEditorInput;
@@ -51,10 +53,11 @@ import org.eclipse.ui.PlatformUI;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.LibertyDevPlugin;
-import io.openliberty.tools.eclipse.Project;
 import io.openliberty.tools.eclipse.debug.DebugModeHandler;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.messages.Messages;
+import io.openliberty.tools.eclipse.model.ProjectModel;
+import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
 
 /**
  * Provides a set of utility methods.
@@ -256,6 +259,43 @@ public class Utils {
     }
 
     /**
+     * Updates the active selection to the target project. This mirrors the logic in Utils.getActiveProject()
+     * to ensure that when the launch configuration dialog opens and validates the configuration,
+     * the active project context matches the project associated with the configuration.
+     * This handles selections from Dashboard, Project Explorer, Package Explorer, and other views.
+     *
+     * @param targetProjectModel The target project model to select
+     */
+    public static void updateActiveSelection(ProjectModel targetProjectModel) {
+        try {
+            IWorkbench workbench = PlatformUI.getWorkbench();
+            IWorkbenchWindow activeWindow = workbench.getActiveWorkbenchWindow();
+
+            if (activeWindow != null) {
+                IWorkbenchPage page = activeWindow.getActivePage();
+                if (page != null) {
+                    IWorkbenchPart activePart = page.getActivePart();
+
+                    // Update the selection in the active part (Dashboard, Project Explorer, Package Explorer, etc.)
+                    if (activePart != null) {
+                        ISelectionProvider selectionProvider = activePart.getSite().getSelectionProvider();
+                        if (selectionProvider != null) {
+                            // For Dashboard, select the ProjectModel; for other views, select the IProject
+                            Object selectionObject = (activePart instanceof DashboardView) ? targetProjectModel : targetProjectModel.getIProject();
+                            selectionProvider.setSelection(new StructuredSelection(selectionObject));
+                        }
+                    }
+                }
+            }
+        } catch (Exception e) {
+            // Log the error but don't fail the operation - the configuration dialog will still open
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UI, "Failed to update active selection", e);
+            }
+        }
+    }
+
+    /**
      * Returns a formatted string with the list of given objects. The format follows DebugTrace.traceEntry object list formatting.
      * 
      * @param objects The list of objects to format.
@@ -302,7 +342,7 @@ public class Utils {
      * @param debugModeHandler
      * @param preRestartTime   - The current time prior to restarting the server
      */
-    public static void restartDebugger(Project project, ILaunch launch, DebugModeHandler debugModeHandler, Instant preRestartTime) {
+    public static void restartDebugger(ProjectModel project, ILaunch launch, DebugModeHandler debugModeHandler, Instant preRestartTime) {
 
         Job job = new Job(Messages.getMessage("waiting_for_restart_job")) {
             @Override
@@ -364,7 +404,7 @@ public class Utils {
      * 
      * @param project a project in the Liberty dashboard.
      */
-    public static void disableAppMonitoring(Project project) {
+    public static void disableAppMonitoring(ProjectModel project) {
 
         String fileNameTofind = "server.xml";
         String fileContent = "<server> <applicationMonitor updateTrigger=\"disabled\"/> </server>";
@@ -399,7 +439,7 @@ public class Utils {
      * 
      * @param project a project in the Liberty dashboard.
      */
-    public static void reEnableAppMonitoring(Project project) {
+    public static void reEnableAppMonitoring(ProjectModel project) {
 
         try {
             validateProjectIsGradleOrMaven(project);
@@ -468,7 +508,7 @@ public class Utils {
     }
 
     // Method to check for project instance is null or project buildtype is unknowm.
-    private static void validateProjectIsGradleOrMaven(Project project) throws Exception {
+    private static void validateProjectIsGradleOrMaven(ProjectModel project) throws Exception {
 
         if (project == null) {
             throw new Exception("Unable to find internal instance of project.");
@@ -477,7 +517,7 @@ public class Utils {
         if (project.getPath() == null) {
             throw new Exception("Unable to find the path to selected project.");
         }
-        if (project.getBuildType() == Project.BuildType.UNKNOWN) {
+        if (project.getBuildType() == ProjectModel.BuildType.UNKNOWN) {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, "Unexpected project build type: " + project.getBuildType()
                                                         + ". " + "Project does not appear to be a Maven or Gradle built project.");
@@ -487,8 +527,8 @@ public class Utils {
     }
 
     // Get the usr directory path from the maven/gradle output folder.
-    private static File getUsrDirPath(Project project) {
-        if (project.getBuildType() == Project.BuildType.MAVEN) {
+    private static File getUsrDirPath(ProjectModel project) {
+        if (project.getBuildType() == ProjectModel.BuildType.MAVEN) {
             return Paths.get(project.getPath(), "target", "liberty", "wlp", "usr").toFile();
         } else {
             return Paths.get(project.getPath(), "build", "wlp", "usr").toFile();

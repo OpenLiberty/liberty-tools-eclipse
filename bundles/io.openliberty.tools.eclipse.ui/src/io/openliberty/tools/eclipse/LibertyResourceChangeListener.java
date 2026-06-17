@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2022 IBM Corporation and others.
+ * Copyright (c) 2022, 2026 IBM Corporation and others.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -22,6 +22,9 @@ import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.swt.widgets.Display;
 
+import io.openliberty.tools.eclipse.model.ProjectModel;
+import io.openliberty.tools.eclipse.model.WorkspaceModel;
+
 public class LibertyResourceChangeListener implements IResourceChangeListener {
 
     /**
@@ -34,7 +37,7 @@ public class LibertyResourceChangeListener implements IResourceChangeListener {
             @Override
             public void run() {
                 DevModeOperations devModeOps = DevModeOperations.getInstance();
-                WorkspaceProjectsModel db = devModeOps.getProjectModel();
+                WorkspaceModel db = devModeOps.getWorkspaceModel();
                 IResourceDelta delta = event.getDelta();
                 if (delta == null) {
                     return;
@@ -55,7 +58,7 @@ public class LibertyResourceChangeListener implements IResourceChangeListener {
                     }
                     IProject iProject = (IProject) iResource;
                     projectsChanged.add(iProject);
-                    Project project = db.getProject(iProject.getName());
+                    ProjectModel project = db.getProjectByName(iProject.getName());
 
                     int updateFlag = resourceChanged.getFlags();
 

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2022 IBM Corporation and others.
+* Copyright (c) 2022, 2026 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -19,7 +19,7 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.PlatformUI;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
-import io.openliberty.tools.eclipse.Project;
+import io.openliberty.tools.eclipse.model.ProjectModel;
 import io.openliberty.tools.eclipse.utils.Utils;
 
 /**
@@ -65,10 +65,10 @@ public class DashboardEntryLabelProvider extends LabelProvider implements ITable
         Image img = null;
         if (element != null && element instanceof String) {
             projectName = (String) element;
-            Project project = devModeOps.getProjectModel().getProject(projectName);
+            ProjectModel project = devModeOps.getWorkspaceModel().getProjectByName(projectName);
 
             if (project != null) {
-                if (project.getBuildType() == Project.BuildType.GRADLE) {
+                if (project.getBuildType() == ProjectModel.BuildType.GRADLE) {
                     img = gradleImg;
                 } else {
                     img = mavenImg;
