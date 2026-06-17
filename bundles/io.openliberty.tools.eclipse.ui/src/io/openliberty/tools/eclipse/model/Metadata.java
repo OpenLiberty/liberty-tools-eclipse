@@ -70,7 +70,7 @@ public interface Metadata {
     /**
      * Indicates whether this project has been disabled to run on a Liberty server.
      *
-     * @return {@code true} if this this project is disabled to run on a Liberty server, {@code false} otherwise.
+     * @return {@code true} if this project is disabled to run on a Liberty server, {@code false} otherwise.
      */
     public boolean isModuleDisabled();
 
