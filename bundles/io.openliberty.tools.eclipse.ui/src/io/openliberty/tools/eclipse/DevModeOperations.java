@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2022, 2025 IBM Corporation and others.
+* Copyright (c) 2022, 2026 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -50,11 +50,13 @@ import org.eclipse.ui.browser.IWebBrowser;
 import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
 
 import io.openliberty.tools.eclipse.CommandBuilder.CommandNotFoundException;
-import io.openliberty.tools.eclipse.Project.BuildType;
 import io.openliberty.tools.eclipse.debug.DebugModeHandler;
 import io.openliberty.tools.eclipse.logging.Logger;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.messages.Messages;
+import io.openliberty.tools.eclipse.model.ProjectModel;
+import io.openliberty.tools.eclipse.model.WorkspaceModel;
+import io.openliberty.tools.eclipse.model.ProjectModel.BuildType;
 import io.openliberty.tools.eclipse.process.ProcessController;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
@@ -96,7 +98,7 @@ public class DevModeOperations {
     /**
      * Dashboard object reference.
      */
-    private WorkspaceProjectsModel projectModel;
+    private WorkspaceModel projectModel;
 
     /**
      * PATH environment variable.
@@ -123,7 +125,7 @@ public class DevModeOperations {
      */
     public DevModeOperations() {
         processController = ProcessController.getInstance();
-        projectModel = new WorkspaceProjectsModel();
+        projectModel = new WorkspaceModel();
         pathEnv = System.getenv("PATH");
         debugModeHandler = new DebugModeHandler(this);
     }
@@ -133,7 +135,7 @@ public class DevModeOperations {
      * 
      * @return a complete model of the projects in the workspace
      */
-    public WorkspaceProjectsModel getProjectModel() {
+    public WorkspaceModel getWorkspaceModel() {
         return projectModel;
     }
 
@@ -183,10 +185,10 @@ public class DevModeOperations {
 
         String projectName = iProject.getName();
 
-        Project project = null;
+        ProjectModel project = null;
 
         try {
-            project = projectModel.getProject(projectName);
+            project = projectModel.getProjectByName(projectName);
             if (project == null) {
                 throw new Exception(Messages.getMessage("internal_project_not_found", projectName));
             }
@@ -210,7 +212,7 @@ public class DevModeOperations {
 
             // Append color styling to start parms
             BuildType buildType = project.getBuildType();
-            if (buildType == Project.BuildType.MAVEN) {
+            if (buildType == ProjectModel.BuildType.MAVEN) {
 
                 StringBuffer updateStartParms = new StringBuffer(startParms);
                 updateStartParms.append(" ");
@@ -229,10 +231,10 @@ public class DevModeOperations {
             // Prepare the Liberty plugin container dev mode command.
             String cmd = "";
 
-            if (buildType == Project.BuildType.MAVEN) {
+            if (buildType == ProjectModel.BuildType.MAVEN) {
                 cmd = CommandBuilder.getMavenCommandLine(projectPath, (runProjectClean == true ? " clean " : "") + "io.openliberty.tools:liberty-maven-plugin:dev " + startParms,
                                                          pathEnv);
-            } else if (buildType == Project.BuildType.GRADLE) {
+            } else if (buildType == ProjectModel.BuildType.GRADLE) {
 
                 if (runProjectClean == true) {
                     try {
@@ -302,10 +304,10 @@ public class DevModeOperations {
 
         String projectName = iProject.getName();
 
-        Project project = null;
+        ProjectModel project = null;
 
         try {
-            project = projectModel.getProject(projectName);
+            project = projectModel.getProjectByName(projectName);
             if (project == null) {
                 throw new Exception("Unable to find internal instance of project " + projectName);
             }
@@ -329,7 +331,7 @@ public class DevModeOperations {
 
             // Append color styling to start parms
             BuildType buildType = project.getBuildType();
-            if (buildType == Project.BuildType.MAVEN) {
+            if (buildType == ProjectModel.BuildType.MAVEN) {
 
                 StringBuffer updateStartParms = new StringBuffer(startParms);
                 updateStartParms.append(" ");
@@ -347,10 +349,10 @@ public class DevModeOperations {
 
             // Prepare the Liberty plugin container dev mode command.
             String cmd = "";
-            if (buildType == Project.BuildType.MAVEN) {
+            if (buildType == ProjectModel.BuildType.MAVEN) {
                 cmd = CommandBuilder.getMavenCommandLine(projectPath, (runProjectClean == true ? " clean " : "") + "io.openliberty.tools:liberty-maven-plugin:devc " + startParms,
                                                          pathEnv);
-            } else if (buildType == Project.BuildType.GRADLE) {
+            } else if (buildType == ProjectModel.BuildType.GRADLE) {
                 if (runProjectClean == true) {
                     try {
 
@@ -416,7 +418,7 @@ public class DevModeOperations {
         }
 
         String projectName = iProject.getName();
-        Project project = projectModel.getProject(projectName);
+        ProjectModel project = projectModel.getProjectByName(projectName);
 
         if (project != null) {
             Utils.reEnableAppMonitoring(project);
@@ -536,10 +538,10 @@ public class DevModeOperations {
         }
 
         String projectName = iProject.getName();
-        Project project = null;
+        ProjectModel project = null;
 
         try {
-            project = projectModel.getProject(projectName);
+            project = projectModel.getProjectByName(projectName);
             if (project == null) {
                 throw new Exception("Unable to find internal instance of project " + projectName);
             }
@@ -601,10 +603,10 @@ public class DevModeOperations {
         }
 
         String projectName = iProject.getName();
-        Project project = null;
+        ProjectModel project = null;
 
         try {
-            project = projectModel.getProject(projectName);
+            project = projectModel.getProjectByName(projectName);
             if (project == null) {
                 throw new Exception("Unable to find internal instance of project " + projectName);
             }
@@ -664,10 +666,10 @@ public class DevModeOperations {
         }
 
         String projectName = iProject.getName();
-        Project project = null;
+        ProjectModel project = null;
 
         try {
-            project = projectModel.getProject(projectName);
+            project = projectModel.getProjectByName(projectName);
             if (project == null) {
                 throw new Exception("Unable to find internal instance of project " + projectName);
             }
@@ -797,7 +799,7 @@ public class DevModeOperations {
 
         try {
             // Get the internal object representing the input project name.
-            Project project = projectModel.getProject(projectName);
+            ProjectModel project = projectModel.getProjectByName(projectName);
             if (project == null) {
                 throw new Exception("Unable to find internal the instance of project " + projectName);
             }
@@ -815,10 +817,10 @@ public class DevModeOperations {
             String cmd = "";
             String buildTypeName;
             BuildType buildType = project.getBuildType();
-            if (buildType == Project.BuildType.MAVEN) {
+            if (buildType == ProjectModel.BuildType.MAVEN) {
                 cmd = CommandBuilder.getMavenCommandLine(projectPath, "io.openliberty.tools:liberty-maven-plugin:stop", pathEnv);
                 buildTypeName = "Maven";
-            } else if (buildType == Project.BuildType.GRADLE) {
+            } else if (buildType == ProjectModel.BuildType.GRADLE) {
                 cmd = CommandBuilder.getGradleCommandLine(projectPath, "libertyStop", pathEnv);
                 buildTypeName = "Gradle";
             } else {
@@ -975,9 +977,9 @@ public class DevModeOperations {
         return path1.toFile().exists() ? path1 : path2;
     }
 
-    public Path getLibertyPluginConfigXmlPath(Project project) throws Exception {
+    public Path getLibertyPluginConfigXmlPath(ProjectModel project) throws Exception {
 
-        Project serverProj = getLibertyServerProject(project);
+        ProjectModel serverProj = getLibertyServerProject(project);
         String buildDir = serverProj.getBuildType() == BuildType.GRADLE ? "build" : "target";
 
         Path path = Paths.get(serverProj.getPath(), buildDir, "liberty-plugin-config.xml");
@@ -993,9 +995,9 @@ public class DevModeOperations {
      * 
      * @throws Exception
      */
-    private Project getLibertyServerProject(Project project) throws Exception {
+    private ProjectModel getLibertyServerProject(ProjectModel project) throws Exception {
         if (project.isParentOfServerModule()) {
-            List<Project> mmps = project.getChildLibertyServerProjects();
+            List<ProjectModel> mmps = project.getChildLibertyServerProjects();
             switch (mmps.size()) {
                 case 0:
                     throw new Exception(Messages.getMessage("child_project_not_found"));
@@ -1076,7 +1078,7 @@ public class DevModeOperations {
                 IStructuredSelection structuredSelection = (IStructuredSelection) selection;
                 Object firstElement = structuredSelection.getFirstElement();
                 if (firstElement instanceof String) {
-                    Project project = projectModel.getProject((String) firstElement);
+                    ProjectModel project = projectModel.getProjectByName((String) firstElement);
                     if (project != null) {
                         iProject = project.getIProject();
                     }
@@ -1101,7 +1103,7 @@ public class DevModeOperations {
     public void verifyProjectSupport(IProject iProject) throws Exception {
         if (iProject != null) {
             String projectName = iProject.getName();
-            Project project = projectModel.getProject(projectName);
+            ProjectModel project = projectModel.getProjectByName(projectName);
             if (project == null) {
                 throw new Exception("Project " + projectName + " is not a supported project. Make sure the project is a Liberty project.");
             }

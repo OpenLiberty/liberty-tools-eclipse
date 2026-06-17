@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2022, 2023 IBM Corporation and others.
+* Copyright (c) 2022, 2026 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -10,7 +10,7 @@
 * Contributors:
 *     IBM Corporation - initial implementation
 *******************************************************************************/
-package io.openliberty.tools.eclipse;
+package io.openliberty.tools.eclipse.model;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,6 +27,7 @@ import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
 import org.eclipse.osgi.util.NLS;
 
+import io.openliberty.tools.eclipse.LibertyNature;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.messages.Messages;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
@@ -34,7 +35,7 @@ import io.openliberty.tools.eclipse.utils.ErrorHandler;
 /**
  * Represents a project in the Liberty tools dashboard.
  */
-public class Project {
+public class ProjectModel {
 
     /** Maven project nature. */
     public static final String MAVEN_NATURE = "org.eclipse.m2e.core.maven2Nature";
@@ -51,10 +52,10 @@ public class Project {
     };
 
     /** The child projects associated with this project. */
-    private Set<Project> childDirProjects = ConcurrentHashMap.newKeySet();
+    private Set<ProjectModel> childDirProjects = ConcurrentHashMap.newKeySet();
 
     /** The set of peer projects */
-    private Set<Project> peerDirProjects = ConcurrentHashMap.newKeySet();
+    private Set<ProjectModel> peerDirProjects = ConcurrentHashMap.newKeySet();
 
     /** The Eclipse project reference. */
     private IProject iProject;
@@ -63,7 +64,7 @@ public class Project {
     private BuildType type;
 
     /** The parent of this project. */
-    private Project parentDirProject;
+    private ProjectModel parentDirProject;
 
     private boolean libertyServerModule;
 
@@ -74,7 +75,7 @@ public class Project {
      * 
      * @param project The Eclipse project reference.
      */
-    public Project(IProject project) {
+    public ProjectModel(IProject project) {
         this.iProject = project;
         this.type = findBuildType();
     }
@@ -167,10 +168,10 @@ public class Project {
      * 
      * @return The list child projects that contain Liberty server configuration.
      */
-    public List<Project> getChildLibertyServerProjects() {
-        ArrayList<Project> clsps = new ArrayList<Project>();
+    public List<ProjectModel> getChildLibertyServerProjects() {
+        ArrayList<ProjectModel> clsps = new ArrayList<ProjectModel>();
 
-        for (Project child : childDirProjects) {
+        for (ProjectModel child : childDirProjects) {
             if (child.isLibertyServerModule()) {
                 clsps.add(child);
             }
@@ -184,7 +185,7 @@ public class Project {
      * 
      * @return The list child projects that contain the java nature.
      */
-    public List<Project> getChildJavaProjects() {
+    public List<ProjectModel> getChildJavaProjects() {
         return filterJavaProjects(childDirProjects);
     }
 
@@ -193,7 +194,7 @@ public class Project {
      * 
      * @return The list of peer projects that contain the java nature.
      */
-    public List<Project> getPeerJavaProjects() {
+    public List<ProjectModel> getPeerJavaProjects() {
         return filterJavaProjects(peerDirProjects);
     }
 
@@ -204,9 +205,9 @@ public class Project {
      * 
      * @return The list of projects that contain the Java nature from the input set.
      */
-    public List<Project> filterJavaProjects(Set<Project> projects) {
-        ArrayList<Project> javaProjecs = new ArrayList<Project>();
-        for (Project child : projects) {
+    public List<ProjectModel> filterJavaProjects(Set<ProjectModel> projects) {
+        ArrayList<ProjectModel> javaProjecs = new ArrayList<ProjectModel>();
+        for (ProjectModel child : projects) {
             try {
                 if (child.getIProject().hasNature(JAVA_NATURE_ID)) {
                     javaProjecs.add(child);
@@ -227,15 +228,15 @@ public class Project {
      * 
      * @throws Exception If none of the associated projecs
      */
-    public Project getAssociatedJavaProject(Project project) throws Exception {
+    public ProjectModel getAssociatedJavaProject(ProjectModel project) throws Exception {
         if (Trace.isEnabled()) {
             Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, project);
         }
 
-        Project aJProject = null;
+        ProjectModel aJProject = null;
 
         // Find a child java project.
-        List<Project> jProjects = project.getChildJavaProjects();
+        List<ProjectModel> jProjects = project.getChildJavaProjects();
         if (!jProjects.isEmpty()) {
             aJProject = jProjects.get(0);
         }
@@ -258,7 +259,7 @@ public class Project {
     /**
      * Classifies this project as a project able to run on a Liberty server.
      */
-    public void classifyAsServerModule() {
+    public void classifyAsLibertyServerModule() {
         try {
             IFile serverxml = iProject.getFile(new Path("src/main/liberty/config/server.xml"));
             IFile bootstrapProps = iProject.getFile(new Path("src/main/liberty/config/bootstrap.properties"));
@@ -279,13 +280,13 @@ public class Project {
     public void classifyAsLibertyNature() {
         try {
             if (libertyServerModule) {
-                Project.addNature(iProject, LibertyNature.NATURE_ID);
+                ProjectModel.addNature(iProject, LibertyNature.NATURE_ID);
             }
             // If this is looks like a Maven multi-module project. It may not be however but we take the risk of exposing it
             if (type.equals(BuildType.MAVEN)) {
-                for (Project child : childDirProjects) {
+                for (ProjectModel child : childDirProjects) {
                     if (child.isLibertyServerModule()) {
-                        Project.addNature(iProject, LibertyNature.NATURE_ID);
+                        ProjectModel.addNature(iProject, LibertyNature.NATURE_ID);
                         isParentOfServerModule = true;
                         break;
                     }
@@ -378,8 +379,8 @@ public class Project {
      * 
      * @param peerProjects The raw list of peer projects.
      */
-    public void setPeerDirProjects(List<Project> peerProjects) {
-        for (Project project : peerProjects) {
+    public void setPeerDirProjects(List<ProjectModel> peerProjects) {
+        for (ProjectModel project : peerProjects) {
             if (!getName().equals(project.getName())) {
                 this.peerDirProjects.add(project);
             }
@@ -392,7 +393,7 @@ public class Project {
         } else {
             StringBuilder sb = new StringBuilder();
             sb.append("[");
-            for (Project p : childDirProjects) {
+            for (ProjectModel p : childDirProjects) {
                 sb.append(p.getName()).append(",");
             }
             sb.append("]");
@@ -412,11 +413,11 @@ public class Project {
         return libertyServerModule;
     }
 
-    public void setParentDirProject(Project parent) {
+    public void setParentDirProject(ProjectModel parent) {
         this.parentDirProject = parent;
     }
 
-    public void addChildDirProject(Project child) {
+    public void addChildDirProject(ProjectModel child) {
         this.childDirProjects.add(child);
     }
 

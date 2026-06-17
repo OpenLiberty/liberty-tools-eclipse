@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2022, 2023 IBM Corporation and others.
+ * Copyright (c) 2022, 2026 IBM Corporation and others.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -10,7 +10,7 @@
  * Contributors:
  *     IBM Corporation - initial implementation
  *******************************************************************************/
-package io.openliberty.tools.eclipse;
+package io.openliberty.tools.eclipse.model;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,15 +33,15 @@ import io.openliberty.tools.eclipse.utils.ErrorHandler;
 /**
  * Represents the project model informing the Liberty tools dashboard and the Run Configurations
  */
-public class WorkspaceProjectsModel {
+public class WorkspaceModel {
 
-    private Map<String, Project> projectsByLocation;
-    private Map<String, Project> projectsByName;
+    private Map<String, ProjectModel> projectsByLocation;
+    private Map<String, ProjectModel> projectsByName;
 
     /**
      * Constructor.
      */
-    public WorkspaceProjectsModel() {
+    public WorkspaceModel() {
         initProjectModels();
     }
 
@@ -79,8 +79,8 @@ public class WorkspaceProjectsModel {
 
     private void initProjectModels() {
         // Start over. Throw away existing model
-        projectsByLocation = new ConcurrentHashMap<String, Project>();
-        projectsByName = new ConcurrentHashMap<String, Project>();
+        projectsByLocation = new ConcurrentHashMap<String, ProjectModel>();
+        projectsByName = new ConcurrentHashMap<String, ProjectModel>();
     }
 
     /**
@@ -92,14 +92,14 @@ public class WorkspaceProjectsModel {
         // First pass classify as server module
         for (IProject iProject : new ArrayList<IProject>(projectsToScan)) {
             if (iProject.isOpen()) {
-                Project projModel = projectsByLocation.get(iProject.getLocation().toOSString());
+                ProjectModel projModel = projectsByLocation.get(iProject.getLocation().toOSString());
                 if (projModel == null) {
-                    projModel = new Project(iProject);
+                    projModel = new ProjectModel(iProject);
                     projectsByLocation.put(iProject.getLocation().toOSString(), projModel);
                     projectsByName.put(iProject.getName(), projModel);
                 }
                 if (classify) {
-                    projModel.classifyAsServerModule();
+                    projModel.classifyAsLibertyServerModule();
                 }
             }
         }
@@ -107,13 +107,13 @@ public class WorkspaceProjectsModel {
         try {
             // Second pass - establish parent/child relationships (i.e. containing dir / contained subdir relationship)
             for (IProject iProject : projectsToScan) {
-                ArrayList<Project> childPeers = new ArrayList<Project>();
+                ArrayList<ProjectModel> childPeers = new ArrayList<ProjectModel>();
                 for (IResource res : iProject.members()) {
                     if (res.getType() == IResource.FOLDER) {
                         String resLocation = res.getLocation().toOSString();
-                        Project child = projectsByLocation.get(resLocation);
+                        ProjectModel child = projectsByLocation.get(resLocation);
                         if (child != null) {
-                            Project parent = projectsByLocation.get(iProject.getLocation().toOSString());
+                            ProjectModel parent = projectsByLocation.get(iProject.getLocation().toOSString());
                             child.setParentDirProject(parent);
                             childPeers.add(child);
                             parent.addChildDirProject(child);
@@ -125,7 +125,7 @@ public class WorkspaceProjectsModel {
                 for (IResource res : iProject.members()) {
                     if (res.getType() == IResource.FOLDER) {
                         String resLocation = res.getLocation().toOSString();
-                        Project child = projectsByLocation.get(resLocation);
+                        ProjectModel child = projectsByLocation.get(resLocation);
                         if (child != null) {
                             child.setPeerDirProjects(childPeers);
                         }
@@ -137,7 +137,7 @@ public class WorkspaceProjectsModel {
             if (classify) {
                 for (IProject iProject : projectsToScan) {
                     if (iProject.isOpen()) {
-                        Project project = projectsByName.get(iProject.getName());
+                        ProjectModel project = projectsByName.get(iProject.getName());
                         project.classifyAsLibertyNature();
                     }
                 }
@@ -164,13 +164,13 @@ public class WorkspaceProjectsModel {
      * @return The project associated with the input name or null if none is found. (Note that 'null' may be returned because this is
      *         not a server project).
      */
-    public Project getProject(String name) {
+    public ProjectModel getProjectByName(String name) {
 
         if (Trace.isEnabled()) {
             Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, name);
         }
 
-        Project retVal = projectsByName.get(name);
+        ProjectModel retVal = projectsByName.get(name);
 
         if (Trace.isEnabled()) {
             Trace.getTracer().traceExit(Trace.TRACE_TOOLS, retVal);
@@ -196,11 +196,11 @@ public class WorkspaceProjectsModel {
         List<String> gradleDashboardProjects = new ArrayList<String>();
         List<String> retVal = new ArrayList<String>();
 
-        for (Project p : projectsByName.values()) {
+        for (ProjectModel p : projectsByName.values()) {
             if (p.isLibertyServerModule() || p.isParentOfServerModule() || p.hasLibertyNature()) {
-                if (p.getBuildType() == Project.BuildType.MAVEN) {
+                if (p.getBuildType() == ProjectModel.BuildType.MAVEN) {
                     mavenDashboardProjects.add(p.getName());
-                } else if (p.getBuildType() == Project.BuildType.GRADLE) {
+                } else if (p.getBuildType() == ProjectModel.BuildType.GRADLE) {
                     gradleDashboardProjects.add(p.getName());
                 } else {
                     if (Trace.isEnabled()) {
@@ -238,8 +238,8 @@ public class WorkspaceProjectsModel {
 
         String retVal = null;
 
-        Project proj = projectsByName.get(iProject.getName());
-        if (proj.getBuildType() == Project.BuildType.MAVEN && proj.isAggregated()) {
+        ProjectModel proj = projectsByName.get(iProject.getName());
+        if (proj.getBuildType() == ProjectModel.BuildType.MAVEN && proj.isAggregated()) {
             retVal = "-f ../pom.xml -am -pl " + getModuleNameSegment(iProject);
         } else {
             retVal = "";
