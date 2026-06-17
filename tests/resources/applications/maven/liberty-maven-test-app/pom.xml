@@ -30,10 +30,19 @@
     </properties>
     
     <dependencies>
+        <!-- Jakarta EE 10 API for Jakarta REST snippets -->
         <dependency>
-            <groupId>javax.servlet</groupId>
-            <artifactId>javax.servlet-api</artifactId>
-            <version>3.1.0</version>
+            <groupId>jakarta.platform</groupId>
+            <artifactId>jakarta.jakartaee-api</artifactId>
+            <version>10.0.0</version>
+            <scope>provided</scope>
+        </dependency>
+        <!-- MicroProfile 6.0 -->
+        <dependency>
+            <groupId>org.eclipse.microprofile</groupId>
+            <artifactId>microprofile</artifactId>
+            <version>6.0</version>
+            <type>pom</type>
             <scope>provided</scope>
         </dependency>
         <dependency>
@@ -94,3 +103,5 @@
         </plugins>
     </build>
 </project>
+
+<!-- Made with Bob -->

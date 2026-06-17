@@ -1282,8 +1282,12 @@ public class SWTBotPluginOperations {
         SWTBotEditor editor = searchForEditor(bot, editorFileName);
         SWTBotEclipseEditor e = editor.toTextEditor();
         e.navigateTo(cursorRow, cursorColumn);
-        List<String> options = e.getAutoCompleteProposals(insertText);
+        editor.show();
+        editor.setFocus();
 
+        bot.sleep(1000);
+        List<String> options = e.getAutoCompleteProposals(insertText);
+        bot.sleep(1000);
         SWTBotPreferences.PLAYBACK_DELAY = 0;
 
         return options;
