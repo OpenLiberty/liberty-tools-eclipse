@@ -25,7 +25,6 @@ import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
-import org.eclipse.osgi.util.NLS;
 
 import io.openliberty.tools.eclipse.LibertyNature;
 import io.openliberty.tools.eclipse.logging.Trace;
@@ -33,42 +32,76 @@ import io.openliberty.tools.eclipse.messages.Messages;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
 
 /**
- * Represents a project in the Liberty tools dashboard.
+ * This class models Eclipse workspace projects and their relationships in the context
+ * of Liberty development. It tracks build types (Maven/Gradle), multi-module project
+ * hierarchies, and Liberty server configuration presence.
+ *
+ * @see WorkspaceProjectsModel
  */
 public class ProjectModel {
 
-    /** Maven project nature. */
+    /** Maven project nature identifier used by Eclipse M2E plugin. */
     public static final String MAVEN_NATURE = "org.eclipse.m2e.core.maven2Nature";
 
-    /** Gradle project nature. */
+    /** Gradle project nature identifier used by Eclipse Buildship plugin. */
     public static final String GRADLE_NATURE = "org.eclipse.buildship.core.gradleprojectnature";
 
-    /** Java project nature. */
+    /** Java project nature identifier used by Eclipse JDT. */
     public static final String JAVA_NATURE_ID = "org.eclipse.jdt.core.javanature";
 
-    /** Project build types. */
+    /** Enumeration of supported build types. */
     public static enum BuildType {
-        UNKNOWN, GRADLE, MAVEN
+        UNKNOWN,
+        GRADLE,
+        MAVEN
     };
 
-    /** The child projects associated with this project. */
+    /**
+     * The child projects associated with this project in a multi-module structure.
+     * Thread-safe set to support concurrent access during workspace model building.
+     */
     private Set<ProjectModel> childDirProjects = ConcurrentHashMap.newKeySet();
 
-    /** The set of peer projects */
+    /**
+     * The set of peer projects (siblings in the same parent directory).
+     * Thread-safe set to support concurrent access during workspace model building.
+     */
     private Set<ProjectModel> peerDirProjects = ConcurrentHashMap.newKeySet();
+
+    /**
+     * The set of dependent projects explicitly declared in the build configuration
+     * (Maven modules or Gradle subprojects). This is a subset of childDirProjects
+     * that represents actual build dependencies.
+     * Thread-safe set to support concurrent access during workspace model building.
+     */
+    private Set<ProjectModel> dependentProjects = ConcurrentHashMap.newKeySet();
 
     /** The Eclipse project reference. */
     private IProject iProject;
 
-    /** Build type associated with this project. */
+    /** Build type associated with this project (Maven, Gradle, or Unknown). */
     private BuildType type;
 
-    /** The parent of this project. */
-    private ProjectModel parentDirProject;
+    /** The parent of this project in a multi-module structure, or {@code null} if standalone. */
+    private ProjectModel parentProjectModel;
 
+    /**
+     * Indicates whether this module has Liberty server configuration files.
+     * Set to {@code true} if server.xml, bootstrap.properties, server.env, or
+     * the Liberty plugin configuration exists.
+     */
     private boolean libertyServerModule;
 
+    /**
+     * Indicates whether this project is a parent/aggregator of modules with Liberty configuration.
+     */
     private boolean isParentOfServerModule;
+
+    /** Indicates whether this module has test source files. */
+    private boolean hasTests;
+
+    /** The metadata associated with the project's build configuration. */
+    private Metadata buildConfigMetadata;
 
     /**
      * Constructor.
@@ -80,6 +113,15 @@ public class ProjectModel {
         this.type = findBuildType();
     }
 
+    /**
+     * Checks whether this project has the Liberty nature.
+     *
+     * <p>The Liberty nature is added to projects that have Liberty server configuration
+     * or are parents of modules with Liberty configuration. This nature enables
+     * Liberty-specific UI elements and commands in Eclipse.</p>
+     *
+     * @return {@code true} if the project has the Liberty nature, {@code false} otherwise
+     */
     public boolean hasLibertyNature() {
         try {
             if (iProject.getDescription().hasNature(LibertyNature.NATURE_ID)) {
@@ -105,9 +147,21 @@ public class ProjectModel {
         return type;
     }
 
+    public Metadata getBuildConfigMetadata() {
+        return buildConfigMetadata;
+    }
+
     /**
-     * Finds the build type to be associated with this project. If a project can be built as a Maven or Gradle project, the Maven
-     * build type takes precedence.
+     * Finds the build type to be associated with this project.
+     *
+     * <p>The detection strategy is:</p>
+     * <ol>
+     * <li>Check for Maven or Gradle nature in the project description</li>
+     * <li>If no nature found, check for build files (pom.xml or build.gradle)</li>
+     * <li>If both Maven and Gradle are present, Maven takes precedence</li>
+     * </ol>
+     *
+     * @return the detected build type (MAVEN, GRADLE, or UNKNOWN)
      */
     private BuildType findBuildType() {
 
@@ -178,6 +232,15 @@ public class ProjectModel {
         }
 
         return clsps;
+    }
+
+    /**
+     * Returns the list child projects.
+     * 
+     * @return The list child projects..
+     */
+    public List<ProjectModel> getChildProjects() {
+        return new ArrayList<>(childDirProjects);
     }
 
     /**
@@ -264,7 +327,10 @@ public class ProjectModel {
             IFile serverxml = iProject.getFile(new Path("src/main/liberty/config/server.xml"));
             IFile bootstrapProps = iProject.getFile(new Path("src/main/liberty/config/bootstrap.properties"));
             IFile serverenv = iProject.getFile(new Path("src/main/liberty/config/server.env"));
-            if (serverxml.exists() || bootstrapProps.exists() || serverenv.exists()) {
+            boolean isLibertyPluginConfigured = (buildConfigMetadata != null) ? buildConfigMetadata.isLibertyPluginConfigured() : false;
+            boolean isModuleDisabled = (buildConfigMetadata != null) ? buildConfigMetadata.isModuleDisabled() : false;
+
+            if (!isModuleDisabled && (serverxml.exists() || bootstrapProps.exists() || serverenv.exists() || isLibertyPluginConfigured)) {
                 libertyServerModule = true;
             } else {
                 libertyServerModule = false;
@@ -282,7 +348,7 @@ public class ProjectModel {
             if (libertyServerModule) {
                 ProjectModel.addNature(iProject, LibertyNature.NATURE_ID);
             }
-            // If this is looks like a Maven multi-module project. It may not be however but we take the risk of exposing it
+
             if (type.equals(BuildType.MAVEN)) {
                 for (ProjectModel child : childDirProjects) {
                     if (child.isLibertyServerModule()) {
@@ -387,6 +453,15 @@ public class ProjectModel {
         }
     }
 
+    public void setBuildConfigMetadata(Metadata buildConfigMetadata) {
+        this.buildConfigMetadata = buildConfigMetadata;
+    }
+
+    /**
+     * Formats the child projects as a string for debugging purposes.
+     *
+     * @return a string representation of child projects, or "<empty>" if no children
+     */
     private String formatChildProjectToString() {
         if (childDirProjects.isEmpty()) {
             return "<empty>";
@@ -401,35 +476,167 @@ public class ProjectModel {
         }
     }
 
+    /**
+     * Returns a string representation of this project model for debugging.
+     *
+     * @return a detailed string containing project information including build type,
+     *         Liberty configuration status, and parent/child relationships
+     */
     @Override
     public String toString() {
         return "IProject: " + iProject.toString() + ". BuildType: " + type + ". Liberty Server Module: " + libertyServerModule
-               + ". isParentOfServerModule:" + isParentOfServerModule + ". parentDirProj: "
-               + (parentDirProject != null ? parentDirProject.getName() : "<null> ") + ". childDirProjects: "
-               + formatChildProjectToString() + ";";
+               + ". IsParentOfServerModule:" + isParentOfServerModule + ". HasTests: " + hasTests + ". ParentProject: "
+               + (parentProjectModel != null ? parentProjectModel.getName() : "<null> ") + ". childDirProjects: "
+               + formatChildProjectToString() + ". DepdendentProjects: " + dependentProjects;
     }
 
+    /**
+     * Checks whether this project is classified as a Liberty server module.
+     *
+     * <p>A project is a Liberty server module if it contains Liberty configuration files
+     * such as server.xml, bootstrap.properties, or server.env in the standard location.</p>
+     *
+     * @return {@code true} if this is a Liberty server module, {@code false} otherwise
+     */
     public boolean isLibertyServerModule() {
         return libertyServerModule;
     }
 
-    public void setParentDirProject(ProjectModel parent) {
-        this.parentDirProject = parent;
+    /**
+     * Sets the parent project for this project in a multi-module structure.
+     *
+     * @param parent the parent project model
+     */
+    public void setParentProjectModel(ProjectModel parent) {
+        this.parentProjectModel = parent;
     }
 
+    /**
+     * Get the parent project model.
+     *
+     * @return The parent project
+     */
+    public ProjectModel getParentProjectModel() {
+        return parentProjectModel;
+    }
+
+    /**
+     * Adds a child project to this project's set of child projects.
+     *
+     * @param child the child project model to add
+     */
     public void addChildDirProject(ProjectModel child) {
         this.childDirProjects.add(child);
     }
 
+    /**
+     * Returns the name of the Eclipse project.
+     *
+     * @return the project name
+     */
     public String getName() {
-        return iProject.getName();
+        return buildConfigMetadata.getProjectName();
     }
 
+    /**
+     * Checks whether this project is part of a multi-module structure (has a parent).
+     *
+     * @return {@code true} if this project has a parent project, {@code false} otherwise
+     */
     public boolean isAggregated() {
-        return parentDirProject != null;
+        return parentProjectModel != null;
     }
 
+    /**
+     * Checks whether this project is a parent of a module with Liberty server configuration.
+     *
+     * <p>This is used to expose parent/aggregator projects in the Liberty Dashboard
+     * even when they don't have Liberty configuration themselves.</p>
+     *
+     * @return {@code true} if this is a parent of a Liberty server module, {@code false} otherwise
+     */
     public boolean isParentOfServerModule() {
         return isParentOfServerModule;
+    }
+
+    /**
+     * Returns whether this project has test source files.
+     *
+     * @return true if test source directories exist, false otherwise.
+     */
+    public boolean hasTests() {
+        return hasTests;
+    }
+
+    /**
+     * Classifies this project as having tests by checking for the src/test directory with content.
+     * Should be called during workspace model building.
+     *
+     * Checks for the standard Maven/Gradle test directory (src/test) and verifies it contains files.
+     * This approach supports any language (Java, Kotlin, Groovy, Scala, etc.) and any custom
+     * directory structure under src/test.
+     */
+    public void classifyAsHavingTests() {
+        String projectPath = getPath();
+        if (projectPath == null) {
+            this.hasTests = false;
+            return;
+        }
+
+        // Check for standard test directory (Maven and Gradle convention)
+        java.nio.file.Path testDir = java.nio.file.Paths.get(projectPath, "src", "test");
+        this.hasTests = hasTestFiles(testDir);
+    }
+
+    /**
+     * Recursively checks if a directory contains any files.
+     *
+     * @param dir The directory to check
+     * @return true if the directory contains files (indicating tests exist), false otherwise
+     */
+    private boolean hasTestFiles(java.nio.file.Path dir) {
+        if (!java.nio.file.Files.exists(dir) || !java.nio.file.Files.isDirectory(dir)) {
+            return false;
+        }
+
+        try (java.util.stream.Stream<java.nio.file.Path> paths = java.nio.file.Files.walk(dir, 20)) {
+            // Check if there are any regular files in the directory tree
+            // This indicates the directory is not empty and likely contains test source files
+            return paths.anyMatch(path -> java.nio.file.Files.isRegularFile(path));
+        } catch (Exception e) {
+            // If we can't read the directory, assume no tests
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_TOOLS,
+                                        "Error checking for test files in directory: " + dir, e);
+            }
+            return false;
+        }
+    }
+
+    /**
+     * Adds a dependent project (one declared in build configuration) to this project.
+     *
+     * @param dependent the dependent project model to add
+     */
+    public void addDependentProject(ProjectModel dependent) {
+        this.dependentProjects.add(dependent);
+    }
+
+    /**
+     * Returns the list of dependent projects that have test source files.
+     * This filters to only projects explicitly declared as dependencies in the build configuration.
+     *
+     * @return The list of dependent projects that have test source files.
+     */
+    public List<ProjectModel> getDependentProjectsWithTests() {
+        ArrayList<ProjectModel> projectsWithTests = new ArrayList<ProjectModel>();
+
+        for (ProjectModel dependent : dependentProjects) {
+            if (dependent.hasTests()) {
+                projectsWithTests.add(dependent);
+            }
+        }
+
+        return projectsWithTests;
     }
 }
