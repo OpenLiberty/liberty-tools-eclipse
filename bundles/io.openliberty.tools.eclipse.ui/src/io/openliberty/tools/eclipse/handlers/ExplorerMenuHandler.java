@@ -20,7 +20,6 @@ import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.osgi.util.NLS;
 import org.eclipse.ui.handlers.HandlerUtil;
 
 import io.openliberty.tools.eclipse.LibertyNature;
@@ -106,7 +105,7 @@ public class ExplorerMenuHandler extends AbstractHandler {
                 }
 
                 ErrorHandler.processErrorMessage(
-                        Messages.getMessage("menu_command_process_error", commandName, iProject.getName()), e);
+                                                 Messages.getMessage("menu_command_process_error", commandName, iProject.getName()), e);
             }
         }
 

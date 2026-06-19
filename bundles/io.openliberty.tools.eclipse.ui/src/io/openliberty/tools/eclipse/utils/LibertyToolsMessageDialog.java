@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2022 IBM Corporation and others.
+* Copyright (c) 2022, 2026 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -33,11 +33,17 @@ public class LibertyToolsMessageDialog extends MessageDialog {
         super(parentShell, dialogTitle, dialogTitleImage, dialogMessage, dialogImageType, defaultIndex, dialogButtonLabels);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected Control createCustomArea(Composite parent) {
         Link link = new Link(parent, SWT.WRAP);
         link.setText(Messages.getMessage("preference_link_text"));
         link.addSelectionListener(new SelectionAdapter() {
+            /**
+             * {@inheritDoc}
+             */
             @Override
             public void widgetSelected(SelectionEvent e) {
                 PreferenceDialog dialog = PreferencesUtil.createPreferenceDialogOn(null, "io.openliberty.tools.eclipse.ui.preferences.page",
