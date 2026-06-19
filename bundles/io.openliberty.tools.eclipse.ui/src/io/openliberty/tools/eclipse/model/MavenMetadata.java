@@ -47,7 +47,7 @@ public class MavenMetadata implements Metadata {
     /**
      * Constructor.
      * 
-     * @param buildGradlePath
+     * @param buildFilePath The path to the pom.xml build metadata.
      */
     public MavenMetadata(String buildFilePath) throws Exception {
         extract(buildFilePath);
@@ -389,7 +389,7 @@ public class MavenMetadata implements Metadata {
     /**
      * Gets text content of a child element.
      *
-     * @param parent  The arent element.
+     * @param parent  The parent element.
      * @param tagName The tag name to search.
      * 
      * @return The text content or empty string.

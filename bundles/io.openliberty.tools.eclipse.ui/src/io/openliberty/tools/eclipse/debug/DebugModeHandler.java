@@ -215,8 +215,6 @@ public class DebugModeHandler {
      * @throws Exception
      */
     public void startDebugAttacher(ProjectModel project, ILaunch launch, String port) {
-        String projectName = project.getIProject().getName();
-
         Job job = new Job(Messages.getMessage("attaching_debugger_job")) {
             @Override
             protected IStatus run(IProgressMonitor monitor) {
@@ -280,8 +278,7 @@ public class DebugModeHandler {
                     launch.addDebugTarget(debugTarget);
 
                 } catch (Exception e) {
-                    return new Status(IStatus.ERROR, LibertyDevPlugin.PLUGIN_ID, JOB_STATUS_DEBUGGER_CONN_ERROR,
-                            Messages.getMessage("debugger_attach_error"), e);
+                    return new Status(IStatus.ERROR, LibertyDevPlugin.PLUGIN_ID, JOB_STATUS_DEBUGGER_CONN_ERROR, Messages.getMessage("debugger_attach_error"), e);
                 }
 
                 return Status.OK_STATUS;
@@ -411,7 +408,7 @@ public class DebugModeHandler {
             } catch (IOException e) {
                 if (Trace.isEnabled()) {
                     Trace.getTracer().trace(Trace.TRACE_UI,
-                            Messages.getMessage("debugger_connect_error", e.getMessage()), e);
+                                            Messages.getMessage("debugger_connect_error", e.getMessage()), e);
                 }
             } catch (TimeoutException e2) {
                 // do nothing
@@ -589,9 +586,5 @@ public class DebugModeHandler {
             }
         }
         throw new Exception(Messages.getMessage("debugger_timeout_error", host, port));
-    }
-
-    private class DataHolder {
-        boolean started;
     }
 }
