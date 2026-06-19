@@ -12,7 +12,6 @@
 *******************************************************************************/
 package io.openliberty.tools.eclipse.ui.dashboard;
 
-import org.eclipse.jface.viewers.ITableLabelProvider;
 import org.eclipse.jface.viewers.LabelProvider;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
@@ -23,9 +22,10 @@ import io.openliberty.tools.eclipse.model.ProjectModel;
 import io.openliberty.tools.eclipse.utils.Utils;
 
 /**
- * Table label provider for entries in the table containing the dashboard content.
+ * Label provider for entries in the tree containing the dashboard content.
+ * Uses IColorProvider for built-in Eclipse color support.
  */
-public class DashboardEntryLabelProvider extends LabelProvider implements ITableLabelProvider {
+public class DashboardEntryLabelProvider extends LabelProvider {
 
     /**
      * Image representing a Maven project.
@@ -38,17 +38,12 @@ public class DashboardEntryLabelProvider extends LabelProvider implements ITable
     private Image gradleImg;
 
     /**
-     * DevModeOperations reference.
-     */
-    private DevModeOperations devModeOps;
-
-    /**
      * Constructor.
-     * 
-     * @param devModeOps DevModeOperations instance.
+     *
+     * @param devModeOps    DevModeOperations instance.
+     * @param dashboardView The dashboard view instance.
      */
-    public DashboardEntryLabelProvider(DevModeOperations devModeOps) {
-        this.devModeOps = devModeOps;
+    public DashboardEntryLabelProvider(DevModeOperations devModeOps, DashboardView dashboardView) {
         Display display = PlatformUI.getWorkbench().getDisplay();
         mavenImg = Utils.getImage(display, DashboardView.MAVEN_IMG_TAG_PATH);
         gradleImg = Utils.getImage(display, DashboardView.GRADLE_IMG_TAG_PATH);
@@ -58,21 +53,14 @@ public class DashboardEntryLabelProvider extends LabelProvider implements ITable
      * {@inheritDoc}
      */
     @Override
-    public Image getColumnImage(Object element, int columnIndex) {
-        // Currently, the table under which the dashboard content is organized consists of a single
-        // column and a single row. The content is the string containing the name of the project.
-        String projectName = null;
+    public Image getImage(Object element) {
         Image img = null;
-        if (element != null && element instanceof String) {
-            projectName = (String) element;
-            ProjectModel project = devModeOps.getWorkspaceModel().getProjectByName(projectName);
-
-            if (project != null) {
-                if (project.getBuildType() == ProjectModel.BuildType.GRADLE) {
-                    img = gradleImg;
-                } else {
-                    img = mavenImg;
-                }
+        if (element != null && element instanceof ProjectModel) {
+            ProjectModel project = (ProjectModel) element;
+            if (project.getBuildType() == ProjectModel.BuildType.GRADLE) {
+                img = gradleImg;
+            } else {
+                img = mavenImg;
             }
         }
 
@@ -83,18 +71,19 @@ public class DashboardEntryLabelProvider extends LabelProvider implements ITable
      * {@inheritDoc}
      */
     @Override
-    public String getColumnText(Object element, int columnIndex) {
-        // Currently the table consists of a single column and a single row, and the
-        // content is a string containing the name of the project.
-        // Therefore, the columnIndex is not used.
+    public String getText(Object element) {
         String columnText = null;
-        if (element != null && element instanceof String) {
-            columnText = element.toString();
+        if (element != null && element instanceof ProjectModel) {
+            ProjectModel project = (ProjectModel) element;
+            columnText = project.getName();
         }
 
         return columnText;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void dispose() {
         if (gradleImg != null) {
@@ -103,6 +92,6 @@ public class DashboardEntryLabelProvider extends LabelProvider implements ITable
         if (mavenImg != null) {
             mavenImg.dispose();
         }
+        super.dispose();
     }
-
 }
