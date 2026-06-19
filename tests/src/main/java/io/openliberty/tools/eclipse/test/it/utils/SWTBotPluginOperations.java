@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2022, 2023 IBM Corporation and others.
+* Copyright (c) 2022, 2026 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -36,10 +36,10 @@ import org.eclipse.swt.widgets.Item;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Table;
 import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotEditor;
@@ -53,7 +53,6 @@ import org.eclipse.swtbot.swt.finder.widgets.SWTBotMenu;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotRootMenu;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotShell;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotStyledText;
-import org.eclipse.swtbot.swt.finder.widgets.SWTBotTable;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotToolbarButton;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotToolbarPushButton;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTree;
@@ -323,14 +322,19 @@ public class SWTBotPluginOperations {
         }
     }
 
-    public static SWTBotTable getDashboardTable() {
+    /**
+     * Returns the dashboard tree widget.
+     *
+     * @return The dashboard tree widget.
+     */
+    public static SWTBotTree getDashboardTree() {
         openDashboardUsingToolbar();
 
-        // Ensure the dashboard view is actually shown and has focus
-        // This prevents finding the wrong view (like ConsoleView) when the console takes focus after server start
+        // Ensure the dashboard view is actually shown and has focus.
+        // This prevents finding the wrong view (like ConsoleView) when the console takes focus after server start.
         Object dashboardView = findGlobal(DASHBOARD_VIEW_TITLE, Option.factory().widgetClass(ViewPart.class).build());
 
-        // Explicitly show and activate the dashboard view to ensure it has focus
+        // Explicitly show and activate the dashboard view to ensure it has focus.
         if (dashboardView instanceof ViewPart) {
             final ViewPart vp = (ViewPart) dashboardView;
             Display.getDefault().syncExec(new Runnable() {
@@ -352,24 +356,50 @@ public class SWTBotPluginOperations {
             MagicWidgetFinder.pause(500);
         }
 
-        Table table = ((DashboardView) dashboardView).getTable();
-        return new SWTBotTable(table);
+        Tree tree = ((DashboardView) dashboardView).getTree();
+        return new SWTBotTree(tree);
     }
 
     /**
      * Returns a list of entries on the Open Liberty dashboard.
-     * 
+     * This includes both root level projects and their children in a hierarchical tree.
+     * Tree items are expanded before collecting to ensure all children are visible.
+     *
      * @return A list of entries on the Open Liberty dashboard.
      */
     public static List<String> getDashboardContent() {
-        SWTBotTable dashboardTable = getDashboardTable();
+        SWTBotTree dashboardTree = getDashboardTree();
 
         ArrayList<String> contentList = new ArrayList<String>();
-        for (int i = 0; i < dashboardTable.rowCount(); i++) {
-            contentList.add(dashboardTable.getTableItem(i).getText());
+        // Get all tree items (root level projects)
+        SWTBotTreeItem[] items = dashboardTree.getAllItems();
+        for (SWTBotTreeItem item : items) {
+            contentList.add(item.getText());
+            // Expand the item to make children visible.
+            item.expand();
+            // Recursively add child items.
+            addChildItems(item, contentList);
         }
 
         return contentList;
+    }
+
+    /**
+     * Recursively adds child tree items to the content list.
+     * Expands each item before processing its children.
+     *
+     * @param parent      The parent tree item
+     * @param contentList The list to add items to
+     */
+    private static void addChildItems(SWTBotTreeItem parent, ArrayList<String> contentList) {
+        SWTBotTreeItem[] children = parent.getItems();
+        for (SWTBotTreeItem child : children) {
+            contentList.add(child.getText());
+            // Expand child to make grandchildren visible
+            child.expand();
+            // Recursively process grandchildren
+            addChildItems(child, contentList);
+        }
     }
 
     /**
@@ -383,10 +413,62 @@ public class SWTBotPluginOperations {
      */
     public static List<String> getDashboardItemMenuActions(String item) {
 
-        SWTBotTable dashboardTable = getDashboardTable();
-        dashboardTable.select(item);
-        SWTBotRootMenu appCtxMenu = dashboardTable.contextMenu();
+        SWTBotTree dashboardTree = getDashboardTree();
+        SWTBotTreeItem treeItem = findTreeItem(dashboardTree, item);
+        if (treeItem == null) {
+            throw new org.eclipse.swtbot.swt.finder.exceptions.WidgetNotFoundException("Tree item not found: " + item);
+        }
+        treeItem.select();
+        SWTBotRootMenu appCtxMenu = treeItem.contextMenu();
         return appCtxMenu.menuItems();
+    }
+
+    /**
+     * Recursively searches for a tree item by name in the dashboard tree.
+     * Searches both root items and nested children.
+     *
+     * @param tree     The dashboard tree
+     * @param itemName The name of the item to find
+     * @return The tree item if found, null otherwise
+     */
+    private static SWTBotTreeItem findTreeItem(SWTBotTree tree, String itemName) {
+        // First try root level items
+        SWTBotTreeItem[] rootItems = tree.getAllItems();
+        for (SWTBotTreeItem rootItem : rootItems) {
+            if (rootItem.getText().equals(itemName)) {
+                return rootItem;
+            }
+            // Expand and search children recursively
+            rootItem.expand();
+            SWTBotTreeItem found = findTreeItemInChildren(rootItem, itemName);
+            if (found != null) {
+                return found;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Recursively searches for a tree item by name within the children of a parent item.
+     *
+     * @param parent   The parent tree item
+     * @param itemName The name of the item to find
+     * @return The tree item if found, null otherwise
+     */
+    private static SWTBotTreeItem findTreeItemInChildren(SWTBotTreeItem parent, String itemName) {
+        SWTBotTreeItem[] children = parent.getItems();
+        for (SWTBotTreeItem child : children) {
+            if (child.getText().equals(itemName)) {
+                return child;
+            }
+            // Expand and search grandchildren recursively
+            child.expand();
+            SWTBotTreeItem found = findTreeItemInChildren(child, itemName);
+            if (found != null) {
+                return found;
+            }
+        }
+        return null;
     }
 
     /**
@@ -1037,9 +1119,10 @@ public class SWTBotPluginOperations {
      */
     public static SWTBotRootMenu getAppContextMenu(String item) {
 
-        SWTBotTable dashboardTable = getDashboardTable();
-        dashboardTable.select(item);
-        return dashboardTable.contextMenu();
+        SWTBotTree dashboardTree = getDashboardTree();
+        SWTBotTreeItem treeItem = dashboardTree.getTreeItem(item);
+        treeItem.select();
+        return treeItem.contextMenu();
     }
 
     /**
