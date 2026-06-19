@@ -12,8 +12,11 @@
  *******************************************************************************/
 package io.openliberty.tools.eclipse.ui.dashboard;
 
-import java.net.URL;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.debug.core.ILaunchManager;
@@ -24,13 +27,22 @@ import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.commands.ActionHandler;
 import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.jface.viewers.ArrayContentProvider;
-import org.eclipse.jface.viewers.TableViewer;
-import org.eclipse.osgi.util.NLS;
+import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.jface.viewers.Viewer;
+import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.custom.StackLayout;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
+import org.eclipse.swt.events.SelectionAdapter;
+import org.eclipse.swt.events.SelectionEvent;
+import org.eclipse.swt.layout.GridData;
+import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Menu;
-import org.eclipse.swt.widgets.Table;
+import org.eclipse.swt.widgets.Text;
+import org.eclipse.swt.widgets.Tree;
 import org.eclipse.ui.contexts.IContextService;
 import org.eclipse.ui.handlers.IHandlerService;
 import org.eclipse.ui.part.ViewPart;
@@ -68,9 +80,7 @@ public class DashboardView extends ViewPart {
     /** Gradle image tag path. */
     public static final String GRADLE_IMG_TAG_PATH = "icons/gradleTag.png";
 
-    /**
-     * Menu Constants.
-     */
+    /** Menu Constants. */
     public static final String APP_MENU_ACTION_START = Messages.getMessage("dashboard_action_start");
     public static final String APP_MENU_ACTION_START_CONFIG = Messages.getMessage("dashboard_action_start_config");
     public static final String APP_MENU_ACTION_START_IN_CONTAINER = Messages.getMessage("dashboard_action_start_in_container");
@@ -82,11 +92,14 @@ public class DashboardView extends ViewPart {
     public static final String APP_MENU_ACTION_VIEW_MVN_IT_REPORT = Messages.getMessage("dashboard_action_view_mvn_it_report");
     public static final String APP_MENU_ACTION_VIEW_MVN_UT_REPORT = Messages.getMessage("dashboard_action_view_mvn_ut_report");
     public static final String APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT = Messages.getMessage("dashboard_action_view_gradle_test_report");
-    public static final String DASHBORD_TOOLBAR_ACTION_REFRESH = Messages.getMessage("dashboard_toolbar_refresh");
+    public static final String DASHBORD_TOOLBAR_REFRESH = Messages.getMessage("dashboard_toolbar_refresh");
+    public static final String DASHBORD_TOOLBAR_EXPAND_ALL = Messages.getMessage("dashboard_toolbar_expand_all");
+    public static final String DASHBORD_TOOLBAR_COLLAPSE_ALL = Messages.getMessage("dashboard_toolbar_collapse_all");
+    public static final String DASHBORD_TOOLBAR_FILTER = Messages.getMessage("dashboard_toolbar_filter");
 
-    /**
-     * view actions.
-     */
+    
+
+    /** view actions. */
     private Action startAction;
     private Action startConfigDialogAction;
     private Action startInContainerAction;
@@ -99,16 +112,38 @@ public class DashboardView extends ViewPart {
     private Action viewMavenUTestReportsAction;
     private Action viewGradleTestReportsAction;
     private Action refreshAction;
+    private Action filterAction;
+    private Action expandAllAction;
+    private Action collapseAllAction;
 
-    /**
-     * Table viewer that holds the entries in the dashboard.
-     */
-    TableViewer viewer;
+    /** Tree viewer that holds the entries in the dashboard. */
+    TreeViewer viewer;
 
-    /**
-     * DevModeOperations reference.
-     */
+    /** Search text widget */
+    private Text searchText;
+
+    /** Search filter */
+    private ViewerFilter searchFilter;
+
+    /** Search bar visibility */
+    private boolean searchBarVisible = false;
+
+    /** DevModeOperations reference. */
     DevModeOperations devModeOps;
+
+    DashboardContentProvider contentProvider;
+
+    /** Parent composite for stack layout */
+    private Composite stackComposite;
+
+    /** Stack layout to switch between tree and empty message */
+    private StackLayout stackLayout;
+
+    /** Composite containing the tree viewer */
+    private Composite treeComposite;
+
+    /** Composite containing the empty state message */
+    private Composite emptyComposite;
 
     /**
      * Constructor.
@@ -123,16 +158,107 @@ public class DashboardView extends ViewPart {
      */
     @Override
     public void createPartControl(Composite parent) {
-        viewer = new TableViewer(parent, SWT.SINGLE | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION);
-        viewer.setContentProvider(ArrayContentProvider.getInstance());
-        viewer.setLabelProvider(new DashboardEntryLabelProvider(devModeOps));
+        // Create stack composite with stack layout
+        stackComposite = new Composite(parent, SWT.NONE);
+        stackLayout = new StackLayout();
+        stackComposite.setLayout(stackLayout);
 
-        devModeOps.refreshDashboardView(true);
+        // Create tree composite
+        treeComposite = new Composite(stackComposite, SWT.NONE);
+        treeComposite.setLayout(new GridLayout(1, false));
+
+        // Create search text box (initially hidden) - with cancel icon only
+        searchText = new Text(treeComposite, SWT.SEARCH | SWT.ICON_CANCEL);
+        searchText.setMessage("Filter projects...");
+        GridData searchData = new GridData(SWT.FILL, SWT.CENTER, true, false);
+        searchData.exclude = true; // Initially hidden
+        searchText.setLayoutData(searchData);
+        searchText.setVisible(false);
+
+        // Add search text listener
+        searchText.addModifyListener(new ModifyListener() {
+            @Override
+            public void modifyText(ModifyEvent e) {
+                showSearchFilter(searchText.getText());
+            }
+        });
+
+        viewer = new TreeViewer(treeComposite, SWT.SINGLE | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION);
+        viewer.getControl().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+
+        // Create search filter
+        searchFilter = new ViewerFilter() {
+            @Override
+            public boolean select(Viewer viewer, Object parentElement, Object element) {
+                if (element instanceof ProjectModel) {
+                    ProjectModel project = (ProjectModel) element;
+                    String searchPattern = searchText.getText().toLowerCase();
+                    if (searchPattern.isEmpty()) {
+                        return true;
+                    }
+                    // Check if project name matches
+                    if (project.getName().toLowerCase().contains(searchPattern)) {
+                        return true;
+                    }
+                    // Check if any child matches (show parent if child matches)
+                    return hasMatchingChild(project, searchPattern);
+                }
+                return true;
+            }
+        };
+        contentProvider = new DashboardContentProvider(devModeOps.getWorkspaceModel(), this);
+        viewer.setContentProvider(contentProvider);
+        viewer.setLabelProvider(new DashboardEntryLabelProvider(devModeOps, this));
+
+        // Create empty state composite
+        createEmptyStateComposite();
+
+        // Show tree by default
+        stackLayout.topControl = treeComposite;
 
         createActions();
         createContextMenu();
         addToolbarActions();
+
+        devModeOps.refreshDashboardView(false);
         getSite().setSelectionProvider(viewer);
+    }
+
+    /**
+     * Creates the composite shown when there are no Liberty projects.
+     */
+    private void createEmptyStateComposite() {
+        emptyComposite = new Composite(stackComposite, SWT.NONE);
+        GridLayout layout = new GridLayout(1, false);
+        layout.marginWidth = 20;
+        layout.marginHeight = 20;
+        emptyComposite.setLayout(layout);
+
+        // Combined message and link
+        Link messageLink = new Link(emptyComposite, SWT.WRAP);
+        messageLink.setText("No Liberty projects found in the current workspace. <a>Import</a> a Liberty project to get started.");
+        messageLink.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, true, true));
+        messageLink.addSelectionListener(new SelectionAdapter() {
+            @Override
+            public void widgetSelected(SelectionEvent e) {
+                try {
+                    // Open the Eclipse import wizard using the workbench window's handler service
+                    IHandlerService handlerService = getSite().getService(IHandlerService.class);
+                    if (handlerService != null) {
+                        handlerService.executeCommand("org.eclipse.ui.file.import", null);
+                    } else {
+                        if (Trace.isEnabled()) {
+                            Trace.getTracer().trace(Trace.TRACE_UI, "Handler service is null");
+                        }
+                    }
+                } catch (Exception ex) {
+                    if (Trace.isEnabled()) {
+                        Trace.getTracer().trace(Trace.TRACE_UI, "Error opening import wizard", ex);
+                    }
+                    ErrorHandler.processErrorMessage("Failed to open import wizard: " + ex.getMessage(), ex, true);
+                }
+            }
+        });
     }
 
     /**
@@ -178,6 +304,9 @@ public class DashboardView extends ViewPart {
      */
     private void addToolbarActions() {
         IToolBarManager tbMgr = getViewSite().getActionBars().getToolBarManager();
+        tbMgr.add(expandAllAction);
+        tbMgr.add(collapseAllAction);
+        tbMgr.add(filterAction);
         tbMgr.add(refreshAction);
     }
 
@@ -188,10 +317,18 @@ public class DashboardView extends ViewPart {
      */
     private void addActionsToContextMenu(IMenuManager mgr) {
         IProject iProject = Utils.getActiveProject();
-        String projectName = iProject.getName();
-        ProjectModel project = devModeOps.getWorkspaceModel().getProjectByName(projectName);
 
-        if (project != null) {
+        // If no project is selected (e.g., selection was cleared for non-Liberty project), don't show menu
+        if (iProject == null) {
+            return;
+        }
+
+        String projectLocation = iProject.getLocation().toOSString();
+        ProjectModel projectModel = devModeOps.getWorkspaceModel().getProjectByLocation(projectLocation);
+        String projectName = projectModel.getName();
+
+        // Only show the context menu if the project has been configured to run on Liberty.
+        if (projectModel != null && projectModel.hasLibertyNature()) {
             mgr.add(startAction);
             mgr.add(startInContainerAction);
             mgr.add(startConfigDialogAction);
@@ -201,10 +338,10 @@ public class DashboardView extends ViewPart {
             mgr.add(stopAction);
             mgr.add(runTestAction);
 
-            if (project.getBuildType() == ProjectModel.BuildType.MAVEN) {
+            if (projectModel.getBuildType() == ProjectModel.BuildType.MAVEN) {
                 mgr.add(viewMavenITestReportsAction);
                 mgr.add(viewMavenUTestReportsAction);
-            } else if (project.getBuildType() == ProjectModel.BuildType.GRADLE) {
+            } else if (projectModel.getBuildType() == ProjectModel.BuildType.GRADLE) {
                 mgr.add(viewGradleTestReportsAction);
             } else {
                 String msg = "Project" + projectName + "is not a Gradle or Maven project.";
@@ -227,8 +364,7 @@ public class DashboardView extends ViewPart {
         // Get the image descriptors for the menu actions and toolbar.
         // If there is a failure, display the error and proceed without the icons.
         try {
-            ActionImg = ImageDescriptor.createFromURL(new URL("platform:/plugin/org.eclipse.jdt.debug.ui/icons/full/elcl16/thread_view.gif"));
-            refreshImg = ImageDescriptor.createFromURL(new URL("platform:/plugin/org.eclipse.ui.browser/icons/clcl16/nav_refresh.png"));
+            ActionImg = ImageDescriptor.createFromURL(URI.create("platform:/plugin/org.eclipse.jdt.debug.ui/icons/full/elcl16/thread_view.gif").toURL());
         } catch (Exception e) {
             String msg = "An error was detected while retrieving image descriptions.";
             if (Trace.isEnabled()) {
@@ -277,7 +413,7 @@ public class DashboardView extends ViewPart {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
                     }
                     ErrorHandler.processErrorMessage(Messages.getMessage("action_general_error", APP_MENU_ACTION_START_CONFIG), e,
-                            true);
+                                                     true);
                 }
             }
         };
@@ -473,7 +609,7 @@ public class DashboardView extends ViewPart {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
                     }
                     ErrorHandler.processErrorMessage(Messages.getMessage("action_general_error", APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT), e,
-                            true);
+                                                     true);
                 }
             }
         };
@@ -483,28 +619,227 @@ public class DashboardView extends ViewPart {
         handlerService.activateHandler(viewGradleTestReportsAction.getActionDefinitionId(), gradleTestReportsHandler);
 
         // Toolbar: Refresh the project list.
-        refreshAction = new Action(DASHBORD_TOOLBAR_ACTION_REFRESH) {
+        refreshAction = new Action(DASHBORD_TOOLBAR_REFRESH) {
             @Override
             public void run() {
                 devModeOps.refreshDashboardView(true);
             }
         };
-        refreshAction.setImageDescriptor(refreshImg);
+        refreshAction.setToolTipText(DASHBORD_TOOLBAR_REFRESH);
+
+        try {
+            refreshImg = ImageDescriptor.createFromURL(URI.create("platform:/plugin/org.eclipse.ui.browser/icons/clcl16/nav_refresh.png").toURL());
+            refreshAction.setImageDescriptor(refreshImg);
+        } catch (Exception e) {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UI, "Refresh icon not found, using text label", e);
+            }
+        }
+        
+        // Toolbar: Search/Filter projects
+        filterAction = new Action(DASHBORD_TOOLBAR_FILTER, Action.AS_CHECK_BOX) {
+            @Override
+            public void run() {
+                toggleSearchBar();
+            }
+        };
+        filterAction.setToolTipText(DASHBORD_TOOLBAR_FILTER);
+        try {
+            ImageDescriptor searchImg = ImageDescriptor.createFromURL(
+                                                                      URI.create("platform:/plugin/org.eclipse.ui.ide/icons/full/elcl16/filter_ps.png").toURL());
+            filterAction.setImageDescriptor(searchImg);
+        } catch (Exception e) {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UI, "Filter icon not found, using text label", e);
+            }
+        }
+
+        // Toolbar: Expand all tree nodes
+        expandAllAction = new Action(DASHBORD_TOOLBAR_EXPAND_ALL) {
+            @Override
+            public void run() {
+                if (viewer != null) {
+                    viewer.expandAll();
+                }
+            }
+        };
+        expandAllAction.setToolTipText(DASHBORD_TOOLBAR_EXPAND_ALL);
+        try {
+            ImageDescriptor expandImg = ImageDescriptor.createFromURL(
+                                                                      URI.create("platform:/plugin/org.eclipse.ui/icons/full/elcl16/expandall.png").toURL());
+            expandAllAction.setImageDescriptor(expandImg);
+        } catch (Exception e) {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UI, "Expand all icon not found, using text label", e);
+            }
+        }
+
+        // Toolbar: Collapse all tree nodes
+        collapseAllAction = new Action(DASHBORD_TOOLBAR_COLLAPSE_ALL) {
+            @Override
+            public void run() {
+                if (viewer != null) {
+                    viewer.collapseAll();
+                }
+            }
+        };
+        collapseAllAction.setToolTipText(DASHBORD_TOOLBAR_COLLAPSE_ALL);
+        try {
+            ImageDescriptor collapseImg = ImageDescriptor.createFromURL(
+                                                                        URI.create("platform:/plugin/org.eclipse.ui/icons/full/elcl16/collapseall.png").toURL());
+            collapseAllAction.setImageDescriptor(collapseImg);
+        } catch (Exception e) {
+            // If icon not found, the action will just show as text
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UI, "Collapse all icon not found, using text label", e);
+            }
+        }
     }
 
-    public void setInput(List<String> sortedDashboardProjectList) {
-        if (viewer != null) {
-            viewer.setInput(sortedDashboardProjectList);
+    /**
+     * Updates toolbar action enablement based on whether the dashboard has content.
+     *
+     * @param hasContent true if the dashboard contains Liberty projects; otherwise false
+     */
+    private void updateToolbarActionEnablement(boolean hasContent) {
+        if (filterAction != null) {
+            filterAction.setEnabled(hasContent);
+            if (!hasContent && filterAction.isChecked()) {
+                toggleSearchBar();
+            }
         }
+        if (expandAllAction != null) {
+            expandAllAction.setEnabled(hasContent);
+        }
+        if (collapseAllAction != null) {
+            collapseAllAction.setEnabled(hasContent);
+        }
+    }
+
+    /**
+     * Sets the input data for the dashboard tree viewer.
+     *
+     * @param rootProjects The list of root projects to display.
+     */
+    public void setInput(List<ProjectModel> rootProjects) {
+        // Early return if viewer not initialized
+        if (viewer == null) {
+            return;
+        }
+
+        // Save the current expansion state by project names before any changes
+        Object[] expandedElements = viewer.getExpandedElements();
+        Set<String> expandedProjectNames = new HashSet<>();
+        if (expandedElements != null && expandedElements.length > 0) {
+            for (Object element : expandedElements) {
+                if (element instanceof ProjectModel) {
+                    expandedProjectNames.add(((ProjectModel) element).getName());
+                }
+            }
+        }
+
+        // Update the viewer's input
+        viewer.setInput(rootProjects);
+
+        // Restore the expansion state by matching project names
+        // Only proceed if we have both: saved expansion state AND new projects to display
+        if (!expandedProjectNames.isEmpty() && !rootProjects.isEmpty()) {
+            List<ProjectModel> toExpand = new ArrayList<>();
+
+            // Find matching projects in the new tree
+            for (ProjectModel project : rootProjects) {
+                if (expandedProjectNames.contains(project.getName())) {
+                    toExpand.add(project);
+                }
+                // Recursively check children
+                addExpandedChildren(project, expandedProjectNames, toExpand);
+            }
+
+            // Restore expansion if we found matching projects
+            if (!toExpand.isEmpty()) {
+                viewer.setExpandedElements(toExpand.toArray());
+            }
+        }
+
+        // Switch between tree and empty state based on whether there are Liberty projects
+        boolean isEmpty = getTree().getItemCount() == 0;
+        if (!isEmpty) {
+            stackLayout.topControl = treeComposite;
+        } else {
+            stackLayout.topControl = emptyComposite;
+        }
+        updateToolbarActionEnablement(!isEmpty);
+        stackComposite.layout();
+    }
+
+    /**
+     * Recursively find and add children that should be expanded.
+     */
+    private void addExpandedChildren(ProjectModel parentProjectModel, Set<String> expandedNames, List<ProjectModel> toExpand) {
+        for (ProjectModel child : parentProjectModel.getChildProjects()) {
+            if (expandedNames.contains(child.getName())) {
+                toExpand.add(child);
+            }
+            addExpandedChildren(child, expandedNames, toExpand);
+        }
+    }
+
+    /**
+     * Toggles the visibility of the search bar.
+     */
+    private void toggleSearchBar() {
+        searchBarVisible = !searchBarVisible;
+        GridData searchData = (GridData) searchText.getLayoutData();
+        searchData.exclude = !searchBarVisible;
+        searchText.setVisible(searchBarVisible);
+        filterAction.setChecked(searchBarVisible);
+
+        if (searchBarVisible) {
+            searchText.setFocus();
+        } else {
+            // Clear search when hiding
+            searchText.setText("");
+            viewer.removeFilter(searchFilter);
+        }
+
+        treeComposite.layout(true, true);
+    }
+
+    /**
+     * Applies the search filter based on the search text.
+     */
+    private void showSearchFilter(String searchPattern) {
+        if (searchPattern == null || searchPattern.trim().isEmpty()) {
+            viewer.removeFilter(searchFilter);
+        } else {
+            viewer.removeFilter(searchFilter);
+            viewer.addFilter(searchFilter);
+        }
+        viewer.expandAll();
+    }
+
+    /**
+     * Checks if a project or any of its children match the search pattern.
+     */
+    private boolean hasMatchingChild(ProjectModel projectModel, String searchPattern) {
+        for (ProjectModel child : projectModel.getChildProjects()) {
+            if (child.getName().toLowerCase().contains(searchPattern)) {
+                return true;
+            }
+            if (hasMatchingChild(child, searchPattern)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
      * Refreshes the dashboard view.
      */
-    public void refreshDashboardView(WorkspaceModel projectModel, boolean reportError) {
+    public void refreshDashboardView(WorkspaceModel workspaceModel, boolean reportError) {
         try {
-            projectModel.createNewCompleteWorkspaceModelWithClassify();
-            setInput(projectModel.getSortedDashboardProjectList());
+            workspaceModel.createNewCompleteWorkspaceModelWithClassify();
+            setInput(contentProvider.getRootDashboardProjects());
         } catch (Exception e) {
             String msg = "An error was detected when the Liberty dashboard content was refreshed.";
             if (Trace.isEnabled()) {
@@ -515,7 +850,12 @@ public class DashboardView extends ViewPart {
         }
     }
 
-    public Table getTable() {
-        return viewer.getTable();
+    /**
+     * Returns the tree widget from the viewer.
+     *
+     * @return The tree widget.
+     */
+    public Tree getTree() {
+        return viewer.getTree();
     }
 }
