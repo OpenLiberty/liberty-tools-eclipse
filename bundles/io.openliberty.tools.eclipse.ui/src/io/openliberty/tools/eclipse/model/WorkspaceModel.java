@@ -309,7 +309,7 @@ public class WorkspaceModel {
             metadata = new MavenMetadata(buildFilePath);
 
         } else if (buildType == BuildType.GRADLE) {
-            File pomFile = new File(projectDir, "pom.xml");
+            File pomFile = new File(projectDir, "build.gradle");
             String buildFilePath = pomFile.getAbsolutePath();
 
             metadata = new GradleMetadata(buildFilePath);
