@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2022 IBM Corporation and others.
+* Copyright (c) 2022, 2026 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -25,9 +25,15 @@ public class LibertyNature implements IProjectNature {
     public static final String NATURE_ID = "io.openliberty.tools.eclipse.ui.libertyNature";
     private IProject project;
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void configure() throws CoreException {
         Display.getDefault().syncExec(new Runnable() {
+            /**
+             * {@inheritDoc}
+             */
             @Override
             public void run() {
                 DevModeOperations.getInstance().refreshDashboardView(false);
@@ -35,9 +41,15 @@ public class LibertyNature implements IProjectNature {
         });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void deconfigure() throws CoreException {
         Display.getDefault().syncExec(new Runnable() {
+            /**
+             * {@inheritDoc}
+             */
             @Override
             public void run() {
                 DevModeOperations.getInstance().refreshDashboardView(false);
@@ -45,11 +57,17 @@ public class LibertyNature implements IProjectNature {
         });
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public IProject getProject() {
         return project;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void setProject(IProject project) {
         this.project = project;
