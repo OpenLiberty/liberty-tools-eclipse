@@ -47,6 +47,7 @@ import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotEclipseEditor;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotEditor;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotView;
 import org.eclipse.swtbot.swt.finder.SWTBot;
+import org.eclipse.swtbot.swt.finder.keyboard.Keystrokes;
 import org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory;
 import org.eclipse.swtbot.swt.finder.utils.SWTBotPreferences;
 import org.eclipse.swtbot.swt.finder.utils.SWTUtils;
@@ -1362,6 +1363,63 @@ public class SWTBotPluginOperations {
         bot.sleep(2000);
 
         SWTBotPreferences.PLAYBACK_DELAY = 0;
+    }
+
+    /**
+     * Method to clear the editor
+     * 
+     */
+    public static void clearContentInEditor(SWTBotEclipseEditor editor) {
+        // Clear existing content
+        String content = editor.getText();
+
+        if (content != null && content.length() > 0) {
+            editor.selectRange(0, 0, content.length());
+            editor.insertText("");
+        }
+    }
+
+    /**
+     * Method to open file for the test cases
+     * 
+     */
+    public static SWTBotEclipseEditor openFileForTest(SWTWorkbenchBot bot) {
+        SWTBotTreeItem file = bot.tree().expandNode("liberty.maven.test.app (in liberty-maven-test-app)").expandNode("src").expandNode("main").expandNode("java").expandNode("test").expandNode("maven").expandNode("liberty").expandNode("web").expandNode("app").getNode("RestTestClass.java");
+
+        file.doubleClick();
+
+        return bot.editorByTitle("RestTestClass.java").toTextEditor();
+    }
+
+    public static boolean applyQuickFix(
+                                        SWTWorkbenchBot bot,
+                                        String fileName,
+                                        String quickFixName) {
+
+        try {
+
+            bot.activeShell().pressShortcut(
+                                            SWT.CTRL,
+                                            '1');
+
+            bot.sleep(2000);
+
+            System.out.println("; bot.activeView()-->" + bot.activeView());
+            // Eclipse proposal popup
+            SWTBotShell shell = bot.activeShell();
+
+            shell.bot().text().setFocus();
+
+            bot.activeShell().pressShortcut(
+                                            SWT.CTRL,
+                                            '1');
+
+            return true;
+
+        } catch (Exception e) {
+
+            return false;
+        }
     }
 
 }

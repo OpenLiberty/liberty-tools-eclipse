@@ -1,4 +1,4 @@
-package src.main.java.test.rest;
+package test.maven.liberty.web.app;
 
 import java.util.Calendar;
 import java.util.List;
