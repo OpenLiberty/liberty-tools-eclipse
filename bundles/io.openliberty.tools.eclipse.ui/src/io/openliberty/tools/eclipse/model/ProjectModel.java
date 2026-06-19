@@ -12,6 +12,7 @@
 *******************************************************************************/
 package io.openliberty.tools.eclipse.model;
 
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -147,6 +148,11 @@ public class ProjectModel {
         return type;
     }
 
+    /**
+     * Returns the build configuration metadata for this project.
+     *
+     * @return The build configuration metadata.
+     */
     public Metadata getBuildConfigMetadata() {
         return buildConfigMetadata;
     }
@@ -453,6 +459,11 @@ public class ProjectModel {
         }
     }
 
+    /**
+     * Sets the build configuration metadata for this project.
+     *
+     * @param buildConfigMetadata The build configuration metadata to set.
+     */
     public void setBuildConfigMetadata(Metadata buildConfigMetadata) {
         this.buildConfigMetadata = buildConfigMetadata;
     }
@@ -487,7 +498,7 @@ public class ProjectModel {
         return "IProject: " + iProject.toString() + ". BuildType: " + type + ". Liberty Server Module: " + libertyServerModule
                + ". IsParentOfServerModule:" + isParentOfServerModule + ". HasTests: " + hasTests + ". ParentProject: "
                + (parentProjectModel != null ? parentProjectModel.getName() : "<null> ") + ". childDirProjects: "
-               + formatChildProjectToString() + ". DepdendentProjects: " + dependentProjects;
+               + formatChildProjectToString() + ". DependentProjects: " + dependentProjects;
     }
 
     /**
@@ -584,7 +595,7 @@ public class ProjectModel {
         }
 
         // Check for standard test directory (Maven and Gradle convention)
-        java.nio.file.Path testDir = java.nio.file.Paths.get(projectPath, "src", "test");
+        java.nio.file.Path testDir = Paths.get(projectPath, "src", "test");
         this.hasTests = hasTestFiles(testDir);
     }
 
