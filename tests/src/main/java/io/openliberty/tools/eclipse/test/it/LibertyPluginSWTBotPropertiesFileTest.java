@@ -50,7 +50,7 @@ import io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils;
 import io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations;
 
 /**
- * Tests MicroProfile Config properties file functionality within Liberty Tools for Eclipse
+ * Tests Config properties file functionality within Liberty Tools for Eclipse
  */
 public class LibertyPluginSWTBotPropertiesFileTest extends AbstractLibertyPluginSWTBotTest {
 
