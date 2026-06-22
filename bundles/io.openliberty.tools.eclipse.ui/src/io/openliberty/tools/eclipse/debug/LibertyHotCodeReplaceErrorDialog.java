@@ -30,6 +30,7 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Shell;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
+import io.openliberty.tools.eclipse.messages.Messages;
 import io.openliberty.tools.eclipse.model.ProjectModel;
 import io.openliberty.tools.eclipse.ui.launch.StartTab;
 import io.openliberty.tools.eclipse.utils.Utils;
@@ -78,7 +79,13 @@ public class LibertyHotCodeReplaceErrorDialog extends HotCodeReplaceErrorDialog 
 
                         ILaunch launch = target.getLaunch();
                         String projectName = launch.getLaunchConfiguration().getAttribute(StartTab.PROJECT_NAME, "");
-                        ProjectModel project = devModeOps.getWorkspaceModel().getProjectByName(projectName);
+                        ProjectModel projectModel = devModeOps.getWorkspaceModel().getProjectByName(projectName);
+
+                        // Validate that we know about the selected project.
+                        if (projectModel == null) {
+                            throw new IllegalStateException(Messages.getMessage("internal_project_not_found", projectName));
+                        }
+
                         DebugModeHandler debugModeHandler = devModeOps.getDebugModeHandler();
 
                         // Get time before server restart
@@ -91,7 +98,7 @@ public class LibertyHotCodeReplaceErrorDialog extends HotCodeReplaceErrorDialog 
                         }
                         launch.removeDebugTarget(target);
 
-                        Utils.restartDebugger(project, launch, debugModeHandler, preRestartTime);
+                        Utils.restartDebugger(projectModel, launch, debugModeHandler, preRestartTime);
 
                     } catch (CoreException e) {
                         ex[0] = e;

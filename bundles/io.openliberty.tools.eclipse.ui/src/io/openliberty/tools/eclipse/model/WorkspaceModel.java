@@ -368,29 +368,6 @@ public class WorkspaceModel {
     }
 
     /**
-     * Returns the default parameters to shown in the Run Configurations start tab.
-     * 
-     * @param iProject The project associated with the configuration.
-     * 
-     * @return start parameters to serve as default populating something like a Run Configuration, depending on whether this looks
-     *         like there is a multi-module relationship or not
-     */
-    public String getDefaultStartParameters(IProject iProject) {
-
-        if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { iProject });
-        }
-
-        String retVal = "";
-
-        if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, retVal);
-        }
-
-        return retVal;
-    }
-
-    /**
      * Returns the list of root projects.
      * 
      * @return The list of root projects.

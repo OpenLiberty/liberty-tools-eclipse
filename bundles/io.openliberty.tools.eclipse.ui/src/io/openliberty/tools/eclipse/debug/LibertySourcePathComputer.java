@@ -41,6 +41,7 @@ import org.gradle.tooling.model.GradleModuleVersion;
 import org.gradle.tooling.model.eclipse.EclipseProject;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
+import io.openliberty.tools.eclipse.messages.Messages;
 import io.openliberty.tools.eclipse.model.ProjectModel;
 import io.openliberty.tools.eclipse.ui.launch.StartTab;
 import io.openliberty.tools.eclipse.utils.Utils;
@@ -55,6 +56,9 @@ public class LibertySourcePathComputer implements ISourcePathComputerDelegate {
 
     ArrayList<IRuntimeClasspathEntry> unresolvedClasspathEntries;
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public ISourceContainer[] computeSourceContainers(ILaunchConfiguration configuration, IProgressMonitor monitor) throws CoreException {
 
@@ -75,10 +79,15 @@ public class LibertySourcePathComputer implements ISourcePathComputerDelegate {
         // Get current project
         String projectName = configuration.getAttribute(StartTab.PROJECT_NAME, (String) null);
 
-        ProjectModel project = DevModeOperations.getInstance().getWorkspaceModel().getProjectByName(projectName);
+        ProjectModel projectModel = DevModeOperations.getInstance().getWorkspaceModel().getProjectByName(projectName);
 
+        // Validate that we know about the selected project.
+        if (projectModel == null) {
+            throw new IllegalStateException(Messages.getMessage("internal_project_not_found", projectName));
+        }
+        
         // Get full list of projects (multi-mod, children, siblings, etc)
-        List<ProjectModel> baseProjects = getBaseProjects(project);
+        List<ProjectModel> baseProjects = getBaseProjects(projectModel);
 
         // Loop through each
         for (ProjectModel baseProject : baseProjects) {
