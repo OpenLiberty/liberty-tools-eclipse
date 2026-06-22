@@ -1391,35 +1391,4 @@ public class SWTBotPluginOperations {
         return bot.editorByTitle("RestTestClass.java").toTextEditor();
     }
 
-    public static boolean applyQuickFix(
-                                        SWTWorkbenchBot bot,
-                                        String fileName,
-                                        String quickFixName) {
-
-        try {
-
-            bot.activeShell().pressShortcut(
-                                            SWT.CTRL,
-                                            '1');
-
-            bot.sleep(2000);
-
-            System.out.println("; bot.activeView()-->" + bot.activeView());
-            // Eclipse proposal popup
-            SWTBotShell shell = bot.activeShell();
-
-            shell.bot().text().setFocus();
-
-            bot.activeShell().pressShortcut(
-                                            SWT.CTRL,
-                                            '1');
-
-            return true;
-
-        } catch (Exception e) {
-
-            return false;
-        }
-    }
-
 }
