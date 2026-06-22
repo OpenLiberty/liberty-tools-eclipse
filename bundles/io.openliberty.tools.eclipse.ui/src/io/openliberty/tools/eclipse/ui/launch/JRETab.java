@@ -26,7 +26,6 @@ import org.eclipse.jdt.debug.ui.launchConfigurations.JavaJRETab;
 import org.eclipse.jdt.launching.IJavaLaunchConfigurationConstants;
 import org.eclipse.jdt.launching.IVMInstall;
 import org.eclipse.jdt.launching.JavaRuntime;
-import org.eclipse.osgi.util.NLS;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.logging.Trace;
@@ -81,7 +80,7 @@ public class JRETab extends JavaJRETab {
             }
         } catch (Exception e) {
             ErrorHandler.processWarningMessage(
-                    Messages.getMessage("java_default_set_error", activeProject.getName(), configuration.getName()), e);
+                                               Messages.getMessage("java_default_set_error", activeProject.getName(), configuration.getName()), e);
         }
 
         super.setDefaults(configuration);
@@ -141,12 +140,20 @@ public class JRETab extends JavaJRETab {
         IProject jIProject = iProject;
         if (!iProject.hasNature(JavaCore.NATURE_ID)) {
             DevModeOperations devModeOps = DevModeOperations.getInstance();
-            WorkspaceModel model = devModeOps.getWorkspaceModel();
-            ProjectModel project = model.getProjectByName(iProject.getName());
-            ProjectModel associatedJavaProject = project.getAssociatedJavaProject(project);
+            WorkspaceModel workspaceModel = devModeOps.getWorkspaceModel();
+            String projectLocation = iProject.getLocation().toOSString();
+            ProjectModel projectModel = workspaceModel.getProjectByLocation(projectLocation);
+            
+            // Validate that we know about the selected project.
+            if (projectModel == null) {
+                throw new IllegalStateException(Messages.getMessage("internal_project_not_found", iProject.getName()));
+            }
+
+            ProjectModel associatedJavaProject = projectModel.getAssociatedJavaProject(projectModel);
             if (associatedJavaProject == null) {
                 return null;
             }
+
             jIProject = associatedJavaProject.getIProject();
         }
 

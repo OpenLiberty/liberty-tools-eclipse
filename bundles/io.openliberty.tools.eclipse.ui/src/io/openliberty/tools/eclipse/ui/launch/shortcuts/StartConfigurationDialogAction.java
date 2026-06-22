@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2022 IBM Corporation and others.
+* Copyright (c) 2022, 2026 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -19,7 +19,6 @@ import org.eclipse.debug.ui.DebugUITools;
 import org.eclipse.debug.ui.ILaunchShortcut;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.StructuredSelection;
-import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.PlatformUI;
@@ -27,6 +26,7 @@ import org.eclipse.ui.PlatformUI;
 import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.messages.Messages;
+import io.openliberty.tools.eclipse.model.ProjectModel;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher.RuntimeEnv;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationHelper;
@@ -38,10 +38,10 @@ import io.openliberty.tools.eclipse.utils.Utils;
  */
 public class StartConfigurationDialogAction implements ILaunchShortcut {
 
-    /** Run Configuration group dialod ID. */
+    /** Run Configuration group dialog ID. */
     public static final String LAUNCH_GROUP_RUN_ID = "org.eclipse.debug.ui.launchGroup.run";
 
-    /** Debug Configuration group dialod ID. */
+    /** Debug Configuration group dialog ID. */
     public static final String LAUNCH_GROUP_DEBUG_ID = "org.eclipse.debug.ui.launchGroup.debug";
 
     /**
@@ -64,7 +64,7 @@ public class StartConfigurationDialogAction implements ILaunchShortcut {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }
             ErrorHandler.processErrorMessage(
-                    Messages.getMessage("launch_shortcut_error", LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONFIG), e, true);
+                                             Messages.getMessage("launch_shortcut_error", LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONFIG), e, true);
             return;
         }
 
@@ -93,7 +93,7 @@ public class StartConfigurationDialogAction implements ILaunchShortcut {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }
             ErrorHandler.processErrorMessage(
-                    Messages.getMessage("launch_shortcut_error", LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONFIG), e, true);
+                                             Messages.getMessage("launch_shortcut_error", LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONFIG), e, true);
             return;
         }
 
@@ -111,17 +111,59 @@ public class StartConfigurationDialogAction implements ILaunchShortcut {
      * @throws Exception
      */
     public static void run(IProject iProject, String mode) throws Exception {
+        // Make sure the project is valid.
         if (iProject == null) {
-            throw new Exception("Invalid project. Be sure to select a project first.");
+            throw new Exception(Messages.getMessage("launch_shortcut_project_not_found"));
         }
 
-        // Validate that the project is supported.
+        //ProjectModel selectedProjectModel = null;
+        String selectedProjectName = null;
+        ProjectModel targetProjectModel = null;
+        String targetProjectName = null;
         DevModeOperations devModeOps = DevModeOperations.getInstance();
-        devModeOps.verifyProjectSupport(iProject);
+        try {
+            selectedProjectName = iProject.getName();
+            String selectedProjectLocation = iProject.getLocation().toOSString();
+            ProjectModel selectedProjectModel = devModeOps.getWorkspaceModel().getProjectByLocation(selectedProjectLocation);
+
+            // Validate that we know about the selected project.
+            if (selectedProjectModel == null) {
+                throw new IllegalStateException(Messages.getMessage("internal_project_not_found", selectedProjectName));
+            }
+
+            // Resolve the target project taking into account only those that are not actively running.
+            targetProjectModel = devModeOps.resolveCommandTarget(selectedProjectModel, "Start...", DevModeOperations.ServerFilterMode.INACTIVE_ONLY);
+            if (targetProjectModel == null) {
+                return;
+            }
+
+            // Update the active selection to the selected target project if the original selection does match the target.
+            targetProjectName = targetProjectModel.getName();
+            if (!selectedProjectName.equals(targetProjectName)) {
+                Utils.updateActiveSelection(targetProjectModel);
+            }
+
+            // Check if the target project is already started.
+            if (devModeOps.isProjectStarted(targetProjectModel)) {
+
+                if (Trace.isEnabled()) {
+                    Trace.getTracer().trace(Trace.TRACE_TOOLS, "The start... request was already issued on project " + targetProjectName);
+                }
+                ErrorHandler.processErrorMessage(Messages.getMessage("start_with_config_already_issued", targetProjectName), true);
+                return;
+            }
+        } catch (Exception e) {
+            String msg = Messages.getMessage("start_with_config_general_error", (targetProjectName == null) ? selectedProjectName : targetProjectName);
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
+            }
+            ErrorHandler.processErrorMessage(msg, e, true);
+            return;
+        }
 
         // Determine what configuration to use.
         LaunchConfigurationHelper launchConfigHelper = LaunchConfigurationHelper.getInstance();
-        ILaunchConfiguration configuration = launchConfigHelper.getLaunchConfiguration(iProject, mode, RuntimeEnv.UNKNOWN);
+        ILaunchConfiguration configuration = launchConfigHelper.getLaunchConfiguration(targetProjectModel, mode, RuntimeEnv.UNKNOWN);
 
         // Open the configuration in a configuration dialog.
         Shell shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();

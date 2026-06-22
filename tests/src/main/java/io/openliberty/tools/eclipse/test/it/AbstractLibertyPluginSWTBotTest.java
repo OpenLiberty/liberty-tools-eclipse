@@ -76,7 +76,11 @@ public abstract class AbstractLibertyPluginSWTBotTest {
     }
 
     public static String getMvnCmd() {
-        return getMvnCmdPath() + File.separator + "bin" + File.separator + getMvnCmdFilename();
+        String mvnCmdPath = getMvnCmdPath();
+        if (mvnCmdPath == null || mvnCmdPath.isBlank()) {
+            return getMvnCmdFilename();
+        }
+        return mvnCmdPath + File.separator + "bin" + File.separator + getMvnCmdFilename();
     }
 
     public static boolean isMvnLogFile() {
