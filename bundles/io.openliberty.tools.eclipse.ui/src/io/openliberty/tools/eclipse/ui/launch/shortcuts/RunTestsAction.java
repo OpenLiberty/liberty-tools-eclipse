@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2022 IBM Corporation and others.
+* Copyright (c) 2022, 2026 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -15,12 +15,12 @@ package io.openliberty.tools.eclipse.ui.launch.shortcuts;
 import org.eclipse.core.resources.IProject;
 import org.eclipse.debug.ui.ILaunchShortcut;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.osgi.util.NLS;
 import org.eclipse.ui.IEditorPart;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.messages.Messages;
+import io.openliberty.tools.eclipse.model.ProjectModel;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
 import io.openliberty.tools.eclipse.utils.Utils;
@@ -50,7 +50,7 @@ public class RunTestsAction implements ILaunchShortcut {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }
             ErrorHandler.processErrorMessage(
-                    Messages.getMessage("launch_shortcut_error", LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_RUN_TESTS), e, true);
+                                             Messages.getMessage("launch_shortcut_error", LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_RUN_TESTS), e, true);
             return;
         }
 
@@ -79,7 +79,7 @@ public class RunTestsAction implements ILaunchShortcut {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }
             ErrorHandler.processErrorMessage(
-                    Messages.getMessage("launch_shortcut_error", LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_RUN_TESTS), e, true);
+                                             Messages.getMessage("launch_shortcut_error", LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_RUN_TESTS), e, true);
             return;
         }
 
@@ -96,15 +96,35 @@ public class RunTestsAction implements ILaunchShortcut {
      * @throws Exception
      */
     public static void run(IProject iProject) throws Exception {
+        // Make sure the project is valid.
         if (iProject == null) {
-            throw new Exception("Invalid project. Be sure to select a project first.");
+            throw new Exception(Messages.getMessage("launch_shortcut_project_not_found"));
         }
 
-        // Validate that the project is supported.
+        // Resolve the selected project.
         DevModeOperations devModeOps = DevModeOperations.getInstance();
-        devModeOps.verifyProjectSupport(iProject);
+        String selectedProjectName = iProject.getName();
+        String selectedProjectLocation = iProject.getLocation().toOSString();
+        ProjectModel selectedProjectModel = devModeOps.getWorkspaceModel().getProjectByLocation(selectedProjectLocation);
+
+        // Validate that we know about the selected project.
+        if (selectedProjectModel == null) {
+            throw new IllegalStateException(Messages.getMessage("internal_project_not_found", selectedProjectName));
+        }
+        
+        // Resolve the target project taking into account only those that are actively running.
+        ProjectModel targetProjectModel = devModeOps.resolveCommandTarget(selectedProjectModel, "Run Tests", DevModeOperations.ServerFilterMode.ACTIVE_ONLY);
+        if (targetProjectModel == null) {
+            return;
+        }
+
+        // Update the active selection to the selected target project if the original selection does match the target.
+        String targetProjectName = targetProjectModel.getName();
+        if (!selectedProjectName.equals(targetProjectName)) {
+            Utils.updateActiveSelection(targetProjectModel);
+        }
 
         // Process the actions.
-        devModeOps.runTests(iProject);
+        devModeOps.runTests(targetProjectModel);
     }
 }

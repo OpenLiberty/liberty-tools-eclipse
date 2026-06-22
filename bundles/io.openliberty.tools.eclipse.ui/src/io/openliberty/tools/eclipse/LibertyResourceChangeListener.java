@@ -12,9 +12,6 @@
  *******************************************************************************/
 package io.openliberty.tools.eclipse;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
@@ -22,6 +19,7 @@ import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.swt.widgets.Display;
 
+import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.model.ProjectModel;
 import io.openliberty.tools.eclipse.model.WorkspaceModel;
 
@@ -34,10 +32,13 @@ public class LibertyResourceChangeListener implements IResourceChangeListener {
     public void resourceChanged(IResourceChangeEvent event) {
         Display.getDefault().syncExec(new Runnable() {
 
+            /**
+             * {@inheritDoc}
+             */
             @Override
             public void run() {
                 DevModeOperations devModeOps = DevModeOperations.getInstance();
-                WorkspaceModel db = devModeOps.getWorkspaceModel();
+                WorkspaceModel workspaceModel = devModeOps.getWorkspaceModel();
                 IResourceDelta delta = event.getDelta();
                 if (delta == null) {
                     return;
@@ -45,8 +46,6 @@ public class LibertyResourceChangeListener implements IResourceChangeListener {
 
                 // On entry the resource type is the root workspace. Find the child resources affected.
                 IResourceDelta[] resourcesChanged = delta.getAffectedChildren();
-
-                List<IProject> projectsChanged = new ArrayList<IProject>();
 
                 boolean refreshNeeded = false;
 
@@ -56,9 +55,21 @@ public class LibertyResourceChangeListener implements IResourceChangeListener {
                     if (iResource.getType() != IResource.PROJECT) {
                         continue;
                     }
+
                     IProject iProject = (IProject) iResource;
-                    projectsChanged.add(iProject);
-                    ProjectModel project = db.getProjectByName(iProject.getName());
+                    ProjectModel projectModel = null;
+
+                    String projectLocation = iProject.getLocation().toOSString();
+                    projectModel = workspaceModel.getProjectByLocation(projectLocation);
+
+                    if (projectModel == null) {
+                        String msg = "Project " + iProject.getName()
+                                     + " is not a supported project. Verify that the project is configured to run on a WebSphere Liberty server.";
+                        if (Trace.isEnabled()) {
+                            Trace.getTracer().trace(Trace.TRACE_UI, msg);
+                        }
+                        continue;
+                    }
 
                     int updateFlag = resourceChanged.getFlags();
 
@@ -77,7 +88,7 @@ public class LibertyResourceChangeListener implements IResourceChangeListener {
                         // Flag 147456: Although IResourceDelta does not have a predefined constant, this flag
                         // value is set when a project, that previously did not exist, is created.
                         case IResourceDelta.ADDED:
-                            if (project == null && (updateFlag == IResourceDelta.OPEN || updateFlag == 147456)) {
+                            if (projectModel == null && (updateFlag == IResourceDelta.OPEN || updateFlag == 147456)) {
                                 refreshNeeded = true;
                             }
                             break;
@@ -85,7 +96,8 @@ public class LibertyResourceChangeListener implements IResourceChangeListener {
                         // Flag NO_CHANGE (0).
                         // Flag MARKERS (130172).
                         case IResourceDelta.REMOVED:
-                            if (project != null && (updateFlag == IResourceDelta.NO_CHANGE || updateFlag == IResourceDelta.MARKERS)) {
+                            if (projectModel != null && (updateFlag == IResourceDelta.NO_CHANGE || updateFlag == IResourceDelta.MARKERS)) {
+
                                 refreshNeeded = true;
                             }
                             break;
@@ -98,11 +110,10 @@ public class LibertyResourceChangeListener implements IResourceChangeListener {
                     // We leave this commented out as a marker of the idea that maybe one day we'll only
                     // build the "delta" model instead of the whole workspace model
                     // workspaceProjectsModel.buildMultiProjectModel(projectsChanged, true);
-                    db.createNewCompleteWorkspaceModelWithClassify();
+                    workspaceModel.createNewCompleteWorkspaceModelWithClassify();
                     devModeOps.refreshDashboardView(false);
                 }
             }
         });
     }
-
 }

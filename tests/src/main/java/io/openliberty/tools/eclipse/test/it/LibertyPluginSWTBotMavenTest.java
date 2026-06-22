@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2022, 2025 IBM Corporation and others.
+* Copyright (c) 2022, 2026 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -82,6 +82,7 @@ import org.junit.jupiter.api.TestInfo;
 
 import io.openliberty.tools.eclipse.CommandBuilder;
 import io.openliberty.tools.eclipse.CommandBuilder.CommandNotFoundException;
+import io.openliberty.tools.eclipse.model.ProjectModel;
 import io.openliberty.tools.eclipse.test.it.utils.DisabledOnMac;
 import io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils;
 import io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations;
@@ -354,9 +355,10 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
     public void testMavenCommandAssembly() throws IOException, InterruptedException, CommandNotFoundException {
 
         IProject iProject = LibertyPluginTestUtils.getProject(MVN_APP_NAME);
+        ProjectModel projectModel = new ProjectModel(iProject);
         String projPath = iProject.getLocation().toOSString();
 
-        String opaqueMvnCmd = CommandBuilder.getMavenCommandLine(projPath, "io.openliberty.tools:liberty-maven-plugin:dev -f " + projPath,
+        String opaqueMvnCmd = CommandBuilder.getMavenCommandLine(projectModel, "io.openliberty.tools:liberty-maven-plugin:dev -f " + projPath,
                                                                  System.getenv("PATH"));
         Assertions.assertTrue(opaqueMvnCmd.contains(getMvnCmdFilename() + " io.openliberty.tools:liberty-maven-plugin:dev"),
                               "Expected cmd to contain 'mvn io.openliberty.tools...' but cmd = " + opaqueMvnCmd);
@@ -365,9 +367,10 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
     @Test
     public void testMavenWrapperCommandAssembly() throws IOException, InterruptedException, CommandNotFoundException {
         IProject iProject = LibertyPluginTestUtils.getProject(MVN_WRAPPER_APP_NAME);
+        ProjectModel projectModel = new ProjectModel(iProject);
         String projPath = iProject.getLocation().toOSString();
 
-        String opaqueMvnwCmd = CommandBuilder.getMavenCommandLine(projPath, "io.openliberty.tools:liberty-maven-plugin:dev -f " + projPath,
+        String opaqueMvnwCmd = CommandBuilder.getMavenCommandLine(projectModel, "io.openliberty.tools:liberty-maven-plugin:dev -f " + projPath,
                                                                   System.getenv("PATH"));
         Assertions.assertTrue(opaqueMvnwCmd.contains("mvnw"), "Expected cmd to contain 'mvnw' but cmd = " + opaqueMvnwCmd);
     }
@@ -427,10 +430,12 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
     public void testDashboardStopExternalServer() throws CommandNotFoundException, IOException, InterruptedException {
 
         Path projAbsolutePath = wrapperProjectPath.toAbsolutePath();
+        IProject iProject = LibertyPluginTestUtils.getProject(MVN_WRAPPER_APP_NAME);
+        ProjectModel projectModel = new ProjectModel(iProject);
 
         // Doing a 'clean' first in case server was started previously and terminated abruptly. App tests may fail,
         // making it look like an "outer", actual test is failing, so we skip the tests.
-        String cmd = CommandBuilder.getMavenCommandLine(projAbsolutePath.toString(),
+        String cmd = CommandBuilder.getMavenCommandLine(projectModel,
                                                         "clean io.openliberty.tools:liberty-maven-plugin:dev -DskipITs=true", null);
 
         if (LibertyPluginTestUtils.onWindows()) {
@@ -912,6 +917,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
      * 
      * @throws Exception
      */
+    @Disabled("TODO: Remove/update: This test is no longer applicable as is. We now classifiy using server.env, bootstrap.propeties, and liberty plugin.")
     @Test
     public void testAddingProjectToDashboardManually() throws Exception {
 

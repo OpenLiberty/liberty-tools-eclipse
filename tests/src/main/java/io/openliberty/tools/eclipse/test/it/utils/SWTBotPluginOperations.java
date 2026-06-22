@@ -500,10 +500,14 @@ public class SWTBotPluginOperations {
     public static void launchDashboardAction(String appName, String action) {
         openDashboardUsingToolbar();
 
-        Object dashboardView = MagicWidgetFinder.findGlobal(DASHBOARD_VIEW_TITLE);
-        Object project = MagicWidgetFinder.find(appName, dashboardView, Option.factory().widgetClass(TableItem.class).build());
-        MagicWidgetFinder.go(project);
-        MagicWidgetFinder.context(project, action);
+        SWTBotTree dashboardTree = getDashboardTree();
+        SWTBotTreeItem treeItem = findTreeItem(dashboardTree, appName);
+        if (treeItem == null) {
+            throw new org.eclipse.swtbot.swt.finder.exceptions.WidgetNotFoundException("Tree item not found: " + appName);
+        }
+        treeItem.select();
+        SWTBotRootMenu appCtxMenu = treeItem.contextMenu();
+        appCtxMenu.menu(action).click();
     }
 
     /**

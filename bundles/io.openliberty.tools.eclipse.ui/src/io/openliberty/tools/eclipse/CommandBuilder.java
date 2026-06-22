@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2022, 2025 IBM Corporation and others.
+* Copyright (c) 2022, 2026 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -16,10 +16,9 @@ import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import org.eclipse.osgi.util.NLS;
-
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.messages.Messages;
+import io.openliberty.tools.eclipse.model.ProjectModel;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
 import io.openliberty.tools.eclipse.utils.Utils;
 
@@ -30,14 +29,6 @@ public class CommandBuilder {
     private String pathEnv;
 
     private boolean isMaven;
-
-    private String MVNW_WRAPPER = "./mvnw";
-
-    private String MVNW_WRAPPER_WIN = ".\\mvnw.cmd";
-
-    private String GRADLE_WRAPPER = "./gradlew";
-
-    private String GRADLE_WRAPPER_WIN = ".\\gradlew.bat";
 
     /**
      * @param pathEnv
@@ -61,13 +52,20 @@ public class CommandBuilder {
      * 
      * @throws CommandNotFoundException
      */
-    public static String getMavenCommandLine(String projectPath, String cmdArgs, String pathEnv) throws CommandBuilder.CommandNotFoundException {
+    public static String getMavenCommandLine(ProjectModel project, String cmdArgs, String pathEnv) throws CommandBuilder.CommandNotFoundException {
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { projectPath, cmdArgs });
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { project, cmdArgs });
         }
-        CommandBuilder builder = new CommandBuilder(projectPath, pathEnv, true);
+
+        // Add module selector if artifactId is provided
+        String enhancedCmdArgs = cmdArgs;
+        if (project.getParentProjectModel() != null) {
+            enhancedCmdArgs = cmdArgs + " -pl :" + project.getName() + " -am";
+        }
+
+        CommandBuilder builder = new CommandBuilder(project.getPath(), pathEnv, true);
         String cmd = builder.getCommand();
-        String cmdLine = builder.getCommandLineFromArgs(cmd, cmdArgs);
+        String cmdLine = builder.getCommandLineFromArgs(cmd, enhancedCmdArgs);
         if (Trace.isEnabled()) {
             Trace.getTracer().traceExit(Trace.TRACE_TOOLS, cmdLine);
         }
@@ -128,7 +126,7 @@ public class CommandBuilder {
             Path p2mwProps = Paths.get(projectPath, ".mvn", "wrapper", "maven-wrapper.properties");
 
             if (p2mw.toFile().exists() && p2mwProps.toFile().exists()) {
-                cmd = Utils.isWindows() ? MVNW_WRAPPER_WIN : MVNW_WRAPPER;
+                cmd = p2mw.toAbsolutePath().toString();
             }
         } else {
             // Check if there is wrapper defined.
@@ -137,7 +135,7 @@ public class CommandBuilder {
             Path p2gwProps = Paths.get(projectPath, "gradle", "wrapper", "gradle-wrapper.properties");
 
             if (p2gw.toFile().exists() && p2gwJar.toFile().exists() && p2gwProps.toFile().exists()) {
-                cmd = Utils.isWindows() ? GRADLE_WRAPPER_WIN : GRADLE_WRAPPER;
+                cmd = p2gw.toAbsolutePath().toString();
             }
         }
         if (cmd != null) {

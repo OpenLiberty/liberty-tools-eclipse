@@ -41,13 +41,17 @@ import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.jdt.launching.JavaRuntime;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.osgi.util.NLS;
+import org.eclipse.jface.viewers.LabelProvider;
+import org.eclipse.jface.window.Window;
+import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.ISelectionService;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.browser.IWebBrowser;
 import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
+import org.eclipse.ui.dialogs.ElementListSelectionDialog;
 
 import io.openliberty.tools.eclipse.CommandBuilder.CommandNotFoundException;
 import io.openliberty.tools.eclipse.debug.DebugModeHandler;
@@ -55,8 +59,8 @@ import io.openliberty.tools.eclipse.logging.Logger;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.messages.Messages;
 import io.openliberty.tools.eclipse.model.ProjectModel;
-import io.openliberty.tools.eclipse.model.WorkspaceModel;
 import io.openliberty.tools.eclipse.model.ProjectModel.BuildType;
+import io.openliberty.tools.eclipse.model.WorkspaceModel;
 import io.openliberty.tools.eclipse.process.ProcessController;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
@@ -98,7 +102,7 @@ public class DevModeOperations {
     /**
      * Dashboard object reference.
      */
-    private WorkspaceModel projectModel;
+    private WorkspaceModel workspaceModel;
 
     /**
      * PATH environment variable.
@@ -125,7 +129,7 @@ public class DevModeOperations {
      */
     public DevModeOperations() {
         processController = ProcessController.getInstance();
-        projectModel = new WorkspaceModel();
+        workspaceModel = new WorkspaceModel();
         pathEnv = System.getenv("PATH");
         debugModeHandler = new DebugModeHandler(this);
     }
@@ -136,7 +140,7 @@ public class DevModeOperations {
      * @return a complete model of the projects in the workspace
      */
     public WorkspaceModel getWorkspaceModel() {
-        return projectModel;
+        return workspaceModel;
     }
 
     /**
@@ -168,13 +172,13 @@ public class DevModeOperations {
      * @param launch       The launch associated with this run.
      * @param mode         The configuration mode.
      */
-    public void start(IProject iProject, String parms, String javaHomePath, ILaunch launch, String mode, boolean runProjectClean) {
+    public void start(ProjectModel targetProjectModel, String parms, String javaHomePath, ILaunch launch, String mode, boolean runProjectClean) {
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { iProject, parms, javaHomePath, mode });
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { targetProjectModel, parms, javaHomePath, mode });
         }
 
-        if (iProject == null) {
+        if (targetProjectModel == null) {
             String msg = Messages.getMessage("start_no_project_found");
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op.");
@@ -183,20 +187,16 @@ public class DevModeOperations {
             return;
         }
 
-        String projectName = iProject.getName();
-
-        ProjectModel project = null;
+        String targetProjectName = targetProjectModel.getName();
 
         try {
-            project = projectModel.getProjectByName(projectName);
-            if (project == null) {
-                throw new Exception(Messages.getMessage("internal_project_not_found", projectName));
-            }
+            // Get the absolute path to the application project. In a multi-module child project case, use the 
+            // the parent's path.
+            ProjectModel targetParentModel = targetProjectModel.getParentProjectModel();
+            String targetProjectPath = (targetParentModel != null) ? targetParentModel.getPath() : targetProjectModel.getPath();
 
-            // Get the absolute path to the application project.
-            String projectPath = project.getPath();
-            if (projectPath == null) {
-                throw new Exception(Messages.getMessage("project_path_not_found", projectName));
+            if (targetProjectPath == null) {
+                throw new Exception(Messages.getMessage("project_path_not_found", targetProjectName));
             }
 
             // If in debug mode, adjust the start parameters.
@@ -204,14 +204,14 @@ public class DevModeOperations {
             String startParms = null;
             String debugPort = null;
             if (ILaunchManager.DEBUG_MODE.equals(mode)) {
-                debugPort = debugModeHandler.calculateDebugPort(project, userParms);
-                startParms = debugModeHandler.addDebugDataToStartParms(project, debugPort, userParms);
+                debugPort = debugModeHandler.calculateDebugPort(targetProjectModel, userParms);
+                startParms = debugModeHandler.addDebugDataToStartParms(targetProjectModel, debugPort, userParms);
             } else {
                 startParms = userParms;
             }
 
             // Append color styling to start parms
-            BuildType buildType = project.getBuildType();
+            BuildType buildType = targetProjectModel.getBuildType();
             if (buildType == ProjectModel.BuildType.MAVEN) {
 
                 StringBuffer updateStartParms = new StringBuffer(startParms);
@@ -232,40 +232,41 @@ public class DevModeOperations {
             String cmd = "";
 
             if (buildType == ProjectModel.BuildType.MAVEN) {
-                cmd = CommandBuilder.getMavenCommandLine(projectPath, (runProjectClean == true ? " clean " : "") + "io.openliberty.tools:liberty-maven-plugin:dev " + startParms,
+                cmd = CommandBuilder.getMavenCommandLine(targetProjectModel,
+                                                         (runProjectClean == true ? " clean " : "") + "io.openliberty.tools:liberty-maven-plugin:dev " + startParms,
                                                          pathEnv);
             } else if (buildType == ProjectModel.BuildType.GRADLE) {
 
                 if (runProjectClean == true) {
                     try {
-                        String stopGradleDaemonCmd = CommandBuilder.getGradleCommandLine(projectPath, " --stop", pathEnv);
-                        executeCommand(stopGradleDaemonCmd, projectPath);
+                        String stopGradleDaemonCmd = CommandBuilder.getGradleCommandLine(targetProjectPath, " --stop", pathEnv);
+                        executeCommand(stopGradleDaemonCmd, targetProjectPath);
                     } catch (IOException | InterruptedException e) {
                         Logger.logError(Messages.getMessage("gradle_daemon_stop_failed"));
                     }
 
                 }
-                cmd = CommandBuilder.getGradleCommandLine(projectPath,
+                cmd = CommandBuilder.getGradleCommandLine(targetProjectPath,
                                                           (runProjectClean == true ? " clean " : "") + "libertyDev " + startParms, pathEnv);
             } else {
-                throw new Exception(Messages.getMessage("unexpected_build_type", buildType, projectName));
+                throw new Exception(Messages.getMessage("unexpected_build_type", buildType, targetProjectName));
             }
 
             // Run the application in dev mode.
-            startDevMode(cmd, projectName, projectPath, javaHomePath, launch);
+            startDevMode(cmd, targetProjectName, targetProjectPath, javaHomePath, launch);
 
             // If there is a debugPort, start the job to attach the debugger to the Liberty server JVM.
             if (debugPort != null) {
-                debugModeHandler.startDebugAttacher(project, launch, debugPort);
+                debugModeHandler.startDebugAttacher(targetProjectModel, launch, debugPort);
             }
         } catch (CommandNotFoundException e) {
-            String msg = "Maven or Gradle command not found for project " + projectName;
+            String msg = "Maven or Gradle command not found for project " + targetProjectName;
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
             }
             return;
         } catch (Exception e) {
-            String msg = Messages.getMessage("start_general_error", projectName);
+            String msg = Messages.getMessage("start_general_error", targetProjectName);
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
             }
@@ -274,7 +275,7 @@ public class DevModeOperations {
         }
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, project);
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, new Object[] { targetProjectModel });
         }
     }
 
@@ -287,13 +288,13 @@ public class DevModeOperations {
      * @param launch       The launch associated with this run.
      * @param mode         The configuration mode.
      */
-    public void startInContainer(IProject iProject, String parms, String javaHomePath, ILaunch launch, String mode, boolean runProjectClean) {
+    public void startInContainer(ProjectModel targetProjectModel, String parms, String javaHomePath, ILaunch launch, String mode, boolean runProjectClean) {
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { iProject, parms, javaHomePath, mode });
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { targetProjectModel, parms, javaHomePath, mode });
         }
 
-        if (iProject == null) {
+        if (targetProjectModel == null) {
             String msg = Messages.getMessage("start_container_no_project_found");
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op.");
@@ -302,20 +303,16 @@ public class DevModeOperations {
             return;
         }
 
-        String projectName = iProject.getName();
-
-        ProjectModel project = null;
+        String targetProjectName = targetProjectModel.getName();
 
         try {
-            project = projectModel.getProjectByName(projectName);
-            if (project == null) {
-                throw new Exception("Unable to find internal instance of project " + projectName);
-            }
+            // Get the absolute path to the application project. In a multi-module child project case, use the 
+            // the parent's path.
+            ProjectModel targetParentModel = targetProjectModel.getParentProjectModel();
+            String targetProjectPath = (targetParentModel != null) ? targetParentModel.getPath() : targetProjectModel.getPath();
 
-            // Get the absolute path to the application project.
-            String projectPath = project.getPath();
-            if (projectPath == null) {
-                throw new Exception("Unable to find the path to selected project " + projectName);
+            if (targetProjectPath == null) {
+                throw new Exception(Messages.getMessage("project_path_not_found", targetProjectName));
             }
 
             // If in debug mode, adjust the start parameters.
@@ -323,14 +320,14 @@ public class DevModeOperations {
             String startParms = null;
             String debugPort = null;
             if (ILaunchManager.DEBUG_MODE.equals(mode)) {
-                debugPort = debugModeHandler.calculateDebugPort(project, userParms);
-                startParms = debugModeHandler.addDebugDataToStartParms(project, debugPort, userParms);
+                debugPort = debugModeHandler.calculateDebugPort(targetProjectModel, userParms);
+                startParms = debugModeHandler.addDebugDataToStartParms(targetProjectModel, debugPort, userParms);
             } else {
                 startParms = userParms;
             }
 
             // Append color styling to start parms
-            BuildType buildType = project.getBuildType();
+            BuildType buildType = targetProjectModel.getBuildType();
             if (buildType == ProjectModel.BuildType.MAVEN) {
 
                 StringBuffer updateStartParms = new StringBuffer(startParms);
@@ -350,35 +347,36 @@ public class DevModeOperations {
             // Prepare the Liberty plugin container dev mode command.
             String cmd = "";
             if (buildType == ProjectModel.BuildType.MAVEN) {
-                cmd = CommandBuilder.getMavenCommandLine(projectPath, (runProjectClean == true ? " clean " : "") + "io.openliberty.tools:liberty-maven-plugin:devc " + startParms,
+                cmd = CommandBuilder.getMavenCommandLine(targetProjectModel,
+                                                         (runProjectClean == true ? " clean " : "") + "io.openliberty.tools:liberty-maven-plugin:devc " + startParms,
                                                          pathEnv);
             } else if (buildType == ProjectModel.BuildType.GRADLE) {
                 if (runProjectClean == true) {
                     try {
 
-                        String stopGradleDaemonCmd = CommandBuilder.getGradleCommandLine(projectPath, " --stop",
+                        String stopGradleDaemonCmd = CommandBuilder.getGradleCommandLine(targetProjectPath, " --stop",
                                                                                          pathEnv);
-                        executeCommand(stopGradleDaemonCmd, projectPath);
+                        executeCommand(stopGradleDaemonCmd, targetProjectPath);
                     } catch (IOException | InterruptedException e) {
                         Logger.logError("An attempt to stop the Gradle daemon failed....");
                     }
                 }
-                cmd = CommandBuilder.getGradleCommandLine(projectPath,
+                cmd = CommandBuilder.getGradleCommandLine(targetProjectPath,
                                                           (runProjectClean == true ? " clean " : "") + "libertyDevc " + startParms, pathEnv);
             } else {
-                throw new Exception("Unexpected project build type: " + buildType + ". Project " + projectName
+                throw new Exception("Unexpected project build type: " + buildType + ". Project " + targetProjectName
                                     + "does not appear to be a Maven or Gradle built project.");
             }
 
             // Run the application in dev mode.
-            startDevMode(cmd, projectName, projectPath, javaHomePath, launch);
+            startDevMode(cmd, targetProjectName, targetProjectPath, javaHomePath, launch);
 
             // If there is a debugPort, start the job to attach the debugger to the Liberty server JVM.
             if (debugPort != null) {
-                debugModeHandler.startDebugAttacher(project, launch, debugPort);
+                debugModeHandler.startDebugAttacher(targetProjectModel, launch, debugPort);
             }
         } catch (Exception e) {
-            String msg = Messages.getMessage("start_container_general_error", projectName);
+            String msg = Messages.getMessage("start_container_general_error", targetProjectName);
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
             }
@@ -387,7 +385,7 @@ public class DevModeOperations {
         }
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, project);
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, new Object[] { targetProjectModel });
         }
     }
 
@@ -396,19 +394,12 @@ public class DevModeOperations {
      * 
      * @param inputProject The project instance to associate with this action.
      */
-    public void stop(IProject inputProject) {
-        // Get the object representing the selected application project. The returned project should never be null, but check it
-        // just in case it is.
-        IProject iProject = inputProject;
-        if (iProject == null) {
-            iProject = getSelectedDashboardProject();
-        }
-
+    public void stop(ProjectModel targetProjectModel) {
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, iProject);
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, targetProjectModel);
         }
 
-        if (iProject == null) {
+        if (targetProjectModel == null) {
             String msg = "An error was detected when the stop request was processed. The object that represents the selected project was not found. When using the Run Configuration launcher, be sure to select a project or project content first.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op.");
@@ -417,29 +408,26 @@ public class DevModeOperations {
             return;
         }
 
-        String projectName = iProject.getName();
-        ProjectModel project = projectModel.getProjectByName(projectName);
-
-        if (project != null) {
-            Utils.reEnableAppMonitoring(project);
-        }
-
-        // Check if the stop action has already been issued of if a start action was never issued before.
-        if (!processController.isProcessStarted(projectName)) {
-            String msg = Messages.getMessage("stop_already_issued", projectName);
-            handleStopActionError(projectName, msg);
-
-            return;
-        }
+        Utils.reEnableAppMonitoring(targetProjectModel);
+        String targetProjectName = targetProjectModel.getName();
 
         try {
+            // Check if the stop action has already been issued of if a start action was never issued before.
+            if (!processController.isProcessStarted(targetProjectName)) {
+                String msg = Messages.getMessage("stop_already_issued", targetProjectName);
+                handleStopActionError(targetProjectName, msg);
+
+                return;
+            }
+
             // Issue the command to the process.
-            processController.writeToProcessStream(projectName, DEVMODE_COMMAND_EXIT);
+            processController.writeToProcessStream(targetProjectName, DEVMODE_COMMAND_EXIT);
 
             // Cleanup internal objects.
-            cleanupProcess(projectName);
+            cleanupProcess(targetProjectName);
 
         } catch (Exception e) {
+            String projectName = (targetProjectName == null) ? targetProjectModel.getName() : targetProjectName;
             String msg = Messages.getMessage("stop_general_error", projectName);
             handleStopActionError(projectName, msg);
 
@@ -447,32 +435,30 @@ public class DevModeOperations {
         }
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, projectName);
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, new Object[] { targetProjectModel });
         }
     }
 
+    /**
+     * Cleans up the process resources for the specified project.
+     *
+     * @param projectName The name of the project whose process should be cleaned up.
+     */
     public void cleanupProcess(String projectName) {
         processController.cleanup(projectName);
     }
 
     /**
      * Runs the tests provided by the application.
-     * 
+     *
      * @param inputProject The project instance to associate with this action.
      */
-    public void runTests(IProject inputProject) {
-        // Get the object representing the selected application project. The returned project should never be null, but check it
-        // just in case it is.
-        IProject iProject = inputProject;
-        if (iProject == null) {
-            iProject = getSelectedDashboardProject();
-        }
-
+    public void runTests(ProjectModel targetProjectModel) {
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, iProject);
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, targetProjectModel);
         }
 
-        if (iProject == null) {
+        if (targetProjectModel == null) {
             String msg = "An error was detected when the run tests request was processed. The object that represents the selected project was not found. When you use the Run Configuration launcher, be sure to select a project or project content first.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op.");
@@ -481,33 +467,33 @@ public class DevModeOperations {
             return;
         }
 
-        String projectName = iProject.getName();
+        String targetProjectName = targetProjectModel.getName();
 
-        // Check if the stop action has already been issued of if a start action was never issued before.
-        if (!processController.isProcessStarted(projectName)) {
-            String msg = "No start request was issued first or the stop request was already issued on project " + projectName
+        // Check if the stop action has already been issued or if a start action was never issued before.
+        if (!processController.isProcessStarted(targetProjectName)) {
+            String msg = "No start request was issued first or the stop request was already issued on project " + targetProjectName
                          + ". Issue a start request before you issue the run tests request.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op. ProcessController: " + processController);
             }
-            ErrorHandler.processErrorMessage(Messages.getMessage("run_tests_no_prior_start", projectName), true);
+            ErrorHandler.processErrorMessage(Messages.getMessage("run_tests_no_prior_start", targetProjectName), true);
             return;
         }
 
         try {
             // Issue the command on the console.
-            processController.writeToProcessStream(projectName, DEVMODE_COMMAND_RUN_TESTS);
+            processController.writeToProcessStream(targetProjectName, DEVMODE_COMMAND_RUN_TESTS);
         } catch (Exception e) {
-            String msg = "An error was detected when the run tests request was processed on project " + projectName + ".";
+            String msg = "An error was detected when the run tests request was processed on project " + targetProjectName + ".";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
             }
-            ErrorHandler.processErrorMessage(Messages.getMessage("run_tests_general_error", projectName), e, true);
+            ErrorHandler.processErrorMessage(Messages.getMessage("run_tests_general_error", targetProjectName), e, true);
             return;
         }
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, projectName);
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, new Object[] { targetProjectModel });
         }
     }
 
@@ -516,19 +502,12 @@ public class DevModeOperations {
      * 
      * @param inputProject The project instance to associate with this action.
      */
-    public void openMavenIntegrationTestReport(IProject inputProject) {
-        // Get the object representing the selected application project. The returned project should never be null, but check it
-        // just in case it is.
-        IProject iProject = inputProject;
-        if (iProject == null) {
-            iProject = getSelectedDashboardProject();
-        }
-
+    public void openMavenIntegrationTestReport(ProjectModel targetProjectModel) {
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, iProject);
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, targetProjectModel);
         }
 
-        if (iProject == null) {
+        if (targetProjectModel == null) {
             String msg = "An error was detected when the view integration test report request was processed. The object that represents the selected project was not found. When you use the Run Configuration launcher, be sure to select a project or project content first.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op.");
@@ -537,41 +516,35 @@ public class DevModeOperations {
             return;
         }
 
-        String projectName = iProject.getName();
-        ProjectModel project = null;
+        String targetProjectName = targetProjectModel.getName();
 
         try {
-            project = projectModel.getProjectByName(projectName);
-            if (project == null) {
-                throw new Exception("Unable to find internal instance of project " + projectName);
-            }
-
             // Get the absolute path to the application project.
-            String projectPath = project.getPath();
-            if (projectPath == null) {
-                throw new Exception("Unable to find the path to selected project " + projectName);
+            String targetProjectPath = targetProjectModel.getPath();
+            if (targetProjectPath == null) {
+                throw new Exception("Unable to find the path to selected project " + targetProjectName);
             }
 
             // Get the path to the test report.
-            Path path = getMavenIntegrationTestReportPath(projectPath, projectName);
+            Path path = getMavenIntegrationTestReportPath(targetProjectPath, targetProjectName);
 
             if (path != null) {
                 // Display the report on the browser. Browser display is based on eclipse configuration preferences.
-                String browserTabTitle = projectName + " " + BROWSER_MVN_IT_REPORT_NAME_SUFFIX;
-                openTestReport(projectName, path, path.toString(), browserTabTitle, browserTabTitle);
+                String browserTabTitle = targetProjectName + " " + BROWSER_MVN_IT_REPORT_NAME_SUFFIX;
+                openTestReport(targetProjectName, path, path.toString(), browserTabTitle, browserTabTitle);
             }
         } catch (Exception e) {
-            String msg = "An error was detected when the view integration test report request was processed on project " + projectName
+            String msg = "An error was detected when the view integration test report request was processed on project " + targetProjectName
                          + ".";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
             }
-            ErrorHandler.processErrorMessage(Messages.getMessage("mvn_int_test_report_general_error", projectName), e, true);
+            ErrorHandler.processErrorMessage(Messages.getMessage("mvn_int_test_report_general_error", targetProjectName), e, true);
             return;
         }
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, project);
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, new Object[] { targetProjectModel });
         }
     }
 
@@ -580,62 +553,50 @@ public class DevModeOperations {
      * 
      * @param inputProject The project instance to associate with this action.
      */
-    public void openMavenUnitTestReport(IProject inputProject) {
-        // Get the object representing the selected application project. The returned project should never be null, but check it
-        // just in case it is.
-        IProject iProject = inputProject;
-        if (iProject == null) {
-            iProject = getSelectedDashboardProject();
-        }
-
+    public void openMavenUnitTestReport(ProjectModel targetProjectModel) {
         if (Trace.isEnabled()) {
             if (Trace.isEnabled()) {
-                Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, iProject);
+                Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, targetProjectModel);
             }
         }
 
-        if (iProject == null) {
+        if (targetProjectModel == null) {
             String msg = "An error was detected when the view unit test report request was processed. The object representing the selected project could not be found. When using the Run Configuration launcher, be sure to select a project or project content first.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op.");
             }
             ErrorHandler.processErrorMessage(Messages.getMessage("mvn_unit_test_report_no_project_found"), true);
+            return;
         }
 
-        String projectName = iProject.getName();
-        ProjectModel project = null;
+        String targetProjectName = targetProjectModel.getName();
 
         try {
-            project = projectModel.getProjectByName(projectName);
-            if (project == null) {
-                throw new Exception("Unable to find internal instance of project " + projectName);
-            }
-
             // Get the absolute path to the application project.
-            String projectPath = project.getPath();
-            if (projectPath == null) {
-                throw new Exception("Unable to find the path to selected project " + projectName);
+            String targetProjectPath = targetProjectModel.getPath();
+            if (targetProjectPath == null) {
+                throw new Exception("Unable to find the path to selected project " + targetProjectName);
             }
 
             // Get the path to the test report.
-            Path path = getMavenUnitTestReportPath(projectPath, projectName);
+            Path path = getMavenUnitTestReportPath(targetProjectPath, targetProjectName);
 
             if (path != null) {
                 // Display the report on the browser. Browser display is based on eclipse configuration preferences.
-                String browserTabTitle = projectName + " " + BROWSER_MVN_UT_REPORT_NAME_SUFFIX;
-                openTestReport(projectName, path, path.toString(), browserTabTitle, browserTabTitle);
+                String browserTabTitle = targetProjectName + " " + BROWSER_MVN_UT_REPORT_NAME_SUFFIX;
+                openTestReport(targetProjectName, path, path.toString(), browserTabTitle, browserTabTitle);
             }
         } catch (Exception e) {
-            String msg = "An error was detected when the view unit test report request was processed on project " + projectName + ".";
+            String msg = "An error was detected when the view unit test report request was processed on project " + targetProjectName + ".";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
             }
-            ErrorHandler.processErrorMessage(Messages.getMessage("mvn_unit_test_report_general_error", projectName), e, true);
+            ErrorHandler.processErrorMessage(Messages.getMessage("mvn_unit_test_report_general_error", targetProjectName), e, true);
             return;
         }
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, project);
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, new Object[] { targetProjectModel });
         }
     }
 
@@ -644,19 +605,12 @@ public class DevModeOperations {
      * 
      * @param inputProject The project instance to associate with this action.
      */
-    public void openGradleTestReport(IProject inputProject) {
-        // Get the object representing the selected application project. The returned project should never be null, but check it
-        // just in case it is.
-        IProject iProject = inputProject;
-        if (iProject == null) {
-            iProject = getSelectedDashboardProject();
-        }
-
+    public void openGradleTestReport(ProjectModel targetProjectModel) {
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, iProject);
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, targetProjectModel);
         }
 
-        if (iProject == null) {
+        if (targetProjectModel == null) {
             String msg = "An error was detected when the view test report request was processed. The object representing the selected project could not be found. When using the Run Configuration launcher, be sure to select a project or project content first.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op.");
@@ -665,52 +619,45 @@ public class DevModeOperations {
             return;
         }
 
-        String projectName = iProject.getName();
-        ProjectModel project = null;
+        String targetProjectName = targetProjectModel.getName();
 
         try {
-            project = projectModel.getProjectByName(projectName);
-            if (project == null) {
-                throw new Exception("Unable to find internal instance of project " + projectName);
-            }
-
             // Get the absolute path to the application project.
-            String projectPath = project.getPath();
-            if (projectPath == null) {
-                throw new Exception("Unable to find the path to selected project " + projectName);
+            String targetProjectPath = targetProjectModel.getPath();
+            if (targetProjectPath == null) {
+                throw new Exception("Unable to find the path to selected project " + targetProjectName);
             }
 
             // Get the path to the test report.
-            Path path = getGradleTestReportPath(projectPath);
+            Path path = getGradleTestReportPath(targetProjectPath);
             if (!path.toFile().exists()) {
-                String msg = "No test results were found for project " + projectName + ". Select \""
+                String msg = "No test results were found for project " + targetProjectName + ". Select \""
                              + DashboardView.APP_MENU_ACTION_RUN_TESTS + "\" before you select \""
                              + DashboardView.APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT + "\" on the menu.";
                 if (Trace.isEnabled()) {
                     Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op. Path: " + path);
                 }
-                ErrorHandler
-                        .processErrorMessage(
-                                Messages.getMessage("gradle_test_report_none_found", projectName,
-                                        DashboardView.APP_MENU_ACTION_RUN_TESTS, DashboardView.APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT),
-                                true);
+                ErrorHandler.processErrorMessage(
+                                                 Messages.getMessage("gradle_test_report_none_found", targetProjectName,
+                                                                     DashboardView.APP_MENU_ACTION_RUN_TESTS, DashboardView.APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT),
+                                                 true);
                 return;
             }
 
             // Display the report on the browser. Browser display is based on eclipse configuration preferences.
-            String browserTabTitle = projectName + " " + BROWSER_GRADLE_TEST_REPORT_NAME_SUFFIX;
-            openTestReport(projectName, path, path.toString(), browserTabTitle, browserTabTitle);
+            String browserTabTitle = targetProjectName + " " + BROWSER_GRADLE_TEST_REPORT_NAME_SUFFIX;
+            openTestReport(targetProjectName, path, path.toString(), browserTabTitle, browserTabTitle);
         } catch (Exception e) {
-            String msg = "An error was detected when the view test report request was processed on project " + projectName + ".";
+            String msg = "An error was detected when the view test report request was processed on project " + targetProjectName + ".";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
             }
-            ErrorHandler.processErrorMessage(Messages.getMessage("gradle_test_report_general_error", projectName));
+            ErrorHandler.processErrorMessage(Messages.getMessage("gradle_test_report_general_error", targetProjectName));
             return;
         }
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, project);
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, new Object[] { targetProjectModel });
         }
     }
 
@@ -799,13 +746,15 @@ public class DevModeOperations {
 
         try {
             // Get the internal object representing the input project name.
-            ProjectModel project = projectModel.getProjectByName(projectName);
-            if (project == null) {
-                throw new Exception("Unable to find internal the instance of project " + projectName);
+            ProjectModel projectModel = workspaceModel.getProjectByName(projectName);
+
+            // Validate that we know about the selected project.
+            if (projectModel == null) {
+                throw new IllegalStateException(Messages.getMessage("internal_project_not_found", projectName));
             }
 
             // Get the absolute path to the application project.
-            String projectPath = project.getPath();
+            String projectPath = projectModel.getPath();
             if (projectPath == null) {
                 throw new Exception("Unable to find the path associated with project " + projectName);
             }
@@ -816,9 +765,9 @@ public class DevModeOperations {
             // Build the command.
             String cmd = "";
             String buildTypeName;
-            BuildType buildType = project.getBuildType();
+            BuildType buildType = projectModel.getBuildType();
             if (buildType == ProjectModel.BuildType.MAVEN) {
-                cmd = CommandBuilder.getMavenCommandLine(projectPath, "io.openliberty.tools:liberty-maven-plugin:stop", pathEnv);
+                cmd = CommandBuilder.getMavenCommandLine(projectModel, "io.openliberty.tools:liberty-maven-plugin:stop", pathEnv);
                 buildTypeName = "Maven";
             } else if (buildType == ProjectModel.BuildType.GRADLE) {
                 cmd = CommandBuilder.getGradleCommandLine(projectPath, "libertyStop", pathEnv);
@@ -908,7 +857,7 @@ public class DevModeOperations {
                                     Trace.getTracer().trace(Trace.TRACE_TOOLS, msg);
                                 }
                                 ErrorHandler.rawErrorMessageDialog(Messages.getMessage("plugin_stop_timeout",
-                                        projectName, Integer.toString(STOP_TIMEOUT_SECONDS)));
+                                                                                       projectName, Integer.toString(STOP_TIMEOUT_SECONDS)));
                             }
                         });
                         return;
@@ -970,13 +919,23 @@ public class DevModeOperations {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op. Paths checked: " + path1 + ", " + path2);
             }
             ErrorHandler.processErrorMessage(Messages.getMessage("mvn_int_test_report_none_found", projectName,
-                    DashboardView.APP_MENU_ACTION_RUN_TESTS, DashboardView.APP_MENU_ACTION_VIEW_MVN_IT_REPORT), true);
+                                                                 DashboardView.APP_MENU_ACTION_RUN_TESTS, DashboardView.APP_MENU_ACTION_VIEW_MVN_IT_REPORT),
+                                             true);
             return null;
         }
 
         return path1.toFile().exists() ? path1 : path2;
     }
 
+    /**
+     * Returns the path to the liberty-plugin-config.xml containing Liberty server data.
+     * 
+     * @param project The project is either the parent or a project that has a Liberty configuration.
+     * 
+     * @return The path to the liberty-plugin-config.xml containing Liberty server data.
+     * 
+     * @throws Exception
+     */
     public Path getLibertyPluginConfigXmlPath(ProjectModel project) throws Exception {
 
         ProjectModel serverProj = getLibertyServerProject(project);
@@ -989,7 +948,8 @@ public class DevModeOperations {
     /**
      * Returns the liberty server module project associated with the input project.
      * 
-     * @param project The project to process.
+     * @param project The project is either the parent or a project that has a Liberty configuration
+     *                    since this is invoked from the dashboard.
      * 
      * @return The liberty server module project associated with the input project.
      * 
@@ -1030,7 +990,8 @@ public class DevModeOperations {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op. Paths checked: " + path1 + ", " + path2);
             }
             ErrorHandler.processErrorMessage(Messages.getMessage("mvn_unit_test_report_none_found", projectName,
-                    DashboardView.APP_MENU_ACTION_RUN_TESTS, DashboardView.APP_MENU_ACTION_VIEW_MVN_UT_REPORT), true);
+                                                                 DashboardView.APP_MENU_ACTION_RUN_TESTS, DashboardView.APP_MENU_ACTION_VIEW_MVN_UT_REPORT),
+                                             true);
             return null;
         }
 
@@ -1077,11 +1038,9 @@ public class DevModeOperations {
             if (selection instanceof IStructuredSelection) {
                 IStructuredSelection structuredSelection = (IStructuredSelection) selection;
                 Object firstElement = structuredSelection.getFirstElement();
-                if (firstElement instanceof String) {
-                    ProjectModel project = projectModel.getProjectByName((String) firstElement);
-                    if (project != null) {
-                        iProject = project.getIProject();
-                    }
+                if (firstElement instanceof ProjectModel) {
+                    ProjectModel project = (ProjectModel) firstElement;
+                    iProject = project.getIProject();
                 }
             }
         }
@@ -1094,26 +1053,19 @@ public class DevModeOperations {
     }
 
     /**
-     * Verifies that the input project is known to the plugin and that it is a supported project.
-     * 
-     * @param iProject The project to validate. If null, this operation is a no-op.
-     * 
-     * @throws Exception If the input project is not supported.
+     * Returns the dashboard view instance.
+     *
+     * @return The dashboard view instance.
      */
-    public void verifyProjectSupport(IProject iProject) throws Exception {
-        if (iProject != null) {
-            String projectName = iProject.getName();
-            ProjectModel project = projectModel.getProjectByName(projectName);
-            if (project == null) {
-                throw new Exception("Project " + projectName + " is not a supported project. Make sure the project is a Liberty project.");
-            }
-        }
-    }
-
     public DashboardView getDashboardView() {
         return dashboardView;
     }
 
+    /**
+     * Sets the dashboard view instance.
+     *
+     * @param dashboardView The dashboard view instance to set.
+     */
     public void setDashboardView(DashboardView dashboardView) {
         this.dashboardView = dashboardView;
     }
@@ -1125,19 +1077,25 @@ public class DevModeOperations {
      * 
      * @return true if the start process for the project is active. False, otherwise.
      */
-    public boolean isProjectStarted(String projectName) {
+    public boolean isProjectStarted(ProjectModel projectModel) {
+        String projectName = projectModel.getName();
         return processController.isProcessStarted(projectName);
     }
 
+    /**
+     * Restarts the Liberty server for the specified project.
+     *
+     * @param projectName The name of the project whose server should be restarted.
+     */
     public void restartServer(String projectName) {
-    	String restartCommand = "r";
-    	try {
-    		processController.writeToProcessStream(projectName, restartCommand);
-    	} catch (Exception e) {
-    		if (Trace.isEnabled()) {
-    			Trace.getTracer().trace(Trace.TRACE_TOOLS, Messages.getMessage("restart_server_error", projectName), e);
-    		}
-    	}
+        String restartCommand = "r";
+        try {
+            processController.writeToProcessStream(projectName, restartCommand);
+        } catch (Exception e) {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, Messages.getMessage("restart_server_error", projectName), e);
+            }
+        }
     }
 
     /**
@@ -1145,7 +1103,7 @@ public class DevModeOperations {
      */
     public void refreshDashboardView(boolean reportError) {
         if (dashboardView != null) {
-            dashboardView.refreshDashboardView(projectModel, reportError);
+            dashboardView.refreshDashboardView(workspaceModel, reportError);
         }
     }
 
@@ -1157,6 +1115,290 @@ public class DevModeOperations {
         runningJobs.keySet().forEach(j -> j.cancel());
     }
 
+    /**
+     * Server filter mode for resolving command targets in multi-module projects.
+     * Used to filter Liberty modules based on their server state (running or stopped).
+     */
+    public enum ServerFilterMode {
+        /** Show all Liberty projects regardless of server state. */
+        ALL,
+        /** Show only Liberty projects with active (running) servers. */
+        ACTIVE_ONLY,
+        /** Show only Liberty projects with inactive (stopped) servers. */
+        INACTIVE_ONLY
+    }
+
+    /**
+     * Resolve the target project for a given action command.
+     *
+     * @param projectModel The project to resolve.
+     * @param commandName  The command name for display purposes.
+     *
+     * @return The target project to execute or null if the user did not select one from a list options.
+     *
+     * @throws Exception if input the project is not Liberty configured, or it does not have a liberty configured module.
+     */
+    public ProjectModel resolveCommandTarget(ProjectModel projectModel, String commandName) throws Exception {
+        return resolveCommandTarget(projectModel, commandName, ServerFilterMode.ALL);
+    }
+
+    /**
+     * Resolve the target project for a given action command.
+     *
+     * @param projectModel The project to resolve.
+     * @param commandName  The command name for display purposes.
+     * @param filterMode   The server filter mode to apply.
+     *
+     * @return The target project to execute or null if the user did not select one from a list options.
+     *
+     * @throws Exception if input the project is not Liberty configured, or it does not have a liberty configured module.
+     */
+    public ProjectModel resolveCommandTarget(ProjectModel projectModel, String commandName, ServerFilterMode filterMode) throws Exception {
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { projectModel, commandName });
+        }
+
+        final ProjectModel[] targetProject = new ProjectModel[1];
+
+        // If the project is an aggregator
+        if (projectModel.getBuildConfigMetadata().isAggregator()) {
+            List<ProjectModel> allLibertyChildren = workspaceModel.findLibertyDescendants(projectModel);
+
+            // Filter by server state based on filter mode
+            final List<ProjectModel> libertyChildren;
+            if (filterMode == ServerFilterMode.ACTIVE_ONLY) {
+                List<ProjectModel> activeChildren = new ArrayList<>();
+                for (ProjectModel child : allLibertyChildren) {
+                    if (processController.isProcessStarted(child.getName())) {
+                        activeChildren.add(child);
+                    }
+                }
+                libertyChildren = activeChildren;
+            } else if (filterMode == ServerFilterMode.INACTIVE_ONLY) {
+                List<ProjectModel> inactiveChildren = new ArrayList<>();
+                for (ProjectModel child : allLibertyChildren) {
+                    if (!processController.isProcessStarted(child.getName())) {
+                        inactiveChildren.add(child);
+                    }
+                }
+                libertyChildren = inactiveChildren;
+            } else {
+                libertyChildren = allLibertyChildren;
+            }
+
+            // There should never be the case that there are no children found because a parent without
+            // child Liberty modules should not be shown in the dashboard, and the user should not be given
+            // the option to select an action through the explorers. If this case is encountered, it is
+            // an internal error an it should be reported as such.
+            if (libertyChildren.isEmpty()) {
+                String msg = Messages.getMessage("no_liberty_modules_found", projectModel.getName());
+                throw new Exception(msg);
+            }
+
+            // If this parent project has a single child, return it as the target.
+            if (libertyChildren.size() == 1) {
+                if (Trace.isEnabled()) {
+                    Trace.getTracer().traceExit(Trace.TRACE_TOOLS, libertyChildren.get(0));
+                }
+                targetProject[0] = libertyChildren.get(0);
+            } else {
+
+                // If this parent project has multiple projects, ask the user to pick one,
+                // and return it as the target.
+                Display.getDefault().syncExec(new Runnable() {
+                    @Override
+                    public void run() {
+                        Shell shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
+                        Display display = PlatformUI.getWorkbench().getDisplay();
+
+                        // Load images once to avoid resource leaks
+                        final Image mavenImg = Utils.getImage(display, DashboardView.MAVEN_IMG_TAG_PATH);
+                        final Image gradleImg = Utils.getImage(display, DashboardView.GRADLE_IMG_TAG_PATH);
+
+                        try {
+                            // Create a professional selection dialog using Eclipse standard pattern
+                            ElementListSelectionDialog dialog = new ElementListSelectionDialog(shell, new LabelProvider() {
+                                @Override
+                                public String getText(Object element) {
+                                    ProjectModel pm = (ProjectModel) element;
+                                    return pm.getName();
+                                }
+
+                                @Override
+                                public Image getImage(Object element) {
+                                    ProjectModel pm = (ProjectModel) element;
+                                    return pm.getBuildType() == BuildType.MAVEN ? mavenImg : gradleImg;
+                                }
+                            });
+
+                            // Set size to show up to 10 items, then scrollbar appears
+                            dialog.setSize(60, 10);
+
+                            // Customize dialog title and message based on filter mode
+                            String dialogTitle;
+                            String dialogMessage;
+                            if (filterMode == ServerFilterMode.ACTIVE_ONLY) {
+                                dialogTitle = Messages.getMessage("select_active_module_for_command_title");
+                                dialogMessage = Messages.getMessage("select_active_module_for_command_description", commandName);
+                            } else if (filterMode == ServerFilterMode.INACTIVE_ONLY) {
+                                dialogTitle = Messages.getMessage("select_inactive_module_for_command_title");
+                                dialogMessage = Messages.getMessage("select_inactive_module_for_command_description", commandName);
+                            } else {
+                                dialogTitle = Messages.getMessage("select_module_for_command_title");
+                                dialogMessage = Messages.getMessage("select_module_for_command_description", commandName);
+                            }
+
+                            dialog.setTitle(dialogTitle);
+                            dialog.setMessage(dialogMessage);
+                            dialog.setElements(libertyChildren.toArray());
+                            dialog.setInitialSelections(new Object[] { libertyChildren.get(0) });
+                            dialog.setHelpAvailable(false);
+
+                            if (dialog.open() == Window.OK) {
+                                targetProject[0] = (ProjectModel) dialog.getFirstResult();
+                            }
+                        } finally {
+                            // Dispose images to prevent resource leak
+                            if (mavenImg != null && !mavenImg.isDisposed()) {
+                                mavenImg.dispose();
+                            }
+                            if (gradleImg != null && !gradleImg.isDisposed()) {
+                                gradleImg.dispose();
+                            }
+                        }
+                    }
+                });
+
+                // If user cancelled the dialog, throw an exception
+                if (targetProject[0] == null) {
+                    return null;
+                }
+            }
+        } else {
+            // This project is a child or non-multi-module project, check if
+            // it is a liberty configured project. If so, return it as the target.
+            if (projectModel.isLibertyServerModule()) {
+                targetProject[0] = projectModel;
+            } else {
+                // This project is a child or non-multi-module project without any Liberty configuration.
+                String msg = Messages.getMessage("project_not_liberty_enabled", projectModel.getName());
+                throw new Exception(msg);
+            }
+        }
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, targetProject[0]);
+        }
+
+        return targetProject[0];
+    }
+
+    /**
+     * Resolve the target project for viewing test reports.
+     * Filters by project dependencies (declared in build config) that have tests,
+     * rather than all descendants in the directory hierarchy.
+     *
+     * @param projectModel The project to resolve.
+     * @param commandName  The command name for display purposes.
+     *
+     * @return The target project to view test reports for, or null if user cancelled.
+     *
+     * @throws Exception if no projects with test reports are found.
+     */
+    public ProjectModel resolveTestReportTarget(ProjectModel projectModel, String commandName) throws Exception {
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { projectModel, commandName });
+        }
+
+        final ProjectModel[] targetProject = new ProjectModel[1];
+
+        // Get dependent projects (declared in build config) with test source files
+        List<ProjectModel> dependentsWithTests = projectModel.getDependentProjectsWithTests();
+
+        // If no dependents have tests, check if the parent itself has tests
+        if (dependentsWithTests.isEmpty()) {
+            if (projectModel.hasTests()) {
+                targetProject[0] = projectModel;
+            } else {
+                String msg = Messages.getMessage("no_test_reports_found", projectModel.getName());
+                throw new Exception(msg);
+            }
+        } else {
+            // If we are here, the selected liberty project has at least one dependent.
+            // Add the liberty project to the list if it has any tests.
+            List<ProjectModel> projectsToDisplay = new ArrayList<ProjectModel>(dependentsWithTests);
+            if (projectModel.hasTests()) {
+                projectsToDisplay.add(projectModel);
+            }
+
+            Display.getDefault().syncExec(new Runnable() {
+                @Override
+                public void run() {
+                    Shell shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
+                    Display display = PlatformUI.getWorkbench().getDisplay();
+
+                    final Image mavenImg = Utils.getImage(display, DashboardView.MAVEN_IMG_TAG_PATH);
+                    final Image gradleImg = Utils.getImage(display, DashboardView.GRADLE_IMG_TAG_PATH);
+
+                    try {
+                        ElementListSelectionDialog dialog = new ElementListSelectionDialog(shell, new LabelProvider() {
+                            @Override
+                            public String getText(Object element) {
+                                ProjectModel pm = (ProjectModel) element;
+                                return pm.getName();
+                            }
+
+                            @Override
+                            public Image getImage(Object element) {
+                                ProjectModel pm = (ProjectModel) element;
+                                return pm.getBuildType() == BuildType.MAVEN ? mavenImg : gradleImg;
+                            }
+                        });
+
+                        // Set size to show up to 10 items, then scrollbar appears
+                        dialog.setSize(60, 10);
+
+                        dialog.setTitle(Messages.getMessage("select_module_for_test_report_title"));
+                        dialog.setMessage(Messages.getMessage("select_module_for_test_report_description", commandName));
+                        dialog.setElements(projectsToDisplay.toArray());
+                        dialog.setInitialSelections(new Object[] { projectsToDisplay.get(0) });
+                        dialog.setHelpAvailable(false);
+
+                        if (dialog.open() == Window.OK) {
+                            targetProject[0] = (ProjectModel) dialog.getFirstResult();
+                        }
+                    } finally {
+                        if (mavenImg != null && !mavenImg.isDisposed()) {
+                            mavenImg.dispose();
+                        }
+                        if (gradleImg != null && !gradleImg.isDisposed()) {
+                            gradleImg.dispose();
+                        }
+                    }
+                }
+            });
+
+            if (targetProject[0] == null) {
+                return null; // User cancelled
+            }
+        }
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, targetProject[0]);
+        }
+
+        return targetProject[0];
+    }
+
+    /**
+     * Executes a command in the specified project directory.
+     *
+     * @param fullCommand The full command string to execute.
+     * @param projectPath The path to the project directory where the command should be executed.
+     *
+     * @throws IOException          If an I/O error occurs.
+     * @throws InterruptedException If the process is interrupted.
+     */
     public void executeCommand(String fullCommand, String projectPath) throws IOException, InterruptedException {
         // Split the full command into individual arguments
         List<String> command = Arrays.asList(fullCommand.trim().split("\\s+"));
@@ -1168,4 +1410,14 @@ public class DevModeOperations {
         process.waitFor();
     }
 
+    /**
+     * Checks if the dev mode process has been started for the specified project.
+     *
+     * @param projectName The name of the project to check.
+     *
+     * @return True if the dev mode process is started, false otherwise.
+     */
+    public boolean isDevModeProcessStarted(String projectName) {
+        return processController.isProcessStarted(projectName);
+    }
 }

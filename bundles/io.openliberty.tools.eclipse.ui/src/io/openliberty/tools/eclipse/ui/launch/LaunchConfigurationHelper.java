@@ -25,8 +25,8 @@ import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.jdt.launching.IJavaLaunchConfigurationConstants;
 
-import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.logging.Trace;
+import io.openliberty.tools.eclipse.model.ProjectModel;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher.RuntimeEnv;
 
 public class LaunchConfigurationHelper {
@@ -56,12 +56,11 @@ public class LaunchConfigurationHelper {
      * 
      * @throws Exception
      */
-    public ILaunchConfiguration getLaunchConfiguration(IProject iProject, String mode, RuntimeEnv runtimeEnv) throws Exception {
+    public ILaunchConfiguration getLaunchConfiguration(ProjectModel targetProjectModel, String mode, RuntimeEnv runtimeEnv) throws Exception {
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_UI, new Object[] { iProject, mode, runtimeEnv });
+            Trace.getTracer().traceEntry(Trace.TRACE_UI, new Object[] { targetProjectModel, mode, runtimeEnv });
         }
 
-        DevModeOperations devModeOps = DevModeOperations.getInstance();
         ILaunchConfiguration configuration = null;
         ILaunchManager iLaunchMgr = DebugPlugin.getDefault().getLaunchManager();
         ILaunchConfigurationType iLaunchConfigType = iLaunchMgr.getLaunchConfigurationType(LaunchConfigurationDelegateLauncher.LAUNCH_CONFIG_TYPE_ID);
@@ -69,15 +68,16 @@ public class LaunchConfigurationHelper {
         // Find the set of configurations that were used by the currently active project last.
         ILaunchConfiguration[] existingConfigs = iLaunchMgr.getLaunchConfigurations(iLaunchConfigType);
 
-        List<ILaunchConfiguration> matchingConfigList = filterLaunchConfigurations(existingConfigs, iProject.getName(), runtimeEnv);
+        List<ILaunchConfiguration> matchingConfigList = filterLaunchConfigurations(existingConfigs, targetProjectModel.getName(), runtimeEnv);
 
         switch (matchingConfigList.size()) {
             case 0:
                 // Create a new configuration.
-                String newName = iLaunchMgr.generateLaunchConfigurationName(iProject.getName());
+                IProject iProject = targetProjectModel.getIProject();
+                String newName = iLaunchMgr.generateLaunchConfigurationName(targetProjectModel.getName());
                 ILaunchConfigurationWorkingCopy workingCopy = iLaunchConfigType.newInstance(null, newName);
-                workingCopy.setAttribute(StartTab.PROJECT_NAME, iProject.getName());
-                workingCopy.setAttribute(StartTab.PROJECT_START_PARM, devModeOps.getWorkspaceModel().getDefaultStartParameters(iProject));
+                workingCopy.setAttribute(StartTab.PROJECT_NAME, targetProjectModel.getName());
+                workingCopy.setAttribute(StartTab.PROJECT_START_PARM, "");
                 // default to 'false', no container
                 boolean runInContainer = runtimeEnv.equals(RuntimeEnv.CONTAINER);
                 workingCopy.setAttribute(StartTab.PROJECT_RUN_IN_CONTAINER, runInContainer);
@@ -100,7 +100,7 @@ public class LaunchConfigurationHelper {
         }
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, new Object[] { iProject, configuration });
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, new Object[] { configuration });
         }
 
         return configuration;
@@ -165,6 +165,8 @@ public class LaunchConfigurationHelper {
             /**
              * Organizes the items in the descending order. If there are more than one entries with equal value that are considered greater
              * than the others, the one in the first position after the sort is returned in no particular order.
+             *
+             * {@inheritDoc}
              */
             @Override
             public int compare(ILaunchConfiguration lc1, ILaunchConfiguration lc2) {

@@ -110,12 +110,17 @@ public class LibertyDebugReconnectHandler extends AbstractHandler {
             }
 
             if (projectName != null && !projectName.isBlank()) {
-                ProjectModel project = devModeOps.getWorkspaceModel().getProjectByName(projectName);
+                ProjectModel projectModel = devModeOps.getWorkspaceModel().getProjectByName(projectName);
+
+                // Validate that we know about the selected project.
+                if (projectModel == null) {
+                    throw new IllegalStateException(Messages.getMessage("internal_project_not_found", projectName));
+                }
 
                 // Reconnect debugger
-                if (devModeOps.isProjectStarted(projectName)) {
+                if (devModeOps.isProjectStarted(projectModel)) {
                     DebugModeHandler debugModeHandler = devModeOps.getDebugModeHandler();
-                    debugModeHandler.startDebugAttacher(project, launch, null);
+                    debugModeHandler.startDebugAttacher(projectModel, launch, null);
                 }
 
                 // Remove old debug target
