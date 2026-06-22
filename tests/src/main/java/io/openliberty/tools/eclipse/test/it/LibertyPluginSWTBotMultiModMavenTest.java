@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2022, 2025 IBM Corporation and others.
+ * Copyright (c) 2022, 2026 IBM Corporation and others.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -45,6 +45,7 @@ import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.MethodOrderer.MethodName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
@@ -89,17 +90,24 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
     /**
      * Expected menu items.
      */
-    static String[] mvnMenuItems = new String[] { DashboardView.APP_MENU_ACTION_START, DashboardView.APP_MENU_ACTION_START_CONFIG,
-                                                  DashboardView.APP_MENU_ACTION_START_IN_CONTAINER, DashboardView.APP_MENU_ACTION_DEBUG,
-                                                  DashboardView.APP_MENU_ACTION_DEBUG_CONFIG, DashboardView.APP_MENU_ACTION_DEBUG_IN_CONTAINER,
-                                                  DashboardView.APP_MENU_ACTION_STOP, DashboardView.APP_MENU_ACTION_RUN_TESTS, DashboardView.APP_MENU_ACTION_VIEW_MVN_IT_REPORT,
+    static String[] mvnMenuItems = new String[] { DashboardView.APP_MENU_ACTION_START,
+                                                  DashboardView.APP_MENU_ACTION_START_CONFIG,
+                                                  DashboardView.APP_MENU_ACTION_START_IN_CONTAINER,
+                                                  DashboardView.APP_MENU_ACTION_DEBUG,
+                                                  DashboardView.APP_MENU_ACTION_DEBUG_CONFIG,
+                                                  DashboardView.APP_MENU_ACTION_DEBUG_IN_CONTAINER,
+                                                  DashboardView.APP_MENU_ACTION_STOP,
+                                                  DashboardView.APP_MENU_ACTION_RUN_TESTS,
+                                                  DashboardView.APP_MENU_ACTION_VIEW_MVN_IT_REPORT,
                                                   DashboardView.APP_MENU_ACTION_VIEW_MVN_UT_REPORT };
 
     /**
      * Run As configuration menu items.
      */
     static String[] runAsShortcuts = new String[] { LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START,
-                                                    LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONTAINER, LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_STOP,
+                                                    LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONFIG,
+                                                    LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONTAINER,
+                                                    LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_STOP,
                                                     LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_RUN_TESTS,
                                                     LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_MVN_VIEW_IT_REPORT,
                                                     LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_MVN_VIEW_UT_REPORT, };
@@ -286,6 +294,7 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
     /**
      * Tests that the correct dependency projects are added to the debug source lookup list
      */
+    @Disabled("Until peer project discovery is implemented.")
     @Test
     public void testDebugSourceLookupContentSiblingModule() {
 

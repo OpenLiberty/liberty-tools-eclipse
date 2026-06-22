@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2022 IBM Corporation and others.
+* Copyright (c) 2022, 2026 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -17,12 +17,12 @@ import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.ui.DebugUITools;
 import org.eclipse.debug.ui.ILaunchShortcut;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.osgi.util.NLS;
 import org.eclipse.ui.IEditorPart;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.messages.Messages;
+import io.openliberty.tools.eclipse.model.ProjectModel;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher.RuntimeEnv;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationHelper;
@@ -54,7 +54,7 @@ public class StartInContainerAction implements ILaunchShortcut {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }
             ErrorHandler.processErrorMessage(
-                    Messages.getMessage("launch_shortcut_error", LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONTAINER), e, true);
+                                             Messages.getMessage("launch_shortcut_error", LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONTAINER), e, true);
             return;
         }
 
@@ -83,7 +83,7 @@ public class StartInContainerAction implements ILaunchShortcut {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }
             ErrorHandler.processErrorMessage(
-                    Messages.getMessage("launch_shortcut_error", LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONTAINER), e, true);
+                                             Messages.getMessage("launch_shortcut_error", LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONTAINER), e, true);
             return;
         }
 
@@ -102,25 +102,45 @@ public class StartInContainerAction implements ILaunchShortcut {
      * @throws Exception
      */
     public static void run(IProject iProject, String mode) throws Exception {
+        // Make sure the project is valid.
+        if (iProject == null) {
+            throw new Exception(Messages.getMessage("launch_shortcut_project_not_found"));
+        }
 
-        // Validate that the project is supported.
         DevModeOperations devModeOps = DevModeOperations.getInstance();
-        devModeOps.verifyProjectSupport(iProject);
+        String selectedProjectName = iProject.getName();
+        String selectedProjectLocation = iProject.getLocation().toOSString();
+        ProjectModel selectedProjectModel = devModeOps.getWorkspaceModel().getProjectByLocation(selectedProjectLocation);
 
-        // Check if project is already started
-        String projectName = iProject.getName();
-        if (devModeOps.isProjectStarted(projectName)) {
+        // Validate that we know about the selected project.
+        if (selectedProjectModel == null) {
+            throw new IllegalStateException(Messages.getMessage("internal_project_not_found", selectedProjectName));
+        }
 
+        // Resolve the target project taking into account only those that are not actively running.
+        ProjectModel targetProjectModel = devModeOps.resolveCommandTarget(selectedProjectModel, "Start in container", DevModeOperations.ServerFilterMode.INACTIVE_ONLY);
+        if (targetProjectModel == null) {
+            return;
+        }
+
+        // Update the active selection to the selected target project if the original selection does match the target.
+        String targetProjectName = targetProjectModel.getName();
+        if (!selectedProjectName.equals(targetProjectName)) {
+            Utils.updateActiveSelection(targetProjectModel);
+        }
+
+        // Check if the target project is already started.
+        if (devModeOps.isProjectStarted(targetProjectModel)) {
             if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_TOOLS, "The start in container request was already issued on project " + projectName);
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, "The start in container request was already issued on project " + targetProjectName);
             }
-            ErrorHandler.processErrorMessage(Messages.getMessage("start_container_already_issued", projectName), true);
+            ErrorHandler.processErrorMessage(Messages.getMessage("start_container_already_issued", targetProjectName), true);
             return;
         }
 
         // Determine what configuration to use.
         LaunchConfigurationHelper launchConfigHelper = LaunchConfigurationHelper.getInstance();
-        ILaunchConfiguration configuration = launchConfigHelper.getLaunchConfiguration(iProject, mode, RuntimeEnv.CONTAINER);
+        ILaunchConfiguration configuration = launchConfigHelper.getLaunchConfiguration(targetProjectModel, mode, RuntimeEnv.CONTAINER);
 
         DebugUITools.launch(configuration, mode);
     }

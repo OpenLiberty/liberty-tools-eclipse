@@ -574,7 +574,7 @@ public class DebugModeHandler {
             }
 
             // Abort if the project has stopped
-            if (!devModeOps.isProjectStarted(project.getIProject().getName())) {
+            if (!devModeOps.isProjectStarted(project)) {
                 return null;
             }
 
