@@ -92,17 +92,17 @@ public class LibertyPluginSWTBotMicroProfileTest extends AbstractLibertyPluginSW
 
         try {
 
-            SWTBotEclipseEditor editor = SWTBotPluginOperations.openFileForTest(bot);
+            SWTBotEclipseEditor mpEditor = SWTBotPluginOperations.openFileForTest(bot);
             // Clear existing content
-            String content = editor.getText();
+            String fileContent = mpEditor.getText();
 
-            if (content != null && content.length() > 0) {
-                editor.selectRange(0, 0, content.length());
-                editor.insertText("");
+            if (fileContent != null && fileContent.length() > 0) {
+                mpEditor.selectRange(0, 0, fileContent.length());
+                mpEditor.insertText("");
             }
 
             bot.sleep(1000);
-            SWTBotPluginOperations.clearContentInEditor(editor);
+            SWTBotPluginOperations.clearContentInEditor(mpEditor);
             // Get type-ahead list
             List<String> typeAheadOptions = SWTBotPluginOperations.getTypeAheadList(bot, "RestTestClass.java", "", 0, 0);
             System.out.println("INFO: Type-ahead options found = " + Arrays.toString(typeAheadOptions.toArray()));
@@ -117,8 +117,8 @@ public class LibertyPluginSWTBotMicroProfileTest extends AbstractLibertyPluginSW
             }
 
             assertTrue(allFound, "Missing type-ahead options: " + Arrays.toString(missingOptions.toArray()));
-            SWTBotPluginOperations.clearContentInEditor(editor);
-            editor.close();
+            SWTBotPluginOperations.clearContentInEditor(mpEditor);
+            mpEditor.close();
         } catch (Exception e) {
             fail("Unexpected exception was thrown: " + e);
         }
@@ -132,46 +132,46 @@ public class LibertyPluginSWTBotMicroProfileTest extends AbstractLibertyPluginSW
     @Test
     public void verifyContentAssistSugForMpClassSnippet() {
 
-        SWTBotEclipseEditor editor = SWTBotPluginOperations.openFileForTest(bot);
+        SWTBotEclipseEditor mpEditor = SWTBotPluginOperations.openFileForTest(bot);
         bot.sleep(3000);
 
-        editor.show();
-        editor.setFocus();
+        mpEditor.show();
+        mpEditor.setFocus();
 
         bot.sleep(1000);
 
-        SWTBotPluginOperations.clearContentInEditor(editor);
+        SWTBotPluginOperations.clearContentInEditor(mpEditor);
 
         bot.sleep(1000);
 
-        editor.autoCompleteProposal("mp", "mpliveness");
+        mpEditor.autoCompleteProposal("mp", "mpliveness");
 
-        String contentAfterSnippet = editor.getText();
+        String contentAfterSnippet = mpEditor.getText();
         System.out.println("INFO : contentAfterSnippet" + contentAfterSnippet);
         boolean contentMatches = contentAfterSnippet.contains(mpClassSnippet);
         System.out.println("INFO : contentMatches" + contentMatches);
 
         assertTrue(contentAfterSnippet.contains(mpClassSnippet), "Error while adding mpliveness snippet");
-        SWTBotPluginOperations.clearContentInEditor(editor);
-        editor.close();
+        SWTBotPluginOperations.clearContentInEditor(mpEditor);
+        mpEditor.close();
     }
 
     /**
-     * Verify quick fixes
+     * Verify quick fixes for invalid  mp properties
      */
     @Test
     public void testForVerifyQuickFixesMpProperties() {
 
         try {
-            SWTBotEclipseEditor editor = SWTBotPluginOperations.openFileForTest(bot);
+            SWTBotEclipseEditor mpEditor = SWTBotPluginOperations.openFileForTest(bot);
             bot.sleep(1000);
 
-            editor.show();
-            editor.setFocus();
-            SWTBotPluginOperations.clearContentInEditor(editor);
-            editor.insertText(contentForMpDiagnostics);
-            editor.navigateTo(9, 0);
-            editor.click(7, 22);
+            mpEditor.show();
+            mpEditor.setFocus();
+            SWTBotPluginOperations.clearContentInEditor(mpEditor);
+            mpEditor.insertText(contentForMpDiagnostics);
+            mpEditor.navigateTo(9, 0);
+            mpEditor.click(7, 22);
 
             bot.sleep(5000);
             // Get quick-fix list
@@ -189,8 +189,8 @@ public class LibertyPluginSWTBotMicroProfileTest extends AbstractLibertyPluginSW
             }
 
             assertTrue(allFound, "Missing quick-fixes: " + Arrays.toString(missingFixes.toArray()));
-            SWTBotPluginOperations.clearContentInEditor(editor);
-            editor.close();
+            SWTBotPluginOperations.clearContentInEditor(mpEditor);
+            mpEditor.close();
 
         } catch (Exception e) {
             fail("Unexpected exception was thrown: " + e);
@@ -198,45 +198,45 @@ public class LibertyPluginSWTBotMicroProfileTest extends AbstractLibertyPluginSW
     }
 
     /**
-     * Verify diagnostics
+     * Verify diagnostics for invalid mp property
      */
 
     @Test
     public void testDiagnosticsForMpProperties() {
 
         try {
-            SWTBotEclipseEditor editor = SWTBotPluginOperations.openFileForTest(bot);
+            SWTBotEclipseEditor mpEditor = SWTBotPluginOperations.openFileForTest(bot);
             bot.sleep(1000);
 
-            editor.show();
-            editor.setFocus();
-            SWTBotPluginOperations.clearContentInEditor(editor);
-            editor.insertText(contentForMpDiagnostics);
-            editor.navigateTo(9, 0);
-            editor.click(9, 22);
+            mpEditor.show();
+            mpEditor.setFocus();
+            SWTBotPluginOperations.clearContentInEditor(mpEditor);
+            mpEditor.insertText(contentForMpDiagnostics);
+            mpEditor.navigateTo(9, 0);
+            mpEditor.click(9, 22);
 
             bot.sleep(5000);
 
             //Verify diagnostic exists
 
-            IEditorPart editorPart = editor.getReference().getEditor(false);
+            IEditorPart mpEditorPart = mpEditor.getReference().getEditor(false);
 
-            IFile workspaceFile = editorPart.getEditorInput().getAdapter(IFile.class);
+            IFile currentWorkspaceFile = mpEditorPart.getEditorInput().getAdapter(IFile.class);
 
-            if (workspaceFile == null) {
+            if (currentWorkspaceFile == null) {
                 fail("Unable to obtain IFile from editor input");
             }
 
-            IMarker[] markers = workspaceFile.findMarkers(
+            IMarker[] mpMarkers = currentWorkspaceFile.findMarkers(
                                                           IMarker.PROBLEM,
                                                           true,
                                                           IResource.DEPTH_INFINITE);
 
             boolean diagnosticFound = false;
 
-            for (IMarker marker : markers) {
+            for (IMarker markerItem : mpMarkers) {
 
-                String message = marker.getAttribute(IMarker.MESSAGE, "");
+                String message = markerItem.getAttribute(IMarker.MESSAGE, "");
 
                 System.out.println("INFO : Diagnostic found : " + message);
 
@@ -249,8 +249,8 @@ public class LibertyPluginSWTBotMicroProfileTest extends AbstractLibertyPluginSW
             assertTrue(
                       diagnosticFound,
                        "Expected diagnostic was not found");
-            SWTBotPluginOperations.clearContentInEditor(editor);
-            editor.close();
+            SWTBotPluginOperations.clearContentInEditor(mpEditor);
+            mpEditor.close();
         } catch (Exception e) {
 
             fail(

@@ -95,13 +95,13 @@ public class LibertyPluginSWTBotLSP4JakartaTest extends AbstractLibertyPluginSWT
     public void testClassLevelSnippets() {
 
         try {
-            SWTBotEclipseEditor editor = SWTBotPluginOperations.openFileForTest(bot);
+            SWTBotEclipseEditor currentEditor = SWTBotPluginOperations.openFileForTest(bot);
             // Clear existing content
-            String content = editor.getText();
+            String javaFilecontent = currentEditor.getText();
 
-            if (content != null && content.length() > 0) {
-                editor.selectRange(0, 0, content.length());
-                editor.insertText("");
+            if (javaFilecontent != null && javaFilecontent.length() > 0) {
+                currentEditor.selectRange(0, 0, javaFilecontent.length());
+                currentEditor.insertText("");
             }
 
             bot.sleep(1000);
@@ -119,7 +119,7 @@ public class LibertyPluginSWTBotLSP4JakartaTest extends AbstractLibertyPluginSWT
             }
 
             assertTrue(allFound, "Missing type-ahead options: " + Arrays.toString(missingOptions.toArray()));
-            editor.close();
+            currentEditor.close();
         } catch (Exception e) {
             fail("Unexpected exception was thrown: " + e);
         }
@@ -133,27 +133,27 @@ public class LibertyPluginSWTBotLSP4JakartaTest extends AbstractLibertyPluginSWT
     @Test
     public void verifyContentAssistSugForRestClassSnippet() {
 
-        SWTBotEclipseEditor editor = SWTBotPluginOperations.openFileForTest(bot);
+        SWTBotEclipseEditor currentEditor = SWTBotPluginOperations.openFileForTest(bot);
         bot.sleep(3000);
 
-        editor.show();
-        editor.setFocus();
+        currentEditor.show();
+        currentEditor.setFocus();
 
         bot.sleep(1000);
 
-        SWTBotPluginOperations.clearContentInEditor(editor);
+        SWTBotPluginOperations.clearContentInEditor(currentEditor);
 
         bot.sleep(1000);
 
-        editor.autoCompleteProposal("rest_", "rest_class");
+        currentEditor.autoCompleteProposal("rest_", "rest_class");
 
-        String contentAfterSnippet = editor.getText();
+        String contentAfterSnippet = currentEditor.getText();
         System.out.println("INFO : contentAfterSnippet" + contentAfterSnippet);
         boolean contentMatches = contentAfterSnippet.contains(restClassSnippet);
         System.out.println("INFO : contentMatches" + contentMatches);
 
         assertTrue(contentAfterSnippet.contains(restClassSnippet), "Error while adding rest_class snippet");
-        editor.close();
+        currentEditor.close();
     }
 
     /**
@@ -164,14 +164,14 @@ public class LibertyPluginSWTBotLSP4JakartaTest extends AbstractLibertyPluginSWT
     public void testInClassForMethodSnippets() {
 
         try {
-            SWTBotEclipseEditor editor = SWTBotPluginOperations.openFileForTest(bot);
+            SWTBotEclipseEditor currentEditor = SWTBotPluginOperations.openFileForTest(bot);
             bot.sleep(1000);
 
-            editor.show();
-            editor.setFocus();
+            currentEditor.show();
+            currentEditor.setFocus();
 
             bot.sleep(1000);
-            editor.insertText(0, 0, restClassSnippetToAdd);
+            currentEditor.insertText(0, 0, restClassSnippetToAdd);
 
             // Get type-ahead list
             List<String> typeAheadOptions = SWTBotPluginOperations.getTypeAheadList(bot, "RestApplication.java", "", 10, 0);
@@ -187,7 +187,7 @@ public class LibertyPluginSWTBotLSP4JakartaTest extends AbstractLibertyPluginSWT
             }
 
             assertTrue(allFound, "Missing type-ahead options: " + Arrays.toString(missingOptions.toArray()));
-            editor.close();
+            currentEditor.close();
 
         } catch (Exception e) {
             fail("Unexpected exception was thrown: " + e);
@@ -202,23 +202,23 @@ public class LibertyPluginSWTBotLSP4JakartaTest extends AbstractLibertyPluginSWT
     @Test
     public void verifyContentAssistSugForRestMethodLevel() {
 
-        SWTBotEclipseEditor editor = SWTBotPluginOperations.openFileForTest(bot);
+        SWTBotEclipseEditor currentEditor = SWTBotPluginOperations.openFileForTest(bot);
         bot.sleep(3000);
 
         bot.sleep(1000);
-        editor.insertText(0, 0, restClassSnippetToAdd);
-        editor.navigateTo(10, 0);
+        currentEditor.insertText(0, 0, restClassSnippetToAdd);
+        currentEditor.navigateTo(10, 0);
         bot.sleep(1000);
-        editor.autoCompleteProposal("rest_", "rest_delete");
+        currentEditor.autoCompleteProposal("rest_", "rest_delete");
         bot.sleep(1000);
 
-        String contentAfterSnippet = editor.getText();
+        String contentAfterSnippet = currentEditor.getText();
         System.out.println("INFO : contentAfterSnippet" + contentAfterSnippet);
         boolean contentMatches = contentAfterSnippet.contains(restMethodSnippetDel);
         System.out.println("contentMatches-->" + contentMatches);
 
         assertTrue(contentMatches, "Error while adding rest_delete snippet");
-        editor.close();
+        currentEditor.close();
     }
 
     /**
@@ -231,14 +231,13 @@ public class LibertyPluginSWTBotLSP4JakartaTest extends AbstractLibertyPluginSWT
             //Open Project Explorer
             bot.viewByTitle("Project Explorer").show();
 
-            // Open RestApplication.java
-            SWTBotTreeItem file = bot.tree().expandNode("liberty.maven.test.app (in liberty-maven-test-app)").expandNode("src").expandNode("main").expandNode("java").expandNode("test").expandNode("maven").expandNode("liberty").expandNode("web").expandNode("app").getNode("FieldConstraintValidation.java");
+            SWTBotTreeItem javaFile = bot.tree().expandNode("liberty.maven.test.app (in liberty-maven-test-app)").expandNode("src").expandNode("main").expandNode("java").expandNode("test").expandNode("maven").expandNode("liberty").expandNode("web").expandNode("app").getNode("FieldConstraintValidation.java");
 
-            file.doubleClick();
+            javaFile.doubleClick();
             // Get opened editor
-            SWTBotEclipseEditor editor = bot.editorByTitle("FieldConstraintValidation.java").toTextEditor();
-            editor.navigateTo(9, 0);
-            editor.click(7, 22);
+            SWTBotEclipseEditor currentEditor = bot.editorByTitle("FieldConstraintValidation.java").toTextEditor();
+            currentEditor.navigateTo(9, 0);
+            currentEditor.click(7, 22);
 
             bot.sleep(5000);
             // Get quick-fix list
@@ -256,7 +255,7 @@ public class LibertyPluginSWTBotLSP4JakartaTest extends AbstractLibertyPluginSWT
             }
 
             assertTrue(allFound, "Missing quick-fixes: " + Arrays.toString(missingFixes.toArray()));
-            editor.close();
+            currentEditor.close();
 
         } catch (Exception e) {
             fail("Unexpected exception was thrown: " + e);
@@ -275,21 +274,20 @@ public class LibertyPluginSWTBotLSP4JakartaTest extends AbstractLibertyPluginSWT
             // Open Project Explorer
             bot.viewByTitle("Project Explorer").show();
 
-            // Open FieldConstraintValidation.java
-            SWTBotTreeItem file = bot.tree().expandNode("liberty.maven.test.app (in liberty-maven-test-app)").expandNode("src").expandNode("main").expandNode("java").expandNode("test").expandNode("maven").expandNode("liberty").expandNode("web").expandNode("app").getNode("FieldConstraintValidation.java");
+            SWTBotTreeItem javaFile = bot.tree().expandNode("liberty.maven.test.app (in liberty-maven-test-app)").expandNode("src").expandNode("main").expandNode("java").expandNode("test").expandNode("maven").expandNode("liberty").expandNode("web").expandNode("app").getNode("FieldConstraintValidation.java");
 
-            file.doubleClick();
+            javaFile.doubleClick();
 
             // Get opened editor
-            SWTBotEclipseEditor editor = bot.editorByTitle("FieldConstraintValidation.java").toTextEditor();
+            SWTBotEclipseEditor currentEditor = bot.editorByTitle("FieldConstraintValidation.java").toTextEditor();
 
-            editor.click(7, 22);
+            currentEditor.click(7, 22);
 
             bot.sleep(5000);
 
             //Verify diagnostic exists
 
-            IEditorPart editorPart = editor.getReference().getEditor(false);
+            IEditorPart editorPart = currentEditor.getReference().getEditor(false);
 
             IFile workspaceFile = editorPart.getEditorInput().getAdapter(IFile.class);
 
@@ -297,14 +295,14 @@ public class LibertyPluginSWTBotLSP4JakartaTest extends AbstractLibertyPluginSWT
                 fail("Unable to obtain IFile from editor input");
             }
 
-            IMarker[] markers = workspaceFile.findMarkers(
+            IMarker[] issueMarkers = workspaceFile.findMarkers(
                                                           IMarker.PROBLEM,
                                                           true,
                                                           IResource.DEPTH_INFINITE);
 
             boolean diagnosticFound = false;
 
-            for (IMarker marker : markers) {
+            for (IMarker marker : issueMarkers) {
 
                 String message = marker.getAttribute(IMarker.MESSAGE, "");
 
@@ -319,7 +317,7 @@ public class LibertyPluginSWTBotLSP4JakartaTest extends AbstractLibertyPluginSWT
             assertTrue(
                        diagnosticFound,
                        "Expected diagnostic was not found");
-            editor.close();
+            currentEditor.close();
 
         } catch (Exception e) {
 
