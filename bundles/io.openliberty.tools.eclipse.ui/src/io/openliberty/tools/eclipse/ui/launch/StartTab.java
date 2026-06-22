@@ -19,7 +19,6 @@ import org.eclipse.debug.core.ILaunchConfigurationWorkingCopy;
 import org.eclipse.debug.ui.AbstractLaunchConfigurationTab;
 import org.eclipse.jface.layout.GridDataFactory;
 import org.eclipse.jface.preference.PreferenceDialog;
-import org.eclipse.osgi.util.NLS;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -41,6 +40,7 @@ import org.eclipse.ui.dialogs.PreferencesUtil;
 import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.messages.Messages;
+import io.openliberty.tools.eclipse.model.ProjectModel;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
 import io.openliberty.tools.eclipse.utils.Utils;
@@ -139,7 +139,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
             configuration.setAttribute(PROJECT_NAME, activeProject.getName());
         }
 
-        configuration.setAttribute(PROJECT_START_PARM, getDefaultStartCommand(activeProject));
+        configuration.setAttribute(PROJECT_START_PARM, "");
 
         configuration.setAttribute(PROJECT_RUN_IN_CONTAINER, false);
 
@@ -208,6 +208,9 @@ public class StartTab extends AbstractLaunchConfigurationTab {
         return valid;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public boolean isValid(ILaunchConfiguration config) {
         try {
@@ -220,8 +223,17 @@ public class StartTab extends AbstractLaunchConfigurationTab {
             }
 
             IProject selectedProject = Utils.getActiveProject();
+            ProjectModel selectedProjectModel = null;
             if (selectedProject != null) {
-                String selectedProjectName = selectedProject.getName();
+                String projectLocation = selectedProject.getLocation().toOSString();
+                selectedProjectModel = devModeOps.getWorkspaceModel().getProjectByLocation(projectLocation);
+
+                // Validate that we know about the selected project.
+                if (selectedProjectModel == null) {
+                    super.setErrorMessage(Messages.getMessage("internal_project_not_found", selectedProject.getName()));
+                }
+
+                String selectedProjectName = selectedProjectModel.getName();
                 if (!configProjectName.equals(selectedProjectName)) {
                     super.setWarningMessage(Messages.getMessage("config_project_warning", selectedProjectName));
                     return false;
@@ -229,7 +241,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
             }
 
             // Check if project is already started
-            if (devModeOps.isProjectStarted(configProjectName)) {
+            if (selectedProjectModel != null && devModeOps.isProjectStarted(selectedProjectModel)) {
                 if (Trace.isEnabled()) {
                     Trace.getTracer().trace(Trace.TRACE_TOOLS, "The start request was already issued on project " + configProjectName);
                 }
@@ -427,12 +439,12 @@ public class StartTab extends AbstractLaunchConfigurationTab {
      * 
      * @param parent The parent composite.
      */
-     private void createProjectCleanButton(Composite parent) {
-         projectCleanCheckBox = new Button(parent, SWT.CHECK);
-	 projectCleanCheckBox.setText(Messages.getMessage("clean_project_label"));
-	 projectCleanCheckBox.setSelection(false);
-	 projectCleanCheckBox.setFont(font);
-	 projectCleanCheckBox.addSelectionListener(new SelectionAdapter() {
+    private void createProjectCleanButton(Composite parent) {
+        projectCleanCheckBox = new Button(parent, SWT.CHECK);
+        projectCleanCheckBox.setText(Messages.getMessage("clean_project_label"));
+        projectCleanCheckBox.setSelection(false);
+        projectCleanCheckBox.setFont(font);
+        projectCleanCheckBox.addSelectionListener(new SelectionAdapter() {
 
             /**
              * {@inheritDoc}
@@ -447,33 +459,5 @@ public class StartTab extends AbstractLaunchConfigurationTab {
 
         Label emptyColumnLabel = new Label(parent, SWT.NONE);
         GridDataFactory.swtDefaults().applyTo(emptyColumnLabel);
-    }
-
-    /**
-     * Returns the default start parameters.
-     * 
-     * @param Active project (may be null if there isn't one)
-     * 
-     * @return The default start parameters
-     */
-    private String getDefaultStartCommand(IProject iProject) {
-        String parms = "";
-        try {
-            if (iProject != null) {
-                // Verify that the existing projects are projects are read and classified. This maybe the first time
-                // this plugin's function is being used.
-                devModeOps.verifyProjectSupport(iProject);
-                parms = devModeOps.getWorkspaceModel().getDefaultStartParameters(iProject);
-            }
-        } catch (Exception e) {
-            // Report the issue and continue without a initial start command.
-            String msg = "An error was detected when the default start parameters were retrieved.";
-            if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
-            }
-            ErrorHandler.processErrorMessage(Messages.getMessage("start_parm_retrieve_error"), e, true);
-        }
-
-        return parms;
     }
 }
