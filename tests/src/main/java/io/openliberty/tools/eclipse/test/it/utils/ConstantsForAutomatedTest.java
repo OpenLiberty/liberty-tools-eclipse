@@ -172,5 +172,17 @@ public class ConstantsForAutomatedTest {
                                                  + "         return \"hello\";\n"
                                                  + " }\n"
                                                  + "}";
+    
+    public static String serverEnvDiagnostics = "is not valid for the variable `WLP_LOGGING_CONSOLE_LOGLEVEL`. [unknown_property_value]";
+    /**
+     * Expected quick-fixes
+     */
+    public static String[] serverEnv_quickFixes = new String[] { " Replace value with AUDIT","Replace value with INFO","Replace value with WARNING","Replace value with ERROR","Replace value with OFF" };
 
+    public static String bootstarpContentForInfo ="com.ibm.ws.logging.console.format=invalid\n";
+    
+    public static String bootstrapDiagnostics = "is not valid for the variable `WLP_LOGGING_CONSOLE_LOGLEVEL`. [unknown_property_value]";
+    public static String[] bootstrap_quickFixes = new String[] { " Replace value with AUDIT","Replace value with INFO","Replace value with WARNING","Replace value with ERROR","Replace value with OFF" };
+
+    
 }
