@@ -57,19 +57,6 @@ public class LibertyResourceChangeListener implements IResourceChangeListener {
                     }
 
                     IProject iProject = (IProject) iResource;
-                    ProjectModel projectModel = null;
-
-                    String projectLocation = iProject.getLocation().toOSString();
-                    projectModel = workspaceModel.getProjectByLocation(projectLocation);
-
-                    if (projectModel == null) {
-                        String msg = "Project " + iProject.getName()
-                                     + " is not a supported project. Verify that the project is configured to run on a WebSphere Liberty server.";
-                        if (Trace.isEnabled()) {
-                            Trace.getTracer().trace(Trace.TRACE_UI, msg);
-                        }
-                        continue;
-                    }
 
                     int updateFlag = resourceChanged.getFlags();
 
@@ -79,7 +66,10 @@ public class LibertyResourceChangeListener implements IResourceChangeListener {
                         // Flag 147456: Although IResourceDelta does not have a predefined constant, this flag value is used to
                         // denote open/close actions.
                         case IResourceDelta.CHANGED:
-                            if (updateFlag == IResourceDelta.OPEN || updateFlag == 147456) {
+                            String projectLocation = iProject.getLocation().toOSString();
+                            ProjectModel projectModel = workspaceModel.getProjectByLocation(projectLocation);
+                            
+                            if (projectModel != null && (updateFlag == IResourceDelta.OPEN || updateFlag == 147456)) {
                                 refreshNeeded = true;
                             }
                             break;
@@ -88,6 +78,9 @@ public class LibertyResourceChangeListener implements IResourceChangeListener {
                         // Flag 147456: Although IResourceDelta does not have a predefined constant, this flag
                         // value is set when a project, that previously did not exist, is created.
                         case IResourceDelta.ADDED:
+                            projectLocation = iProject.getLocation().toOSString();
+                            projectModel = workspaceModel.getProjectByLocation(projectLocation);
+
                             if (projectModel == null && (updateFlag == IResourceDelta.OPEN || updateFlag == 147456)) {
                                 refreshNeeded = true;
                             }
@@ -96,8 +89,7 @@ public class LibertyResourceChangeListener implements IResourceChangeListener {
                         // Flag NO_CHANGE (0).
                         // Flag MARKERS (130172).
                         case IResourceDelta.REMOVED:
-                            if (projectModel != null && (updateFlag == IResourceDelta.NO_CHANGE || updateFlag == IResourceDelta.MARKERS)) {
-
+                            if ((updateFlag == IResourceDelta.NO_CHANGE || updateFlag == IResourceDelta.MARKERS)) {
                                 refreshNeeded = true;
                             }
                             break;
