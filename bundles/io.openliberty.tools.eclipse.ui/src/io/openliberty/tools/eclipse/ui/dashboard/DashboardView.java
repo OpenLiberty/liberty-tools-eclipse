@@ -14,6 +14,7 @@ package io.openliberty.tools.eclipse.ui.dashboard;
 
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -31,19 +32,20 @@ import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.swt.SWT;
-import org.eclipse.swt.custom.StackLayout;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
-import org.eclipse.swt.events.SelectionAdapter;
-import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
-import org.eclipse.swt.widgets.Link;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
+import org.eclipse.ui.IWorkbenchCommandConstants;
 import org.eclipse.ui.contexts.IContextService;
+import org.eclipse.ui.forms.events.HyperlinkAdapter;
+import org.eclipse.ui.forms.events.HyperlinkEvent;
+import org.eclipse.ui.forms.widgets.FormText;
+import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.handlers.IHandlerService;
 import org.eclipse.ui.part.ViewPart;
 
@@ -71,6 +73,9 @@ public class DashboardView extends ViewPart {
     /** Dashboard view ID. */
     public static final String ID = "io.openliberty.tools.eclipse.views.liberty.devmode.dashboard";
 
+    /** Context menu ID. */
+    private static final String CONTEXT_MENU_ID = "io.openliberty.tools.eclipse.views.liberty.devmode.dashboard";
+
     /** Liberty logo path. */
     public static final String LIBERTY_LOGO_PATH = "icons/openLibertyLogo.png";
 
@@ -92,12 +97,10 @@ public class DashboardView extends ViewPart {
     public static final String APP_MENU_ACTION_VIEW_MVN_IT_REPORT = Messages.getMessage("dashboard_action_view_mvn_it_report");
     public static final String APP_MENU_ACTION_VIEW_MVN_UT_REPORT = Messages.getMessage("dashboard_action_view_mvn_ut_report");
     public static final String APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT = Messages.getMessage("dashboard_action_view_gradle_test_report");
-    public static final String DASHBORD_TOOLBAR_REFRESH = Messages.getMessage("dashboard_toolbar_refresh");
-    public static final String DASHBORD_TOOLBAR_EXPAND_ALL = Messages.getMessage("dashboard_toolbar_expand_all");
-    public static final String DASHBORD_TOOLBAR_COLLAPSE_ALL = Messages.getMessage("dashboard_toolbar_collapse_all");
-    public static final String DASHBORD_TOOLBAR_FILTER = Messages.getMessage("dashboard_toolbar_filter");
-
-    
+    public static final String DASHBOARD_TOOLBAR_REFRESH = Messages.getMessage("dashboard_toolbar_refresh");
+    public static final String DASHBOARD_TOOLBAR_EXPAND_ALL = Messages.getMessage("dashboard_toolbar_expand_all");
+    public static final String DASHBOARD_TOOLBAR_COLLAPSE_ALL = Messages.getMessage("dashboard_toolbar_collapse_all");
+    public static final String DASHBOARD_TOOLBAR_FILTER = Messages.getMessage("dashboard_toolbar_filter");
 
     /** view actions. */
     private Action startAction;
@@ -133,17 +136,17 @@ public class DashboardView extends ViewPart {
 
     DashboardContentProvider contentProvider;
 
-    /** Parent composite for stack layout */
-    private Composite stackComposite;
-
-    /** Stack layout to switch between tree and empty message */
-    private StackLayout stackLayout;
+    /** Parent composite that holds either tree or empty composite */
+    private Composite parentComposite;
 
     /** Composite containing the tree viewer */
     private Composite treeComposite;
 
     /** Composite containing the empty state message */
     private Composite emptyComposite;
+
+    /** FormToolkit for creating form widgets */
+    private FormToolkit formToolkit;
 
     /**
      * Constructor.
@@ -158,13 +161,44 @@ public class DashboardView extends ViewPart {
      */
     @Override
     public void createPartControl(Composite parent) {
-        // Create stack composite with stack layout
-        stackComposite = new Composite(parent, SWT.NONE);
-        stackLayout = new StackLayout();
-        stackComposite.setLayout(stackLayout);
+        // Store parent composite reference
+        parentComposite = parent;
 
-        // Create tree composite
-        treeComposite = new Composite(stackComposite, SWT.NONE);
+        // Initialize content provider to check for projects.
+        contentProvider = new DashboardContentProvider(devModeOps.getWorkspaceModel(), this);
+
+        // Determine if there are Liberty projects to display.
+        List<ProjectModel> rootProjects = contentProvider.getRootDashboardProjects();
+        boolean hasProjects = rootProjects != null && !rootProjects.isEmpty();
+
+        // Create only the appropriate composite based on project availability.
+        if (hasProjects) {
+            createTreeComposite();
+            createContextMenu();
+        } else {
+            createEmptyComposite();
+        }
+
+        createActions();
+        addToolbarActions();
+
+        // Update toolbar action enablement based on content
+        updateToolbarActionEnablement(hasProjects);
+
+        devModeOps.refreshDashboardView(false);
+
+        // Set selection provider only if viewer exists
+        if (viewer != null) {
+            getSite().setSelectionProvider(viewer);
+        }
+    }
+
+    /**
+     * Creates the tree composite containing the project tree viewer and search functionality.
+     */
+    private void createTreeComposite() {
+        // Create tree composite directly in parent
+        treeComposite = new Composite(parentComposite, SWT.NONE);
         treeComposite.setLayout(new GridLayout(1, false));
 
         // Create search text box (initially hidden) - with cancel icon only
@@ -196,56 +230,70 @@ public class DashboardView extends ViewPart {
                     if (searchPattern.isEmpty()) {
                         return true;
                     }
-                    // Check if project name matches
-                    if (project.getName().toLowerCase().contains(searchPattern)) {
-                        return true;
+                    
+                    // For multi-module projects, only show parent if at least one child matches.
+                    // For leaf projects (no children), match on the project name itself.
+                    List<ProjectModel> children = project.getChildLibertyServerProjects();
+                    
+                    if (children != null && !children.isEmpty()) {
+                        return hasMatchingChild(project, searchPattern);
+                    } else {
+                        return project.getName().toLowerCase().contains(searchPattern);
                     }
-                    // Check if any child matches (show parent if child matches)
-                    return hasMatchingChild(project, searchPattern);
                 }
                 return true;
             }
         };
-        contentProvider = new DashboardContentProvider(devModeOps.getWorkspaceModel(), this);
+
         viewer.setContentProvider(contentProvider);
         viewer.setLabelProvider(new DashboardEntryLabelProvider(devModeOps, this));
-
-        // Create empty state composite
-        createEmptyStateComposite();
-
-        // Show tree by default
-        stackLayout.topControl = treeComposite;
-
-        createActions();
-        createContextMenu();
-        addToolbarActions();
-
-        devModeOps.refreshDashboardView(false);
-        getSite().setSelectionProvider(viewer);
     }
 
     /**
-     * Creates the composite shown when there are no Liberty projects.
+     * Creates the empty composite shown when there are no Liberty projects.
      */
-    private void createEmptyStateComposite() {
-        emptyComposite = new Composite(stackComposite, SWT.NONE);
+    private void createEmptyComposite() {
+        // Create empty composite directly in parent.
+        emptyComposite = new Composite(parentComposite, SWT.NONE);
         GridLayout layout = new GridLayout(1, false);
         layout.marginWidth = 20;
         layout.marginHeight = 20;
         emptyComposite.setLayout(layout);
 
-        // Combined message and link
-        Link messageLink = new Link(emptyComposite, SWT.WRAP);
-        messageLink.setText("No Liberty projects found in the current workspace. <a>Import</a> a Liberty project to get started.");
-        messageLink.setLayoutData(new GridData(SWT.CENTER, SWT.CENTER, true, true));
-        messageLink.addSelectionListener(new SelectionAdapter() {
+        // Create a composite to center the content.
+        Composite centerComposite = new Composite(emptyComposite, SWT.NONE);
+        GridData centerData = new GridData(SWT.CENTER, SWT.CENTER, true, true);
+        centerComposite.setLayoutData(centerData);
+        GridLayout centerLayout = new GridLayout(1, false);
+        centerLayout.marginWidth = 0;
+        centerLayout.marginHeight = 0;
+        centerComposite.setLayout(centerLayout);
+
+        // Create FormToolkit for consistent styling with a FormText widget,
+        // which supports rich text with embedded hyperlinks.
+        formToolkit = new FormToolkit(emptyComposite.getDisplay());
+        FormText formText = formToolkit.createFormText(centerComposite, true);
+        GridData textData = new GridData(SWT.FILL, SWT.CENTER, true, false);
+        textData.widthHint = SWT.DEFAULT;
+        textData.grabExcessHorizontalSpace = true;
+        formText.setLayoutData(textData);
+
+        // Set the message with an embedded hyperlink.
+        String preImportMsg = Messages.getMessage("dashboard_empty_message_part1");
+        String importMsg = Messages.getMessage("dashboard_empty_message_part2");
+        String postImportMsg = Messages.getMessage("dashboard_empty_message_part3");
+        String message = "<form><p>" + preImportMsg +
+                         "<a href=\"import\"> " + importMsg + "</a> " + postImportMsg + "</p></form>";
+        formText.setText(message, true, false);
+
+        // Add hyperlink listener to handle clicks.
+        formText.addHyperlinkListener(new HyperlinkAdapter() {
             @Override
-            public void widgetSelected(SelectionEvent e) {
+            public void linkActivated(HyperlinkEvent e) {
                 try {
-                    // Open the Eclipse import wizard using the workbench window's handler service
                     IHandlerService handlerService = getSite().getService(IHandlerService.class);
                     if (handlerService != null) {
-                        handlerService.executeCommand("org.eclipse.ui.file.import", null);
+                        handlerService.executeCommand(IWorkbenchCommandConstants.FILE_IMPORT, null);
                     } else {
                         if (Trace.isEnabled()) {
                             Trace.getTracer().trace(Trace.TRACE_UI, "Handler service is null");
@@ -266,7 +314,9 @@ public class DashboardView extends ViewPart {
      */
     @Override
     public void setFocus() {
-        viewer.getControl().setFocus();
+        if (viewer != null) {
+            viewer.getControl().setFocus();
+        }
     }
 
     /**
@@ -274,8 +324,11 @@ public class DashboardView extends ViewPart {
      */
     @Override
     public void dispose() {
+        if (formToolkit != null) {
+            formToolkit.dispose();
+            formToolkit = null;
+        }
         super.dispose();
-        // null out viewer so we don't try to update upon a resource change listener notification
         viewer = null;
     }
 
@@ -296,7 +349,7 @@ public class DashboardView extends ViewPart {
         Menu menu = menuMgr.createContextMenu(viewer.getControl());
         viewer.getControl().setMenu(menu);
 
-        getSite().registerContextMenu("io.openliberty.tools.eclipse.views.liberty.devmode.dashboard", menuMgr, viewer);
+        getSite().registerContextMenu(CONTEXT_MENU_ID, menuMgr, viewer);
     }
 
     /**
@@ -344,7 +397,7 @@ public class DashboardView extends ViewPart {
             } else if (projectModel.getBuildType() == ProjectModel.BuildType.GRADLE) {
                 mgr.add(viewGradleTestReportsAction);
             } else {
-                String msg = "Project" + projectName + "is not a Gradle or Maven project.";
+                String msg = "Project " + projectName + " is not a Gradle or Maven project.";
                 if (Trace.isEnabled()) {
                     Trace.getTracer().trace(Trace.TRACE_UI, msg);
                 }
@@ -619,13 +672,13 @@ public class DashboardView extends ViewPart {
         handlerService.activateHandler(viewGradleTestReportsAction.getActionDefinitionId(), gradleTestReportsHandler);
 
         // Toolbar: Refresh the project list.
-        refreshAction = new Action(DASHBORD_TOOLBAR_REFRESH) {
+        refreshAction = new Action(DASHBOARD_TOOLBAR_REFRESH) {
             @Override
             public void run() {
                 devModeOps.refreshDashboardView(true);
             }
         };
-        refreshAction.setToolTipText(DASHBORD_TOOLBAR_REFRESH);
+        refreshAction.setToolTipText(DASHBOARD_TOOLBAR_REFRESH);
 
         try {
             refreshImg = ImageDescriptor.createFromURL(URI.create("platform:/plugin/org.eclipse.ui.browser/icons/clcl16/nav_refresh.png").toURL());
@@ -635,15 +688,15 @@ public class DashboardView extends ViewPart {
                 Trace.getTracer().trace(Trace.TRACE_UI, "Refresh icon not found, using text label", e);
             }
         }
-        
+
         // Toolbar: Search/Filter projects
-        filterAction = new Action(DASHBORD_TOOLBAR_FILTER, Action.AS_CHECK_BOX) {
+        filterAction = new Action(DASHBOARD_TOOLBAR_FILTER, Action.AS_CHECK_BOX) {
             @Override
             public void run() {
                 toggleSearchBar();
             }
         };
-        filterAction.setToolTipText(DASHBORD_TOOLBAR_FILTER);
+        filterAction.setToolTipText(DASHBOARD_TOOLBAR_FILTER);
         try {
             ImageDescriptor searchImg = ImageDescriptor.createFromURL(
                                                                       URI.create("platform:/plugin/org.eclipse.ui.ide/icons/full/elcl16/filter_ps.png").toURL());
@@ -655,7 +708,7 @@ public class DashboardView extends ViewPart {
         }
 
         // Toolbar: Expand all tree nodes
-        expandAllAction = new Action(DASHBORD_TOOLBAR_EXPAND_ALL) {
+        expandAllAction = new Action(DASHBOARD_TOOLBAR_EXPAND_ALL) {
             @Override
             public void run() {
                 if (viewer != null) {
@@ -663,7 +716,7 @@ public class DashboardView extends ViewPart {
                 }
             }
         };
-        expandAllAction.setToolTipText(DASHBORD_TOOLBAR_EXPAND_ALL);
+        expandAllAction.setToolTipText(DASHBOARD_TOOLBAR_EXPAND_ALL);
         try {
             ImageDescriptor expandImg = ImageDescriptor.createFromURL(
                                                                       URI.create("platform:/plugin/org.eclipse.ui/icons/full/elcl16/expandall.png").toURL());
@@ -675,7 +728,7 @@ public class DashboardView extends ViewPart {
         }
 
         // Toolbar: Collapse all tree nodes
-        collapseAllAction = new Action(DASHBORD_TOOLBAR_COLLAPSE_ALL) {
+        collapseAllAction = new Action(DASHBOARD_TOOLBAR_COLLAPSE_ALL) {
             @Override
             public void run() {
                 if (viewer != null) {
@@ -683,7 +736,7 @@ public class DashboardView extends ViewPart {
                 }
             }
         };
-        collapseAllAction.setToolTipText(DASHBORD_TOOLBAR_COLLAPSE_ALL);
+        collapseAllAction.setToolTipText(DASHBOARD_TOOLBAR_COLLAPSE_ALL);
         try {
             ImageDescriptor collapseImg = ImageDescriptor.createFromURL(
                                                                         URI.create("platform:/plugin/org.eclipse.ui/icons/full/elcl16/collapseall.png").toURL());
@@ -722,54 +775,72 @@ public class DashboardView extends ViewPart {
      * @param rootProjects The list of root projects to display.
      */
     public void setInput(List<ProjectModel> rootProjects) {
-        // Early return if viewer not initialized
-        if (viewer == null) {
-            return;
-        }
+        // Determine if we have projects to display
+        boolean hasProjects = rootProjects != null && !rootProjects.isEmpty();
 
-        // Save the current expansion state by project names before any changes
-        Object[] expandedElements = viewer.getExpandedElements();
-        Set<String> expandedProjectNames = new HashSet<>();
-        if (expandedElements != null && expandedElements.length > 0) {
-            for (Object element : expandedElements) {
-                if (element instanceof ProjectModel) {
-                    expandedProjectNames.add(((ProjectModel) element).getName());
+        if (hasProjects) {
+            // Need tree composite - create it if it doesn't exist
+            if (treeComposite == null || treeComposite.isDisposed()) {
+                // Dispose empty composite if it exists
+                if (emptyComposite != null && !emptyComposite.isDisposed()) {
+                    emptyComposite.dispose();
+                    emptyComposite = null;
+                }
+                createTreeComposite();
+                parentComposite.layout(true, true);
+            }
+
+            // Save the current expansion state by project names before any changes
+            Set<String> expandedProjectNames = new HashSet<>();
+            if (viewer != null) {
+                Object[] expandedElements = viewer.getExpandedElements();
+                if (expandedElements != null && expandedElements.length > 0) {
+                    for (Object element : expandedElements) {
+                        if (element instanceof ProjectModel) {
+                            expandedProjectNames.add(((ProjectModel) element).getName());
+                        }
+                    }
+                }
+
+                // Update the viewer's input
+                viewer.setInput(rootProjects);
+
+                // Restore the expansion state by matching project names
+                if (!expandedProjectNames.isEmpty()) {
+                    List<ProjectModel> toExpand = new ArrayList<>();
+
+                    // Find matching projects in the new tree
+                    for (ProjectModel project : rootProjects) {
+                        if (expandedProjectNames.contains(project.getName())) {
+                            toExpand.add(project);
+                        }
+                        // Recursively check children
+                        addExpandedChildren(project, expandedProjectNames, toExpand);
+                    }
+
+                    // Restore expansion if we found matching projects
+                    if (!toExpand.isEmpty()) {
+                        viewer.setExpandedElements(toExpand.toArray());
+                    }
                 }
             }
-        }
-
-        // Update the viewer's input
-        viewer.setInput(rootProjects);
-
-        // Restore the expansion state by matching project names
-        // Only proceed if we have both: saved expansion state AND new projects to display
-        if (!expandedProjectNames.isEmpty() && !rootProjects.isEmpty()) {
-            List<ProjectModel> toExpand = new ArrayList<>();
-
-            // Find matching projects in the new tree
-            for (ProjectModel project : rootProjects) {
-                if (expandedProjectNames.contains(project.getName())) {
-                    toExpand.add(project);
-                }
-                // Recursively check children
-                addExpandedChildren(project, expandedProjectNames, toExpand);
-            }
-
-            // Restore expansion if we found matching projects
-            if (!toExpand.isEmpty()) {
-                viewer.setExpandedElements(toExpand.toArray());
-            }
-        }
-
-        // Switch between tree and empty state based on whether there are Liberty projects
-        boolean isEmpty = getTree().getItemCount() == 0;
-        if (!isEmpty) {
-            stackLayout.topControl = treeComposite;
         } else {
-            stackLayout.topControl = emptyComposite;
+            // Need empty composite - create it if it doesn't exist
+            if (emptyComposite == null || emptyComposite.isDisposed()) {
+                // Dispose tree composite if it exists
+                if (treeComposite != null && !treeComposite.isDisposed()) {
+                    treeComposite.dispose();
+                    treeComposite = null;
+                    viewer = null;
+                    searchText = null;
+                    searchFilter = null;
+                }
+                createEmptyComposite();
+                parentComposite.layout(true, true);
+            }
         }
-        updateToolbarActionEnablement(!isEmpty);
-        stackComposite.layout();
+
+        updateToolbarActionEnablement(hasProjects);
     }
 
     /**
@@ -812,8 +883,13 @@ public class DashboardView extends ViewPart {
         if (searchPattern == null || searchPattern.trim().isEmpty()) {
             viewer.removeFilter(searchFilter);
         } else {
-            viewer.removeFilter(searchFilter);
-            viewer.addFilter(searchFilter);
+            // Only add filter if not already present
+            if (!Arrays.asList(viewer.getFilters()).contains(searchFilter)) {
+                viewer.addFilter(searchFilter);
+            } else {
+                // Filter already present, just refresh
+                viewer.refresh();
+            }
         }
         viewer.expandAll();
     }
@@ -822,7 +898,7 @@ public class DashboardView extends ViewPart {
      * Checks if a project or any of its children match the search pattern.
      */
     private boolean hasMatchingChild(ProjectModel projectModel, String searchPattern) {
-        for (ProjectModel child : projectModel.getChildProjects()) {
+        for (ProjectModel child : projectModel.getChildLibertyServerProjects()) {
             if (child.getName().toLowerCase().contains(searchPattern)) {
                 return true;
             }
