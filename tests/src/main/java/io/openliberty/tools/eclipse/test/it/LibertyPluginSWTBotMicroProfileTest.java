@@ -12,18 +12,14 @@
 *******************************************************************************/
 package io.openliberty.tools.eclipse.test.it;
 
-import static io.openliberty.tools.eclipse.test.it.utils.ConstantsForAutomatedTest.contentForMpDiagnostics;
-import static io.openliberty.tools.eclipse.test.it.utils.ConstantsForAutomatedTest.mpSnippet_quickFixes;
-import static io.openliberty.tools.eclipse.test.it.utils.ConstantsForAutomatedTest.mpClassSnippet;
-import static io.openliberty.tools.eclipse.test.it.utils.ConstantsForAutomatedTest.mpDiagnostics;
-import static io.openliberty.tools.eclipse.test.it.utils.ConstantsForAutomatedTest.projectPaths;
-import static io.openliberty.tools.eclipse.test.it.utils.ConstantsForAutomatedTest.mptypeAheadOptions_classLevel;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.setBuildCmdPathInPreferences;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.unsetBuildCmdPathInPreferences;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -38,7 +34,6 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import io.openliberty.tools.eclipse.test.it.utils.ConstantsForAutomatedTest;
 import io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils;
 import io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations;
 
@@ -46,6 +41,54 @@ import io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations;
  * Tests Microprofile functionality within Liberty Tools for Eclipse
  */
 public class LibertyPluginSWTBotMicroProfileTest extends AbstractLibertyPluginSWTBotTest {
+
+    /**
+     * Application name - using Maven app
+     */
+    public static final String MAVEN_APP_NAME = "liberty.maven.test.app";
+
+    /**
+     * Test app relative path.
+     */
+    public static final Path mavenProjectPath = Paths.get("resources", "applications", "maven", "liberty-maven-test-app");
+
+    public static String mpClassSnippet = "import org.eclipse.microprofile.health.Liveness;\n"
+                                          + "\n"
+                                          + "import jakarta.enterprise.context.ApplicationScoped;\n"
+                                          + "\n"
+                                          + "@Liveness\n"
+                                          + "@ApplicationScoped";
+
+    public static ArrayList<String> projectPaths = new ArrayList<String>();
+
+    /**
+     * Expected type-ahead options when at highest level in class.
+     */
+    public static String[] mptypeAheadOptions_classLevel = new String[] { "mpliveness", "mpreadiness", "mpnrc" };
+
+    /**
+     * Expected type-ahead options within REST class
+     */
+    public static String[] mptypeAheadOptions_inClass = new String[] { "mpliveness", "mpreadiness", "mpnrc" };
+    public static String mpDiagnostics = "implementing the HealthCheck interface should use the @Liveness, @Readiness or @Startup annotation. [HealthAnnotationMissing]";
+
+    public static String[] mpSnippet_quickFixes = new String[] { "Insert @Liveness" };
+
+    public static String contentForMpDiagnostics = "package test.rest;\n"
+                                                   + "\n"
+                                                   + "import org.eclipse.microprofile.health.HealthCheck;\n"
+                                                   + "import org.eclipse.microprofile.health.HealthCheckResponse;\n"
+                                                   + "\n"
+                                                   + "import jakarta.enterprise.context.ApplicationScoped;\n"
+                                                   + "\n"
+                                                   + "@ApplicationScoped\n"
+                                                   + "public class RestApplicationTest implements HealthCheck {\n"
+                                                   + "\n"
+                                                   + " @Override\n"
+                                                   + " public HealthCheckResponse call() {\n"
+                                                   + "         return HealthCheckResponse.named(FieldConstraintValidation.class.getSimpleName()).withData(\"live\",true).up().build();\n"
+                                                   + " }\n"
+                                                   + "}";
 
     /**
      * Setup.
@@ -58,7 +101,7 @@ public class LibertyPluginSWTBotMicroProfileTest extends AbstractLibertyPluginSW
         commonSetup();
 
         File workspaceRoot = ResourcesPlugin.getWorkspace().getRoot().getLocation().toFile();
-        projectPaths.add(ConstantsForAutomatedTest.mavenProjectPath.toString());
+        projectPaths.add(mavenProjectPath.toString());
 
         // Cleanup to avoid issues from previous runs
         for (String p : projectPaths) {
@@ -84,7 +127,6 @@ public class LibertyPluginSWTBotMicroProfileTest extends AbstractLibertyPluginSW
 
     /**
      * Verify the class level snippets are available for Microprofile
-     * 
      */
 
     @Test
@@ -92,7 +134,9 @@ public class LibertyPluginSWTBotMicroProfileTest extends AbstractLibertyPluginSW
 
         try {
 
-            SWTBotEclipseEditor mpEditor = SWTBotPluginOperations.openFileForTest(bot);
+            SWTBotEclipseEditor mpEditor = SWTBotPluginOperations.openFileForTest(bot, "liberty.maven.test.app (in liberty-maven-test-app)",
+                                                                                  "src/main/java/test/maven/liberty/web/app",
+                                                                                  "RestTestClass.java");
             // Clear existing content
             String fileContent = mpEditor.getText();
 
@@ -132,38 +176,47 @@ public class LibertyPluginSWTBotMicroProfileTest extends AbstractLibertyPluginSW
     @Test
     public void verifyContentAssistSugForMpClassSnippet() {
 
-        SWTBotEclipseEditor mpEditor = SWTBotPluginOperations.openFileForTest(bot);
-        bot.sleep(3000);
+        try {
 
-        mpEditor.show();
-        mpEditor.setFocus();
+            SWTBotEclipseEditor mpEditor = SWTBotPluginOperations.openFileForTest(bot, "liberty.maven.test.app (in liberty-maven-test-app)",
+                                                                                  "src/main/java/test/maven/liberty/web/app",
+                                                                                  "RestTestClass.java");
+            bot.sleep(3000);
 
-        bot.sleep(1000);
+            mpEditor.show();
+            mpEditor.setFocus();
 
-        SWTBotPluginOperations.clearContentInEditor(mpEditor);
+            bot.sleep(1000);
 
-        bot.sleep(1000);
+            SWTBotPluginOperations.clearContentInEditor(mpEditor);
 
-        mpEditor.autoCompleteProposal("mp", "mpliveness");
+            bot.sleep(1000);
 
-        String contentAfterSnippet = mpEditor.getText();
-        System.out.println("INFO : contentAfterSnippet" + contentAfterSnippet);
-        boolean contentMatches = contentAfterSnippet.contains(mpClassSnippet);
-        System.out.println("INFO : contentMatches" + contentMatches);
+            mpEditor.autoCompleteProposal("mp", "mpliveness");
 
-        assertTrue(contentAfterSnippet.contains(mpClassSnippet), "Error while adding mpliveness snippet");
-        SWTBotPluginOperations.clearContentInEditor(mpEditor);
-        mpEditor.close();
+            String contentAfterSnippet = mpEditor.getText();
+            System.out.println("INFO : contentAfterSnippet" + contentAfterSnippet);
+            boolean contentMatches = contentAfterSnippet.contains(mpClassSnippet);
+            System.out.println("INFO : contentMatches" + contentMatches);
+
+            assertTrue(contentAfterSnippet.contains(mpClassSnippet), "Error while adding mpliveness snippet");
+            SWTBotPluginOperations.clearContentInEditor(mpEditor);
+            mpEditor.close();
+        } catch (Exception e) {
+            fail("Unexpected exception was thrown: " + e);
+        }
     }
 
     /**
-     * Verify quick fixes for invalid  mp properties
+     * Verify quick fixes for invalid mp properties
      */
     @Test
     public void testForVerifyQuickFixesMpProperties() {
 
         try {
-            SWTBotEclipseEditor mpEditor = SWTBotPluginOperations.openFileForTest(bot);
+            SWTBotEclipseEditor mpEditor = SWTBotPluginOperations.openFileForTest(bot, "liberty.maven.test.app (in liberty-maven-test-app)",
+                                                                                  "src/main/java/test/maven/liberty/web/app",
+                                                                                  "RestTestClass.java");
             bot.sleep(1000);
 
             mpEditor.show();
@@ -175,7 +228,7 @@ public class LibertyPluginSWTBotMicroProfileTest extends AbstractLibertyPluginSW
 
             bot.sleep(5000);
             // Get quick-fix list
-            List<String> quickFixes = SWTBotPluginOperations.getQuickFixList(bot, "RestApplication.java");
+            List<String> quickFixes = SWTBotPluginOperations.getQuickFixList(bot, "RestTestClass.java");
             System.out.println("INFO: Type-ahead options found = " + Arrays.toString(quickFixes.toArray()));
 
             boolean allFound = true;
@@ -191,7 +244,6 @@ public class LibertyPluginSWTBotMicroProfileTest extends AbstractLibertyPluginSW
             assertTrue(allFound, "Missing quick-fixes: " + Arrays.toString(missingFixes.toArray()));
             SWTBotPluginOperations.clearContentInEditor(mpEditor);
             mpEditor.close();
-
         } catch (Exception e) {
             fail("Unexpected exception was thrown: " + e);
         }
@@ -205,7 +257,10 @@ public class LibertyPluginSWTBotMicroProfileTest extends AbstractLibertyPluginSW
     public void testDiagnosticsForMpProperties() {
 
         try {
-            SWTBotEclipseEditor mpEditor = SWTBotPluginOperations.openFileForTest(bot);
+
+            SWTBotEclipseEditor mpEditor = SWTBotPluginOperations.openFileForTest(bot, "liberty.maven.test.app (in liberty-maven-test-app)",
+                                                                                  "src/main/java/test/maven/liberty/web/app",
+                                                                                  "RestTestClass.java");
             bot.sleep(1000);
 
             mpEditor.show();
@@ -228,9 +283,9 @@ public class LibertyPluginSWTBotMicroProfileTest extends AbstractLibertyPluginSW
             }
 
             IMarker[] mpMarkers = currentWorkspaceFile.findMarkers(
-                                                          IMarker.PROBLEM,
-                                                          true,
-                                                          IResource.DEPTH_INFINITE);
+                                                                   IMarker.PROBLEM,
+                                                                   true,
+                                                                   IResource.DEPTH_INFINITE);
 
             boolean diagnosticFound = false;
 
@@ -247,7 +302,7 @@ public class LibertyPluginSWTBotMicroProfileTest extends AbstractLibertyPluginSW
             }
 
             assertTrue(
-                      diagnosticFound,
+                       diagnosticFound,
                        "Expected diagnostic was not found");
             SWTBotPluginOperations.clearContentInEditor(mpEditor);
             mpEditor.close();

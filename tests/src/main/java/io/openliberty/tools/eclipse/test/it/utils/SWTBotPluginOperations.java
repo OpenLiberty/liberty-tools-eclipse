@@ -25,6 +25,7 @@ import static org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory.allOf;
 import static org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory.widgetOfType;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -1367,7 +1368,6 @@ public class SWTBotPluginOperations {
 
     /**
      * Method to clear the editor
-     * 
      */
     public static void clearContentInEditor(SWTBotEclipseEditor editor) {
         // Clear existing content
@@ -1381,14 +1381,23 @@ public class SWTBotPluginOperations {
 
     /**
      * Method to open file for the test cases
-     * 
      */
-    public static SWTBotEclipseEditor openFileForTest(SWTWorkbenchBot bot) {
-        SWTBotTreeItem file = bot.tree().expandNode("liberty.maven.test.app (in liberty-maven-test-app)").expandNode("src").expandNode("main").expandNode("java").expandNode("test").expandNode("maven").expandNode("liberty").expandNode("web").expandNode("app").getNode("RestTestClass.java");
+    public static SWTBotEclipseEditor openFileForTest(SWTWorkbenchBot bot, String projectName,
+                                                      String packagePath,
+                                                      String fileName) {
+        // Open Project Explorer
+        bot.viewByTitle("Project Explorer").show();
 
-        file.doubleClick();
+        SWTBotTreeItem parentNode = bot.tree().expandNode(projectName);
 
-        return bot.editorByTitle("RestTestClass.java").toTextEditor();
+        for (String dirName : packagePath.split("/")) {
+            parentNode = parentNode.expandNode(dirName);
+        }
+
+        SWTBotTreeItem fileNode = parentNode.getNode(fileName);
+        fileNode.doubleClick();
+
+        return bot.editorByTitle(fileName).toTextEditor();
     }
 
 }

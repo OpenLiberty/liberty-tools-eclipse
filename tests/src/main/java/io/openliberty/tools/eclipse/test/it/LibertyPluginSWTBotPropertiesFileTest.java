@@ -12,21 +12,14 @@
 *******************************************************************************/
 package io.openliberty.tools.eclipse.test.it;
 
-import static io.openliberty.tools.eclipse.test.it.utils.ConstantsForAutomatedTest.bootstrapPropertiesContent;
-import static io.openliberty.tools.eclipse.test.it.utils.ConstantsForAutomatedTest.bootstrapTypeAheadOptions;
-import static io.openliberty.tools.eclipse.test.it.utils.ConstantsForAutomatedTest.mpConfigPropertiesContent;
-import static io.openliberty.tools.eclipse.test.it.utils.ConstantsForAutomatedTest.projectPaths;
-import static io.openliberty.tools.eclipse.test.it.utils.ConstantsForAutomatedTest.serverEnvDiagnostics;
-import static io.openliberty.tools.eclipse.test.it.utils.ConstantsForAutomatedTest.serverEnvPropertiesContent;
-import static io.openliberty.tools.eclipse.test.it.utils.ConstantsForAutomatedTest.serverEnvTypeAheadOptions;
-import static io.openliberty.tools.eclipse.test.it.utils.ConstantsForAutomatedTest.serverEnv_quickFixes;
-import static io.openliberty.tools.eclipse.test.it.utils.ConstantsForAutomatedTest.typeAheadOptions_mpConfig;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.setBuildCmdPathInPreferences;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.unsetBuildCmdPathInPreferences;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -37,7 +30,6 @@ import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotEclipseEditor;
-import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IMarkerResolution;
 import org.eclipse.ui.ide.IDE;
@@ -45,7 +37,6 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import io.openliberty.tools.eclipse.test.it.utils.ConstantsForAutomatedTest;
 import io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils;
 import io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations;
 
@@ -53,6 +44,46 @@ import io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations;
  * Tests Config properties file functionality within Liberty Tools for Eclipse
  */
 public class LibertyPluginSWTBotPropertiesFileTest extends AbstractLibertyPluginSWTBotTest {
+    /**
+     * Test app relative path.
+     */
+    public static final Path mavenProjectPath = Paths.get("resources", "applications", "maven", "liberty-maven-test-app");
+
+    public static String[] bootstrapTypeAheadOptions = new String[] { "com.ibm.ws.logging.console.source",
+                                                                      "com.ibm.hpel.log.bufferingEnabled",
+                                                                      "com.ibm.ws.logging.console.log.level",
+                                                                      "com.ibm.ws.logging.console.format",
+                                                                      "com.ibm.ws.logging.trace.format",
+                                                                      "com.ibm.hpel.trace.outOfSpaceAction" };
+    public static String bootstrapPropertiesContent = "com.ibm.ws.logging.console.format";
+
+    public static String[] serverEnvTypeAheadOptions = new String[] { "WLP_DEBUG_ADDRESS",
+                                                                      "WLP_LOGGING_CONSOLE_FORMAT",
+                                                                      "WLP_LOGGING_CONSOLE_LOGLEVEL",
+                                                                      "WLP_LOGGING_JSON_ACCESS_LOG_FIELDS",
+                                                                      "WLP_LOGGING_MESSAGE_FORMAT" };
+    public static String serverEnvPropertiesContent = "WLP_LOGGING_CONSOLE_LOGLEVEL";
+    /**
+     * Sample MicroProfile Config properties content
+     */
+    public static String mpConfigPropertiesContent = "mp.jwt.token.header";
+    public static ArrayList<String> projectPaths = new ArrayList<String>();
+    /**
+     * Expected type-ahead options when at highest level in class.
+     */
+    public static String[] typeAheadOptions_mpConfig = new String[] { "mp.jwt.token.header", "mp.jwt.decrypt.key.location", "mp.jwt.verify.issuer", "mp.metrics.appName" };
+    public static String serverEnvDiagnostics = "is not valid for the variable `WLP_LOGGING_CONSOLE_LOGLEVEL`. [unknown_property_value]";
+    /**
+     * Expected quick-fixes
+     */
+    public static String[] serverEnv_quickFixes = new String[] { " Replace value with AUDIT", "Replace value with INFO", "Replace value with WARNING", "Replace value with ERROR",
+                                                                 "Replace value with OFF" };
+
+    public static String bootstarpContentForInfo = "com.ibm.ws.logging.console.format=invalid\n";
+
+    public static String bootstrapDiagnostics = "is not valid for the variable `WLP_LOGGING_CONSOLE_LOGLEVEL`. [unknown_property_value]";
+    public static String[] bootstrap_quickFixes = new String[] { " Replace value with AUDIT", "Replace value with INFO", "Replace value with WARNING", "Replace value with ERROR",
+                                                                 "Replace value with OFF" };
 
     /**
      * Setup.
@@ -65,7 +96,7 @@ public class LibertyPluginSWTBotPropertiesFileTest extends AbstractLibertyPlugin
         commonSetup();
 
         File workspaceRoot = ResourcesPlugin.getWorkspace().getRoot().getLocation().toFile();
-        projectPaths.add(ConstantsForAutomatedTest.mavenProjectPath.toString());
+        projectPaths.add(mavenProjectPath.toString());
 
         // Cleanup to avoid issues from previous runs
         for (String p : projectPaths) {
@@ -91,22 +122,16 @@ public class LibertyPluginSWTBotPropertiesFileTest extends AbstractLibertyPlugin
 
     /**
      * Verify the type ahead options are available for microprofile properties
-     * 
      */
 
     @Test
     public void testTypeAheadSuggestionMpConfig() {
 
         try {
-            // Open Project Explorer
-            bot.viewByTitle("Project Explorer").show();
 
-            SWTBotTreeItem mgConfigFile = bot.tree().expandNode("liberty.maven.test.app (in liberty-maven-test-app)").expandNode("src").expandNode("main").expandNode("resources").expandNode("META-INF").getNode("microprofile-config.properties");
-
-            mgConfigFile.doubleClick();
-
-            bot.sleep(1000);
-            SWTBotEclipseEditor mgConfigEditor = bot.editorByTitle("microprofile-config.properties").toTextEditor();
+            SWTBotEclipseEditor mgConfigEditor = SWTBotPluginOperations.openFileForTest(bot, "liberty.maven.test.app (in liberty-maven-test-app)",
+                                                                                        "src/main/resources/META-INF",
+                                                                                        "microprofile-config.properties");
             // Get type-ahead list
             List<String> typeAheadOptions = SWTBotPluginOperations.getTypeAheadList(bot, "microprofile-config.properties", "", 0, 0);
             System.out.println("INFO: Type-ahead options found = " + Arrays.toString(typeAheadOptions.toArray()));
@@ -122,7 +147,6 @@ public class LibertyPluginSWTBotPropertiesFileTest extends AbstractLibertyPlugin
 
             assertTrue(allFound, "Missing type-ahead options: microprofile-config.properties" + Arrays.toString(missingOptions.toArray()));
             mgConfigEditor.close();
-
         } catch (Exception e) {
             fail("Unexpected exception was thrown: " + e);
         }
@@ -135,13 +159,9 @@ public class LibertyPluginSWTBotPropertiesFileTest extends AbstractLibertyPlugin
     public void testPropertyKeyContentAssistMpConfig() {
 
         try {
-            SWTBotTreeItem mgConfigFile = bot.tree().expandNode("liberty.maven.test.app (in liberty-maven-test-app)").expandNode("src").expandNode("main").expandNode("resources").expandNode("META-INF").getNode("microprofile-config.properties");
-
-            mgConfigFile.doubleClick();
-
-            bot.sleep(1000);
-
-            SWTBotEclipseEditor mgConfigEditor = bot.editorByTitle("microprofile-config.properties").toTextEditor();
+            SWTBotEclipseEditor mgConfigEditor = SWTBotPluginOperations.openFileForTest(bot, "liberty.maven.test.app (in liberty-maven-test-app)",
+                                                                                        "src/main/resources/META-INF",
+                                                                                        "microprofile-config.properties");
             mgConfigEditor.show();
             mgConfigEditor.setFocus();
 
@@ -163,7 +183,6 @@ public class LibertyPluginSWTBotPropertiesFileTest extends AbstractLibertyPlugin
             assertTrue(content.contains(mpConfigPropertiesContent), "Property is not added correctly - microprofile-config.properties");
             SWTBotPluginOperations.clearContentInEditor(mgConfigEditor);
             mgConfigEditor.close();
-
         } catch (Exception e) {
             fail("Unexpected exception was thrown: " + e);
         }
@@ -171,22 +190,17 @@ public class LibertyPluginSWTBotPropertiesFileTest extends AbstractLibertyPlugin
 
     /**
      * Verify the type ahead options are available for bootstrap.properties
-     * 
      */
 
     @Test
     public void testTypeAheadSuggestionBootstrap() {
 
         try {
-            // Open Project Explorer
-            bot.viewByTitle("Project Explorer").show();
 
-            SWTBotTreeItem bootstrapFile = bot.tree().expandNode("liberty.maven.test.app (in liberty-maven-test-app)").expandNode("src").expandNode("main").expandNode("resources").expandNode("META-INF").getNode("bootstrap.properties");
-
-            bootstrapFile.doubleClick();
-
-            bot.sleep(1000);
-            SWTBotEclipseEditor bootstrapEditor = bot.editorByTitle("bootstrap.properties").toTextEditor();
+            SWTBotEclipseEditor bootstrapEditor = SWTBotPluginOperations.openFileForTest(bot,
+                                                                                         "liberty.maven.test.app (in liberty-maven-test-app)",
+                                                                                         "src/main/resources/META-INF",
+                                                                                         "bootstrap.properties");
             // Get type-ahead list
             List<String> typeAheadOptions = SWTBotPluginOperations.getTypeAheadList(bot, "bootstrap.properties", "", 0, 0);
             System.out.println("INFO: Type-ahead options found = " + Arrays.toString(typeAheadOptions.toArray()));
@@ -202,7 +216,6 @@ public class LibertyPluginSWTBotPropertiesFileTest extends AbstractLibertyPlugin
 
             assertTrue(allFound, "Missing type-ahead options: bootstrap.properties" + Arrays.toString(missingOptions.toArray()));
             bootstrapEditor.close();
-
         } catch (Exception e) {
             fail("Unexpected exception was thrown: " + e);
         }
@@ -215,16 +228,11 @@ public class LibertyPluginSWTBotPropertiesFileTest extends AbstractLibertyPlugin
     public void testPropertyKeyContentAssistBootstrap() {
 
         try {
-            SWTBotTreeItem bootstrapFile = bot.tree().expandNode("liberty.maven.test.app (in liberty-maven-test-app)").expandNode("src").expandNode("main").expandNode("resources").expandNode("META-INF").getNode("bootstrap.properties");
 
-            bootstrapFile.doubleClick();
-
-            bot.sleep(1000);
-
-            // Get opened editor
-
-            SWTBotEclipseEditor bootstrapEditor = bot.editorByTitle("bootstrap.properties").toTextEditor();
-
+            SWTBotEclipseEditor bootstrapEditor = SWTBotPluginOperations.openFileForTest(bot,
+                                                                                         "liberty.maven.test.app (in liberty-maven-test-app)",
+                                                                                         "src/main/resources/META-INF",
+                                                                                         "bootstrap.properties");
             bootstrapEditor.show();
             bootstrapEditor.setFocus();
 
@@ -254,21 +262,17 @@ public class LibertyPluginSWTBotPropertiesFileTest extends AbstractLibertyPlugin
 
     /**
      * Verify the type ahead options are available for server.env file
-     * 
      */
 
     @Test
     public void testTypeAheadSuggestionServerEnv() {
 
         try {
-            // Open Project Explorer
-            bot.viewByTitle("Project Explorer").show();
-            SWTBotTreeItem serverEnvFile = bot.tree().expandNode("liberty.maven.test.app (in liberty-maven-test-app)").expandNode("src").expandNode("main").expandNode("resources").expandNode("META-INF").getNode("server.env");
 
-            serverEnvFile.doubleClick();
-
-            bot.sleep(1000);
-            SWTBotEclipseEditor serverEnvEditor = bot.editorByTitle("server.env").toTextEditor();
+            SWTBotEclipseEditor serverEnvEditor = SWTBotPluginOperations.openFileForTest(bot,
+                                                                                         "liberty.maven.test.app (in liberty-maven-test-app)",
+                                                                                         "src/main/resources/META-INF",
+                                                                                         "server.env");
             // Get type-ahead list
             List<String> typeAheadOptions = SWTBotPluginOperations.getTypeAheadList(bot, "server.env", "", 0, 0);
             System.out.println("INFO: Type-ahead options found = " + Arrays.toString(typeAheadOptions.toArray()));
@@ -284,7 +288,6 @@ public class LibertyPluginSWTBotPropertiesFileTest extends AbstractLibertyPlugin
 
             assertTrue(allFound, "Missing type-ahead options: server.env " + Arrays.toString(missingOptions.toArray()));
             serverEnvEditor.close();
-
         } catch (Exception e) {
             fail("Unexpected exception was thrown: " + e);
         }
@@ -297,14 +300,11 @@ public class LibertyPluginSWTBotPropertiesFileTest extends AbstractLibertyPlugin
     public void testPropertyKeyContentAssistServerEnv() {
 
         try {
-            SWTBotTreeItem serverEnvFile = bot.tree().expandNode("liberty.maven.test.app (in liberty-maven-test-app)").expandNode("src").expandNode("main").expandNode("resources").expandNode("META-INF").getNode("server.env");
 
-            serverEnvFile.doubleClick();
-
-            bot.sleep(1000);
-
-            // Get opened editor
-            SWTBotEclipseEditor serverEnvEditor = bot.editorByTitle("server.env").toTextEditor();
+            SWTBotEclipseEditor serverEnvEditor = SWTBotPluginOperations.openFileForTest(bot,
+                                                                                         "liberty.maven.test.app (in liberty-maven-test-app)",
+                                                                                         "src/main/resources/META-INF",
+                                                                                         "server.env");
             serverEnvEditor.show();
             serverEnvEditor.setFocus();
 
@@ -326,7 +326,6 @@ public class LibertyPluginSWTBotPropertiesFileTest extends AbstractLibertyPlugin
             assertTrue(content.contains(serverEnvPropertiesContent), "Property is not added correctly - server.env");
             SWTBotPluginOperations.clearContentInEditor(serverEnvEditor);
             serverEnvEditor.close();
-
         } catch (Exception e) {
             fail("Unexpected exception was thrown: " + e);
         }
@@ -338,17 +337,15 @@ public class LibertyPluginSWTBotPropertiesFileTest extends AbstractLibertyPlugin
     @Test
     public void testForVerifyQuickFixesServerEnv() {
         try {
-            SWTBotTreeItem serverEnvFile = bot.tree().expandNode("liberty.maven.test.app (in liberty-maven-test-app)").expandNode("src").expandNode("main").expandNode("resources").expandNode("META-INF").getNode("server.env");
 
-            serverEnvFile.doubleClick();
-
-            SWTBotEclipseEditor serverEnvEditor = bot.editorByTitle("server.env").toTextEditor();
-
+            SWTBotEclipseEditor serverEnvEditor = SWTBotPluginOperations.openFileForTest(bot,
+                                                                                         "liberty.maven.test.app (in liberty-maven-test-app)",
+                                                                                         "src/main/resources/META-INF",
+                                                                                         "server.env");
             serverEnvEditor.show();
             serverEnvEditor.setFocus();
 
             bot.sleep(1000);
-
             serverEnvEditor.insertText(0, 0, "WLP_LOGGING_CONSOLE_LOGLEVEL=INVALID_PROPERTY_VALUE");
 
             bot.sleep(10000);
@@ -362,9 +359,9 @@ public class LibertyPluginSWTBotPropertiesFileTest extends AbstractLibertyPlugin
             }
 
             IMarker[] serverEnvMarkers = serverEnvEditorFile.findMarkers(
-                                                              IMarker.PROBLEM,
-                                                              true,
-                                                              IResource.DEPTH_INFINITE);
+                                                                         IMarker.PROBLEM,
+                                                                         true,
+                                                                         IResource.DEPTH_INFINITE);
 
             List<String> missingQuickFixes = new ArrayList<>();
 
@@ -396,7 +393,6 @@ public class LibertyPluginSWTBotPropertiesFileTest extends AbstractLibertyPlugin
             // Cleanup
             SWTBotPluginOperations.clearContentInEditor(serverEnvEditor);
             serverEnvEditor.close();
-
         } catch (Exception e) {
             fail("Unexpected exception was thrown: " + e.getMessage());
         }
@@ -409,12 +405,10 @@ public class LibertyPluginSWTBotPropertiesFileTest extends AbstractLibertyPlugin
     @Test
     public void testDiagnosticsForServerEnv() {
         try {
-            SWTBotTreeItem serverEnvFile = bot.tree().expandNode("liberty.maven.test.app (in liberty-maven-test-app)").expandNode("src").expandNode("main").expandNode("resources").expandNode("META-INF").getNode("server.env");
-
-            serverEnvFile.doubleClick();
-            bot.sleep(1000);
-
-            SWTBotEclipseEditor serverEnvEditor = bot.editorByTitle("server.env").toTextEditor();
+            SWTBotEclipseEditor serverEnvEditor = SWTBotPluginOperations.openFileForTest(bot,
+                                                                                         "liberty.maven.test.app (in liberty-maven-test-app)",
+                                                                                         "src/main/resources/META-INF",
+                                                                                         "server.env");
             serverEnvEditor.show();
             serverEnvEditor.setFocus();
             bot.sleep(1000);
@@ -448,7 +442,6 @@ public class LibertyPluginSWTBotPropertiesFileTest extends AbstractLibertyPlugin
 
             SWTBotPluginOperations.clearContentInEditor(serverEnvEditor);
             serverEnvEditor.close();
-
         } catch (Exception e) {
             fail("Unexpected exception was thrown: " + e);
         }

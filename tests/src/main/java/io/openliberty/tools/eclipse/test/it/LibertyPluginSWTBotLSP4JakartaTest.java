@@ -12,20 +12,14 @@
 *******************************************************************************/
 package io.openliberty.tools.eclipse.test.it;
 
-import static io.openliberty.tools.eclipse.test.it.utils.ConstantsForAutomatedTest.assertTrueDiagnostics;
-import static io.openliberty.tools.eclipse.test.it.utils.ConstantsForAutomatedTest.invalidField_quickFixes;
-import static io.openliberty.tools.eclipse.test.it.utils.ConstantsForAutomatedTest.jakartaTypeAheadOptions_classLevel;
-import static io.openliberty.tools.eclipse.test.it.utils.ConstantsForAutomatedTest.jakartaTypeAheadOptions_inClass;
-import static io.openliberty.tools.eclipse.test.it.utils.ConstantsForAutomatedTest.projectPaths;
-import static io.openliberty.tools.eclipse.test.it.utils.ConstantsForAutomatedTest.restClassSnippet;
-import static io.openliberty.tools.eclipse.test.it.utils.ConstantsForAutomatedTest.restMethodSnippetDel;
-import static io.openliberty.tools.eclipse.test.it.utils.ConstantsForAutomatedTest.restClassSnippetToAdd;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.setBuildCmdPathInPreferences;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.unsetBuildCmdPathInPreferences;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -35,13 +29,11 @@ import org.eclipse.core.resources.IMarker;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotEclipseEditor;
-import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
 import org.eclipse.ui.IEditorPart;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-import io.openliberty.tools.eclipse.test.it.utils.ConstantsForAutomatedTest;
 import io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils;
 import io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations;
 
@@ -49,8 +41,87 @@ import io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations;
  * Tests LSP4Jakarta functionality within Liberty Tools for Eclipse
  */
 public class LibertyPluginSWTBotLSP4JakartaTest extends AbstractLibertyPluginSWTBotTest {
+    /**
+     * Application name - using Maven app
+     */
+    public static final String MAVEN_APP_NAME = "liberty.maven.test.app";
 
-    
+    /**
+     * Test app relative path.
+     */
+    public static final Path mavenProjectPath = Paths.get("resources", "applications", "maven", "liberty-maven-test-app");
+
+    public static ArrayList<String> projectPaths = new ArrayList<String>();
+
+    public static String[] invalidProperty_quickFixes = new String[] { "Remove invalid line", "Add equals sign" };
+
+    /**
+     * Expected type-ahead options when typing "rest_" in an empty file (class-level only)
+     */
+    public static String[] restClassSnippetOptions = new String[] { "rest_class" };
+
+    /**
+     * Expected type-ahead options when typing "rest_" inside a class (method-level)
+     */
+    public static String[] restMethodSnippetOptions = new String[] { "rest_head", "rest_get",
+                                                                     "rest_post", "rest_put", "rest_delete" };
+
+    public static final String invalidField = "@AssertTrue\n"
+                                              + "    private int isHappy;";
+
+    /**
+     * Expected quick-fixes
+     */
+    public static String[] invalidField_quickFixes = new String[] { "Remove constraint annotation AssertTrue from element" };
+
+    /**
+     * Expected type-ahead options when at highest level in class.
+     */
+    public static String[] jakartaTypeAheadOptions_classLevel = new String[] { "rest_class", "persist_entity", "servlet_doget", "servlet_dopost",
+                                                                               "servlet_generic", "servlet_webfilter" };
+
+    /**
+     * Expected type-ahead options within REST class
+     */
+    public static String[] jakartaTypeAheadOptions_inClass = new String[] { "persist_context", "persist_context_extended",
+                                                                            "persist_context_extended_unsync", "rest_head", "rest_get", "rest_post", "rest_put", "rest_delete",
+                                                                            "tx_user_inject",
+                                                                            "tx_user_jndi" };
+
+    public static String[] jakartaTypeAheadOptions_mpProperties = new String[] { "mp.jwt.token.cookie", "mp.jwt.token.header", "mp.jwt.decrypt.key.location",
+                                                                                 "mp.health.disable-default-procedures",
+                                                                                 "mp.jwt.verify.issuer", "servlet_webfilter" };
+
+    public static String restClassSnippet = "import jakarta.ws.rs.GET;\n"
+                                            + "import jakarta.ws.rs.Path;\n"
+                                            + "import jakarta.ws.rs.Produces;\n"
+                                            + "import jakarta.ws.rs.core.MediaType;\n"
+                                            + "\n"
+                                            + "@Path(\"/path\")\n";
+
+    public static String restMethodSnippetDel = "@DELETE\n"
+                                                + "@Consumes(MediaType.TEXT_PLAIN)";
+
+    public static String assertTrueDiagnostics = "The @AssertTrue annotation can only be used on boolean and Boolean type fields. [InvalidAnnotationOnNonBooleanMethodOrField]";
+
+    public static String restClassSnippetToAdd = "package test.maven.liberty.web.app;\n"
+                                                 + "\n"
+                                                 + "import jakarta.ws.rs.GET;\n"
+                                                 + "import jakarta.ws.rs.Path;\n"
+                                                 + "import jakarta.ws.rs.Produces;\n"
+                                                 + "import jakarta.ws.rs.core.MediaType;\n"
+                                                 + "\n"
+                                                 + "@Path(\"\"\n"
+                                                 + "         + \"\")\n"
+                                                 + "public class RestTestClass {\n"
+                                                 + "\n"
+                                                 + " @GET\n"
+                                                 + " @Produces(MediaType.TEXT_PLAIN)\n"
+                                                 + " public String methodname() {\n"
+                                                 + "         return \"hello\";\n"
+                                                 + " }\n"
+                                                 + "}";
+
     /**
      * Setup.
      *
@@ -62,7 +133,7 @@ public class LibertyPluginSWTBotLSP4JakartaTest extends AbstractLibertyPluginSWT
         commonSetup();
 
         File workspaceRoot = ResourcesPlugin.getWorkspace().getRoot().getLocation().toFile();
-        projectPaths.add(ConstantsForAutomatedTest.mavenProjectPath.toString());
+        projectPaths.add(mavenProjectPath.toString());
 
         // Cleanup to avoid issues from previous runs
         for (String p : projectPaths) {
@@ -95,7 +166,9 @@ public class LibertyPluginSWTBotLSP4JakartaTest extends AbstractLibertyPluginSWT
     public void testClassLevelSnippets() {
 
         try {
-            SWTBotEclipseEditor currentEditor = SWTBotPluginOperations.openFileForTest(bot);
+            SWTBotEclipseEditor currentEditor = SWTBotPluginOperations.openFileForTest(bot, "liberty.maven.test.app (in liberty-maven-test-app)",
+                                                                                       "src/main/java/test/maven/liberty/web/app",
+                                                                                       "RestTestClass.java");
             // Clear existing content
             String javaFilecontent = currentEditor.getText();
 
@@ -132,28 +205,33 @@ public class LibertyPluginSWTBotLSP4JakartaTest extends AbstractLibertyPluginSWT
 
     @Test
     public void verifyContentAssistSugForRestClassSnippet() {
+        try {
+            SWTBotEclipseEditor currentEditor = SWTBotPluginOperations.openFileForTest(bot, "liberty.maven.test.app (in liberty-maven-test-app)",
+                                                                                       "src/main/java/test/maven/liberty/web/app",
+                                                                                       "RestTestClass.java");
+            bot.sleep(3000);
 
-        SWTBotEclipseEditor currentEditor = SWTBotPluginOperations.openFileForTest(bot);
-        bot.sleep(3000);
+            currentEditor.show();
+            currentEditor.setFocus();
 
-        currentEditor.show();
-        currentEditor.setFocus();
+            bot.sleep(1000);
 
-        bot.sleep(1000);
+            SWTBotPluginOperations.clearContentInEditor(currentEditor);
 
-        SWTBotPluginOperations.clearContentInEditor(currentEditor);
+            bot.sleep(1000);
 
-        bot.sleep(1000);
+            currentEditor.autoCompleteProposal("rest_", "rest_class");
 
-        currentEditor.autoCompleteProposal("rest_", "rest_class");
+            String contentAfterSnippet = currentEditor.getText();
+            System.out.println("INFO : contentAfterSnippet" + contentAfterSnippet);
+            boolean contentMatches = contentAfterSnippet.contains(restClassSnippet);
+            System.out.println("INFO : contentMatches" + contentMatches);
 
-        String contentAfterSnippet = currentEditor.getText();
-        System.out.println("INFO : contentAfterSnippet" + contentAfterSnippet);
-        boolean contentMatches = contentAfterSnippet.contains(restClassSnippet);
-        System.out.println("INFO : contentMatches" + contentMatches);
-
-        assertTrue(contentAfterSnippet.contains(restClassSnippet), "Error while adding rest_class snippet");
-        currentEditor.close();
+            assertTrue(contentAfterSnippet.contains(restClassSnippet), "Error while adding rest_class snippet");
+            currentEditor.close();
+        } catch (Exception e) {
+            fail("Unexpected exception was thrown: " + e);
+        }
     }
 
     /**
@@ -164,7 +242,9 @@ public class LibertyPluginSWTBotLSP4JakartaTest extends AbstractLibertyPluginSWT
     public void testInClassForMethodSnippets() {
 
         try {
-            SWTBotEclipseEditor currentEditor = SWTBotPluginOperations.openFileForTest(bot);
+            SWTBotEclipseEditor currentEditor = SWTBotPluginOperations.openFileForTest(bot, "liberty.maven.test.app (in liberty-maven-test-app)",
+                                                                                       "src/main/java/test/maven/liberty/web/app",
+                                                                                       "RestTestClass.java");
             bot.sleep(1000);
 
             currentEditor.show();
@@ -188,7 +268,6 @@ public class LibertyPluginSWTBotLSP4JakartaTest extends AbstractLibertyPluginSWT
 
             assertTrue(allFound, "Missing type-ahead options: " + Arrays.toString(missingOptions.toArray()));
             currentEditor.close();
-
         } catch (Exception e) {
             fail("Unexpected exception was thrown: " + e);
         }
@@ -201,24 +280,29 @@ public class LibertyPluginSWTBotLSP4JakartaTest extends AbstractLibertyPluginSWT
 
     @Test
     public void verifyContentAssistSugForRestMethodLevel() {
+        try {
+            SWTBotEclipseEditor currentEditor = SWTBotPluginOperations.openFileForTest(bot, "liberty.maven.test.app (in liberty-maven-test-app)",
+                                                                                       "src/main/java/test/maven/liberty/web/app",
+                                                                                       "RestTestClass.java");
+            bot.sleep(3000);
 
-        SWTBotEclipseEditor currentEditor = SWTBotPluginOperations.openFileForTest(bot);
-        bot.sleep(3000);
+            bot.sleep(1000);
+            currentEditor.insertText(0, 0, restClassSnippetToAdd);
+            currentEditor.navigateTo(10, 0);
+            bot.sleep(1000);
+            currentEditor.autoCompleteProposal("rest_", "rest_delete");
+            bot.sleep(1000);
 
-        bot.sleep(1000);
-        currentEditor.insertText(0, 0, restClassSnippetToAdd);
-        currentEditor.navigateTo(10, 0);
-        bot.sleep(1000);
-        currentEditor.autoCompleteProposal("rest_", "rest_delete");
-        bot.sleep(1000);
+            String contentAfterSnippet = currentEditor.getText();
+            System.out.println("INFO : contentAfterSnippet" + contentAfterSnippet);
+            boolean contentMatches = contentAfterSnippet.contains(restMethodSnippetDel);
+            System.out.println("contentMatches-->" + contentMatches);
 
-        String contentAfterSnippet = currentEditor.getText();
-        System.out.println("INFO : contentAfterSnippet" + contentAfterSnippet);
-        boolean contentMatches = contentAfterSnippet.contains(restMethodSnippetDel);
-        System.out.println("contentMatches-->" + contentMatches);
-
-        assertTrue(contentMatches, "Error while adding rest_delete snippet");
-        currentEditor.close();
+            assertTrue(contentMatches, "Error while adding rest_delete snippet");
+            currentEditor.close();
+        } catch (Exception e) {
+            fail("Unexpected exception was thrown: " + e);
+        }
     }
 
     /**
@@ -228,14 +312,11 @@ public class LibertyPluginSWTBotLSP4JakartaTest extends AbstractLibertyPluginSWT
     public void testForVerifyQuickFixesInvalidField() {
 
         try {
-            //Open Project Explorer
-            bot.viewByTitle("Project Explorer").show();
 
-            SWTBotTreeItem javaFile = bot.tree().expandNode("liberty.maven.test.app (in liberty-maven-test-app)").expandNode("src").expandNode("main").expandNode("java").expandNode("test").expandNode("maven").expandNode("liberty").expandNode("web").expandNode("app").getNode("FieldConstraintValidation.java");
-
-            javaFile.doubleClick();
-            // Get opened editor
-            SWTBotEclipseEditor currentEditor = bot.editorByTitle("FieldConstraintValidation.java").toTextEditor();
+            SWTBotEclipseEditor currentEditor = SWTBotPluginOperations.openFileForTest(bot,
+                                                                                       "liberty.maven.test.app (in liberty-maven-test-app)",
+                                                                                       "src/main/java/test/maven/liberty/web/app",
+                                                                                       "FieldConstraintValidation.java");
             currentEditor.navigateTo(9, 0);
             currentEditor.click(7, 22);
 
@@ -256,7 +337,6 @@ public class LibertyPluginSWTBotLSP4JakartaTest extends AbstractLibertyPluginSWT
 
             assertTrue(allFound, "Missing quick-fixes: " + Arrays.toString(missingFixes.toArray()));
             currentEditor.close();
-
         } catch (Exception e) {
             fail("Unexpected exception was thrown: " + e);
         }
@@ -271,16 +351,10 @@ public class LibertyPluginSWTBotLSP4JakartaTest extends AbstractLibertyPluginSWT
 
         try {
 
-            // Open Project Explorer
-            bot.viewByTitle("Project Explorer").show();
-
-            SWTBotTreeItem javaFile = bot.tree().expandNode("liberty.maven.test.app (in liberty-maven-test-app)").expandNode("src").expandNode("main").expandNode("java").expandNode("test").expandNode("maven").expandNode("liberty").expandNode("web").expandNode("app").getNode("FieldConstraintValidation.java");
-
-            javaFile.doubleClick();
-
-            // Get opened editor
-            SWTBotEclipseEditor currentEditor = bot.editorByTitle("FieldConstraintValidation.java").toTextEditor();
-
+            SWTBotEclipseEditor currentEditor = SWTBotPluginOperations.openFileForTest(bot,
+                                                                                       "liberty.maven.test.app (in liberty-maven-test-app)",
+                                                                                       "src/main/java/test/maven/liberty/web/app",
+                                                                                       "FieldConstraintValidation.java");
             currentEditor.click(7, 22);
 
             bot.sleep(5000);
@@ -296,9 +370,9 @@ public class LibertyPluginSWTBotLSP4JakartaTest extends AbstractLibertyPluginSWT
             }
 
             IMarker[] issueMarkers = workspaceFile.findMarkers(
-                                                          IMarker.PROBLEM,
-                                                          true,
-                                                          IResource.DEPTH_INFINITE);
+                                                               IMarker.PROBLEM,
+                                                               true,
+                                                               IResource.DEPTH_INFINITE);
 
             boolean diagnosticFound = false;
 
@@ -318,12 +392,9 @@ public class LibertyPluginSWTBotLSP4JakartaTest extends AbstractLibertyPluginSWT
                        diagnosticFound,
                        "Expected diagnostic was not found");
             currentEditor.close();
-
         } catch (Exception e) {
 
-            fail(
-                 "Unexpected exception was thrown: "
-                 + e);
+            fail("Unexpected exception was thrown: " + e);
         }
     }
 }
