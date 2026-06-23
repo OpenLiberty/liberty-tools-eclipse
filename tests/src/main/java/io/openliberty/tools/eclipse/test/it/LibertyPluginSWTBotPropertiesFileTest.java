@@ -123,7 +123,6 @@ public class LibertyPluginSWTBotPropertiesFileTest extends AbstractLibertyPlugin
     /**
      * Verify the type ahead options are available for microprofile properties
      */
-
     @Test
     public void testTypeAheadSuggestionMpConfig() {
 
@@ -191,7 +190,6 @@ public class LibertyPluginSWTBotPropertiesFileTest extends AbstractLibertyPlugin
     /**
      * Verify the type ahead options are available for bootstrap.properties
      */
-
     @Test
     public void testTypeAheadSuggestionBootstrap() {
 
@@ -263,7 +261,6 @@ public class LibertyPluginSWTBotPropertiesFileTest extends AbstractLibertyPlugin
     /**
      * Verify the type ahead options are available for server.env file
      */
-
     @Test
     public void testTypeAheadSuggestionServerEnv() {
 
@@ -401,7 +398,6 @@ public class LibertyPluginSWTBotPropertiesFileTest extends AbstractLibertyPlugin
     /**
      * Verify diagnostics fixes for server.env file
      */
-
     @Test
     public void testDiagnosticsForServerEnv() {
         try {
