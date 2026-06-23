@@ -159,9 +159,7 @@ public class LibertyPluginSWTBotLSP4JakartaTest extends AbstractLibertyPluginSWT
 
     /**
      * Verify the class level snippets are available
-     * 
      */
-
     @Test
     public void testClassLevelSnippets() {
 
@@ -202,7 +200,6 @@ public class LibertyPluginSWTBotLSP4JakartaTest extends AbstractLibertyPluginSWT
      * Tests that Jakarta REST snippets are available when typing "rest_" in a Java file
      * Creates a new Java class, clears content, types "rest_", checks for suggestions, and selects "rest_class"
      **/
-
     @Test
     public void verifyContentAssistSugForRestClassSnippet() {
         try {
@@ -237,7 +234,6 @@ public class LibertyPluginSWTBotLSP4JakartaTest extends AbstractLibertyPluginSWT
     /**
      * Verify the method level snippets are available
      */
-
     @Test
     public void testInClassForMethodSnippets() {
 
@@ -277,7 +273,6 @@ public class LibertyPluginSWTBotLSP4JakartaTest extends AbstractLibertyPluginSWT
      * Tests that Jakarta REST snippets are available when typing "rest_" in a Java file
      * Creates a new Java class, clears content, types "rest_", checks for suggestions, and selects "rest_delete"
      */
-
     @Test
     public void verifyContentAssistSugForRestMethodLevel() {
         try {
@@ -345,7 +340,6 @@ public class LibertyPluginSWTBotLSP4JakartaTest extends AbstractLibertyPluginSWT
     /**
      * Verify diagnostics
      */
-
     @Test
     public void testDiagnosticsForInvalidField() {
 

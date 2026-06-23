@@ -128,7 +128,6 @@ public class LibertyPluginSWTBotMicroProfileTest extends AbstractLibertyPluginSW
     /**
      * Verify the class level snippets are available for Microprofile
      */
-
     @Test
     public void testClassLevelSnippetsMpProperties() {
 
@@ -172,7 +171,6 @@ public class LibertyPluginSWTBotMicroProfileTest extends AbstractLibertyPluginSW
      * Tests that Microprofile snippets are available when typing "mpliveness" in a Java file
      * Creates a new Java class, clears content, types "mp", checks for suggestions, and selects "mpliveness"
      **/
-
     @Test
     public void verifyContentAssistSugForMpClassSnippet() {
 
@@ -252,7 +250,6 @@ public class LibertyPluginSWTBotMicroProfileTest extends AbstractLibertyPluginSW
     /**
      * Verify diagnostics for invalid mp property
      */
-
     @Test
     public void testDiagnosticsForMpProperties() {
 
