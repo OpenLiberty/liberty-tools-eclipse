@@ -38,7 +38,7 @@ public class LibertyDebugReconnectHandler extends AbstractHandler {
         Object target = null;
 
         ISelection selection = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService().getSelection();
-        if (selection != null & selection instanceof IStructuredSelection) {
+        if (selection != null && selection instanceof IStructuredSelection) {
             IStructuredSelection strucSelection = (IStructuredSelection) selection;
             Object[] elements = strucSelection.toArray();
             target = elements[0];
