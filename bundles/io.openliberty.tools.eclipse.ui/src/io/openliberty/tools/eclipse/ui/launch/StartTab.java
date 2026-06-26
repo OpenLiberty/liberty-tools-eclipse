@@ -231,6 +231,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
                 // Validate that we know about the selected project.
                 if (selectedProjectModel == null) {
                     super.setErrorMessage(Messages.getMessage("internal_project_not_found", selectedProject.getName()));
+                    return false;
                 }
 
                 String selectedProjectName = selectedProjectModel.getName();
