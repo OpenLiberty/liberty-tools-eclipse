@@ -36,7 +36,6 @@ import org.eclipse.swt.widgets.Item;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolItem;
 import org.eclipse.swt.widgets.Tree;
@@ -134,17 +133,17 @@ public class SWTBotPluginOperations {
      */
     public static SWTBotMenu getDebuggerConnectMenuForDebugObject(Object debugObject) {
         openDebugPerspective();
-        // Open Debug view using Eclipse API instead of menu navigation
-        // This is more reliable in headless CI environments
+        // Open Debug view using Eclipse API instead of menu navigation.
+        // This is more reliable in headless CI environments.
         showDebugView();
 
         SWTBotTreeItem obj = new SWTBotTreeItem((TreeItem) debugObject);
 
-        // Ensure the tree item is properly selected and focused before accessing context menu
-        // This is critical for headless CI environments where context menus can hang
+        // Ensure the tree item is properly selected and focused before accessing context menu.
+        // This is critical for headless CI environments where context menus can hang.
         obj.select();
         obj.setFocus();
-        MagicWidgetFinder.pause(500);
+        SWTBotTestCondition.waitFor(obj::isEnabled, SWTBotTestCondition.MIN_WAIT_MS);
 
         return obj.contextMenu("Connect Liberty Debugger");
     }
@@ -162,41 +161,113 @@ public class SWTBotPluginOperations {
         // This is more reliable in headless CI environments
         showDebugView();
 
-        // Ensure proper selection before accessing context menu
+        // Wait until the item is enabled before accessing its context menu.
         SWTBotTreeItem obj = new SWTBotTreeItem((TreeItem) debugTarget);
         obj.select();
         obj.setFocus();
-        MagicWidgetFinder.pause(500);
+        SWTBotTestCondition.waitFor(obj::isEnabled, SWTBotTestCondition.VALIDATION_WAIT_MS);
 
         MagicWidgetFinder.context(debugTarget, "Disconnect");
 
-        MagicWidgetFinder.pause(3000);
+        // Wait for disconnect to complete by polling the item's disposed/enabled state.
+        SWTBotTestCondition.waitFor(() -> !isTreeItemEnabled(obj), SWTBotTestCondition.MIN_WAIT_MS);
     }
 
     /**
-     * Terminate the launch
+     * Returns true if the input tree item is enabled, false otherwise.
+     * 
+     * @param item The tree item.
+     * 
+     * @return True if the input tree item is enabled, false otherwise.
+     */
+    private static boolean isTreeItemEnabled(SWTBotTreeItem item) {
+        try {
+            return item.isEnabled();
+        } catch (Exception e) {
+            // Item disposed or no longer accessible — disconnect completed.
+            return false;
+        }
+    }
+
+    /**
+     * Terminates the Liberty launch if one is present in the Debug view, then verifies
+     * it is gone using a single instant check (no polling).
+     *
+     * <p>Callers do not need to do any follow-up lookup — the assertion is done here.
+     *
+     * @throws AssertionError if a launch was found and terminated but the Debug view
+     *                            still shows it immediately after termination.
      */
     public static void terminateLaunch() {
-        // Use getObjectInDebugView to find the Liberty launch with retry logic
-        Object launch = getObjectInDebugView("[Liberty]");
+        String searchObjectName = "[Liberty]";
+        Object launch = null;
+        if (isObjectInDebugView(searchObjectName)) {
+            launch = getObjectInDebugView(searchObjectName);
+        }
 
-        // Only attempt to terminate if launch exists
         if (launch != null) {
             System.out.println("Found Liberty launch, attempting to terminate");
             MagicWidgetFinder.context(launch, "Terminate and Remove");
 
-            try {
+            // The confirmation shell only appears when the process is still running.
+            if (isShellVisible("Terminate and Remove")) {
                 Shell confirm = (Shell) findGlobal("Terminate and Remove", Option.factory().widgetClass(Shell.class).build());
-
                 MagicWidgetFinder.go("Yes", confirm);
-                MagicWidgetFinder.pause(3000);
-            } catch (Exception e) {
-                // The confirmation pop up window only shows if the launch has not yet been terminated.
-                // If it has been terminated (or stopped), there is no confirmation.
+                SWTBotTestCondition.waitFor(() -> !isShellVisible("Terminate and Remove"), SWTBotTestCondition.MIN_WAIT_MS);
             }
+
+            // Validate that the search object is gone.
+            boolean stillPresent = isObjectInDebugView("[Liberty]");
+            org.junit.jupiter.api.Assertions.assertFalse(stillPresent,
+                                                         "Liberty launch was not removed from the Debug view after termination.");
         } else {
             System.out.println("No Liberty launch found in Debug view to terminate");
         }
+    }
+
+    /**
+     * Returns true while a shell with the given title is still open and visible.
+     * 
+     * @param title The shell title.
+     */
+    private static boolean isShellVisible(String title) {
+        final boolean[] found = { false };
+        Display.getDefault().syncExec(() -> {
+            for (org.eclipse.swt.widgets.Shell s : Display.getDefault().getShells()) {
+                if (!s.isDisposed() && s.isVisible() && title.equals(s.getText())) {
+                    found[0] = true;
+                    return;
+                }
+            }
+        });
+        return found[0];
+    }
+
+    /**
+     * Returns true if an object containing the input object name currently exists in the
+     * Debug view, false otherwise.
+     */
+    public static boolean isObjectInDebugView(final String objectName) {
+        final boolean[] found = { false };
+        Display.getDefault().syncExec(() -> {
+            try {
+                IWorkbench wb = PlatformUI.getWorkbench();
+                IWorkbenchWindow window = wb.getActiveWorkbenchWindow();
+                if (window == null || window.getActivePage() == null) {
+                    return;
+                }
+                ViewPart debugView = (ViewPart) window.getActivePage().findView("org.eclipse.debug.ui.DebugView");
+                if (debugView == null) {
+                    return;
+                }
+                Object result = MagicWidgetFinder.find(objectName, debugView,
+                                                       Option.factory().useContains(true).setThrowExceptionOnNotFound(false).setRetryAttempts(0).widgetClass(TreeItem.class).build());
+                found[0] = (result != null);
+            } catch (Exception ignored) {
+                // View not ready. Treat as not found.
+            }
+        });
+        return found[0];
     }
 
     /**
@@ -238,8 +309,9 @@ public class SWTBotPluginOperations {
             }
         });
 
-        // Give the view time to activate and render
-        MagicWidgetFinder.pause(500);
+        // Wait for the Debug view to activate before searching for items in it.
+        SWTBotTestCondition.waitFor(
+                                    () -> isDebugViewPresent(), SWTBotTestCondition.VALIDATION_WAIT_MS);
 
         Object debugView = debugViewHolder[0];
         if (debugView == null) {
@@ -247,20 +319,18 @@ public class SWTBotPluginOperations {
             return null;
         }
 
-        // Try multiple times to find the object, as it may take time to appear in headless CI
-        Object result = null;
-        for (int attempt = 0; attempt < 3 && result == null; attempt++) {
-            if (attempt > 0) {
-                System.out.println("Retry attempt " + attempt + " to find object: " + objectName);
-                MagicWidgetFinder.pause(1000);
-            }
-
-            result = MagicWidgetFinder.find(objectName, debugView,
-                                            Option.factory().useContains(true).setThrowExceptionOnNotFound(false).widgetClass(TreeItem.class).build());
-        }
+        // Try multiple times to find the object, as it may take time to appear in headless CI.
+        final Object debugViewFinal = debugView;
+        final Object[] resultHolder = { null };
+        final Option singleShotOption = Option.factory().useContains(true).setThrowExceptionOnNotFound(false).setRetryAttempts(0).widgetClass(TreeItem.class).build();
+        SWTBotTestCondition.waitFor(() -> {
+            resultHolder[0] = MagicWidgetFinder.find(objectName, debugViewFinal, singleShotOption);
+            return resultHolder[0] != null;
+        }, SWTBotTestCondition.MIN_WAIT_MS);
+        Object result = resultHolder[0];
 
         if (result == null) {
-            System.out.println("Object not found in Debug view after 3 attempts: " + objectName);
+            System.out.println("Object not found in Debug view: " + objectName);
         }
 
         return result;
@@ -307,8 +377,30 @@ public class SWTBotPluginOperations {
                 }
             }
         });
-        // Give the view time to open
-        MagicWidgetFinder.pause(500);
+        // Wait for the Debug view to open.
+        SWTBotTestCondition.waitFor(
+                                    () -> isDebugViewPresent(), SWTBotTestCondition.MIN_WAIT_MS);
+    }
+
+    /**
+     * Returns true once the Debug view becomes visible on the active page.
+     * 
+     * @return True once the Debug view becomes visible on the active page.
+     */
+    private static boolean isDebugViewPresent() {
+        final boolean[] visible = { false };
+        Display.getDefault().syncExec(() -> {
+            try {
+                org.eclipse.ui.IWorkbenchWindow window = org.eclipse.ui.PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+                if (window != null && window.getActivePage() != null) {
+                    org.eclipse.ui.IViewPart view = window.getActivePage().findView("org.eclipse.debug.ui.DebugView");
+                    visible[0] = (view != null);
+                }
+            } catch (Exception ignored) {
+                // View not ready yet; waitFor will retry.
+            }
+        });
+        return visible[0];
     }
 
     public static void openJavaPerspectiveViaMenu() {
@@ -352,8 +444,6 @@ public class SWTBotPluginOperations {
                 }
             });
 
-            // Give the UI a moment to update after activation
-            MagicWidgetFinder.pause(500);
         }
 
         Tree tree = ((DashboardView) dashboardView).getTree();
@@ -498,8 +588,6 @@ public class SWTBotPluginOperations {
      * @param action  The action to select
      */
     public static void launchDashboardAction(String appName, String action) {
-        openDashboardUsingToolbar();
-
         SWTBotTree dashboardTree = getDashboardTree();
         SWTBotTreeItem treeItem = findTreeItem(dashboardTree, appName);
         if (treeItem == null) {
@@ -546,11 +634,11 @@ public class SWTBotPluginOperations {
         SWTBotMenu runAsMenu = null;
         SWTBotTreeItem project = getInstalledProjectItem(bot, item);
         Assertions.assertTrue(project != null, () -> "Could not find active project.");
-        bot.waitUntil(SWTBotTestCondition.isTreeItemEnabled(project), 5000);
+        SWTBotTestCondition.waitFor(project::isEnabled, SWTBotTestCondition.MIN_WAIT_MS);
         project.select().setFocus();
 
         runAsMenu = project.contextMenu("Run As");
-        bot.waitUntil(SWTBotTestCondition.isMenuEnabled(runAsMenu), 5000);
+        SWTBotTestCondition.waitFor(runAsMenu::isEnabled, SWTBotTestCondition.MIN_WAIT_MS);
         runAsMenu.click();
 
         return runAsMenu;
@@ -569,11 +657,11 @@ public class SWTBotPluginOperations {
 
         SWTBotTreeItem project = getInstalledProjectItem(bot, item);
         Assertions.assertTrue(project != null, () -> "Could not find active project.");
-        bot.waitUntil(SWTBotTestCondition.isTreeItemEnabled(project), 5000);
+        SWTBotTestCondition.waitFor(project::isEnabled, SWTBotTestCondition.MIN_WAIT_MS);
         project.select().setFocus();
 
         runAsMenu = project.contextMenu("Debug As");
-        bot.waitUntil(SWTBotTestCondition.isMenuEnabled(runAsMenu), 5000);
+        SWTBotTestCondition.waitFor(runAsMenu::isEnabled, SWTBotTestCondition.MIN_WAIT_MS);
         runAsMenu.click();
 
         return runAsMenu;
@@ -885,12 +973,9 @@ public class SWTBotPluginOperations {
         Object project = MagicWidgetFinder.find(appName, peView, Option.factory().useContains(true).widgetClass(TreeItem.class).build());
         go(project);
 
-        // Add pause to ensure UI is fully ready after selection
-        // This helps prevent race conditions where TreeItem data isn't fully initialized
-        // particularly on Windows in headless CI environments where selection events
-        // can trigger cascading calls to getSelectedDashboardProject() before the
-        // selection is fully resolved, causing infinite loops
-        MagicWidgetFinder.pause(5000);
+        // Wait until the tree item is enabled before returning.
+        SWTBotTreeItem botItem = new SWTBotTreeItem((TreeItem) project);
+        SWTBotTestCondition.waitFor(botItem::isEnabled, SWTBotTestCondition.SHORT_WAIT_MS);
 
         return project;
     }
@@ -966,7 +1051,8 @@ public class SWTBotPluginOperations {
         stopShortcut.setFocus();
         stopShortcut.click();
 
-        bot.waitUntil(SWTBotTestCondition.isEditorActive(bot, item + " " + DevModeOperations.BROWSER_MVN_IT_REPORT_NAME_SUFFIX), 5000);
+        SWTBotTestCondition.waitFor(
+                                    () -> isEditorActiveFor(bot, item + " " + DevModeOperations.BROWSER_MVN_IT_REPORT_NAME_SUFFIX), SWTBotTestCondition.MIN_WAIT_MS);
     }
 
     /**
@@ -983,7 +1069,8 @@ public class SWTBotPluginOperations {
         stopShortcut.setFocus();
         stopShortcut.click();
 
-        bot.waitUntil(SWTBotTestCondition.isEditorActive(bot, item + " " + DevModeOperations.BROWSER_MVN_UT_REPORT_NAME_SUFFIX), 5000);
+        SWTBotTestCondition.waitFor(
+                                    () -> isEditorActiveFor(bot, item + " " + DevModeOperations.BROWSER_MVN_UT_REPORT_NAME_SUFFIX), SWTBotTestCondition.MIN_WAIT_MS);
     }
 
     /**
@@ -1000,7 +1087,21 @@ public class SWTBotPluginOperations {
         stopShortcut.setFocus();
         stopShortcut.click();
 
-        bot.waitUntil(SWTBotTestCondition.isEditorActive(bot, item + " " + DevModeOperations.BROWSER_GRADLE_TEST_REPORT_NAME_SUFFIX), 5000);
+        SWTBotTestCondition.waitFor(
+                                    () -> isEditorActiveFor(bot, item + " " + DevModeOperations.BROWSER_GRADLE_TEST_REPORT_NAME_SUFFIX), SWTBotTestCondition.MIN_WAIT_MS);
+    }
+
+    /**
+     * returns true if the editor containing the input title is active, false otherwise.
+     * 
+     * @param wbbot        The SWTWorkbenchBot instance.
+     * @param titleContent The editor title.
+     * 
+     * @return True if the editor containing the input title is active, false otherwise.
+     */
+    private static boolean isEditorActiveFor(SWTWorkbenchBot wbbot, String titleContent) {
+        SWTBotEditor editor = searchForEditor(wbbot, titleContent);
+        return editor != null && editor.isActive();
     }
 
     /**
@@ -1173,8 +1274,30 @@ public class SWTBotPluginOperations {
                 }
             }
         });
-        // Give the view time to open
-        MagicWidgetFinder.pause(500);
+        // Wait for the Package Explorer view to open.
+        SWTBotTestCondition.waitFor(
+                                    () -> isPackageExplorerViewPresent(), SWTBotTestCondition.VALIDATION_WAIT_MS);
+    }
+
+    /**
+     * Returns true once the Package Explorer is visible on the active page.
+     * 
+     * @return True once the Package Explorer is visible on the active page.
+     */
+    private static boolean isPackageExplorerViewPresent() {
+        final boolean[] visible = { false };
+        Display.getDefault().syncExec(() -> {
+            try {
+                org.eclipse.ui.IWorkbenchWindow window = org.eclipse.ui.PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+                if (window != null && window.getActivePage() != null) {
+                    org.eclipse.ui.IViewPart view = window.getActivePage().findView("org.eclipse.jdt.ui.PackageExplorer");
+                    visible[0] = (view != null);
+                }
+            } catch (Exception ignored) {
+                // View not ready yet; waitFor will retry.
+            }
+        });
+        return visible[0];
     }
 
     /**
@@ -1194,13 +1317,13 @@ public class SWTBotPluginOperations {
     /**
      * Switches the Liberty run configuration main tab to the Source Tab. A Liberty configuration must be opened prior to calling this
      * method.
-     * 
-     * @param bot The SWTWorkbenchBot instance.
+     *
+     * @param shell The Debug Configurations shell already obtained by the caller.
      */
-    public static void openSourceTab(SWTWorkbenchBot bot) {
-        SWTBotShell shell = bot.shell("Debug Configurations");
-        shell.activate().setFocus();
-        SWTBot shellBot = shell.bot();
+    public static void openSourceTab(Shell shell) {
+        SWTBotShell botShell = new SWTBotShell(shell);
+        botShell.setFocus();
+        SWTBot shellBot = botShell.bot();
         SWTBotCTabItem tabItem = shellBot.cTabItem("Source");
         tabItem.activate().setFocus();
     }
