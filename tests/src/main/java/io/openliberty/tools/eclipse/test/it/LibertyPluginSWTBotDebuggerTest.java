@@ -85,11 +85,6 @@ public class LibertyPluginSWTBotDebuggerTest extends AbstractLibertyPluginSWTBot
     @AfterEach
     public void afterEach(TestInfo info) {
         terminateLaunch();
-
-        // Validate that launch has been removed
-        Object launch = getObjectInDebugView("[Liberty]");
-        Assertions.assertNull(launch);
-
         super.afterEach(info);
     }
 

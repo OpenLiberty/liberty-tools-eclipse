@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2022, 2025 IBM Corporation and others.
+ * Copyright (c) 2022, 2026 IBM Corporation and others.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -72,7 +72,8 @@ public class LibertyPluginTestUtils {
     public static void validateLibertyServerStopped(String testAppPath) {
         String wlpMsgLogPath = testAppPath + "/wlp/usr/servers/defaultServer/logs/messages.log";
 
-        // Poll at 500 ms intervals until the stop message appears (max 90 s).
+        // Find stop message: CWWKE0036I: The server x stopped after y seconds.
+        // Poll at 500 ms intervals until the stop message appears.
         boolean foundStoppedMsg = SWTBotTestCondition.waitFor(() -> {
             try (BufferedReader br = new BufferedReader(new FileReader(wlpMsgLogPath))) {
                 String line;
@@ -105,7 +106,7 @@ public class LibertyPluginTestUtils {
     public static void validateApplicationOutcomeCustom(String appUrl, boolean expectSuccess, String expectedResponse, String testAppPath) {
         System.out.println("INFO: Entering validateApplicationOutcomeCustom, appUrl: " + appUrl);
 
-        // Poll at 500 ms intervals up to SERVER_WAIT_MS for the server to start or stop.
+        // Poll for the server to start or stop.
         boolean outcomeReached = SWTBotTestCondition.waitFor(() -> {
             int status = 0;
             HttpURLConnection con = null;
@@ -182,7 +183,7 @@ public class LibertyPluginTestUtils {
      * @param pathToTestReport The path to the report.
      */
     public static void validateTestReportExists(Path pathToTestReport) {
-        // Poll at 500 ms intervals until the report file appears (max 100 s).
+        // Poll until the report file appears.
         boolean found = SWTBotTestCondition.waitFor(
                                                     () -> fileExists(pathToTestReport.toAbsolutePath()), SWTBotTestCondition.LARGE_WAIT_MS);
 
@@ -197,7 +198,7 @@ public class LibertyPluginTestUtils {
      * @param pathToTestReport The path to the report.
      */
     public static boolean appMonitorDisabledXmlExists(Path xmlFilePath) {
-        // Poll at 500 ms intervals until the xml file appears (max 20 s).
+        // Poll until the xml file appears.
         return SWTBotTestCondition.waitFor(
                                            () -> fileExists(xmlFilePath.toAbsolutePath()), SWTBotTestCondition.MIN_WAIT_MS);
     }

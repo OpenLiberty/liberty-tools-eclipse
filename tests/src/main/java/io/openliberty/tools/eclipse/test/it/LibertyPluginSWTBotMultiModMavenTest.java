@@ -52,6 +52,7 @@ import org.junit.jupiter.api.TestMethodOrder;
 
 import io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils;
 import io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations;
+import io.openliberty.tools.eclipse.test.it.utils.SWTBotTestCondition;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher;
 
@@ -166,12 +167,9 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
      */
     public static final void validateBeforeTestRun() {
 
-        // Give the app some time to be imported (especially on Windows GHA runs)
-        try {
-            Thread.sleep(Integer.parseInt(System.getProperty("io.liberty.tools.eclipse.tests.app.import.wait", "0")));
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        // Wait until the dashboard contains the expected application.
+        SWTBotTestCondition.waitFor(
+                                    () -> getDashboardContent().contains(MVN_APP_NAME), SWTBotTestCondition.LARGE_WAIT_MS);
 
         // Check that the dashboard can be opened and its content retrieved.
         List<String> projectList = getDashboardContent();
@@ -308,7 +306,7 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
 
             context(libertyConfigTree, "New Configuration");
 
-            openSourceTab(bot);
+            openSourceTab(configShell);
 
             SWTBotTreeItem defaultSourceLookupTree = new SWTBotTreeItem((TreeItem) getDefaultSourceLookupTreeItemNoBot(configShell));
 
@@ -355,7 +353,7 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
 
             context(libertyConfigTree, "New Configuration");
 
-            openSourceTab(bot);
+            openSourceTab(configShell);
 
             SWTBotTreeItem defaultSourceLookupTree = new SWTBotTreeItem((TreeItem) getDefaultSourceLookupTreeItemNoBot(configShell));
 
