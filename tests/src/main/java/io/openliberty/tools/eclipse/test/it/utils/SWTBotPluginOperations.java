@@ -56,6 +56,7 @@ import org.eclipse.swtbot.swt.finder.widgets.SWTBotToolbarButton;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotToolbarPushButton;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTree;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
+import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
@@ -149,6 +150,25 @@ public class SWTBotPluginOperations {
         obj.setFocus();
 
         return obj.contextMenu("Connect Liberty Debugger");
+    }
+
+    /**
+     * Polls the input debugger context menu object ("Connect Liberty Debugger") until its
+     * enabled state matches the expected enabled input indicator.
+     *
+     * @param debugObject     The debug view tree item to check.
+     * @param expectedEnabled {@code true} to wait until the menu is enabled;
+     *                            {@code false} to wait until it is disabled.
+     * @return {@code true} if the expected state was reached within 5 seconds.
+     */
+    public static boolean waitForDebuggerConnectMenuState(Object debugObject, boolean expectedEnabled) {
+        return SWTBotTestCondition.waitFor(() -> {
+            try {
+                return getDebuggerConnectMenuForDebugObject(debugObject).isEnabled() == expectedEnabled;
+            } catch (Exception e) {
+                return false;
+            }
+        }, SWTBotTestCondition.MIN_WAIT_MS);
     }
 
     /**
@@ -793,6 +813,27 @@ public class SWTBotPluginOperations {
         return ti;
     }
 
+    /**
+     * Returns a comma-separated string of the direct child item texts of the given tree item.
+     * Uses {@code getItems()} (safe: returns an empty array, never throws) so it can be called
+     * while the shell is still open without risking an {@code IndexOutOfBoundsException}.
+     *
+     * @param treeItem The parent tree item whose children to list.
+     * @return A string of the form {@code [child1, child2, ...]} or {@code []} if there are none.
+     */
+    public static String getTreeItemChildrenAsString(SWTBotTreeItem treeItem) {
+        SWTBotTreeItem[] items = treeItem.getItems();
+        StringBuilder sb = new StringBuilder("[");
+        for (int i = 0; i < items.length; i++) {
+            if (i > 0) {
+                sb.append(", ");
+            }
+            sb.append(items[i].getText());
+        }
+        sb.append("]");
+        return sb.toString();
+    }
+
     public static SWTBotTreeItem getLibertyToolsConfigMenuItem(Shell shell) {
         return new SWTBotTreeItem((TreeItem) find(LAUNCH_CONFIG_LIBERTY_MENU_NAME, shell));
     }
@@ -968,22 +1009,52 @@ public class SWTBotPluginOperations {
 
     public static Object getAppInPackageExplorerTree(String appName) {
         openJavaPerspectiveViaMenu();
-        // Open Package Explorer view using Eclipse API instead of menu navigation
-        // This is more reliable in headless CI environments
+        // Open Package Explorer view using Eclipse API instead of menu navigation.
+        // This is more reliable in headless CI environments.
         showPackageExplorerView();
-        Object peView = MagicWidgetFinder.findGlobal("Package Explorer");
+
+        // Obtain the Package Explorer IViewPart directly from the Eclipse API rather
+        // than using findGlobal(), which scans all visible shells and could match a
+        // widget in an unrelated view. MagicWidgetFinder already knows how to traverse
+        // a CommonNavigator (the PE's base class) to reach its TreeItems, so passing
+        // the IViewPart as the neighbour is both correct and race-condition-free.
+        IViewPart peView = getPackageExplorerView();
 
         Object project = MagicWidgetFinder.find(appName, peView, Option.factory().useContains(true).widgetClass(TreeItem.class).build());
-        go(project);
 
-        // Wait until the tree item is enabled before returning.
+        // Select and focus the item so the Package Explorer's selection provider is
+        // active before the caller opens a context menu. Calling go() here is omitted
+        // intentionally: the intermediate click it triggers can fire selection-listener
+        // events that steal focus away before the caller reaches context().
         SWTBotTreeItem botItem = new SWTBotTreeItem((TreeItem) project);
         SWTBotTestCondition.waitFor(botItem::isEnabled, SWTBotTestCondition.SHORT_WAIT_MS);
         botItem.select();
         botItem.setFocus();
-        System.out.println("Explorer item selected: " + botItem.contextMenu().menuItems());
 
+        System.out.println("Project in context explorer context menu: " + botItem.contextMenu().menuItems());
         return project;
+    }
+
+    /**
+     * Returns the Package Explorer IViewPart obtained directly from the Eclipse API.
+     * Must be called after showPackageExplorerView() has confirmed the view is present.
+     *
+     * @return The Package Explorer IViewPart, or {@code null} if unavailable.
+     */
+    private static IViewPart getPackageExplorerView() {
+        final IViewPart[] result = { null };
+        Display.getDefault().syncExec(() -> {
+            try {
+                IWorkbench wb = PlatformUI.getWorkbench();
+                IWorkbenchWindow window = wb.getActiveWorkbenchWindow();
+                if (window != null && window.getActivePage() != null) {
+                    result[0] = window.getActivePage().findView("org.eclipse.jdt.ui.PackageExplorer");
+                }
+            } catch (Exception e) {
+                System.err.println("Failed to retrieve Package Explorer view: " + e.getMessage());
+            }
+        });
+        return result[0];
     }
 
     /**
@@ -1324,6 +1395,11 @@ public class SWTBotPluginOperations {
      * Switches the Liberty run configuration main tab to the Source Tab. A Liberty configuration must be opened prior to calling this
      * method.
      *
+     * <p>On Linux the source path computer runs asynchronously after a new configuration is created
+     * and populates the source lookup tree incrementally. This method waits until the "Default" tree
+     * item count has been stable (unchanged) across 3 consecutive polls before returning, ensuring
+     * the tree is fully populated before callers inspect its contents.
+     *
      * @param shell The Debug Configurations shell already obtained by the caller.
      */
     public static void openSourceTab(Shell shell) {
@@ -1332,6 +1408,40 @@ public class SWTBotPluginOperations {
         SWTBot shellBot = botShell.bot();
         SWTBotCTabItem tabItem = shellBot.cTabItem("Source");
         tabItem.activate().setFocus();
+
+        // Wait until the Source tab's "Default" item has a stable non-zero child count
+        // across 3 consecutive polls. The source path computer on Linux populates the tree
+        // incrementally, so we must confirm the count has stopped changing before returning.
+        // We use shellBot.tree(1) to target the Source tab's tree directly rather than
+        // find("Default", shell), which can match the wrong tree on the left-hand side of
+        // the Debug Configurations dialog.
+        final int STABLE_ITERATIONS_REQUIRED = 3;
+        final int[] lastCount = { -1 };
+        final int[] stableIterations = { 0 };
+        SWTBotTestCondition.waitFor(() -> {
+            try {
+                SWTBotTreeItem defaultItem = shellBot.tree(1).getTreeItem("Default");
+                if (defaultItem == null || !defaultItem.isEnabled()) {
+                    lastCount[0] = -1;
+                    stableIterations[0] = 0;
+                    return false;
+                }
+                defaultItem.expand();
+                int count = defaultItem.getItems().length;
+                if (count > 0 && count == lastCount[0]) {
+                    stableIterations[0]++;
+                } else {
+                    // Count changed (or is still zero) — reset the stability counter.
+                    stableIterations[0] = 0;
+                    lastCount[0] = count;
+                }
+                return stableIterations[0] >= STABLE_ITERATIONS_REQUIRED;
+            } catch (Exception e) {
+                lastCount[0] = -1;
+                stableIterations[0] = 0;
+                return false;
+            }
+        }, SWTBotTestCondition.MID_WAIT_MS);
     }
 
     /**

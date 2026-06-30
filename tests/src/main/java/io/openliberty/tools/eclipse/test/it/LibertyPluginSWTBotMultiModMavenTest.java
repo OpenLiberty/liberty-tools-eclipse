@@ -300,7 +300,9 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
 
         boolean jarEntryFound = false;
         boolean warEntryFound = false;
-
+        SWTBotTreeItem defaultSourceLookupTree = null;
+        String foundNodesSnapshot = "";
+        
         try {
             Object libertyConfigTree = getLibertyTreeItemNoBot(configShell);
 
@@ -308,13 +310,15 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
 
             openSourceTab(configShell);
 
-            SWTBotTreeItem defaultSourceLookupTree = new SWTBotTreeItem((TreeItem) getDefaultSourceLookupTreeItemNoBot(configShell));
+            defaultSourceLookupTree = new SWTBotTreeItem((TreeItem) getDefaultSourceLookupTreeItemNoBot(configShell));
+            foundNodesSnapshot = SWTBotPluginOperations.getTreeItemChildrenAsString(defaultSourceLookupTree);
 
+            
             try {
                 defaultSourceLookupTree.getNode(MVN_JAR_NAME);
                 jarEntryFound = true;
             } catch (WidgetNotFoundException wnfe) {
-                // Jar project was not found in source lookup list.
+                wnfe.printStackTrace();
             }
 
             // Lookup war project
@@ -322,7 +326,7 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
                 defaultSourceLookupTree.getNode(MVN_WAR_NAME);
                 warEntryFound = true;
             } catch (WidgetNotFoundException wnfe) {
-                // War project was not found in source lookup list.
+                wnfe.printStackTrace();
             }
 
         } finally {
@@ -331,9 +335,11 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
 
         // Validate dependency projects are in source lookup list
         Assertions.assertTrue(jarEntryFound,
-                              "The sibling module project, " + MVN_JAR_NAME + ", was not listed in the source lookup list for project " + MVN_APP_NAME);
+                              "The sibling module project, " + MVN_JAR_NAME + ", was not listed in the source lookup list for project " + MVN_APP_NAME
+                                             + ". Nodes found: " + foundNodesSnapshot);
         Assertions.assertTrue(warEntryFound,
-                              "The sibling module project, " + MVN_WAR_NAME + ", was not listed in the source lookup list for project " + MVN_APP_NAME);
+                              "The sibling module project, " + MVN_WAR_NAME + ", was not listed in the source lookup list for project " + MVN_APP_NAME
+                                             + ". Nodes found: " + foundNodesSnapshot);
 
     }
 
@@ -347,6 +353,7 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
 
         boolean jarEntryFound = false;
         boolean warEntryFound = false;
+        String foundNodesSnapshot = "";
 
         try {
             Object libertyConfigTree = getLibertyTreeItemNoBot(configShell);
@@ -356,13 +363,16 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
             openSourceTab(configShell);
 
             SWTBotTreeItem defaultSourceLookupTree = new SWTBotTreeItem((TreeItem) getDefaultSourceLookupTreeItemNoBot(configShell));
-
+            foundNodesSnapshot = SWTBotPluginOperations.getTreeItemChildrenAsString(defaultSourceLookupTree);
+            System.out.println("@ed: Source lookup list. Nodes found: " + foundNodesSnapshot);
+            
             // Lookup jar project
             try {
                 defaultSourceLookupTree.getNode(MVN_JAR_NAME);
                 jarEntryFound = true;
             } catch (WidgetNotFoundException wnfe) {
-                // Jar project was not found in source lookup list.
+                wnfe.printStackTrace();
+                
             }
 
             // Lookup war project
@@ -370,7 +380,7 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
                 defaultSourceLookupTree.getNode(MVN_WAR_NAME);
                 warEntryFound = true;
             } catch (WidgetNotFoundException wnfe) {
-                // War project was not found in source lookup list.
+                wnfe.printStackTrace();
             }
 
         } finally {
@@ -379,9 +389,11 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
 
         // Validate dependency projects are in source lookup list
         Assertions.assertTrue(jarEntryFound,
-                              "The child module project, " + MVN_JAR_NAME + ", was not listed in the source lookup list for project " + MVN_PARENT_NAME);
+                              "The child module project, " + MVN_JAR_NAME + ", was not listed in the source lookup list for project " + MVN_PARENT_NAME
+                                             + ". Nodes found: " + foundNodesSnapshot);
         Assertions.assertTrue(warEntryFound,
-                              "The child module project, " + MVN_WAR_NAME + ", was not listed in the source lookup list for project " + MVN_PARENT_NAME);
+                              "The child module project, " + MVN_WAR_NAME + ", was not listed in the source lookup list for project " + MVN_PARENT_NAME
+                                             + ". Nodes found: " + foundNodesSnapshot);
 
     }
 }

@@ -15,6 +15,7 @@ package io.openliberty.tools.eclipse.test.it;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.disconnectDebugTarget;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getDebuggerConnectMenuForDebugObject;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getObjectInDebugView;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.waitForDebuggerConnectMenuState;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchDashboardAction;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.setBuildCmdPathInPreferences;
@@ -123,8 +124,9 @@ public class LibertyPluginSWTBotDebuggerTest extends AbstractLibertyPluginSWTBot
         Object debugTarget = getObjectInDebugView("Liberty Application Debug");
         Assertions.assertNotNull(debugTarget);
 
-        // Validate button disabled
-        Assertions.assertFalse(getDebuggerConnectMenuForDebugObject(launch).isEnabled());
+        // Validate button disabled — wait up to 5 s for the state to settle
+        Assertions.assertTrue(waitForDebuggerConnectMenuState(launch, false),
+                              "Connect Liberty Debugger menu should be disabled after debugger connected");
 
     }
 
@@ -153,8 +155,9 @@ public class LibertyPluginSWTBotDebuggerTest extends AbstractLibertyPluginSWTBot
         // Validate application stopped.
         LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
 
-        // Validate button disabled
-        Assertions.assertFalse(getDebuggerConnectMenuForDebugObject(launch).isEnabled());
+        // Validate button disabled — wait up to 5 s for the state to settle
+        Assertions.assertTrue(waitForDebuggerConnectMenuState(launch, false),
+                              "Connect Liberty Debugger menu should be disabled after server stopped");
     }
 
     /**
@@ -181,8 +184,9 @@ public class LibertyPluginSWTBotDebuggerTest extends AbstractLibertyPluginSWTBot
         Object debugTarget = getObjectInDebugView("Liberty Application Debug");
         disconnectDebugTarget(debugTarget);
 
-        // Validate button enabled
-        Assertions.assertTrue(getDebuggerConnectMenuForDebugObject(launch).isEnabled());
+        // Validate button enabled — wait up to 5 s for the state to settle
+        Assertions.assertTrue(waitForDebuggerConnectMenuState(launch, true),
+                              "Connect Liberty Debugger menu should be enabled after debugger disconnected");
     }
 
     /**
@@ -283,10 +287,10 @@ public class LibertyPluginSWTBotDebuggerTest extends AbstractLibertyPluginSWTBot
             Assertions.fail("Xml file not found on " + pathToXmlFile + ".");
         }
 
-        // Verify button is disabled
+        // Verify button is disabled — wait up to 5 s for the state to settle
         Object launch = getObjectInDebugView(MVN_APP_NAME + " [Liberty]");
-        SWTBotMenu connectDebuggerMenu = getDebuggerConnectMenuForDebugObject(launch);
-        Assertions.assertFalse(connectDebuggerMenu.isEnabled());
+        Assertions.assertTrue(waitForDebuggerConnectMenuState(launch, false),
+                              "Connect Liberty Debugger menu should be disabled when debug mode is active");
 
         // Disconnected Debugger
         Object debugTarget = getObjectInDebugView("Liberty Application Debug");

@@ -236,18 +236,21 @@ public class MagicWidgetFinder {
             }
 
             if (!firstAttempt) {
-                // On retry: dismiss any stale context menu that may still be open, then
-                // re-select/focus the widget so Eclipse can repopulate dynamic contributions
-                // (e.g. "Run As" / "Debug As") before we open the menu again.
+                // On retry: dismiss any stale context menu that may still be open.
                 dismissOpenContextMenu();
-                if (widget instanceof TreeItem) {
-                    SWTBotTreeItem ti = (SWTBotTreeItem) obj;
-                    ti.select();
-                    ti.setFocus();
-                }
                 pause(2000);
             }
             firstAttempt = false;
+
+            // Always re-select and focus the widget before opening the context menu.
+            // This ensures the view's selection provider is active so that Eclipse
+            // populates dynamic contributions (e.g. "Run As" / "Debug As") correctly,
+            // regardless of whether any other view stole focus since the item was found.
+            if (widget instanceof TreeItem) {
+                SWTBotTreeItem ti = (SWTBotTreeItem) obj;
+                ti.select();
+                ti.setFocus();
+            }
 
             try {
                 for (int x = 0; x < args.length; x++) {
