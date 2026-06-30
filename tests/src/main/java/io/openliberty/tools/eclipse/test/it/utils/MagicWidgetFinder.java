@@ -44,6 +44,7 @@ import org.eclipse.swt.widgets.Combo;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
 import org.eclipse.swt.widgets.Display;
+import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Group;
 import org.eclipse.swt.widgets.Item;
 import org.eclipse.swt.widgets.Label;
@@ -222,17 +223,31 @@ public class MagicWidgetFinder {
 
         Throwable thrown = null;
         SWTBotMenu currMenu = null;
+        boolean firstAttempt = true;
         while (System.nanoTime() < expireTimeInNanos && currMenu == null) {
 
             AbstractSWTBot<?> obj = null;
             if (widget instanceof TreeItem) {
-
                 obj = new SWTBotTreeItem((TreeItem) widget);
             } else if (widget instanceof TableItem) {
                 obj = new SWTBotTableItem((TableItem) widget);
             } else {
                 throw new RuntimeException("Unable to identify context object type: " + widget.getClass().getName());
             }
+
+            if (!firstAttempt) {
+                // On retry: dismiss any stale context menu that may still be open, then
+                // re-select/focus the widget so Eclipse can repopulate dynamic contributions
+                // (e.g. "Run As" / "Debug As") before we open the menu again.
+                dismissOpenContextMenu();
+                if (widget instanceof TreeItem) {
+                    SWTBotTreeItem ti = (SWTBotTreeItem) obj;
+                    ti.select();
+                    ti.setFocus();
+                }
+                pause(2000);
+            }
+            firstAttempt = false;
 
             try {
                 for (int x = 0; x < args.length; x++) {
@@ -252,8 +267,7 @@ public class MagicWidgetFinder {
             } catch (Throwable t) {
                 thrown = t;
                 currMenu = null;
-                System.out.println("waiting for context menu.");
-                pause(2000);
+                System.out.println("waiting for context menu: " + t.getMessage());
             }
         } // end-while
 
@@ -263,6 +277,36 @@ public class MagicWidgetFinder {
             throw (new RuntimeException(thrown));
         } else {
             throw (new RuntimeException("could not find context."));
+        }
+    }
+
+    /**
+     * Dismisses any currently open context menu by sending an Escape key on the
+     * active display.
+     */
+    private static void dismissOpenContextMenu() {
+        try {
+            Display.getDefault().syncExec(new Runnable() {
+                @Override
+                public void run() {
+                    // Post an Escape key event to close any open popup/context menu.
+                    Event escDown = new Event();
+                    escDown.type = SWT.KeyDown;
+                    escDown.keyCode = SWT.ESC;
+                    Display.getDefault().post(escDown);
+
+                    Event escUp = new Event();
+                    escUp.type = SWT.KeyUp;
+                    escUp.keyCode = SWT.ESC;
+                    Display.getDefault().post(escUp);
+                }
+            });
+            // Give the UI thread time to process the Escape and close the menu.
+            pause(300);
+        } catch (Throwable t) {
+            // Non-fatal: if we cannot dismiss the menu, the next contextMenu() call
+            // will still attempt to open a fresh one.
+            System.out.println("Could not dismiss open context menu: " + t.getMessage());
         }
     }
 

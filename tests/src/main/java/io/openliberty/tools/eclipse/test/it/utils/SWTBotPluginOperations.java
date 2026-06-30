@@ -139,11 +139,14 @@ public class SWTBotPluginOperations {
 
         SWTBotTreeItem obj = new SWTBotTreeItem((TreeItem) debugObject);
 
-        // Ensure the tree item is properly selected and focused before accessing context menu.
-        // This is critical for headless CI environments where context menus can hang.
+        // Select and focus the item so the workbench selection service has it as the
+        // active selection. LibertyDebugReconnectHandler.isEnabled() reads the selection
+        // service, not the object passed here, so the selection must be current before
+        // the context menu is opened.
+        // Note: do NOT wait for isEnabled() here — callers may legitimately be checking
+        // that the menu is *disabled*, and waiting for enabled would mask that state.
         obj.select();
         obj.setFocus();
-        SWTBotTestCondition.waitFor(obj::isEnabled, SWTBotTestCondition.MIN_WAIT_MS);
 
         return obj.contextMenu("Connect Liberty Debugger");
     }
@@ -216,8 +219,8 @@ public class SWTBotPluginOperations {
                 SWTBotTestCondition.waitFor(() -> !isShellVisible("Terminate and Remove"), SWTBotTestCondition.MIN_WAIT_MS);
             }
 
-            // Validate that the search object is gone.
-            boolean stillPresent = isObjectInDebugView("[Liberty]");
+            boolean stillPresent = !SWTBotTestCondition.waitFor(
+                                                                 () -> !isObjectInDebugView(searchObjectName), SWTBotTestCondition.MIN_WAIT_MS);
             org.junit.jupiter.api.Assertions.assertFalse(stillPresent,
                                                          "Liberty launch was not removed from the Debug view after termination.");
         } else {
@@ -976,6 +979,8 @@ public class SWTBotPluginOperations {
         // Wait until the tree item is enabled before returning.
         SWTBotTreeItem botItem = new SWTBotTreeItem((TreeItem) project);
         SWTBotTestCondition.waitFor(botItem::isEnabled, SWTBotTestCondition.SHORT_WAIT_MS);
+        botItem.select();
+        botItem.setFocus();
 
         return project;
     }
