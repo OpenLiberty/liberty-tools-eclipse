@@ -981,6 +981,7 @@ public class SWTBotPluginOperations {
         SWTBotTestCondition.waitFor(botItem::isEnabled, SWTBotTestCondition.SHORT_WAIT_MS);
         botItem.select();
         botItem.setFocus();
+        System.out.println("Explorer item selected: " + botItem.contextMenu().menuItems());
 
         return project;
     }
