@@ -157,7 +157,7 @@ public class WorkspaceModel {
                                         // - Relative path: "../ear" (peer or other location)
                                         java.io.File parentDir = new java.io.File(projectLocation);
                                         java.io.File childDir = new java.io.File(parentDir, subprojectPath);
-                                        String resolvedPath = childDir.getCanonicalPath();
+                                        String resolvedPath = childDir.getAbsolutePath();
 
                                         childProjectModel = projectsByLocation.get(resolvedPath);
                                     } catch (Exception e) {

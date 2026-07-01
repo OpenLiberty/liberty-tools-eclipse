@@ -775,6 +775,13 @@ public class DashboardView extends ViewPart {
      * @param rootProjects The list of root projects to display.
      */
     public void setInput(List<ProjectModel> rootProjects) {
+        if (parentComposite == null || parentComposite.isDisposed()) {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UI, "Unable to set dashboard view data. The dasboard view parent compiste has been disposed. The dashboard view may have been closed");
+            }
+            return;
+        }
+        
         // Determine if we have projects to display
         boolean hasProjects = rootProjects != null && !rootProjects.isEmpty();
 
@@ -913,6 +920,13 @@ public class DashboardView extends ViewPart {
      * Refreshes the dashboard view.
      */
     public void refreshDashboardView(WorkspaceModel workspaceModel, boolean reportError) {
+        if (parentComposite == null || parentComposite.isDisposed()) {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UI, "Unable to refresh the dashboard view. The dasboard view parent compiste has been disposed. The dashboard view may have been closed");
+            }
+            return;
+        }
+        
         try {
             workspaceModel.createNewCompleteWorkspaceModelWithClassify();
             setInput(contentProvider.getRootDashboardProjects());

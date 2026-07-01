@@ -97,21 +97,32 @@ public class LibertySourcePathComputer implements ISourcePathComputerDelegate {
             // Get project dependencies that are open in the same workspace
             List<IProject> projectDependencies = getProjectDependencies(baseProject);
 
+            System.out.println("@ed: baseProject: " + baseProject + " has these dependencies: " + projectDependencies);
             // Create the classpath entry for the project dependencies found
             for (IProject dependencyProject : projectDependencies) {
 
                 if (dependencyProject.isNatureEnabled(JavaCore.NATURE_ID)) {
+                	 System.out.println("Adding to unreolved: dependencyproject: " + dependencyProject);
+                	 
                     IJavaProject dependencyJavaProject = JavaCore.create(dependencyProject);
                     unresolvedClasspathEntries.add(JavaRuntime.newDefaultProjectClasspathEntry(dependencyJavaProject));
                 }
             }
         }
-
+        //for (IRuntimeClasspathEntry entry :unresolvedClasspathEntries) {
+        //System.out.println("@ed:UnreslovedClasspathEntries: project: " + entry.getJavaProject()+", location: "+  entry.getLocation());
+        //}
         // Resolve and get final list of source containers
         IRuntimeClasspathEntry[] resolvedClasspathDependencies = JavaRuntime.resolveSourceLookupPath(
                                                                                                      unresolvedClasspathEntries.toArray(new IRuntimeClasspathEntry[unresolvedClasspathEntries.size()]),
                                                                                                      configuration);
-
+        for (int i = 0; i < resolvedClasspathDependencies.length; i++ ) {
+        	 System.out.println("@ed:RESOLVEDClasspathEntries: project: " + resolvedClasspathDependencies[i].
+        			 getClasspathEntry().getEntryKind()+", location: "+  resolvedClasspathDependencies[i].getLocation());
+        }
+        
+        
+        
         ArrayList<ISourceContainer> containersList = new ArrayList<ISourceContainer>();
 
         containersList.addAll(Arrays.asList(JavaRuntime.getSourceContainers(resolvedClasspathDependencies)));

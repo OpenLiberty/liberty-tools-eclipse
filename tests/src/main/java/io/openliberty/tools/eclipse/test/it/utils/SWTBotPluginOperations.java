@@ -1009,29 +1009,16 @@ public class SWTBotPluginOperations {
 
     public static Object getAppInPackageExplorerTree(String appName) {
         openJavaPerspectiveViaMenu();
-        // Open Package Explorer view using Eclipse API instead of menu navigation.
-        // This is more reliable in headless CI environments.
         showPackageExplorerView();
-
-        // Obtain the Package Explorer IViewPart directly from the Eclipse API rather
-        // than using findGlobal(), which scans all visible shells and could match a
-        // widget in an unrelated view. MagicWidgetFinder already knows how to traverse
-        // a CommonNavigator (the PE's base class) to reach its TreeItems, so passing
-        // the IViewPart as the neighbour is both correct and race-condition-free.
         IViewPart peView = getPackageExplorerView();
 
-        Object project = MagicWidgetFinder.find(appName, peView, Option.factory().useContains(true).widgetClass(TreeItem.class).build());
+        Object project = MagicWidgetFinder.find(appName, peView, Option.factory().widgetClass(TreeItem.class).build());
 
-        // Select and focus the item so the Package Explorer's selection provider is
-        // active before the caller opens a context menu. Calling go() here is omitted
-        // intentionally: the intermediate click it triggers can fire selection-listener
-        // events that steal focus away before the caller reaches context().
         SWTBotTreeItem botItem = new SWTBotTreeItem((TreeItem) project);
         SWTBotTestCondition.waitFor(botItem::isEnabled, SWTBotTestCondition.SHORT_WAIT_MS);
         botItem.select();
         botItem.setFocus();
 
-        System.out.println("Project in context explorer context menu: " + botItem.contextMenu().menuItems());
         return project;
     }
 
