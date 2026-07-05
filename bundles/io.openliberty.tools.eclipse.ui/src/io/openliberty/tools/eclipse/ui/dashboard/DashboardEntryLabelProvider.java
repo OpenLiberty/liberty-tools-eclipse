@@ -57,7 +57,7 @@ public class DashboardEntryLabelProvider extends LabelProvider {
         Image img = null;
         if (element != null && element instanceof ProjectModel) {
             ProjectModel project = (ProjectModel) element;
-            if (project.getBuildType() == ProjectModel.BuildType.GRADLE) {
+            if (project.getBuildType() == ProjectModel.BuildType.Gradle) {
                 img = gradleImg;
             } else {
                 img = mavenImg;

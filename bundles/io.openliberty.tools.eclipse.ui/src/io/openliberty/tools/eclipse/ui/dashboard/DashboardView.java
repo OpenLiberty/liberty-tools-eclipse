@@ -230,11 +230,11 @@ public class DashboardView extends ViewPart {
                     if (searchPattern.isEmpty()) {
                         return true;
                     }
-                    
+
                     // For multi-module projects, only show parent if at least one child matches.
                     // For leaf projects (no children), match on the project name itself.
                     List<ProjectModel> children = project.getChildLibertyServerProjects();
-                    
+
                     if (children != null && !children.isEmpty()) {
                         return hasMatchingChild(project, searchPattern);
                     } else {
@@ -391,10 +391,10 @@ public class DashboardView extends ViewPart {
             mgr.add(stopAction);
             mgr.add(runTestAction);
 
-            if (projectModel.getBuildType() == ProjectModel.BuildType.MAVEN) {
+            if (projectModel.getBuildType() == ProjectModel.BuildType.Maven) {
                 mgr.add(viewMavenITestReportsAction);
                 mgr.add(viewMavenUTestReportsAction);
-            } else if (projectModel.getBuildType() == ProjectModel.BuildType.GRADLE) {
+            } else if (projectModel.getBuildType() == ProjectModel.BuildType.Gradle) {
                 mgr.add(viewGradleTestReportsAction);
             } else {
                 String msg = "Project " + projectName + " is not a Gradle or Maven project.";
@@ -775,6 +775,13 @@ public class DashboardView extends ViewPart {
      * @param rootProjects The list of root projects to display.
      */
     public void setInput(List<ProjectModel> rootProjects) {
+        if (parentComposite == null || parentComposite.isDisposed()) {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UI, "Unable to set dashboard view data. The view's parent composite has been disposed possibly due to a view closure.");
+            }
+            return;
+        }
+
         // Determine if we have projects to display
         boolean hasProjects = rootProjects != null && !rootProjects.isEmpty();
 
@@ -913,6 +920,13 @@ public class DashboardView extends ViewPart {
      * Refreshes the dashboard view.
      */
     public void refreshDashboardView(WorkspaceModel workspaceModel, boolean reportError) {
+        if (parentComposite == null || parentComposite.isDisposed()) {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UI, "Unable to refresh the dashboard view. The view's parent composite has been disposed possibly due to a view closure.");
+            }
+            return;
+        }
+
         try {
             workspaceModel.createNewCompleteWorkspaceModelWithClassify();
             setInput(contentProvider.getRootDashboardProjects());
