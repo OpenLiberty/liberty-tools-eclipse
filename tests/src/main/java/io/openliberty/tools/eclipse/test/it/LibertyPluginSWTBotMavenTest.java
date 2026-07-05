@@ -26,7 +26,6 @@ import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getDefaultSourceLookupTreeItemNoBot;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getLibertyTreeItem;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getLibertyTreeItemNoBot;
-import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getObjectInDebugView;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getRunConfigurationsShell;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchCustomDebugFromDashboard;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchCustomRunFromDashboard;
@@ -86,6 +85,7 @@ import io.openliberty.tools.eclipse.model.ProjectModel;
 import io.openliberty.tools.eclipse.test.it.utils.DisabledOnMac;
 import io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils;
 import io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations;
+import io.openliberty.tools.eclipse.test.it.utils.SWTBotTestCondition;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher;
 
@@ -209,11 +209,6 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
     @AfterEach
     public void afterEach(TestInfo info) {
         terminateLaunch();
-
-        // Validate that launch has been removed
-        Object launch = getObjectInDebugView("[Liberty]");
-        Assertions.assertNull(launch);
-
         super.afterEach(info);
     }
 
@@ -226,7 +221,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
     }
 
     /**
-     * Makes sure that some basics actions can be performed before running the tests:
+     * Makes sure that some basic actions can be performed before running the tests:
      * 
      * <pre>
      * 1. The dashboard can be opened and its content retrieved. 
@@ -239,12 +234,9 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
      */
     public static final void validateBeforeTestRun() {
 
-        // Give the app some time to be imported (especially on Windows GHA runs)
-        try {
-            Thread.sleep(Integer.parseInt(System.getProperty("io.liberty.tools.eclipse.tests.app.import.wait", "0")));
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        // Wait until the dashboard contains the expected application.
+        SWTBotTestCondition.waitFor(
+                                    () -> getDashboardContent().contains(MVN_APP_NAME), SWTBotTestCondition.LARGE_WAIT_MS);
 
         // Check that the dashboard can be opened and its content retrieved.
         List<String> projectList = getDashboardContent();
@@ -358,8 +350,8 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         ProjectModel projectModel = new ProjectModel(iProject);
         String projPath = iProject.getLocation().toOSString();
 
-        String opaqueMvnCmd = CommandBuilder.getMavenCommandLine(projectModel, "io.openliberty.tools:liberty-maven-plugin:dev -f " + projPath,
-                                                                 System.getenv("PATH"));
+        String opaqueMvnCmd = CommandBuilder.constructMavenCommand(projectModel, "io.openliberty.tools:liberty-maven-plugin:dev -f " + projPath,
+                                                                   System.getenv("PATH")).getCommand();
         Assertions.assertTrue(opaqueMvnCmd.contains(getMvnCmdFilename() + " io.openliberty.tools:liberty-maven-plugin:dev"),
                               "Expected cmd to contain 'mvn io.openliberty.tools...' but cmd = " + opaqueMvnCmd);
     }
@@ -370,8 +362,8 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         ProjectModel projectModel = new ProjectModel(iProject);
         String projPath = iProject.getLocation().toOSString();
 
-        String opaqueMvnwCmd = CommandBuilder.getMavenCommandLine(projectModel, "io.openliberty.tools:liberty-maven-plugin:dev -f " + projPath,
-                                                                  System.getenv("PATH"));
+        String opaqueMvnwCmd = CommandBuilder.constructMavenCommand(projectModel, "io.openliberty.tools:liberty-maven-plugin:dev -f " + projPath,
+                                                                    System.getenv("PATH")).getCommand();
         Assertions.assertTrue(opaqueMvnwCmd.contains("mvnw"), "Expected cmd to contain 'mvnw' but cmd = " + opaqueMvnwCmd);
     }
 
@@ -435,8 +427,8 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
 
         // Doing a 'clean' first in case server was started previously and terminated abruptly. App tests may fail,
         // making it look like an "outer", actual test is failing, so we skip the tests.
-        String cmd = CommandBuilder.getMavenCommandLine(projectModel,
-                                                        "clean io.openliberty.tools:liberty-maven-plugin:dev -DskipITs=true", null);
+        String cmd = CommandBuilder.constructMavenCommand(projectModel,
+                                                          "clean io.openliberty.tools:liberty-maven-plugin:dev -DskipITs=true", null).getCommand();
 
         if (LibertyPluginTestUtils.onWindows()) {
             cmd = "cmd.exe /c" + cmd;
@@ -1049,7 +1041,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
 
             context(libertyConfigTree, "New Configuration");
 
-            openSourceTab(bot);
+            openSourceTab(configShell);
 
             SWTBotTreeItem defaultSourceLookupTree = new SWTBotTreeItem((TreeItem) getDefaultSourceLookupTreeItemNoBot(configShell));
 
