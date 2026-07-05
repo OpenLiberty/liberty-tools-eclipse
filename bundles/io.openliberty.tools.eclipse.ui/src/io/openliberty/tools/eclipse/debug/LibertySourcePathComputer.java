@@ -122,6 +122,7 @@ public class LibertySourcePathComputer implements ISourcePathComputerDelegate {
         return containers;
     }
 
+
     private List<ProjectModel> getBaseProjects(ProjectModel project) {
         List<ProjectModel> baseProjects = new ArrayList<ProjectModel>();
 
@@ -136,7 +137,7 @@ public class LibertySourcePathComputer implements ISourcePathComputerDelegate {
     private List<IProject> getProjectDependencies(ProjectModel project) throws CoreException {
         List<IProject> projectDependencies = new ArrayList<IProject>();
 
-        if (project.getBuildType() == ProjectModel.BuildType.MAVEN) {
+        if (project.getBuildType() == ProjectModel.BuildType.Maven) {
 
             MavenProject mavenModuleProject = MavenPlugin.getMavenModelManager().readMavenProject(project.getIProject().getFile("pom.xml"),
                                                                                                   new NullProgressMonitor());

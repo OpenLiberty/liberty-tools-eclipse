@@ -52,9 +52,9 @@ public class ProjectModel {
 
     /** Enumeration of supported build types. */
     public static enum BuildType {
-        UNKNOWN,
-        GRADLE,
-        MAVEN
+        Unknown,
+        Gradle,
+        Maven
     };
 
     /**
@@ -174,9 +174,9 @@ public class ProjectModel {
         // Check the installed project's nature.
         try {
             if (iProject.getDescription().hasNature(MAVEN_NATURE)) {
-                return BuildType.MAVEN;
+                return BuildType.Maven;
             } else if (iProject.getDescription().hasNature(GRADLE_NATURE)) {
-                return BuildType.GRADLE;
+                return BuildType.Gradle;
             }
         } catch (Exception e) {
             if (Trace.isEnabled()) {
@@ -187,12 +187,12 @@ public class ProjectModel {
 
         // Check the build configuration file.
         if (iProject.getFile("pom.xml").exists()) {
-            return BuildType.MAVEN;
+            return BuildType.Maven;
         } else if ((iProject.getFile("build.gradle").exists())) {
-            return BuildType.GRADLE;
+            return BuildType.Gradle;
         }
 
-        return BuildType.UNKNOWN;
+        return BuildType.Unknown;
 
     }
 
@@ -355,7 +355,7 @@ public class ProjectModel {
                 ProjectModel.addNature(iProject, LibertyNature.NATURE_ID);
             }
 
-            if (type.equals(BuildType.MAVEN)) {
+            if (type.equals(BuildType.Maven)) {
                 for (ProjectModel child : childDirProjects) {
                     if (child.isLibertyServerModule()) {
                         ProjectModel.addNature(iProject, LibertyNature.NATURE_ID);
