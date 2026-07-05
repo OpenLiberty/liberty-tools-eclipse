@@ -52,7 +52,7 @@ public class LibertySourcePathComputer implements ISourcePathComputerDelegate {
      * Gradle distribution that supports Java 21.
      * Gradle version 8.4+ supports Java 21.
      */
-    private static String GRADLE_DISTRIBUTION_VERISION = "8.8";
+    private static String GRADLE_DISTRIBUTION_VERSION = "8.8";
 
     ArrayList<IRuntimeClasspathEntry> unresolvedClasspathEntries;
 
@@ -177,7 +177,7 @@ public class LibertySourcePathComputer implements ISourcePathComputerDelegate {
                         String message = rootCause.getMessage();
 
                         if (message != null && message.contains("Unsupported class file major version 65")) {
-                            connection = getProjectGradleConnection(project.getIProject(), GRADLE_DISTRIBUTION_VERISION);
+                            connection = getProjectGradleConnection(project.getIProject(), GRADLE_DISTRIBUTION_VERSION);
                             eclipseProject = connection.getModel(EclipseProject.class);
                         }
                     } else {
@@ -204,13 +204,13 @@ public class LibertySourcePathComputer implements ISourcePathComputerDelegate {
     }
 
     /**
-     * Returns a connection to the input gradle project.
-     * 
+     * Returns a connection to the input Gradle project.
+     *
      * @param project           The Gradle project.
-     * @param gradleDistVersion The gradle distribution version to be used by the
+     * @param gradleDistVersion The Gradle distribution version to be used by the
      *                              Gradle API tooling.
-     * 
-     * @return A connection to the input gradle project.
+     *
+     * @return A connection to the input Gradle project.
      */
     private ProjectConnection getProjectGradleConnection(IProject project, String gradleDistVersion) {
         GradleConnector connector = GradleConnector.newConnector();

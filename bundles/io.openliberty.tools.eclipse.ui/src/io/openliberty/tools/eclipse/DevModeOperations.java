@@ -53,6 +53,7 @@ import org.eclipse.ui.browser.IWebBrowser;
 import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
 import org.eclipse.ui.dialogs.ElementListSelectionDialog;
 
+import io.openliberty.tools.eclipse.CommandBuilder.CommandData;
 import io.openliberty.tools.eclipse.CommandBuilder.CommandNotFoundException;
 import io.openliberty.tools.eclipse.debug.DebugModeHandler;
 import io.openliberty.tools.eclipse.logging.Logger;
@@ -190,15 +191,6 @@ public class DevModeOperations {
         String targetProjectName = targetProjectModel.getName();
 
         try {
-            // Get the absolute path to the application project. In a multi-module child project case, use the 
-            // the parent's path.
-            ProjectModel targetParentModel = targetProjectModel.getParentProjectModel();
-            String targetProjectPath = (targetParentModel != null) ? targetParentModel.getPath() : targetProjectModel.getPath();
-
-            if (targetProjectPath == null) {
-                throw new Exception(Messages.getMessage("project_path_not_found", targetProjectName));
-            }
-
             // If in debug mode, adjust the start parameters.
             String userParms = (parms == null) ? "" : parms.trim();
             String startParms = null;
@@ -212,7 +204,7 @@ public class DevModeOperations {
 
             // Append color styling to start parms
             BuildType buildType = targetProjectModel.getBuildType();
-            if (buildType == ProjectModel.BuildType.MAVEN) {
+            if (buildType == ProjectModel.BuildType.Maven) {
 
                 StringBuffer updateStartParms = new StringBuffer(startParms);
                 updateStartParms.append(" ");
@@ -230,30 +222,36 @@ public class DevModeOperations {
 
             // Prepare the Liberty plugin container dev mode command.
             String cmd = "";
+            String targetProjectExecPath = null;
 
-            if (buildType == ProjectModel.BuildType.MAVEN) {
-                cmd = CommandBuilder.getMavenCommandLine(targetProjectModel,
-                                                         (runProjectClean == true ? " clean " : "") + "io.openliberty.tools:liberty-maven-plugin:dev " + startParms,
-                                                         pathEnv);
-            } else if (buildType == ProjectModel.BuildType.GRADLE) {
+            if (buildType == ProjectModel.BuildType.Maven) {
+                CommandData commandData = CommandBuilder.constructMavenCommand(targetProjectModel,
+                                                                              (runProjectClean == true ? " clean " : "")
+                                                                                                  + "io.openliberty.tools:liberty-maven-plugin:dev " + startParms,
+                                                                              pathEnv);
+                cmd = commandData.getCommand();
+                targetProjectExecPath = commandData.getExecutionPath();
+            } else if (buildType == ProjectModel.BuildType.Gradle) {
 
                 if (runProjectClean == true) {
                     try {
-                        String stopGradleDaemonCmd = CommandBuilder.getGradleCommandLine(targetProjectPath, " --stop", pathEnv);
-                        executeCommand(stopGradleDaemonCmd, targetProjectPath);
+                        CommandData stopGradleDaemonCmdData = CommandBuilder.constructGradleCommand(targetProjectModel, " --stop", pathEnv);
+                        executeCommand(stopGradleDaemonCmdData.getCommand(), targetProjectExecPath);
                     } catch (IOException | InterruptedException e) {
                         Logger.logError(Messages.getMessage("gradle_daemon_stop_failed"));
                     }
 
                 }
-                cmd = CommandBuilder.getGradleCommandLine(targetProjectPath,
-                                                          (runProjectClean == true ? " clean " : "") + "libertyDev " + startParms, pathEnv);
+                CommandData commandData = CommandBuilder.constructGradleCommand(targetProjectModel,
+                                                                                (runProjectClean == true ? " clean " : "") + "libertyDev " + startParms, pathEnv);
+                cmd = commandData.getCommand();
+                targetProjectExecPath = commandData.getExecutionPath();
             } else {
                 throw new Exception(Messages.getMessage("unexpected_build_type", buildType, targetProjectName));
             }
 
             // Run the application in dev mode.
-            startDevMode(cmd, targetProjectName, targetProjectPath, javaHomePath, launch);
+            startDevMode(cmd, targetProjectName, targetProjectExecPath, javaHomePath, launch);
 
             // If there is a debugPort, start the job to attach the debugger to the Liberty server JVM.
             if (debugPort != null) {
@@ -306,15 +304,6 @@ public class DevModeOperations {
         String targetProjectName = targetProjectModel.getName();
 
         try {
-            // Get the absolute path to the application project. In a multi-module child project case, use the 
-            // the parent's path.
-            ProjectModel targetParentModel = targetProjectModel.getParentProjectModel();
-            String targetProjectPath = (targetParentModel != null) ? targetParentModel.getPath() : targetProjectModel.getPath();
-
-            if (targetProjectPath == null) {
-                throw new Exception(Messages.getMessage("project_path_not_found", targetProjectName));
-            }
-
             // If in debug mode, adjust the start parameters.
             String userParms = (parms == null) ? "" : parms.trim();
             String startParms = null;
@@ -328,7 +317,7 @@ public class DevModeOperations {
 
             // Append color styling to start parms
             BuildType buildType = targetProjectModel.getBuildType();
-            if (buildType == ProjectModel.BuildType.MAVEN) {
+            if (buildType == ProjectModel.BuildType.Maven) {
 
                 StringBuffer updateStartParms = new StringBuffer(startParms);
                 updateStartParms.append(" ");
@@ -346,30 +335,36 @@ public class DevModeOperations {
 
             // Prepare the Liberty plugin container dev mode command.
             String cmd = "";
-            if (buildType == ProjectModel.BuildType.MAVEN) {
-                cmd = CommandBuilder.getMavenCommandLine(targetProjectModel,
-                                                         (runProjectClean == true ? " clean " : "") + "io.openliberty.tools:liberty-maven-plugin:devc " + startParms,
-                                                         pathEnv);
-            } else if (buildType == ProjectModel.BuildType.GRADLE) {
+            String targetProjectExecPath = null;
+            if (buildType == ProjectModel.BuildType.Maven) {
+                CommandData commandData = CommandBuilder.constructMavenCommand(targetProjectModel,
+                                                                              (runProjectClean == true ? " clean " : "")
+                                                                                                  + "io.openliberty.tools:liberty-maven-plugin:devc " + startParms,
+                                                                              pathEnv);
+                cmd = commandData.getCommand();
+                targetProjectExecPath = commandData.getExecutionPath();
+            } else if (buildType == ProjectModel.BuildType.Gradle) {
                 if (runProjectClean == true) {
                     try {
 
-                        String stopGradleDaemonCmd = CommandBuilder.getGradleCommandLine(targetProjectPath, " --stop",
-                                                                                         pathEnv);
-                        executeCommand(stopGradleDaemonCmd, targetProjectPath);
+                        CommandData stopGradleDaemonCmdData = CommandBuilder.constructGradleCommand(targetProjectModel, " --stop",
+                                                                                                    pathEnv);
+                        executeCommand(stopGradleDaemonCmdData.getCommand(), targetProjectExecPath);
                     } catch (IOException | InterruptedException e) {
                         Logger.logError("An attempt to stop the Gradle daemon failed....");
                     }
                 }
-                cmd = CommandBuilder.getGradleCommandLine(targetProjectPath,
-                                                          (runProjectClean == true ? " clean " : "") + "libertyDevc " + startParms, pathEnv);
+                CommandData commandData = CommandBuilder.constructGradleCommand(targetProjectModel,
+                                                                                (runProjectClean == true ? " clean " : "") + "libertyDevc " + startParms, pathEnv);
+                cmd = commandData.getCommand();
+                targetProjectExecPath = commandData.getExecutionPath();
             } else {
                 throw new Exception("Unexpected project build type: " + buildType + ". Project " + targetProjectName
                                     + "does not appear to be a Maven or Gradle built project.");
             }
 
             // Run the application in dev mode.
-            startDevMode(cmd, targetProjectName, targetProjectPath, javaHomePath, launch);
+            startDevMode(cmd, targetProjectName, targetProjectExecPath, javaHomePath, launch);
 
             // If there is a debugPort, start the job to attach the debugger to the Liberty server JVM.
             if (debugPort != null) {
@@ -730,7 +725,7 @@ public class DevModeOperations {
         String msg = baseMsg + "\n\n" + stopPromptMsg;
         Integer response = ErrorHandler.processWarningMessage(msg, true, new String[] { "Yes", "No" }, 0);
         if (response != null && response == 0) {
-            issueLPStopCommand(projectName);
+            issueStopCommand(projectName);
         }
     }
 
@@ -739,47 +734,41 @@ public class DevModeOperations {
      * 
      * @param projectName The name of the project for which the the Liberty plugin stop command is issued.
      */
-    private void issueLPStopCommand(String projectName) {
+    private void issueStopCommand(String projectName) {
         if (Trace.isEnabled()) {
             Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, projectName);
         }
 
         try {
             // Get the internal object representing the input project name.
-            ProjectModel projectModel = workspaceModel.getProjectByName(projectName);
+            ProjectModel targetProjectModel = workspaceModel.getProjectByName(projectName);
 
             // Validate that we know about the selected project.
-            if (projectModel == null) {
+            if (targetProjectModel == null) {
                 throw new IllegalStateException(Messages.getMessage("internal_project_not_found", projectName));
             }
 
-            // Get the absolute path to the application project.
-            String projectPath = projectModel.getPath();
-            if (projectPath == null) {
-                throw new Exception("Unable to find the path associated with project " + projectName);
-            }
-
-            // TODO - for multi-module case, consider additional warning if this is an aggregate module with multiple sub-modules.
-            // Of course we'd have to be smart enough to know this were the case in order to issue such a warning
-
             // Build the command.
             String cmd = "";
-            String buildTypeName;
-            BuildType buildType = projectModel.getBuildType();
-            if (buildType == ProjectModel.BuildType.MAVEN) {
-                cmd = CommandBuilder.getMavenCommandLine(projectModel, "io.openliberty.tools:liberty-maven-plugin:stop", pathEnv);
-                buildTypeName = "Maven";
-            } else if (buildType == ProjectModel.BuildType.GRADLE) {
-                cmd = CommandBuilder.getGradleCommandLine(projectPath, "libertyStop", pathEnv);
-                buildTypeName = "Gradle";
+            String targetProjectExecPath = null;
+            BuildType buildType = targetProjectModel.getBuildType();
+            if (buildType == ProjectModel.BuildType.Maven) {
+                CommandData commandData = CommandBuilder.constructMavenCommand(targetProjectModel, "io.openliberty.tools:liberty-maven-plugin:stop", pathEnv);
+                cmd = commandData.getCommand();
+                targetProjectExecPath = commandData.getExecutionPath();
+            } else if (buildType == ProjectModel.BuildType.Gradle) {
+                CommandData commandData = CommandBuilder.constructGradleCommand(targetProjectModel, "libertyStop", pathEnv);
+                cmd = commandData.getCommand();
+                targetProjectExecPath = commandData.getExecutionPath();
+
             } else {
-                throw new Exception(Messages.getMessage("unexpected_build_type", buildType, projectName));
+                throw new Exception(Messages.getMessage("unexpected_build_type", targetProjectModel.getBuildType().toString(), projectName));
             }
 
             // Issue the command.
             String[] cmdParts = cmd.split(" ");
             ProcessBuilder pb = new ProcessBuilder(cmdParts);
-            pb.directory(new File(projectPath));
+            pb.directory(new File(targetProjectExecPath));
             pb.redirectErrorStream(true);
             pb.environment().put("JAVA_HOME", JavaRuntime.getDefaultVMInstall().getInstallLocation().getAbsolutePath());
 
@@ -787,7 +776,7 @@ public class DevModeOperations {
              * Per: https://stackoverflow.com/questions/29793071/rcp-no-progress-dialog-when-starting-a-job it seems that job.setUser(true)
              * is no longer enough to result in the creation of a progress dialog.
              */
-            Job job = new Job(Messages.getMessage("stopping_server_job", buildTypeName)) {
+            Job job = new Job(Messages.getMessage("stopping_server_job", targetProjectModel.getBuildType().toString())) {
 
                 @Override
                 protected IStatus run(IProgressMonitor monitor) {
@@ -939,7 +928,7 @@ public class DevModeOperations {
     public Path getLibertyPluginConfigXmlPath(ProjectModel project) throws Exception {
 
         ProjectModel serverProj = getLibertyServerProject(project);
-        String buildDir = serverProj.getBuildType() == BuildType.GRADLE ? "build" : "target";
+        String buildDir = serverProj.getBuildType() == BuildType.Gradle ? "build" : "target";
 
         Path path = Paths.get(serverProj.getPath(), buildDir, "liberty-plugin-config.xml");
         return path;
@@ -1227,7 +1216,7 @@ public class DevModeOperations {
                                 @Override
                                 public Image getImage(Object element) {
                                     ProjectModel pm = (ProjectModel) element;
-                                    return pm.getBuildType() == BuildType.MAVEN ? mavenImg : gradleImg;
+                                    return pm.getBuildType() == BuildType.Maven ? mavenImg : gradleImg;
                                 }
                             });
 
@@ -1351,7 +1340,7 @@ public class DevModeOperations {
                             @Override
                             public Image getImage(Object element) {
                                 ProjectModel pm = (ProjectModel) element;
-                                return pm.getBuildType() == BuildType.MAVEN ? mavenImg : gradleImg;
+                                return pm.getBuildType() == BuildType.Maven ? mavenImg : gradleImg;
                             }
                         });
 

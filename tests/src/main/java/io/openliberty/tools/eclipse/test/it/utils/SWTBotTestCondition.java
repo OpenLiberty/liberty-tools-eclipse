@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2022, 2023 IBM Corporation and others.
+* Copyright (c) 2022, 2026 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -11,6 +11,8 @@
 *     IBM Corporation - initial implementation
 *******************************************************************************/
 package io.openliberty.tools.eclipse.test.it.utils;
+
+import java.util.concurrent.Callable;
 
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotEditor;
@@ -25,9 +27,86 @@ import org.eclipse.swtbot.swt.finder.widgets.SWTBotTree;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
 
 /**
- * Provides a predefined set conditions to wait for.
+ * Provides a predefined set of conditions to wait for, plus a generic polling helper.
  */
 public class SWTBotTestCondition {
+
+    /** Default poll interval in milliseconds. */
+    private static final int POLL_INTERVAL_MS = 500;
+
+    /** Timeout options in milliseconds. */
+    public static final int VALIDATION_WAIT_MS = 2000;
+    public static final int MIN_WAIT_MS = 5000;
+    public static final int SHORT_WAIT_MS = 15000;
+    public static final int MID_WAIT_MS = 30000;
+    public static final int LARGE_WAIT_MS = 60000;
+    public static final int SERVER_WAIT_MS = 180000;
+
+    /**
+     * Polls the input condition every {@value #POLL_INTERVAL_MS} ms until it returns
+     * {@code true} or {@code maxWaitMs} elapses. Returns as soon as the condition
+     * is satisfied.
+     *
+     * @param condition A {@link Callable} that returns {@code true} when the
+     *                      desired state has been reached.
+     * @param maxWaitMs Maximum time to wait in milliseconds.
+     * @return {@code true} if {@code condition} returned {@code true} within
+     *         {@code maxWaitMs}; {@code false} if the timeout elapsed first.
+     */
+    public static boolean waitFor(Callable<Boolean> condition, int maxWaitMs) {
+        long deadline = System.currentTimeMillis() + maxWaitMs;
+        while (System.currentTimeMillis() < deadline) {
+            try {
+                if (Boolean.TRUE.equals(condition.call())) {
+                    return true;
+                }
+            } catch (Exception ignored) {
+                // condition not yet satisfied; keep polling
+            }
+
+            long remaining = deadline - System.currentTimeMillis();
+            if (remaining <= 0) {
+                break;
+            }
+
+            try {
+                Thread.sleep(Math.min(POLL_INTERVAL_MS, remaining));
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                return false;
+            }
+        }
+
+        // One final check after the deadline
+        try {
+            return Boolean.TRUE.equals(condition.call());
+        } catch (Exception ignored) {
+            return false;
+        }
+    }
+
+    /**
+     * Wraps any callable boolean as an ICondition so it can be
+     * passed to {@code bot.waitUntil()}.
+     *
+     * @param condition      The predicate to evaluate.
+     * @param failureMessage Message reported if the timeout expires.
+     * @return An ICondition backed by {@code condition}.
+     */
+    public static ICondition of(Callable<Boolean> condition, String failureMessage) {
+        return new CustomCondition() {
+
+            @Override
+            public boolean test() throws Exception {
+                return Boolean.TRUE.equals(condition.call());
+            }
+
+            @Override
+            public String getFailureMessage() {
+                return failureMessage;
+            }
+        };
+    }
 
     /**
      * Returns true if the view is active. False, otherwise.
@@ -217,7 +296,7 @@ public class SWTBotTestCondition {
     }
 
     /**
-     * Custom condition
+     * Custom condition base class.
      */
     public static class CustomCondition implements ICondition {
         SWTBot bot;
