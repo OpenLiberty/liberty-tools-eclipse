@@ -157,7 +157,7 @@ public class WorkspaceModel {
                                         // - Relative path: "../ear" (peer or other location)
                                         java.io.File parentDir = new java.io.File(projectLocation);
                                         java.io.File childDir = new java.io.File(parentDir, subprojectPath);
-                                        String resolvedPath = childDir.getCanonicalPath();
+                                        String resolvedPath = childDir.getAbsolutePath();
 
                                         childProjectModel = projectsByLocation.get(resolvedPath);
                                     } catch (Exception e) {
@@ -234,7 +234,7 @@ public class WorkspaceModel {
         // Step 6. Sort root projects alphabetically. Maven projects are shown first and Gradle projects second.
         rootProjects.sort((p1, p2) -> {
             if (p1.getBuildType() != p2.getBuildType()) {
-                return p1.getBuildType() == BuildType.MAVEN ? -1 : 1;
+                return p1.getBuildType() == BuildType.Maven ? -1 : 1;
             }
             return p1.getName().compareTo(p2.getName());
         });
@@ -302,13 +302,13 @@ public class WorkspaceModel {
         String projectDir = iProject.getLocation().toOSString();
         Metadata metadata = null;
 
-        if (buildType == BuildType.MAVEN) {
+        if (buildType == BuildType.Maven) {
             File pomFile = new File(projectDir, "pom.xml");
             String buildFilePath = pomFile.getAbsolutePath();
 
             metadata = new MavenMetadata(buildFilePath);
 
-        } else if (buildType == BuildType.GRADLE) {
+        } else if (buildType == BuildType.Gradle) {
             File pomFile = new File(projectDir, "build.gradle");
             String buildFilePath = pomFile.getAbsolutePath();
 
@@ -341,9 +341,9 @@ public class WorkspaceModel {
 
         for (ProjectModel p : projectsByName.values()) {
             if (p.isLibertyServerModule() || p.isParentOfServerModule() || p.hasLibertyNature()) {
-                if (p.getBuildType() == ProjectModel.BuildType.MAVEN) {
+                if (p.getBuildType() == ProjectModel.BuildType.Maven) {
                     mavenDashboardProjects.add(p.getName());
-                } else if (p.getBuildType() == ProjectModel.BuildType.GRADLE) {
+                } else if (p.getBuildType() == ProjectModel.BuildType.Gradle) {
                     gradleDashboardProjects.add(p.getName());
                 } else {
                     if (Trace.isEnabled()) {
