@@ -517,7 +517,7 @@ public class Utils {
         if (project.getPath() == null) {
             throw new Exception("Unable to find the path to selected project.");
         }
-        if (project.getBuildType() == ProjectModel.BuildType.UNKNOWN) {
+        if (project.getBuildType() == ProjectModel.BuildType.Unknown) {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, "Unexpected project build type: " + project.getBuildType()
                                                         + ". " + "Project does not appear to be a Maven or Gradle built project.");
@@ -528,7 +528,7 @@ public class Utils {
 
     // Get the usr directory path from the maven/gradle output folder.
     private static File getUsrDirPath(ProjectModel project) {
-        if (project.getBuildType() == ProjectModel.BuildType.MAVEN) {
+        if (project.getBuildType() == ProjectModel.BuildType.Maven) {
             return Paths.get(project.getPath(), "target", "liberty", "wlp", "usr").toFile();
         } else {
             return Paths.get(project.getPath(), "build", "wlp", "usr").toFile();

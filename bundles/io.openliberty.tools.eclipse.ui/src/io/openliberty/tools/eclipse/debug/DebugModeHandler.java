@@ -125,11 +125,11 @@ public class DebugModeHandler {
 
         if (debugPort != null && !debugPort.isEmpty()) {
             BuildType buildType = project.getBuildType();
-            if (buildType == BuildType.MAVEN) {
+            if (buildType == BuildType.Maven) {
                 if (!configParms.contains(MAVEN_DEVMODE_DEBUG_PORT_PARM)) {
                     addendum = MAVEN_DEVMODE_DEBUG_PORT_PARM + "=" + debugPort;
                 }
-            } else if (buildType == BuildType.GRADLE) {
+            } else if (buildType == BuildType.Gradle) {
                 if (!configParms.contains(GRADLE_DEVMODE_DEBUG_PORT_PARM)) {
                     addendum = GRADLE_DEVMODE_DEBUG_PORT_PARM + "=" + debugPort;
                 }
@@ -170,9 +170,9 @@ public class DebugModeHandler {
         String searchKey = null;
 
         BuildType buildType = project.getBuildType();
-        if (buildType == BuildType.MAVEN) {
+        if (buildType == BuildType.Maven) {
             searchKey = MAVEN_DEVMODE_DEBUG_PORT_PARM;
-        } else if (buildType == BuildType.GRADLE) {
+        } else if (buildType == BuildType.Gradle) {
             searchKey = GRADLE_DEVMODE_DEBUG_PORT_PARM;
         } else {
             throw new Exception(Messages.getMessage("unexpected_build_type", buildType, project.getIProject().getName()));

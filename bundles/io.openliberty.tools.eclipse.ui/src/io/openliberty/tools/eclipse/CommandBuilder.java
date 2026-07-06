@@ -22,6 +22,9 @@ import io.openliberty.tools.eclipse.model.ProjectModel;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
 import io.openliberty.tools.eclipse.utils.Utils;
 
+/**
+ * Builds commands for the supported build tools: Maven and Gradle.
+ */
 public class CommandBuilder {
 
     private String projectPath;
@@ -31,8 +34,9 @@ public class CommandBuilder {
     private boolean isMaven;
 
     /**
-     * @param pathEnv
-     * @param isMaven true for Maven, false for Gradle
+     * @param projectPath The project path used to locate the wrapper script and its companion files.
+     * @param pathEnv     The PATH env var.
+     * @param isMaven     true for Maven, false for Gradle.
      */
     private CommandBuilder(String projectPath, String pathEnv, boolean isMaven) {
         super();
@@ -42,51 +46,99 @@ public class CommandBuilder {
     }
 
     /**
-     * Returns the full Maven command to run.
+     * Constructs a Maven command using the given input parameters.
      *
-     * @param projectPath The project's path.
-     * @param cmdArgs     The mvn command args
-     * @param pathEnv     The PATH env var
+     * @param targetProjectModel The project model.
+     * @param cmdArgs            The Maven command args.
+     * @param pathEnv            The PATH env var.
      *
-     * @return The full Maven command to run.
-     * 
+     * @return A CommandData object containing the maven command and the required execution path.
+     *
      * @throws CommandNotFoundException
      */
-    public static String getMavenCommandLine(ProjectModel project, String cmdArgs, String pathEnv) throws CommandBuilder.CommandNotFoundException {
+    public static CommandData constructMavenCommand(ProjectModel targetProjectModel, String cmdArgs, String pathEnv) throws CommandNotFoundException {
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { project, cmdArgs });
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { targetProjectModel, cmdArgs });
         }
 
-        // Add module selector if artifactId is provided
-        String enhancedCmdArgs = cmdArgs;
-        if (project.getParentProjectModel() != null) {
-            enhancedCmdArgs = cmdArgs + " -pl :" + project.getName() + " -am";
+        String targetProjectPath = targetProjectModel.getPath();
+        ProjectModel targetParentModel = targetProjectModel.getParentProjectModel();
+        String parentProjectPath = (targetParentModel != null) ? targetParentModel.getPath() : null;
+
+        // Add module selector when this is a child module of a multi-module project.
+        if (parentProjectPath != null) {
+            cmdArgs += " -pl :" + targetProjectModel.getName() + " -am";
         }
 
-        CommandBuilder builder = new CommandBuilder(project.getPath(), pathEnv, true);
-        String cmd = builder.getCommand();
-        String cmdLine = builder.getCommandLineFromArgs(cmd, enhancedCmdArgs);
+        CommandBuilder builder = new CommandBuilder(targetProjectPath, pathEnv, true);
+        String cmd = builder.getBuildToolExecPath();
+
+        // On Windows, mvnw.cmd locates the maven project base directory (.mvn) by walking up from 
+        // the process working directory rather than from the script's own directory. When in a multi-module
+        // project, if the child has its own wrapper,and the command is executed from the parent
+        // directory, the walk fails to find the child's .mvn directory.
+        // To go around this issue on Windows, we do the follwing:
+        // - Set the process working directory to the child's directory so that the mvnw.cmd walk can find
+        //   the .mvn directory.
+        // - Append "-f <parent-pom>" to the command to process the parent/aggregator pom so that the reactor 
+        //   sees all of the modules.
+        String executionPath = (targetParentModel != null) ? targetParentModel.getPath() : targetProjectPath;
+        if ((cmd.endsWith("mvnw") || cmd.endsWith("mvnw.cmd")) && Utils.isWindows() && parentProjectPath != null && !targetProjectPath.equals(parentProjectPath)) {
+            String parentPom = Paths.get(parentProjectPath, "pom.xml").toAbsolutePath().toString();
+            cmdArgs += " -f " + encloseCmdInQuotesIfNeeded(parentPom);
+            executionPath = targetProjectPath;
+        }
+
+        String cmdLine = builder.appendArgsToCommand(cmd, cmdArgs);
+
+        CommandData result = new CommandData(cmdLine, executionPath);
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, result.getCommand());
+        }
+
+        return result;
+    }
+
+    /**
+     * Constructs a Gradle command using the given input parameters.
+     *
+     * @param targetProjectModel The project model.
+     * @param cmdArgs            The Gradle command args.
+     * @param pathEnv            The PATH env var.
+     *
+     * @return A CommandData object containing the Gradle command and the required execution path.
+     *
+     * @throws CommandNotFoundException
+     */
+    public static CommandData constructGradleCommand(ProjectModel targetProjectModel, String cmdArgs, String pathEnv) throws CommandNotFoundException {
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { targetProjectModel, cmdArgs });
+        }
+        String targetProjectPath = targetProjectModel.getPath();
+        ProjectModel targetParentModel = targetProjectModel.getParentProjectModel();
+        String targetParentPath = (targetParentModel != null) ? targetParentModel.getPath() : null;
+
+        CommandBuilder builder = new CommandBuilder(targetProjectPath, pathEnv, false);
+        String cmd = builder.getBuildToolExecPath();
+        String cmdLine = builder.appendArgsToCommand(cmd, cmdArgs);
+
+        String executionPath = (targetParentPath != null) ? targetParentPath : targetProjectPath;
+        CommandData result = new CommandData(cmdLine, executionPath);
         if (Trace.isEnabled()) {
             Trace.getTracer().traceExit(Trace.TRACE_TOOLS, cmdLine);
         }
-        return cmdLine;
+        return result;
     }
 
-    public static String getGradleCommandLine(String projectPath, String cmdArgs, String pathEnv) throws CommandBuilder.CommandNotFoundException {
-        if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { projectPath, cmdArgs });
-        }
-        CommandBuilder builder = new CommandBuilder(projectPath, pathEnv, false);
-        String cmd = builder.getCommand();
-        String cmdLine = builder.getCommandLineFromArgs(cmd, cmdArgs);
-        if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, cmdLine);
-        }
-        return cmdLine;
-    }
-
-    private String getCommand() throws CommandBuilder.CommandNotFoundException {
-        String cmd = getCommandFromWrapper();
+    /**
+     * Resolves the build tool executable to use.
+     * It looks for a defined wrapper first. If not present,
+     * it looks for the executable path in preferences. If one is not present,
+     * it looks for the mvn executable in the PATH environment variable.
+     */
+    private String getBuildToolExecPath() throws CommandBuilder.CommandNotFoundException {
+        String cmd = getBuildToolWrapper();
         if (cmd == null) {
             cmd = getCommandFromPreferences();
         }
@@ -99,27 +151,27 @@ public class CommandBuilder {
         }
 
         if (cmd == null) {
-
             String errorMsg = "Could not find " + (isMaven ? "Maven" : "Gradle") + " executable or wrapper";
-
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, errorMsg);
             }
-
             if (isMaven) {
                 ErrorHandler.processPreferenceErrorMessage(Messages.getMessage("maven_exec_not_found"), true);
             } else {
                 ErrorHandler.processPreferenceErrorMessage(Messages.getMessage("gradle_exec_not_found"), true);
             }
-
             throw new CommandNotFoundException(errorMsg);
         }
 
         return encloseCmdInQuotesIfNeeded(cmd);
     }
 
-    private String getCommandFromWrapper() {
-
+    /**
+     * Detects the wrapper script associated with the supported build tools (Maven and Gradle).
+     *
+     * @return A {@link WrapperResult} when a valid wrapper is found, or {@code null} when none exists.
+     */
+    private String getBuildToolWrapper() {
         String cmd = null;
         if (isMaven) {
             Path p2mw = (Utils.isWindows()) ? Paths.get(projectPath, "mvnw.cmd") : Paths.get(projectPath, "mvnw");
@@ -129,7 +181,6 @@ public class CommandBuilder {
                 cmd = p2mw.toAbsolutePath().toString();
             }
         } else {
-            // Check if there is wrapper defined.
             Path p2gw = (Utils.isWindows()) ? Paths.get(projectPath, "gradlew.bat") : Paths.get(projectPath, "gradlew");
             Path p2gwJar = Paths.get(projectPath, "gradle", "wrapper", "gradle-wrapper.jar");
             Path p2gwProps = Paths.get(projectPath, "gradle", "wrapper", "gradle-wrapper.properties");
@@ -138,18 +189,28 @@ public class CommandBuilder {
                 cmd = p2gw.toAbsolutePath().toString();
             }
         }
-        if (cmd != null) {
-            if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_TOOLS, "Found wrapper: " + cmd);
-            }
-        } else {
+
+        if (cmd == null) {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, "Did NOT find wrapper for projectPath: " + projectPath);
             }
+            return null;
         }
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().trace(Trace.TRACE_TOOLS, "Found wrapper: " + cmd);
+        }
+
         return cmd;
     }
 
+    /**
+     * Returns the build tool executable path configured in the Eclipse IDE Liberty preference settings.
+     * 
+     * @return The build tool executable path configured in the Eclipse IDE Liberty preference settings.
+     * 
+     * @throws IllegalStateException
+     */
     private String getCommandFromPreferences() throws IllegalStateException {
 
         String installLocPref = getInstallLocationPreferenceString();
@@ -178,9 +239,10 @@ public class CommandBuilder {
     }
 
     /**
-     * @param base name of executable
+     * Retrieves the build tool executable from the PATH environment variable visible to the Eclipse IDE.
      * 
-     * @return
+     * @return The build tool executable from the PATH environment variable visible to the Eclipse IDE.
+     * @throws IllegalStateException
      */
     private String getCommandFromPathEnvVar() throws IllegalStateException {
 
@@ -208,16 +270,27 @@ public class CommandBuilder {
         return foundCmd;
     }
 
-    private String getCommandLineFromArgs(String cmd, String cmdArgs) {
-        // Put it all together.
+    /**
+     * Appends the input arguments to the input command.
+     * 
+     * @param cmd     The command.
+     * @param cmdArgs The arguments as string.
+     * 
+     * @return A properly formatted command containing the input parameters.
+     */
+    private String appendArgsToCommand(String cmd, String cmdArgs) {
         StringBuilder sb = new StringBuilder();
         if (cmd != null) {
             sb.append(cmd).append(" ").append(cmdArgs);
         }
-
         return sb.toString();
     }
 
+    /**
+     * Returns the expected name of the supported build tools executables.
+     * 
+     * @return The expected name of the supported build tools executables.
+     */
     private String getExecBaseName() {
         if (Utils.isWindows()) {
             return isMaven ? "mvn.cmd" : "gradle.bat";
@@ -226,6 +299,11 @@ public class CommandBuilder {
         }
     }
 
+    /**
+     * Returns the build tool executable path configured in the Eclipse IDE Liberty preference settings.
+     * 
+     * @return The build tool executable path configured in the Eclipse IDE Liberty preference settings.
+     */
     private String getInstallLocationPreferenceString() {
         if (isMaven) {
             return LibertyDevPlugin.getDefault().getPreferenceStore().getString("MVNPATH");
@@ -234,6 +312,9 @@ public class CommandBuilder {
         }
     }
 
+    /**
+     * Command not found exception.
+     */
     public class CommandNotFoundException extends Exception {
 
         private static final long serialVersionUID = 8469585975896898403L;
@@ -253,12 +334,45 @@ public class CommandBuilder {
     }
 
     /**
-     * Function to enclose the command in double quotes if it contains any spaces
+     * Encloses the given string in double quotes if it contains spaces.
      */
-    private String encloseCmdInQuotesIfNeeded(String cmd) {
+    private static String encloseCmdInQuotesIfNeeded(String cmd) {
         if (cmd.contains(" ")) {
             return "\"" + cmd + "\"";
         }
         return cmd;
+    }
+
+    /**
+     * Holds the assembled command string and the directory from which the command must
+     * be executed.
+     */
+    public static class CommandData {
+
+        private String commandLine;
+        private String executionPath;
+
+        public CommandData(String commandLine, String executionPath) {
+            this.commandLine = commandLine;
+            this.executionPath = executionPath;
+        }
+
+        /**
+         * Returns the fully-assembled command line string.
+         * 
+         * @return The fully-assembled command line string.
+         */
+        public String getCommand() {
+            return commandLine;
+        }
+
+        /**
+         * Returns the directory from which the command must be executed.
+         * 
+         * @return The directory from which the command must be executed.
+         */
+        public String getExecutionPath() {
+            return executionPath;
+        }
     }
 }
