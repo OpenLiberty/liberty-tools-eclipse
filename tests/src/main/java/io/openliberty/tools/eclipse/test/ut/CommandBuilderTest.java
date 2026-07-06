@@ -48,7 +48,7 @@ public class CommandBuilderTest {
         unsetBuildCmdPathInPreferences(new SWTWorkbenchBot(), "Maven");
         Path projectPath = Paths.get("resources", "applications", "maven", "liberty-maven-test-wrapper-app");
         ProjectModel projectModel = createMockProjectModel(projectPath);
-        String retVal = CommandBuilder.getMavenCommandLine(projectModel, "-a 123", obfuscatedPath());
+        String retVal = CommandBuilder.constructMavenCommand(projectModel, "-a 123", obfuscatedPath()).getCommand();
         assertEquals(projectPath.toAbsolutePath().resolve(wrapperName()) + " -a 123", retVal, "Wrong cmd line");
     }
 
@@ -63,7 +63,7 @@ public class CommandBuilderTest {
         Path mvnPath = Paths.get("resources", "execs");
         String pathEnv = obfuscatedPath() + File.pathSeparator + mvnPath.toAbsolutePath().toString();
         ProjectModel projectModel = createMockProjectModel(projectPath);
-        String retVal = CommandBuilder.getMavenCommandLine(projectModel, "-a 123", pathEnv);
+        String retVal = CommandBuilder.constructMavenCommand(projectModel, "-a 123", pathEnv).getCommand();
         assertEquals(mvnPath.toAbsolutePath().resolve(mvnName()) + " -a 123", retVal, "Wrong cmd line");
     }
 
