@@ -452,11 +452,7 @@ public class ProjectModel {
      * @param peerProjects The raw list of peer projects.
      */
     public void setPeerDirProjects(List<ProjectModel> peerProjects) {
-        for (ProjectModel project : peerProjects) {
-            if (!getName().equals(project.getName())) {
-                this.peerDirProjects.add(project);
-            }
-        }
+        this.peerDirProjects.addAll(peerProjects);
     }
 
     /**
