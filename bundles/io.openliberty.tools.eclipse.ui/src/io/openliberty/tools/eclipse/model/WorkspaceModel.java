@@ -180,7 +180,17 @@ public class WorkspaceModel {
             }
         }
 
-        // Step 3: Extract project/module dependencies.
+        // Step 3: Set peer projects for each child within the same parent.
+        for (ProjectModel projectModel : projectsByLocation.values()) {
+            List<ProjectModel> children = projectModel.getChildProjects();
+            if (!children.isEmpty()) {
+                for (ProjectModel child : children) {
+                    child.setPeerDirProjects(children);
+                }
+            }
+        }
+
+        // Step 4: Extract project/module dependencies.
         for (IProject iProject : projectsToScan) {
             if (iProject.isOpen()) {
                 String projectLocation = iProject.getLocation().toOSString();
@@ -204,7 +214,7 @@ public class WorkspaceModel {
             }
         }
 
-        // Step 4: Now that we have established parent and child relationships, classify with Liberty nature.
+        // Step 5: Now that we have established parent and child relationships, classify with Liberty nature.
         if (classify) {
             for (IProject iProject : projectsToScan) {
                 if (iProject.isOpen()) {
@@ -215,7 +225,7 @@ public class WorkspaceModel {
             }
         }
 
-        // Step 5: Identify root projects (no parent or parent not in workspace).
+        // Step 6: Identify root projects (no parent or parent not in workspace).
         rootProjects.clear();
         for (ProjectModel projectModel : projectsByLocation.values()) {
             if (projectModel.getParentProjectModel() == null) {
@@ -231,7 +241,7 @@ public class WorkspaceModel {
             }
         }
 
-        // Step 6. Sort root projects alphabetically. Maven projects are shown first and Gradle projects second.
+        // Step 7. Sort root projects alphabetically. Maven projects are shown first and Gradle projects second.
         rootProjects.sort((p1, p2) -> {
             if (p1.getBuildType() != p2.getBuildType()) {
                 return p1.getBuildType() == BuildType.Maven ? -1 : 1;

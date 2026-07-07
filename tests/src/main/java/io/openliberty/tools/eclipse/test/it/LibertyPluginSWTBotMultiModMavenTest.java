@@ -45,7 +45,6 @@ import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.MethodOrderer.MethodName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
@@ -292,7 +291,6 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
     /**
      * Tests that the correct dependency projects are added to the debug source lookup list
      */
-    @Disabled("Until peer project discovery is implemented.")
     @Test
     public void testDebugSourceLookupContentSiblingModule() {
 
