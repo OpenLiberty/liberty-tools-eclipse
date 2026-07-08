@@ -73,8 +73,56 @@ import io.openliberty.tools.eclipse.utils.Utils;
 public class DevModeOperations {
 
     /**
+     * Supported actions types.
+     */
+    public static enum DashboardAction {
+        START("Start"),
+        START_CFG("Start..."),
+        START_CTR("Start in container"),
+        DEBUG("Debug"),
+        DEBUG_CFG("Debug..."),
+        DEBUG_CTR("Debug in container"),
+        STOP("Stop"),
+        RUNTESTS("Run tests"),
+        OPEN_MVN_IT_TEST_REPORT("View integration test report"),
+        OPEN_MVN_UT_TEST_REPORT("View unit test report"),
+        OPEN_GRADLE_TEST_REPORT("View test report");
+
+        private final String name;
+
+        private DashboardAction(String name) {
+            this.name = name;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public String toString() {
+            return this.name;
+        }
+    }
+
+    /**
      * Constants.
      */
+    public static final String ACTION_START_NAME = "Start";
+    public static final String ACTION_START_CFG_NAME = "Start...";
+    public static final String ACTION_START_CTR_NAME = "Start in container";
+    public static final String ACTION_DEBUG_NAME = "Debug";
+    public static final String ACTION_DEBUG_CFG_NAME = "Debug...";
+    public static final String ACTION_DEBUG_CTR_NAME = "Debug in container";
+    public static final String ACTION_STOP_NAME = "Stop";
+    public static final String ACTION_RUN_TESTS_NAME = "Run tests";
+
+    public static final String ACTION_MVN_IT_REPORT_NAME = "View integration test report";
+    public static final String ACTION_MVN_UT_REPORT_NAME = "View unit test report";
+    public static final String ACTION_GDLTEST_REPORT_NAME = "View test report";
+
     public static final String DEVMODE_START_PARMS_DIALOG_TITLE = Messages.getMessage("devmode_start_dialog_title");
     public static final String DEVMODE_START_PARMS_DIALOG_MSG = Messages.getMessage("devmode_start_dialog_msg");
 
@@ -226,9 +274,9 @@ public class DevModeOperations {
 
             if (buildType == ProjectModel.BuildType.Maven) {
                 CommandData commandData = CommandBuilder.constructMavenCommand(targetProjectModel,
-                                                                              (runProjectClean == true ? " clean " : "")
-                                                                                                  + "io.openliberty.tools:liberty-maven-plugin:dev " + startParms,
-                                                                              pathEnv);
+                                                                               (runProjectClean == true ? " clean " : "")
+                                                                                                   + "io.openliberty.tools:liberty-maven-plugin:dev " + startParms,
+                                                                               pathEnv);
                 cmd = commandData.getCommand();
                 targetProjectExecPath = commandData.getExecutionPath();
             } else if (buildType == ProjectModel.BuildType.Gradle) {
@@ -338,9 +386,9 @@ public class DevModeOperations {
             String targetProjectExecPath = null;
             if (buildType == ProjectModel.BuildType.Maven) {
                 CommandData commandData = CommandBuilder.constructMavenCommand(targetProjectModel,
-                                                                              (runProjectClean == true ? " clean " : "")
-                                                                                                  + "io.openliberty.tools:liberty-maven-plugin:devc " + startParms,
-                                                                              pathEnv);
+                                                                               (runProjectClean == true ? " clean " : "")
+                                                                                                   + "io.openliberty.tools:liberty-maven-plugin:devc " + startParms,
+                                                                               pathEnv);
                 cmd = commandData.getCommand();
                 targetProjectExecPath = commandData.getExecutionPath();
             } else if (buildType == ProjectModel.BuildType.Gradle) {
@@ -521,7 +569,7 @@ public class DevModeOperations {
             }
 
             // Get the path to the test report.
-            Path path = getMavenIntegrationTestReportPath(targetProjectPath, targetProjectName);
+            Path path = getMavenITReportPath(targetProjectPath, targetProjectName, true);
 
             if (path != null) {
                 // Display the report on the browser. Browser display is based on eclipse configuration preferences.
@@ -574,7 +622,7 @@ public class DevModeOperations {
             }
 
             // Get the path to the test report.
-            Path path = getMavenUnitTestReportPath(targetProjectPath, targetProjectName);
+            Path path = getMavenUTReportPath(targetProjectPath, targetProjectName, true);
 
             if (path != null) {
                 // Display the report on the browser. Browser display is based on eclipse configuration preferences.
@@ -892,28 +940,88 @@ public class DevModeOperations {
     /**
      * Returns the path of the HTML file containing the integration test report.
      *
-     * @param projectPath The project's path.
+     * @param projectPath       The project's path.
+     * @param projectName       The project's name.
+     * @param reportUnavailable The indicator to trace and report back to the user when the reports are not available.
      *
-     * @return The path of the HTML file containing the integration test report.
+     * @return The path of the HTML file containing the unit test report.
      */
-    public static Path getMavenIntegrationTestReportPath(String projectPath, String projectName) {
+    public static Path getMavenITReportPath(String projectPath, String projectName, boolean reportUnavailable) {
         Path path1 = Paths.get(projectPath, "target", "reports", "failsafe.html");
         Path path2 = Paths.get(projectPath, "target", "site", "failsafe-report.html");
+        boolean path1Exists = path1.toFile().exists();
+        boolean path2Exists = path2.toFile().exists();
 
-        if (!path1.toFile().exists() && !path2.toFile().exists()) {
-            String msg = "No integration test results were found for project " + projectName + ". Select \""
-                         + DashboardView.APP_MENU_ACTION_RUN_TESTS + "\" before you select \""
-                         + DashboardView.APP_MENU_ACTION_VIEW_MVN_IT_REPORT + "\" on the menu.";
-            if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op. Paths checked: " + path1 + ", " + path2);
+        if (!path1Exists && !path2Exists) {
+            if (reportUnavailable) {
+                String msg = "No integration test results were found for project " + projectName + ". Select \""
+                             + DashboardView.APP_MENU_ACTION_RUN_TESTS + "\" before you select \""
+                             + DashboardView.APP_MENU_ACTION_VIEW_MVN_IT_REPORT + "\" on the menu.";
+                if (Trace.isEnabled()) {
+                    Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op. Paths checked: " + path1 + ", " + path2);
+                }
+                ErrorHandler.processErrorMessage(Messages.getMessage("mvn_int_test_report_none_found", projectName,
+                                                                     DashboardView.APP_MENU_ACTION_RUN_TESTS, DashboardView.APP_MENU_ACTION_VIEW_MVN_IT_REPORT),
+                                                 true);
             }
-            ErrorHandler.processErrorMessage(Messages.getMessage("mvn_int_test_report_none_found", projectName,
-                                                                 DashboardView.APP_MENU_ACTION_RUN_TESTS, DashboardView.APP_MENU_ACTION_VIEW_MVN_IT_REPORT),
-                                             true);
+
             return null;
         }
 
-        return path1.toFile().exists() ? path1 : path2;
+        return (path1Exists) ? path1 : path2;
+    }
+
+    /**
+     * Returns the path of the HTML file containing the unit test report.
+     *
+     * @param projectPath       The project's path.
+     * @param projectName       The project's name.
+     * @param reportUnavailable The indicator to trace and report back to the user when the reports are not available.
+     *
+     * @return The path of the HTML file containing the unit test report.
+     */
+    public static Path getMavenUTReportPath(String projectPath, String projectName, boolean reportUnavailable) {
+        Path path1 = Paths.get(projectPath, "target", "reports", "surefire.html");
+        Path path2 = Paths.get(projectPath, "target", "site", "surefire-report.html");
+        boolean path1Exists = path1.toFile().exists();
+        boolean path2Exists = path2.toFile().exists();
+
+        if (!path1Exists && !path2Exists) {
+            if (reportUnavailable) {
+                String msg = "No unit test results were found for project " + projectName + ". Select \""
+                             + DashboardView.APP_MENU_ACTION_RUN_TESTS + "\" before you select \""
+                             + DashboardView.APP_MENU_ACTION_VIEW_MVN_UT_REPORT + "\" on the menu.";
+                if (Trace.isEnabled()) {
+                    Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op. Paths checked: " + path1 + ", " + path2);
+                }
+                ErrorHandler.processErrorMessage(Messages.getMessage("mvn_unit_test_report_none_found", projectName,
+                                                                     DashboardView.APP_MENU_ACTION_RUN_TESTS, DashboardView.APP_MENU_ACTION_VIEW_MVN_UT_REPORT),
+                                                 true);
+            }
+
+            return null;
+        }
+
+        return path1Exists ? path1 : path2;
+    }
+
+    /**
+     * Returns the path of the HTML file containing the test report.
+     *
+     * @param projectPath The project's path.
+     *
+     * @return The custom path of the HTML file containing the or the default location.
+     */
+    public static Path getGradleTestReportPath(String projectPath) {
+        // TODO: Look for custom dir entry in build.gradle:
+        // "test.reports.html.destination". Need to handle a value like this:
+        // reports.html.destination = file("$buildDir/edsTestReports/teststuff")
+        // Notice the use of a variable: $buildDir.
+
+        // If a custom path was not defined, use default value.
+        Path path = Paths.get(projectPath, "build", "reports", "tests", "test", "index.html");
+
+        return path;
     }
 
     /**
@@ -958,52 +1066,6 @@ public class DevModeOperations {
         }
 
         return project;
-    }
-
-    /**
-     * Returns the path of the HTML file containing the unit test report.
-     *
-     * @param projectPath The project's path.
-     *
-     * @return The path of the HTML file containing the unit test report.
-     */
-    public static Path getMavenUnitTestReportPath(String projectPath, String projectName) {
-        Path path1 = Paths.get(projectPath, "target", "reports", "surefire.html");
-        Path path2 = Paths.get(projectPath, "target", "site", "surefire-report.html");
-
-        if (!path1.toFile().exists() && !path2.toFile().exists()) {
-            String msg = "No unit test results were found for project " + projectName + ". Select \""
-                         + DashboardView.APP_MENU_ACTION_RUN_TESTS + "\" before you select \""
-                         + DashboardView.APP_MENU_ACTION_VIEW_MVN_UT_REPORT + "\" on the menu.";
-            if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op. Paths checked: " + path1 + ", " + path2);
-            }
-            ErrorHandler.processErrorMessage(Messages.getMessage("mvn_unit_test_report_none_found", projectName,
-                                                                 DashboardView.APP_MENU_ACTION_RUN_TESTS, DashboardView.APP_MENU_ACTION_VIEW_MVN_UT_REPORT),
-                                             true);
-            return null;
-        }
-
-        return path1.toFile().exists() ? path1 : path2;
-    }
-
-    /**
-     * Returns the path of the HTML file containing the test report.
-     *
-     * @param projectPath The project's path.
-     *
-     * @return The custom path of the HTML file containing the or the default location.
-     */
-    public static Path getGradleTestReportPath(String projectPath) {
-        // TODO: Look for custom dir entry in build.gradle:
-        // "test.reports.html.destination". Need to handle a value like this:
-        // reports.html.destination = file("$buildDir/edsTestReports/teststuff")
-        // Notice the use of a variable: $buildDir.
-
-        // If a custom path was not defined, use default value.
-        Path path = Paths.get(projectPath, "build", "reports", "tests", "test", "index.html");
-
-        return path;
     }
 
     /**
@@ -1127,8 +1189,8 @@ public class DevModeOperations {
      *
      * @throws Exception if input the project is not Liberty configured, or it does not have a liberty configured module.
      */
-    public ProjectModel resolveCommandTarget(ProjectModel projectModel, String commandName) throws Exception {
-        return resolveCommandTarget(projectModel, commandName, ServerFilterMode.ALL);
+    public ProjectModel resolveCommandTarget(ProjectModel projectModel, DashboardAction action) throws Exception {
+        return resolveCommandTarget(projectModel, action, ServerFilterMode.ALL);
     }
 
     /**
@@ -1142,9 +1204,9 @@ public class DevModeOperations {
      *
      * @throws Exception if input the project is not Liberty configured, or it does not have a liberty configured module.
      */
-    public ProjectModel resolveCommandTarget(ProjectModel projectModel, String commandName, ServerFilterMode filterMode) throws Exception {
+    public ProjectModel resolveCommandTarget(ProjectModel projectModel, DashboardAction action, ServerFilterMode filterMode) throws Exception {
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { projectModel, commandName });
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { projectModel, action.toString() });
         }
 
         final ProjectModel[] targetProject = new ProjectModel[1];
@@ -1226,15 +1288,16 @@ public class DevModeOperations {
                             // Customize dialog title and message based on filter mode
                             String dialogTitle;
                             String dialogMessage;
+                            String actionName = getTranslatedActionCommand(action);
                             if (filterMode == ServerFilterMode.ACTIVE_ONLY) {
                                 dialogTitle = Messages.getMessage("select_active_module_for_command_title");
-                                dialogMessage = Messages.getMessage("select_active_module_for_command_description", commandName);
+                                dialogMessage = Messages.getMessage("select_active_module_for_command_description", actionName);
                             } else if (filterMode == ServerFilterMode.INACTIVE_ONLY) {
                                 dialogTitle = Messages.getMessage("select_inactive_module_for_command_title");
-                                dialogMessage = Messages.getMessage("select_inactive_module_for_command_description", commandName);
+                                dialogMessage = Messages.getMessage("select_inactive_module_for_command_description", actionName);
                             } else {
                                 dialogTitle = Messages.getMessage("select_module_for_command_title");
-                                dialogMessage = Messages.getMessage("select_module_for_command_description", commandName);
+                                dialogMessage = Messages.getMessage("select_module_for_command_description", actionName);
                             }
 
                             dialog.setTitle(dialogTitle);
@@ -1294,20 +1357,26 @@ public class DevModeOperations {
      *
      * @throws Exception if no projects with test reports are found.
      */
-    public ProjectModel resolveTestReportTarget(ProjectModel projectModel, String commandName) throws Exception {
+    public ProjectModel resolveTestReportTarget(ProjectModel projectModel, DashboardAction action) throws Exception {
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { projectModel, commandName });
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { projectModel, action.toString() });
         }
 
         final ProjectModel[] targetProject = new ProjectModel[1];
 
         // Get dependent projects (declared in build config) with test source files
-        List<ProjectModel> dependentsWithTests = projectModel.getDependentProjectsWithTests();
+        List<ProjectModel> dependentsWithTests = getDependentProjectsWithTestReports(projectModel, action);
 
-        // If no dependents have tests, check if the parent itself has tests
+        // If no dependents have tests reports, check if the parent itself has it.
         if (dependentsWithTests.isEmpty()) {
-            if (projectModel.hasTests()) {
-                targetProject[0] = projectModel;
+            if (action == DashboardAction.OPEN_MVN_IT_TEST_REPORT) {
+                if (getMavenITReportPath(projectModel.getPath(), projectModel.getName(), false) != null) {
+                    targetProject[0] = projectModel;
+                }
+            } else if (action == DashboardAction.OPEN_MVN_UT_TEST_REPORT) {
+                if (getMavenUTReportPath(projectModel.getPath(), projectModel.getName(), false) != null) {
+                    targetProject[0] = projectModel;
+                }
             } else {
                 String msg = Messages.getMessage("no_test_reports_found", projectModel.getName());
                 throw new Exception(msg);
@@ -1316,8 +1385,15 @@ public class DevModeOperations {
             // If we are here, the selected liberty project has at least one dependent.
             // Add the liberty project to the list if it has any tests.
             List<ProjectModel> projectsToDisplay = new ArrayList<ProjectModel>(dependentsWithTests);
-            if (projectModel.hasTests()) {
-                projectsToDisplay.add(projectModel);
+            
+            if (action == DashboardAction.OPEN_MVN_IT_TEST_REPORT) {
+                if (getMavenITReportPath(projectModel.getPath(), projectModel.getName(), false) != null) {
+                    projectsToDisplay.add(projectModel);
+                }
+            } else if (action == DashboardAction.OPEN_MVN_UT_TEST_REPORT) {
+                if (getMavenUTReportPath(projectModel.getPath(), projectModel.getName(), false) != null) {
+                    projectsToDisplay.add(projectModel);
+                }
             }
 
             Display.getDefault().syncExec(new Runnable() {
@@ -1347,8 +1423,9 @@ public class DevModeOperations {
                         // Set size to show up to 10 items, then scrollbar appears
                         dialog.setSize(60, 10);
 
+                        String actionCmdName = getTranslatedActionCommand(action);
                         dialog.setTitle(Messages.getMessage("select_module_for_test_report_title"));
-                        dialog.setMessage(Messages.getMessage("select_module_for_test_report_description", commandName));
+                        dialog.setMessage(Messages.getMessage("select_module_for_test_report_description", actionCmdName));
                         dialog.setElements(projectsToDisplay.toArray());
                         dialog.setInitialSelections(new Object[] { projectsToDisplay.get(0) });
                         dialog.setHelpAvailable(false);
@@ -1367,8 +1444,9 @@ public class DevModeOperations {
                 }
             });
 
+            // If the user exited the dialog or there are no projects with tests reports.
             if (targetProject[0] == null) {
-                return null; // User cancelled
+                return null;
             }
         }
 
@@ -1377,6 +1455,59 @@ public class DevModeOperations {
         }
 
         return targetProject[0];
+    }
+
+    /**
+     * Returns the translated test report dashboard action command.
+     * 
+     * @param projectModel The project model associated with the test report.
+     * @param testType     The test type (UT/IT);
+     * 
+     * @return the translated test report dashboard action command.
+     */
+    private String getTranslatedActionCommand(DashboardAction action) {
+        String msg = switch (action) {
+            case DashboardAction.START -> msg = Messages.getMessage("dashboard_action_start");
+            case DashboardAction.START_CFG -> msg = Messages.getMessage("dashboard_action_start_config");
+            case DashboardAction.START_CTR -> msg = Messages.getMessage("dashboard_action_start_in_container");
+            case DashboardAction.DEBUG -> msg = Messages.getMessage("dashboard_action_debug");
+            case DashboardAction.DEBUG_CFG -> msg = Messages.getMessage("dashboard_action_debug_config");
+            case DashboardAction.DEBUG_CTR -> msg = Messages.getMessage("dashboard_action_debug_in_container");
+            case DashboardAction.STOP -> msg = Messages.getMessage("dashboard_action_stop");
+            case DashboardAction.RUNTESTS -> msg = Messages.getMessage("dashboard_action_run_tests");
+            case DashboardAction.OPEN_MVN_IT_TEST_REPORT -> msg = Messages.getMessage("dashboard_action_view_mvn_it_report");
+            case DashboardAction.OPEN_MVN_UT_TEST_REPORT -> msg = Messages.getMessage("dashboard_action_view_mvn_ut_report");
+            case DashboardAction.OPEN_GRADLE_TEST_REPORT -> msg = Messages.getMessage("dashboard_action_view_gradle_test_report");
+            default -> "";
+        };
+
+        return msg;
+    }
+
+    /**
+     * Returns the list of direct and transitive dependent modules (within the same
+     * multi-module build) that have test source files.
+     *
+     * @return The list of dependent modules that have test source files.
+     */
+    public List<ProjectModel> getDependentProjectsWithTestReports(ProjectModel projectModel, DashboardAction action) {
+        List<ProjectModel> projectsWithTests = new ArrayList<>();
+
+        if (projectModel.getBuildType() == BuildType.Maven) {
+            for (ProjectModel dependency : projectModel.getTransitiveDependentModules()) {
+                if (action == DashboardAction.OPEN_MVN_IT_TEST_REPORT) {
+                    if (getMavenITReportPath(dependency.getPath(), dependency.getName(), false) != null) {
+                        projectsWithTests.add(dependency);
+                    }
+                } else if (action == DashboardAction.OPEN_MVN_UT_TEST_REPORT) {
+                    if (getMavenUTReportPath(dependency.getPath(), dependency.getName(), false) != null) {
+                        projectsWithTests.add(dependency);
+                    }
+                }
+            }
+        }
+
+        return projectsWithTests;
     }
 
     /**
