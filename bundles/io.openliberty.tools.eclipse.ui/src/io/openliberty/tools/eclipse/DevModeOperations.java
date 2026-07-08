@@ -94,6 +94,11 @@ public class DevModeOperations {
             this.name = name;
         }
 
+        /**
+         * Returns the name of the dashboard action.
+         * 
+         * @return The name of the dashboard action.
+         */
         public String getName() {
             return name;
         }
@@ -110,15 +115,6 @@ public class DevModeOperations {
     /**
      * Constants.
      */
-    public static final String ACTION_START_NAME = "Start";
-    public static final String ACTION_START_CFG_NAME = "Start...";
-    public static final String ACTION_START_CTR_NAME = "Start in container";
-    public static final String ACTION_DEBUG_NAME = "Debug";
-    public static final String ACTION_DEBUG_CFG_NAME = "Debug...";
-    public static final String ACTION_DEBUG_CTR_NAME = "Debug in container";
-    public static final String ACTION_STOP_NAME = "Stop";
-    public static final String ACTION_RUN_TESTS_NAME = "Run tests";
-
     public static final String ACTION_MVN_IT_REPORT_NAME = "View integration test report";
     public static final String ACTION_MVN_UT_REPORT_NAME = "View unit test report";
     public static final String ACTION_GDLTEST_REPORT_NAME = "View test report";
@@ -195,7 +191,7 @@ public class DevModeOperations {
     /**
      * Provides a singleton reference to the debug mode handler
      * 
-     * @returns the debug mode handler
+     * @return the debug mode handler
      */
     public DebugModeHandler getDebugModeHandler() {
         return debugModeHandler;
@@ -408,7 +404,7 @@ public class DevModeOperations {
                 targetProjectExecPath = commandData.getExecutionPath();
             } else {
                 throw new Exception("Unexpected project build type: " + buildType + ". Project " + targetProjectName
-                                    + "does not appear to be a Maven or Gradle built project.");
+                                    + " does not appear to be a Maven or Gradle built project.");
             }
 
             // Run the application in dev mode.
@@ -455,7 +451,7 @@ public class DevModeOperations {
         String targetProjectName = targetProjectModel.getName();
 
         try {
-            // Check if the stop action has already been issued of if a start action was never issued before.
+            // Check if the stop action has already been issued or if a start action was never issued before.
             if (!processController.isProcessStarted(targetProjectName)) {
                 String msg = Messages.getMessage("stop_already_issued", targetProjectName);
                 handleStopActionError(targetProjectName, msg);
@@ -762,10 +758,10 @@ public class DevModeOperations {
     }
 
     /**
-     * Informs the users of the error and prompts them to chose whether or not to allow the Liberty plugin stop command to be issued
+     * Informs the user of the error and prompts them to choose whether or not to allow the Liberty plugin stop command to be issued
      * for the specified project.
-     * 
-     * @param projectName The name of the project for which the the Liberty plugin stop command is issued.
+     *
+     * @param projectName The name of the project for which the Liberty plugin stop command is issued.
      * @param baseMsg     The base message to display.
      */
     private void handleStopActionError(String projectName, String baseMsg) {
@@ -780,7 +776,7 @@ public class DevModeOperations {
     /**
      * Issues the Liberty plugin stop command to stop the Liberty server associated with the specified project.
      * 
-     * @param projectName The name of the project for which the the Liberty plugin stop command is issued.
+     * @param projectName The name of the project for which the Liberty plugin stop command is issued.
      */
     private void issueStopCommand(String projectName) {
         if (Trace.isEnabled()) {
@@ -1010,7 +1006,7 @@ public class DevModeOperations {
      *
      * @param projectPath The project's path.
      *
-     * @return The custom path of the HTML file containing the or the default location.
+     * @return The custom path of the HTML file containing the test report, or the default location.
      */
     public static Path getGradleTestReportPath(String projectPath) {
         // TODO: Look for custom dir entry in build.gradle:
@@ -1467,17 +1463,17 @@ public class DevModeOperations {
      */
     private String getTranslatedActionCommand(DashboardAction action) {
         String msg = switch (action) {
-            case DashboardAction.START -> msg = Messages.getMessage("dashboard_action_start");
-            case DashboardAction.START_CFG -> msg = Messages.getMessage("dashboard_action_start_config");
-            case DashboardAction.START_CTR -> msg = Messages.getMessage("dashboard_action_start_in_container");
-            case DashboardAction.DEBUG -> msg = Messages.getMessage("dashboard_action_debug");
-            case DashboardAction.DEBUG_CFG -> msg = Messages.getMessage("dashboard_action_debug_config");
-            case DashboardAction.DEBUG_CTR -> msg = Messages.getMessage("dashboard_action_debug_in_container");
-            case DashboardAction.STOP -> msg = Messages.getMessage("dashboard_action_stop");
-            case DashboardAction.RUNTESTS -> msg = Messages.getMessage("dashboard_action_run_tests");
-            case DashboardAction.OPEN_MVN_IT_TEST_REPORT -> msg = Messages.getMessage("dashboard_action_view_mvn_it_report");
-            case DashboardAction.OPEN_MVN_UT_TEST_REPORT -> msg = Messages.getMessage("dashboard_action_view_mvn_ut_report");
-            case DashboardAction.OPEN_GRADLE_TEST_REPORT -> msg = Messages.getMessage("dashboard_action_view_gradle_test_report");
+            case DashboardAction.START -> Messages.getMessage("dashboard_action_start");
+            case DashboardAction.START_CFG -> Messages.getMessage("dashboard_action_start_config");
+            case DashboardAction.START_CTR -> Messages.getMessage("dashboard_action_start_in_container");
+            case DashboardAction.DEBUG -> Messages.getMessage("dashboard_action_debug");
+            case DashboardAction.DEBUG_CFG -> Messages.getMessage("dashboard_action_debug_config");
+            case DashboardAction.DEBUG_CTR -> Messages.getMessage("dashboard_action_debug_in_container");
+            case DashboardAction.STOP -> Messages.getMessage("dashboard_action_stop");
+            case DashboardAction.RUNTESTS -> Messages.getMessage("dashboard_action_run_tests");
+            case DashboardAction.OPEN_MVN_IT_TEST_REPORT -> Messages.getMessage("dashboard_action_view_mvn_it_report");
+            case DashboardAction.OPEN_MVN_UT_TEST_REPORT -> Messages.getMessage("dashboard_action_view_mvn_ut_report");
+            case DashboardAction.OPEN_GRADLE_TEST_REPORT -> Messages.getMessage("dashboard_action_view_gradle_test_report");
             default -> "";
         };
 

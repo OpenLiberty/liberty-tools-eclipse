@@ -18,6 +18,7 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.IEditorPart;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
+import io.openliberty.tools.eclipse.DevModeOperations.DashboardAction;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.messages.Messages;
 import io.openliberty.tools.eclipse.model.ProjectModel;
@@ -115,19 +116,19 @@ public class OpenGradleTestReportAction implements ILaunchShortcut {
         }
 
         // Resolve the target project taking into account only those that are actively running.
-        ProjectModel targetProjectModel = devModeOps.resolveCommandTarget(selectedProjectModel, "View Gradle Test Report", DevModeOperations.ServerFilterMode.ACTIVE_ONLY);
+        ProjectModel targetProjectModel = devModeOps.resolveCommandTarget(selectedProjectModel, DashboardAction.OPEN_GRADLE_TEST_REPORT, DevModeOperations.ServerFilterMode.ACTIVE_ONLY);
         if (targetProjectModel == null) {
             return;
         }
 
-        // Update the active selection to the selected target project if the original selection does match the target.
+        // Update the active selection to the selected target project if the original selection does not match the target.
         String targetProjectName = targetProjectModel.getName();
         if (!selectedProjectName.equals(targetProjectName)) {
             Utils.updateActiveSelection(targetProjectModel);
         }
 
         // Resolve the target project containing the test report to view.
-        targetProjectModel = devModeOps.resolveTestReportTarget(targetProjectModel, "View Gradle Test Report");
+        targetProjectModel = devModeOps.resolveTestReportTarget(targetProjectModel, DashboardAction.OPEN_GRADLE_TEST_REPORT);
         if (targetProjectModel == null) {
             return;
         }
