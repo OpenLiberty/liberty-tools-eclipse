@@ -226,9 +226,9 @@ public class ProjectModel {
     }
 
     /**
-     * Returns the list child projects that contain Liberty server configuration.
-     * 
-     * @return The list child projects that contain Liberty server configuration.
+     * Returns the list of child projects that contain Liberty server configuration.
+     *
+     * @return The list of child projects that contain Liberty server configuration.
      */
     public List<ProjectModel> getChildLibertyServerProjects() {
         ArrayList<ProjectModel> clsps = new ArrayList<ProjectModel>();
@@ -243,18 +243,18 @@ public class ProjectModel {
     }
 
     /**
-     * Returns the list child projects.
-     * 
-     * @return The list child projects..
+     * Returns the list of child projects.
+     *
+     * @return The list of child projects.
      */
     public List<ProjectModel> getChildProjects() {
         return new ArrayList<>(childDirProjects);
     }
 
     /**
-     * Returns the list child projects that contain the java nature.
-     * 
-     * @return The list child projects that contain the java nature.
+     * Returns the list of child projects that contain the java nature.
+     *
+     * @return The list of child projects that contain the java nature.
      */
     public List<ProjectModel> getChildJavaProjects() {
         return filterJavaProjects(childDirProjects);
@@ -277,17 +277,17 @@ public class ProjectModel {
      * @return The list of projects that contain the Java nature from the input set.
      */
     public List<ProjectModel> filterJavaProjects(Set<ProjectModel> projects) {
-        ArrayList<ProjectModel> javaProjecs = new ArrayList<ProjectModel>();
+        ArrayList<ProjectModel> javaProjects = new ArrayList<ProjectModel>();
         for (ProjectModel child : projects) {
             try {
                 if (child.getIProject().hasNature(JAVA_NATURE_ID)) {
-                    javaProjecs.add(child);
+                    javaProjects.add(child);
                 }
             } catch (CoreException e) {
                 ErrorHandler.processWarningMessage(Messages.getMessage("determine_java_project_error", child.getName()), e, false);
             }
         }
-        return javaProjecs;
+        return javaProjects;
     }
 
     /**
@@ -297,7 +297,7 @@ public class ProjectModel {
      * 
      * @return A Java project that is a peer or child of the input project.
      * 
-     * @throws Exception If none of the associated projecs
+     * @throws Exception If none of the associated projects
      */
     public ProjectModel getAssociatedJavaProject(ProjectModel project) throws Exception {
         if (Trace.isEnabled()) {
