@@ -18,6 +18,7 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.IEditorPart;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
+import io.openliberty.tools.eclipse.DevModeOperations.DashboardAction;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.messages.Messages;
 import io.openliberty.tools.eclipse.model.ProjectModel;
@@ -113,12 +114,12 @@ public class StopAction implements ILaunchShortcut {
         }
 
         // Resolve the target project taking into account only those that are actively running.
-        ProjectModel targetProjectModel = devModeOps.resolveCommandTarget(selectedProjectModel, "Stop", DevModeOperations.ServerFilterMode.ACTIVE_ONLY);
+        ProjectModel targetProjectModel = devModeOps.resolveCommandTarget(selectedProjectModel, DashboardAction.STOP, DevModeOperations.ServerFilterMode.ACTIVE_ONLY);
         if (targetProjectModel == null) {
             return;
         }
 
-        // Update the active selection to the selected target project if the original selection does match the target.
+        // Update the active selection to the selected target project if the original selection does not match the target.
         String targetProjectName = targetProjectModel.getName();
         if (!selectedProjectName.equals(targetProjectName)) {
             Utils.updateActiveSelection(targetProjectModel);
