@@ -18,6 +18,7 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.ui.IEditorPart;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
+import io.openliberty.tools.eclipse.DevModeOperations.DashboardAction;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.messages.Messages;
 import io.openliberty.tools.eclipse.model.ProjectModel;
@@ -115,20 +116,21 @@ public class OpenMavenITestReportAction implements ILaunchShortcut {
         }
 
         // Resolve the target project taking into account only those that are actively running.
-        ProjectModel targetProjectModel = devModeOps.resolveCommandTarget(selectedProjectModel, "View Maven Integration Test Report",
+        ProjectModel targetProjectModel = devModeOps.resolveCommandTarget(selectedProjectModel,
+                                                                          DashboardAction.OPEN_MVN_IT_TEST_REPORT,
                                                                           DevModeOperations.ServerFilterMode.ACTIVE_ONLY);
         if (targetProjectModel == null) {
             return;
         }
 
-        // Update the active selection to the selected target project if the original selection does match the target.
+        // Update the active project selection on the dashboard.
         String targetProjectName = targetProjectModel.getName();
         if (!selectedProjectName.equals(targetProjectName)) {
             Utils.updateActiveSelection(targetProjectModel);
         }
 
-        // Resolve the target project containing the test report to view.
-        targetProjectModel = devModeOps.resolveTestReportTarget(targetProjectModel, "View Maven Integration Test Report");
+        // Resolve the test report to view.
+        targetProjectModel = devModeOps.resolveTestReportTarget(targetProjectModel, DashboardAction.OPEN_MVN_IT_TEST_REPORT);
         if (targetProjectModel == null) {
             // User cancelled the selection dialog
             return;

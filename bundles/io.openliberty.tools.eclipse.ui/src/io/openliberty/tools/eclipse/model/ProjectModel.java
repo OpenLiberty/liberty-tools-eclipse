@@ -13,7 +13,9 @@
 package io.openliberty.tools.eclipse.model;
 
 import java.nio.file.Paths;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Deque;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -224,9 +226,9 @@ public class ProjectModel {
     }
 
     /**
-     * Returns the list child projects that contain Liberty server configuration.
-     * 
-     * @return The list child projects that contain Liberty server configuration.
+     * Returns the list of child projects that contain Liberty server configuration.
+     *
+     * @return The list of child projects that contain Liberty server configuration.
      */
     public List<ProjectModel> getChildLibertyServerProjects() {
         ArrayList<ProjectModel> clsps = new ArrayList<ProjectModel>();
@@ -241,18 +243,18 @@ public class ProjectModel {
     }
 
     /**
-     * Returns the list child projects.
-     * 
-     * @return The list child projects..
+     * Returns the list of child projects.
+     *
+     * @return The list of child projects.
      */
     public List<ProjectModel> getChildProjects() {
         return new ArrayList<>(childDirProjects);
     }
 
     /**
-     * Returns the list child projects that contain the java nature.
-     * 
-     * @return The list child projects that contain the java nature.
+     * Returns the list of child projects that contain the java nature.
+     *
+     * @return The list of child projects that contain the java nature.
      */
     public List<ProjectModel> getChildJavaProjects() {
         return filterJavaProjects(childDirProjects);
@@ -275,17 +277,17 @@ public class ProjectModel {
      * @return The list of projects that contain the Java nature from the input set.
      */
     public List<ProjectModel> filterJavaProjects(Set<ProjectModel> projects) {
-        ArrayList<ProjectModel> javaProjecs = new ArrayList<ProjectModel>();
+        ArrayList<ProjectModel> javaProjects = new ArrayList<ProjectModel>();
         for (ProjectModel child : projects) {
             try {
                 if (child.getIProject().hasNature(JAVA_NATURE_ID)) {
-                    javaProjecs.add(child);
+                    javaProjects.add(child);
                 }
             } catch (CoreException e) {
                 ErrorHandler.processWarningMessage(Messages.getMessage("determine_java_project_error", child.getName()), e, false);
             }
         }
-        return javaProjecs;
+        return javaProjects;
     }
 
     /**
@@ -295,7 +297,7 @@ public class ProjectModel {
      * 
      * @return A Java project that is a peer or child of the input project.
      * 
-     * @throws Exception If none of the associated projecs
+     * @throws Exception If none of the associated projects
      */
     public ProjectModel getAssociatedJavaProject(ProjectModel project) throws Exception {
         if (Trace.isEnabled()) {
@@ -630,20 +632,60 @@ public class ProjectModel {
     }
 
     /**
-     * Returns the list of dependent projects that have test source files.
-     * This filters to only projects explicitly declared as dependencies in the build configuration.
+     * Returns all modules that belong to the same multi-module project as this module.
+     * It walks up to the root of the multi-module hierarchy, then collects the root and
+     * every descendant. For a standalone (single-module) project the returned set
+     * contains only this module.
      *
-     * @return The list of dependent projects that have test source files.
+     * @return The set of all modules in the same multi-module build.
      */
-    public List<ProjectModel> getDependentProjectsWithTests() {
-        ArrayList<ProjectModel> projectsWithTests = new ArrayList<ProjectModel>();
-
-        for (ProjectModel dependent : dependentProjects) {
-            if (dependent.hasTests()) {
-                projectsWithTests.add(dependent);
-            }
+    public Set<ProjectModel> getAllModulesInSameMultiModuleBuild() {
+        // Walk up to the root of this multi-module build.
+        ProjectModel root = this;
+        while (root.parentProjectModel != null) {
+            root = root.parentProjectModel;
         }
 
-        return projectsWithTests;
+        Set<ProjectModel> all = ConcurrentHashMap.newKeySet();
+        collectDescendants(root, all);
+        return all;
+    }
+
+    /**
+     * Recursively collects nodes and all of its descendants into the input set collection.
+     *
+     * @param node   The starting node.
+     * @param result The set to populate.
+     */
+    private static void collectDescendants(ProjectModel node, Set<ProjectModel> result) {
+        result.add(node);
+        for (ProjectModel child : node.childDirProjects) {
+            collectDescendants(child, result);
+        }
+    }
+
+    /**
+     * Returns the set of direct and transitive dependent modules within the same
+     * multi-module project. The traversal only looks at the dependencies that stay
+     * within the same multi-module project. Third-party library dependencies are not 
+     * included.
+     *
+     * @return The set of direct and transitive dependent modules scoped to the same
+     *         multi-module project.
+     */
+    public Set<ProjectModel> getTransitiveDependentModules() {
+        Set<ProjectModel> siblings = getAllModulesInSameMultiModuleBuild();
+
+        Set<ProjectModel> visited = ConcurrentHashMap.newKeySet();
+        Deque<ProjectModel> queue = new ArrayDeque<>(dependentProjects);
+
+        while (!queue.isEmpty()) {
+            ProjectModel current = queue.poll();
+            // Only follow edges to sibling modules; never include self.
+            if (current != this && siblings.contains(current) && visited.add(current)) {
+                queue.addAll(current.dependentProjects);
+            }
+        }
+        return visited;
     }
 }
