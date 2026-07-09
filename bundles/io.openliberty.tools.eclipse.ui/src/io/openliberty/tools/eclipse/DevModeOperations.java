@@ -52,6 +52,7 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.browser.IWebBrowser;
 import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
 import org.eclipse.ui.dialogs.ElementListSelectionDialog;
+import io.openliberty.tools.eclipse.ui.ElementListSelectionDialogWrapper;
 
 import io.openliberty.tools.eclipse.CommandBuilder.CommandData;
 import io.openliberty.tools.eclipse.CommandBuilder.CommandNotFoundException;
@@ -1228,6 +1229,12 @@ public class DevModeOperations {
                         inactiveChildren.add(child);
                     }
                 }
+                
+                if (inactiveChildren.size() == 0) {
+                    String msg = Messages.getMessage("no_liberty_modules_found", projectModel.getName());
+                    throw new Exception(msg);  
+                }
+
                 libertyChildren = inactiveChildren;
             } else {
                 libertyChildren = allLibertyChildren;
@@ -1264,7 +1271,7 @@ public class DevModeOperations {
 
                         try {
                             // Create a professional selection dialog using Eclipse standard pattern
-                            ElementListSelectionDialog dialog = new ElementListSelectionDialog(shell, new LabelProvider() {
+                            ElementListSelectionDialog dialog = new ElementListSelectionDialogWrapper(shell, new LabelProvider() {
                                 @Override
                                 public String getText(Object element) {
                                     ProjectModel pm = (ProjectModel) element;
@@ -1286,13 +1293,13 @@ public class DevModeOperations {
                             String dialogMessage;
                             String actionName = getTranslatedActionCommand(action);
                             if (filterMode == ServerFilterMode.ACTIVE_ONLY) {
-                                dialogTitle = Messages.getMessage("select_active_module_for_command_title");
+                                dialogTitle = Messages.getMessage("select_module_title");
                                 dialogMessage = Messages.getMessage("select_active_module_for_command_description", actionName);
                             } else if (filterMode == ServerFilterMode.INACTIVE_ONLY) {
-                                dialogTitle = Messages.getMessage("select_inactive_module_for_command_title");
+                                dialogTitle = Messages.getMessage("select_module_title");
                                 dialogMessage = Messages.getMessage("select_inactive_module_for_command_description", actionName);
                             } else {
-                                dialogTitle = Messages.getMessage("select_module_for_command_title");
+                                dialogTitle = Messages.getMessage("select_module_title");
                                 dialogMessage = Messages.getMessage("select_module_for_command_description", actionName);
                             }
 
@@ -1402,7 +1409,7 @@ public class DevModeOperations {
                     final Image gradleImg = Utils.getImage(display, DashboardView.GRADLE_IMG_TAG_PATH);
 
                     try {
-                        ElementListSelectionDialog dialog = new ElementListSelectionDialog(shell, new LabelProvider() {
+                        ElementListSelectionDialog dialog = new ElementListSelectionDialogWrapper(shell, new LabelProvider() {
                             @Override
                             public String getText(Object element) {
                                 ProjectModel pm = (ProjectModel) element;
