@@ -22,5 +22,5 @@
     <repository-reference location="https://download.eclipse.org/lsp4mp/releases/0.17.0/repository" enabled="true" />
     <repository-reference location="https://download.eclipse.org/lsp4j/updates/releases/0.24.0/" enabled="true" />
     <repository-reference location="https://download.eclipse.org/lsp4e/releases/0.29.5/" enabled="true" />
-    <repository-reference location="https://download.eclipse.org/lsp4jakarta/snapshots/0.2.6/repository" enabled="true" />
+    <repository-reference location="https://download.eclipse.org/lsp4jakarta/releases/0.2.6/repository" enabled="true" />
 </site>
