@@ -51,7 +51,7 @@
             <unit id="org.eclipse.cdt.launch" version="11.0.200.202512020204"/>
         </location>
         <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-            <repository location="http://download.eclipse.org/lsp4mp/releases/0.17.0/repository/"/>
+            <repository location="https://download.eclipse.org/lsp4mp/releases/0.17.0/repository/"/>
             <unit id="org.eclipse.lsp4mp.jdt.core" version="0.17.0.20260422-1745"/>
         </location>
         <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
