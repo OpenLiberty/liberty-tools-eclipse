@@ -77,7 +77,7 @@ public class CommandBuilder {
         // the process working directory rather than from the script's own directory. When in a multi-module
         // project, if the child has its own wrapper,and the command is executed from the parent
         // directory, the walk fails to find the child's .mvn directory.
-        // To go around this issue on Windows, we do the follwing:
+        // To go around this issue on Windows, we do the following:
         // - Set the process working directory to the child's directory so that the mvnw.cmd walk can find
         //   the .mvn directory.
         // - Append "-f <parent-pom>" to the command to process the parent/aggregator pom so that the reactor 
