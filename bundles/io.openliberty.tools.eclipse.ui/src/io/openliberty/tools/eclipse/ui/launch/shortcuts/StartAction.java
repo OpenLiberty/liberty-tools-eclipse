@@ -14,6 +14,7 @@ package io.openliberty.tools.eclipse.ui.launch.shortcuts;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.debug.core.ILaunchConfiguration;
+import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.ui.DebugUITools;
 import org.eclipse.debug.ui.ILaunchShortcut;
 import org.eclipse.jface.viewers.ISelection;
@@ -98,7 +99,8 @@ public class StartAction implements ILaunchShortcut {
     public static void run(IProject iProject, String mode) throws Exception {
         // Make sure the project is valid.
         if (iProject == null) {
-            throw new Exception(Messages.getMessage("launch_shortcut_project_not_found"));
+            String msg = (ILaunchManager.DEBUG_MODE.equals(mode)) ? Messages.getMessage("debug_no_project_found") : Messages.getMessage("start_no_project_found");
+            throw new Exception(msg);
         }
 
         // Resolve the selected project.
@@ -118,8 +120,18 @@ public class StartAction implements ILaunchShortcut {
             return;
         }
 
-        // Update the active selection to the selected target project if the original selection does not match the target.
+        // Check if project is already started
         String targetProjectName = targetProjectModel.getName();
+        if (devModeOps.isProjectStarted(targetProjectModel)) {
+
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, "The start request was already issued on project " + targetProjectName);
+            }
+            throw new Exception(Messages.getMessage("start_already_issued"));
+        }
+
+        
+        // Update the active selection to the selected target project if the original selection does not match the target.
         if (!selectedProjectName.equals(targetProjectName)) {
             Utils.updateActiveSelection(targetProjectModel);
         }
