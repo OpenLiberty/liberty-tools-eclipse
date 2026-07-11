@@ -99,18 +99,21 @@ public class StopAction implements ILaunchShortcut {
     public static void run(IProject iProject) throws Exception {
         // Make sure the project is valid.
         if (iProject == null) {
-            throw new Exception(Messages.getMessage("launch_shortcut_project_not_found"));
+            throw new Exception(Messages.getMessage("stop_no_project_found"));
         }
 
         // Resolve the selected project.
         DevModeOperations devModeOps = DevModeOperations.getInstance();
         String selectedProjectName = iProject.getName();
         String selectedProjectLocation = iProject.getLocation().toOSString();
-        ProjectModel selectedProjectModel = devModeOps.getWorkspaceModel().getProjectByLocation(selectedProjectLocation);   
-        
-        // Validate that we know about the selected project.
+        ProjectModel selectedProjectModel = devModeOps.getWorkspaceModel().getProjectByLocation(selectedProjectLocation);
+
         if (selectedProjectModel == null) {
-            throw new IllegalStateException(Messages.getMessage("internal_project_not_found", selectedProjectName));
+            String msg = "Project " + selectedProjectName + " is not a supported project. Verify that the project is configured to run on a Liberty server.";
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, msg);
+            }
+            throw new Exception(Messages.getMessage("internal_project_not_found"));
         }
 
         // Resolve the target project taking into account only those that are actively running.

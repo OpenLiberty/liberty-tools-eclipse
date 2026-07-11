@@ -172,8 +172,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
 
             String projectName = configuration.getAttribute(PROJECT_NAME, (String) null);
             if (projectName == null) {
-                super.setErrorMessage(
-                                      "A project must be selected in order to provide a context to associate the run configuration with.  Either use a tree view like Package Explorer or have an editor window.");
+                super.setErrorMessage(Messages.getMessage("run_config_no_project_selected"));
             } else {
                 projectNameLabel.setText(projectName);
             }
@@ -217,8 +216,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
             String configProjectName = config.getAttribute(PROJECT_NAME, (String) null);
 
             if (configProjectName == null) {
-                super.setErrorMessage(
-                                      "This Run/Debug config is corrupted and can't be used since no project was selected before creating. To create a new Run/Debug config first select a project in the Liberty dashboard, Project/Package explorer view, or via editor.");
+                super.setErrorMessage(Messages.getMessage("run_config_corrupted"));
                 return false;
             }
 

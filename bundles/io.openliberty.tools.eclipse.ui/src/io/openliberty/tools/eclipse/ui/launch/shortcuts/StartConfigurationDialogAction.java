@@ -114,7 +114,8 @@ public class StartConfigurationDialogAction implements ILaunchShortcut {
     public static void run(IProject iProject, String mode) throws Exception {
         // Make sure the project is valid.
         if (iProject == null) {
-            throw new Exception(Messages.getMessage("launch_shortcut_project_not_found"));
+            String msg = (ILaunchManager.DEBUG_MODE.equals(mode)) ? Messages.getMessage("debug_cfg_no_project_found") : Messages.getMessage("start_cfg_no_project_found");
+            throw new Exception(msg);
         }
 
         //ProjectModel selectedProjectModel = null;

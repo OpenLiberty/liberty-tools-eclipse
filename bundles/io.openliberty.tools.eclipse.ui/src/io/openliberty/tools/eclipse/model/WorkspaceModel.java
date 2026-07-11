@@ -45,9 +45,8 @@ public class WorkspaceModel {
     }
 
     /**
-     * Build complete workspace project model. Do classify projects (add Liberty nature if conditions warrant)
-     * Should only be called
-     * on UI thread
+     * Builds a complete workspace project model. Classifies projects (adds Liberty nature if conditions warrant).
+     * Should only be called on the UI thread.
      */
     public void createNewCompleteWorkspaceModelWithClassify() {
         createNewCompleteWorkspaceModel(true);

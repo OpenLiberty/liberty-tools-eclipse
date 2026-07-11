@@ -101,7 +101,7 @@ public class OpenGradleTestReportAction implements ILaunchShortcut {
     public static void run(IProject iProject) throws Exception {
         // Make sure the project is valid.
         if (iProject == null) {
-            throw new Exception(Messages.getMessage("launch_shortcut_project_not_found"));
+            throw new Exception(Messages.getMessage("gradle_test_report_no_project_found"));
         }
 
         // Resolve the selected project.
@@ -112,7 +112,7 @@ public class OpenGradleTestReportAction implements ILaunchShortcut {
 
         // Validate that we know about the selected project.
         if (selectedProjectModel == null) {
-            throw new IllegalStateException(Messages.getMessage("internal_project_not_found", selectedProjectName));
+            throw new Exception(Messages.getMessage("internal_project_not_found", selectedProjectName));
         }
 
         // Resolve the target project taking into account only those that are actively running.
