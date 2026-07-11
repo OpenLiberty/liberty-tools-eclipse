@@ -14,6 +14,7 @@ package io.openliberty.tools.eclipse.ui.launch.shortcuts;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.debug.core.ILaunchConfiguration;
+import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.debug.ui.DebugUITools;
 import org.eclipse.debug.ui.ILaunchShortcut;
 import org.eclipse.jface.viewers.ISelection;
@@ -104,7 +105,8 @@ public class StartInContainerAction implements ILaunchShortcut {
     public static void run(IProject iProject, String mode) throws Exception {
         // Make sure the project is valid.
         if (iProject == null) {
-            throw new Exception(Messages.getMessage("launch_shortcut_project_not_found"));
+            String msg = (ILaunchManager.DEBUG_MODE.equals(mode)) ? Messages.getMessage("debug_container_no_project_found") : Messages.getMessage("start_container_no_project_found");
+            throw new Exception(msg);
         }
 
         DevModeOperations devModeOps = DevModeOperations.getInstance();

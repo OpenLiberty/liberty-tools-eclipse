@@ -52,7 +52,6 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.browser.IWebBrowser;
 import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
 import org.eclipse.ui.dialogs.ElementListSelectionDialog;
-import io.openliberty.tools.eclipse.ui.ElementListSelectionDialogWrapper;
 
 import io.openliberty.tools.eclipse.CommandBuilder.CommandData;
 import io.openliberty.tools.eclipse.CommandBuilder.CommandNotFoundException;
@@ -64,6 +63,7 @@ import io.openliberty.tools.eclipse.model.ProjectModel;
 import io.openliberty.tools.eclipse.model.ProjectModel.BuildType;
 import io.openliberty.tools.eclipse.model.WorkspaceModel;
 import io.openliberty.tools.eclipse.process.ProcessController;
+import io.openliberty.tools.eclipse.ui.ElementListSelectionDialogWrapper;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
 import io.openliberty.tools.eclipse.utils.Utils;
@@ -224,15 +224,6 @@ public class DevModeOperations {
             Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { targetProjectModel, parms, javaHomePath, mode });
         }
 
-        if (targetProjectModel == null) {
-            String msg = Messages.getMessage("start_no_project_found");
-            if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op.");
-            }
-            ErrorHandler.processErrorMessage(msg, true);
-            return;
-        }
-
         String targetProjectName = targetProjectModel.getName();
 
         try {
@@ -337,15 +328,6 @@ public class DevModeOperations {
             Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { targetProjectModel, parms, javaHomePath, mode });
         }
 
-        if (targetProjectModel == null) {
-            String msg = Messages.getMessage("start_container_no_project_found");
-            if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op.");
-            }
-            ErrorHandler.processErrorMessage(msg, true);
-            return;
-        }
-
         String targetProjectName = targetProjectModel.getName();
 
         try {
@@ -439,21 +421,12 @@ public class DevModeOperations {
             Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, targetProjectModel);
         }
 
-        if (targetProjectModel == null) {
-            String msg = "An error was detected when the stop request was processed. The object that represents the selected project was not found. When using the Run Configuration launcher, be sure to select a project or project content first.";
-            if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op.");
-            }
-            ErrorHandler.processErrorMessage(Messages.getMessage("stop_no_project_found"), true);
-            return;
-        }
-
         Utils.reEnableAppMonitoring(targetProjectModel);
         String targetProjectName = targetProjectModel.getName();
 
         try {
             // Check if the stop action has already been issued or if a start action was never issued before.
-            if (!processController.isProcessStarted(targetProjectName)) {
+            if (!isProjectStarted(targetProjectModel)) {
                 String msg = Messages.getMessage("stop_already_issued", targetProjectName);
                 handleStopActionError(targetProjectName, msg);
 
@@ -510,7 +483,7 @@ public class DevModeOperations {
         String targetProjectName = targetProjectModel.getName();
 
         // Check if the stop action has already been issued or if a start action was never issued before.
-        if (!processController.isProcessStarted(targetProjectName)) {
+        if (!isProjectStarted(targetProjectModel)) {
             String msg = "No start request was issued first or the stop request was already issued on project " + targetProjectName
                          + ". Issue a start request before you issue the run tests request.";
             if (Trace.isEnabled()) {
@@ -1181,20 +1154,6 @@ public class DevModeOperations {
      *
      * @param projectModel The project to resolve.
      * @param commandName  The command name for display purposes.
-     *
-     * @return The target project to execute or null if the user did not select one from a list options.
-     *
-     * @throws Exception if input the project is not Liberty configured, or it does not have a liberty configured module.
-     */
-    public ProjectModel resolveCommandTarget(ProjectModel projectModel, DashboardAction action) throws Exception {
-        return resolveCommandTarget(projectModel, action, ServerFilterMode.ALL);
-    }
-
-    /**
-     * Resolve the target project for a given action command.
-     *
-     * @param projectModel The project to resolve.
-     * @param commandName  The command name for display purposes.
      * @param filterMode   The server filter mode to apply.
      *
      * @return The target project to execute or null if the user did not select one from a list options.
@@ -1217,7 +1176,7 @@ public class DevModeOperations {
             if (filterMode == ServerFilterMode.ACTIVE_ONLY) {
                 List<ProjectModel> activeChildren = new ArrayList<>();
                 for (ProjectModel child : allLibertyChildren) {
-                    if (processController.isProcessStarted(child.getName())) {
+                    if (isProjectStarted(child)) {
                         activeChildren.add(child);
                     }
                 }
@@ -1225,14 +1184,16 @@ public class DevModeOperations {
             } else if (filterMode == ServerFilterMode.INACTIVE_ONLY) {
                 List<ProjectModel> inactiveChildren = new ArrayList<>();
                 for (ProjectModel child : allLibertyChildren) {
-                    if (!processController.isProcessStarted(child.getName())) {
+                    if (!isProjectStarted(child)) {
                         inactiveChildren.add(child);
                     }
                 }
-                
-                if (inactiveChildren.size() == 0) {
-                    String msg = Messages.getMessage("no_liberty_modules_found", projectModel.getName());
-                    throw new Exception(msg);  
+
+                if (!allLibertyChildren.isEmpty() && inactiveChildren.size() == 0 &&
+                    (action == DashboardAction.START || action == DashboardAction.START_CFG ||
+                     action == DashboardAction.START_CTR || action == DashboardAction.DEBUG ||
+                     action == DashboardAction.DEBUG_CFG || action == DashboardAction.DEBUG_CTR)) {
+                    throw new Exception(Messages.getMessage("no_inactive_liberty_modules_found"));
                 }
 
                 libertyChildren = inactiveChildren;
@@ -1388,7 +1349,7 @@ public class DevModeOperations {
             // If we are here, the selected liberty project has at least one dependent.
             // Add the liberty project to the list if it has any tests.
             List<ProjectModel> projectsToDisplay = new ArrayList<ProjectModel>(dependentsWithTests);
-            
+
             if (action == DashboardAction.OPEN_MVN_IT_TEST_REPORT) {
                 if (getMavenITReportPath(projectModel.getPath(), projectModel.getName(), false) != null) {
                     projectsToDisplay.add(projectModel);
@@ -1531,16 +1492,5 @@ public class DevModeOperations {
 
         Process process = builder.start();
         process.waitFor();
-    }
-
-    /**
-     * Checks if the dev mode process has been started for the specified project.
-     *
-     * @param projectName The name of the project to check.
-     *
-     * @return True if the dev mode process is started, false otherwise.
-     */
-    public boolean isDevModeProcessStarted(String projectName) {
-        return processController.isProcessStarted(projectName);
     }
 }

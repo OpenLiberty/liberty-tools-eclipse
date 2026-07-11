@@ -85,7 +85,7 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
 
                     launchDevMode(targetProjectModel, configuration, launch, mode);
                 } catch (Exception e) {
-                    String msg = "An error was detected when configuration was launched" + configuration.getName() + ".";
+                    String msg = "An error was detected when configuration " + configuration.getName() + " was launched.";
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
                     }
@@ -154,7 +154,7 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
         boolean runProjectClean = configuration.getAttribute(StartTab.PROJECT_CLEAN, false);
         String configParms = configuration.getAttribute(StartTab.PROJECT_START_PARM, (String) null);
         String javaHomePath = JRETab.resolveJavaHome(configuration);
-
+        
         // Process the action.
         DevModeOperations devModeOps = DevModeOperations.getInstance();
         if (runInContainer) {

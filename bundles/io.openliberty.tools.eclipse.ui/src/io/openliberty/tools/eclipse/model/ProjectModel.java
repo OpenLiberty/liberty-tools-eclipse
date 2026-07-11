@@ -39,7 +39,7 @@ import io.openliberty.tools.eclipse.utils.ErrorHandler;
  * of Liberty development. It tracks build types (Maven/Gradle), multi-module project
  * hierarchies, and Liberty server configuration presence.
  *
- * @see WorkspaceProjectsModel
+ * @see WorkspaceModel
  */
 public class ProjectModel {
 
