@@ -550,7 +550,7 @@ public class DebugModeHandler {
      * @param port    The port to connect to.
      * @param monitor The progress monitor instance.
      * 
-     * @returns The port that the debugger actually connected to.
+     * @return The port that the debugger actually connected to.
      * 
      * @throws Exception
      */

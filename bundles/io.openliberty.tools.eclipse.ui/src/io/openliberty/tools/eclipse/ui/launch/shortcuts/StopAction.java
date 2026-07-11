@@ -109,7 +109,7 @@ public class StopAction implements ILaunchShortcut {
         ProjectModel selectedProjectModel = devModeOps.getWorkspaceModel().getProjectByLocation(selectedProjectLocation);
 
         if (selectedProjectModel == null) {
-            String msg = "Project " + selectedProjectName + " is not a supported project. Verify that the project is configured to run on a Liberty server..";
+            String msg = "Project " + selectedProjectName + " is not a supported project. Verify that the project is configured to run on a Liberty server.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg);
             }

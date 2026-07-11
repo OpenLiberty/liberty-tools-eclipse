@@ -27,7 +27,7 @@ import io.openliberty.tools.eclipse.messages.Messages;
 import io.openliberty.tools.eclipse.utils.Utils;
 
 /**
- * Manages the set up running dev mode processes.
+ * Manages the set of running dev mode processes.
  */
 public class ProcessController {
 
