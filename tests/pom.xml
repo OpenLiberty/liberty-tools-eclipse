@@ -112,6 +112,28 @@
 		               			<id>org.eclipse.jdt.ls.core</id>
 		               			<versionRange>0.0.0</versionRange>
 		            		</requirement>
+		            		<!-- XML Editor support-->
+		            		<requirement>
+		            		 			<type>p2-installable-unit</type>
+		            		 			<id>org.eclipse.wst.xml.ui</id>
+		            		 			<versionRange>0.0.0</versionRange>
+		            		</requirement>
+		            		<!-- Wild Web Developer XML for LemMinX support -->
+		            		<requirement>
+		            		 			<type>p2-installable-unit</type>
+		            		 			<id>org.eclipse.wildwebdeveloper.xml.feature.feature.group</id>
+		            		 			<versionRange>0.0.0</versionRange>
+		            		</requirement>
+		            		<requirement>
+		            		 			<type>p2-installable-unit</type>
+		            		 			<id>org.eclipse.wst.sse.ui</id>
+		            		 			<versionRange>0.0.0</versionRange>
+		            		</requirement>
+		            		<requirement>
+		            		 			<type>p2-installable-unit</type>
+		            		 			<id>org.eclipse.wst.sse.core</id>
+		            		 			<versionRange>0.0.0</versionRange>
+		            		</requirement>
                         </extraRequirements>
                     </dependency-resolution>
                 </configuration>

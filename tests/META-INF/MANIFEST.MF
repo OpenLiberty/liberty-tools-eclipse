@@ -17,7 +17,11 @@ Require-Bundle: junit-jupiter-api,
  org.slf4j.api,
  org.junit,
  org.eclipse.ui.ide;bundle-version="[3.22.0,4.0.0)",
- org.eclipse.ui.workbench.texteditor;bundle-version="[3.19.0,4.0.0)"
+ org.eclipse.ui.workbench.texteditor;bundle-version="[3.19.0,4.0.0)",
+ org.eclipse.wst.xml.core,
+ org.eclipse.wst.xml.ui,
+ org.eclipse.wst.sse.ui,
+ org.eclipse.wst.sse.core
 Import-Package: io.openliberty.tools.eclipse,
  io.openliberty.tools.eclipse.debug,
  io.openliberty.tools.eclipse.ui.dashboard,
