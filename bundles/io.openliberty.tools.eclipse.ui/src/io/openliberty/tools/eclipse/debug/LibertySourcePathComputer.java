@@ -49,10 +49,10 @@ public class LibertySourcePathComputer implements ISourcePathComputerDelegate {
 
     /**
      * Gradle distribution that supports Java 21.
-     * Gradle version 8.4+ supports Java 21. 
+     * Gradle version 8.4+ supports Java 21.
      */
     private static String GRADLE_DISTRIBUTION_VERISION = "8.8";
-    
+
     ArrayList<IRuntimeClasspathEntry> unresolvedClasspathEntries;
 
     @Override
@@ -100,7 +100,8 @@ public class LibertySourcePathComputer implements ISourcePathComputerDelegate {
 
         // Resolve and get final list of source containers
         IRuntimeClasspathEntry[] resolvedClasspathDependencies = JavaRuntime.resolveSourceLookupPath(
-                unresolvedClasspathEntries.toArray(new IRuntimeClasspathEntry[unresolvedClasspathEntries.size()]), configuration);
+                                                                                                     unresolvedClasspathEntries.toArray(new IRuntimeClasspathEntry[unresolvedClasspathEntries.size()]),
+                                                                                                     configuration);
 
         ArrayList<ISourceContainer> containersList = new ArrayList<ISourceContainer>();
 
@@ -129,7 +130,7 @@ public class LibertySourcePathComputer implements ISourcePathComputerDelegate {
         if (project.getBuildType() == Project.BuildType.MAVEN) {
 
             MavenProject mavenModuleProject = MavenPlugin.getMavenModelManager().readMavenProject(project.getIProject().getFile("pom.xml"),
-                    new NullProgressMonitor());
+                                                                                                  new NullProgressMonitor());
             Set<Artifact> artifacts = mavenModuleProject.getArtifacts();
 
             for (Artifact artifact : artifacts) {
@@ -147,7 +148,7 @@ public class LibertySourcePathComputer implements ISourcePathComputerDelegate {
 
                 try {
                     eclipseProject = connection.getModel(EclipseProject.class);
-                } catch(BuildException e) {
+                } catch (BuildException e) {
                     // When using Eclipse IDE 2024-06, this exception could have been caused by the 
                     // Gradle tooling API using a Gradle distribution that does not support Java 21.
                     //
@@ -163,12 +164,12 @@ public class LibertySourcePathComputer implements ISourcePathComputerDelegate {
                     // provided by the tooling API, setting the version can be revised at a later time.
                     Throwable rootCause = Utils.findRootCause(e);
                     if (rootCause != null && rootCause instanceof IllegalArgumentException) {
-                         String message = rootCause.getMessage();
-                         
-                         if (message != null && message.contains("Unsupported class file major version 65")) {
-                             connection = getProjectGradleConnection(project.getIProject(), GRADLE_DISTRIBUTION_VERISION);
-                             eclipseProject = connection.getModel(EclipseProject.class);
-                         }
+                        String message = rootCause.getMessage();
+
+                        if (message != null && message.contains("Unsupported class file major version 65")) {
+                            connection = getProjectGradleConnection(project.getIProject(), GRADLE_DISTRIBUTION_VERISION);
+                            eclipseProject = connection.getModel(EclipseProject.class);
+                        }
                     } else {
                         throw e;
                     }
@@ -179,7 +180,7 @@ public class LibertySourcePathComputer implements ISourcePathComputerDelegate {
                     GradleModuleVersion gradleModuleVersion = externalDependency.getGradleModuleVersion();
 
                     IProject localProject = getLocalProject(gradleModuleVersion.getGroup(), gradleModuleVersion.getName(),
-                            gradleModuleVersion.getVersion());
+                                                            gradleModuleVersion.getVersion());
                     if (localProject != null) {
                         projectDependencies.add(localProject);
                     }
@@ -195,9 +196,9 @@ public class LibertySourcePathComputer implements ISourcePathComputerDelegate {
     /**
      * Returns a connection to the input gradle project.
      * 
-     * @param project The Gradle project.
+     * @param project           The Gradle project.
      * @param gradleDistVersion The gradle distribution version to be used by the
-     *                          Gradle API tooling.
+     *                              Gradle API tooling.
      * 
      * @return A connection to the input gradle project.
      */
@@ -248,8 +249,7 @@ public class LibertySourcePathComputer implements ISourcePathComputerDelegate {
 
         // If the project is a java project, get classpath entries for runtime dependencies
         if (project.isNatureEnabled(JavaCore.NATURE_ID)) {
-            List<IRuntimeClasspathEntry> runtimeDependencies = Arrays
-                    .asList(JavaRuntime.computeUnresolvedRuntimeClasspath(JavaCore.create(project)));
+            List<IRuntimeClasspathEntry> runtimeDependencies = Arrays.asList(JavaRuntime.computeUnresolvedRuntimeClasspath(JavaCore.create(project)));
             for (IRuntimeClasspathEntry runtimeDependency : runtimeDependencies) {
                 if (!unresolvedClasspathEntries.contains(runtimeDependency)) {
                     unresolvedClasspathEntries.add(runtimeDependency);

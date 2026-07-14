@@ -57,7 +57,7 @@ public class ExplorerMenuHandler extends AbstractHandler {
                 Trace.getTracer().trace(Trace.TRACE_HANDLERS, msg);
             }
 
-            ErrorHandler.processErrorMessage(NLS.bind(Messages.project_not_valid, null), true);
+            ErrorHandler.processErrorMessage(Messages.getMessage("project_not_valid"), true);
 
             return null;
         }
@@ -68,12 +68,12 @@ public class ExplorerMenuHandler extends AbstractHandler {
         try {
             commandName = command.getName();
         } catch (Exception e) {
-            String msg = "Unable to retrieve menu command.";
+            String msg = Messages.getMessage("menu_command_retrieve_error");
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_HANDLERS, msg, e);
             }
 
-            ErrorHandler.processErrorMessage(NLS.bind(Messages.menu_command_retrieve_error, null), e, true);
+            ErrorHandler.processErrorMessage(msg, e, true);
             return null;
         }
 
@@ -106,7 +106,7 @@ public class ExplorerMenuHandler extends AbstractHandler {
                 }
 
                 ErrorHandler.processErrorMessage(
-                        NLS.bind(Messages.menu_command_process_error, new String[] { commandName, iProject.getName() }), e);
+                        Messages.getMessage("menu_command_process_error", commandName, iProject.getName()), e);
             }
         }
 

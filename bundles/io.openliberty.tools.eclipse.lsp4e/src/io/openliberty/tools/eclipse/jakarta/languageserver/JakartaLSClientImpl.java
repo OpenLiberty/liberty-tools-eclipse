@@ -38,12 +38,12 @@ import org.eclipse.lsp4jakarta.commons.JakartaJavaFileInfoParams;
 import org.eclipse.lsp4jakarta.commons.JakartaJavaProjectLabelsParams;
 import org.eclipse.lsp4jakarta.commons.JavaCursorContextResult;
 import org.eclipse.lsp4jakarta.commons.ProjectLabelInfoEntry;
+import org.eclipse.lsp4jakarta.commons.codeaction.CodeActionResolveData;
+import org.eclipse.lsp4jakarta.commons.utils.JSONUtility;
 import org.eclipse.lsp4jakarta.jdt.core.ProjectLabelManager;
 import org.eclipse.lsp4jakarta.jdt.core.PropertiesManagerForJava;
 import org.eclipse.lsp4jakarta.jdt.internal.core.ls.JDTUtilsLSImpl;
 import org.eclipse.lsp4jakarta.ls.api.JakartaLanguageClientAPI;
-import org.eclipse.lsp4jakarta.commons.codeaction.CodeActionResolveData;
-import org.eclipse.lsp4jakarta.commons.utils.JSONUtility;
 
 import io.openliberty.tools.eclipse.ls.plugin.LibertyToolsLSPlugin;
 
@@ -79,7 +79,7 @@ public class JakartaLSClientImpl extends LanguageClientImpl implements JakartaLa
             try {
                 completionList = PropertiesManagerForJava.getInstance().completion(javaParams, JDTUtilsLSImpl.getInstance(), monitor);
                 JavaCursorContextResult javaCursorContext = PropertiesManagerForJava.getInstance().javaCursorContext(javaParams,
-                        JDTUtilsLSImpl.getInstance(), monitor);
+                                                                                                                     JDTUtilsLSImpl.getInstance(), monitor);
                 return new JakartaJavaCompletionResult(completionList, javaCursorContext);
             } catch (JavaModelException e) {
                 LibertyToolsLSPlugin.logException(e.getLocalizedMessage(), e);
@@ -145,7 +145,7 @@ public class JakartaLSClientImpl extends LanguageClientImpl implements JakartaLa
             IProgressMonitor monitor = getProgressMonitor(cancelChecker);
             try {
                 return (List<CodeAction>) PropertiesManagerForJava.getInstance().codeAction(javaParams, JDTUtilsLSImpl.getInstance(),
-                        monitor);
+                                                                                            monitor);
             } catch (JavaModelException e) {
                 LibertyToolsLSPlugin.logException(e.getLocalizedMessage(), e);
                 return Collections.emptyList();
@@ -164,7 +164,7 @@ public class JakartaLSClientImpl extends LanguageClientImpl implements JakartaLa
                 CodeActionResolveData resolveData = JSONUtility.toModel(unresolved.getData(), CodeActionResolveData.class);
                 unresolved.setData(resolveData);
                 return (CodeAction) PropertiesManagerForJava.getInstance().resolveCodeAction(unresolved, JDTUtilsLSImpl.getInstance(),
-                        monitor);
+                                                                                             monitor);
             } catch (JavaModelException e) {
                 LibertyToolsLSPlugin.logException(e.getLocalizedMessage(), e);
                 return null;

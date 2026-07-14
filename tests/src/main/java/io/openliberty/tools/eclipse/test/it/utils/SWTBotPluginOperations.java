@@ -27,7 +27,6 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-import org.eclipse.core.runtime.Platform;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Combo;
@@ -60,6 +59,7 @@ import org.eclipse.swtbot.swt.finder.widgets.SWTBotToolbarPushButton;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTree;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
 import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.WorkbenchException;
 import org.eclipse.ui.part.ViewPart;
@@ -135,10 +135,17 @@ public class SWTBotPluginOperations {
      */
     public static SWTBotMenu getDebuggerConnectMenuForDebugObject(Object debugObject) {
         openDebugPerspective();
-        Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
-        goMenuItem(windowMenu, "Show View", "Debug");
+        // Open Debug view using Eclipse API instead of menu navigation
+        // This is more reliable in headless CI environments
+        showDebugView();
 
         SWTBotTreeItem obj = new SWTBotTreeItem((TreeItem) debugObject);
+
+        // Ensure the tree item is properly selected and focused before accessing context menu
+        // This is critical for headless CI environments where context menus can hang
+        obj.select();
+        obj.setFocus();
+        MagicWidgetFinder.pause(500);
 
         return obj.contextMenu("Connect Liberty Debugger");
     }
@@ -152,8 +159,15 @@ public class SWTBotPluginOperations {
      */
     public static void disconnectDebugTarget(Object debugTarget) {
         openDebugPerspective();
-        Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
-        goMenuItem(windowMenu, "Show View", "Debug");
+        // Open Debug view using Eclipse API instead of menu navigation
+        // This is more reliable in headless CI environments
+        showDebugView();
+
+        // Ensure proper selection before accessing context menu
+        SWTBotTreeItem obj = new SWTBotTreeItem((TreeItem) debugTarget);
+        obj.select();
+        obj.setFocus();
+        MagicWidgetFinder.pause(500);
 
         MagicWidgetFinder.context(debugTarget, "Disconnect");
 
@@ -164,46 +178,93 @@ public class SWTBotPluginOperations {
      * Terminate the launch
      */
     public static void terminateLaunch() {
-        openDebugPerspective();
-        Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
-        goMenuItem(windowMenu, "Show View", "Debug");
+        // Use getObjectInDebugView to find the Liberty launch with retry logic
+        Object launch = getObjectInDebugView("[Liberty]");
 
-        Object debugView = MagicWidgetFinder.findGlobal("Debug");
+        // Only attempt to terminate if launch exists
+        if (launch != null) {
+            System.out.println("Found Liberty launch, attempting to terminate");
+            MagicWidgetFinder.context(launch, "Terminate and Remove");
 
-        Object launch = MagicWidgetFinder.find("[Liberty]", debugView,
-                Option.factory().useContains(true).setThrowExceptionOnNotFound(false).build());
+            try {
+                Shell confirm = (Shell) findGlobal("Terminate and Remove", Option.factory().widgetClass(Shell.class).build());
 
-        MagicWidgetFinder.context(launch, "Terminate and Remove");
-
-        try {
-            Shell confirm = (Shell) findGlobal("Terminate and Remove", Option.factory().widgetClass(Shell.class).build());
-
-            MagicWidgetFinder.go("Yes", confirm);
-            MagicWidgetFinder.pause(3000);
-        } catch (Exception e) {
-            // The configrmation pop up window only shows if the launch has not yet been terminated.
-            // If it has been terminated (or stopped), there is no confirmation.
+                MagicWidgetFinder.go("Yes", confirm);
+                MagicWidgetFinder.pause(3000);
+            } catch (Exception e) {
+                // The confirmation pop up window only shows if the launch has not yet been terminated.
+                // If it has been terminated (or stopped), there is no confirmation.
+            }
+        } else {
+            System.out.println("No Liberty launch found in Debug view to terminate");
         }
-
     }
 
     /**
      * Returns the debug object item in the Debug View with the given name.
      * The debug object can either be a launch, a debug target, or a process in the Debug View.
-     * 
+     *
      * @param objectName - The name of the object in the Debug View.
-     * 
+     *
      * @return
      */
-    public static Object getObjectInDebugView(String objectName) {
+    public static Object getObjectInDebugView(final String objectName) {
+        // Don't wrap in syncExec - MagicWidgetFinder methods already handle thread synchronization
+        // Nested syncExec calls can cause deadlocks in headless CI environments
         openDebugPerspective();
-        Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
-        goMenuItem(windowMenu, "Show View", "Debug");
+        showDebugView();
 
-        Object debugView = MagicWidgetFinder.findGlobal("Debug");
+        // Get the Debug view directly using Eclipse API instead of text search
+        // This is more reliable than findGlobal("Debug") which could find the wrong view
+        final Object[] debugViewHolder = new Object[1];
+        Display.getDefault().syncExec(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    IWorkbench wb = PlatformUI.getWorkbench();
+                    IWorkbenchWindow window = wb.getActiveWorkbenchWindow();
+                    if (window != null && window.getActivePage() != null) {
+                        // Get the Debug view by its ID
+                        ViewPart debugView = (ViewPart) window.getActivePage().findView("org.eclipse.debug.ui.DebugView");
+                        if (debugView != null) {
+                            // Activate it to ensure widgets are rendered
+                            window.getActivePage().activate(debugView);
+                            debugViewHolder[0] = debugView;
+                        }
+                    }
+                } catch (Exception e) {
+                    System.err.println("Failed to get Debug view: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+        });
 
-        return MagicWidgetFinder.find(objectName, debugView,
-                Option.factory().useContains(true).setThrowExceptionOnNotFound(false).widgetClass(TreeItem.class).build());
+        // Give the view time to activate and render
+        MagicWidgetFinder.pause(500);
+
+        Object debugView = debugViewHolder[0];
+        if (debugView == null) {
+            System.err.println("Debug view not found, cannot find object: " + objectName);
+            return null;
+        }
+
+        // Try multiple times to find the object, as it may take time to appear in headless CI
+        Object result = null;
+        for (int attempt = 0; attempt < 3 && result == null; attempt++) {
+            if (attempt > 0) {
+                System.out.println("Retry attempt " + attempt + " to find object: " + objectName);
+                MagicWidgetFinder.pause(1000);
+            }
+
+            result = MagicWidgetFinder.find(objectName, debugView,
+                                            Option.factory().useContains(true).setThrowExceptionOnNotFound(false).widgetClass(TreeItem.class).build());
+        }
+
+        if (result == null) {
+            System.out.println("Object not found in Debug view after 3 attempts: " + objectName);
+        }
+
+        return result;
     }
 
     /**
@@ -226,6 +287,31 @@ public class SWTBotPluginOperations {
         Display.getDefault().syncExec(runnable);
     }
 
+    /**
+     * Opens the Debug view using Eclipse API directly.
+     * This is more reliable than menu navigation in headless CI environments.
+     */
+    private static void showDebugView() {
+        Display.getDefault().syncExec(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    IWorkbench wb = PlatformUI.getWorkbench();
+                    IWorkbenchWindow window = wb.getActiveWorkbenchWindow();
+                    if (window != null && window.getActivePage() != null) {
+                        // Show the Debug view using its ID
+                        window.getActivePage().showView("org.eclipse.debug.ui.DebugView");
+                    }
+                } catch (Exception e) {
+                    System.err.println("Failed to open Debug view: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+        });
+        // Give the view time to open
+        MagicWidgetFinder.pause(500);
+    }
+
     public static void openJavaPerspectiveViaMenu() {
         Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
 
@@ -239,7 +325,33 @@ public class SWTBotPluginOperations {
 
     public static SWTBotTable getDashboardTable() {
         openDashboardUsingToolbar();
+
+        // Ensure the dashboard view is actually shown and has focus
+        // This prevents finding the wrong view (like ConsoleView) when the console takes focus after server start
         Object dashboardView = findGlobal(DASHBOARD_VIEW_TITLE, Option.factory().widgetClass(ViewPart.class).build());
+
+        // Explicitly show and activate the dashboard view to ensure it has focus
+        if (dashboardView instanceof ViewPart) {
+            final ViewPart vp = (ViewPart) dashboardView;
+            Display.getDefault().syncExec(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        IWorkbench wb = PlatformUI.getWorkbench();
+                        IWorkbenchWindow window = wb.getActiveWorkbenchWindow();
+                        if (window != null && window.getActivePage() != null) {
+                            window.getActivePage().activate(vp);
+                        }
+                    } catch (Exception e) {
+                        System.err.println("Failed to activate dashboard view: " + e.getMessage());
+                    }
+                }
+            });
+
+            // Give the UI a moment to update after activation
+            MagicWidgetFinder.pause(500);
+        }
+
         Table table = ((DashboardView) dashboardView).getTable();
         return new SWTBotTable(table);
     }
@@ -263,9 +375,9 @@ public class SWTBotPluginOperations {
     /**
      * Returns a list of menu actions associated with the input application item.
      *
-     * @param bot The SWTWorkbenchBot instance.
+     * @param bot       The SWTWorkbenchBot instance.
      * @param dashboard An instance representing the Open Liberty dashboard view.
-     * @param item The application name to select.
+     * @param item      The application name to select.
      *
      * @return A list of menu actions for the input application item.
      */
@@ -301,20 +413,21 @@ public class SWTBotPluginOperations {
      * Launches a dashboard action for the specified application name.
      * 
      * @param appName The application name to select.
-     * @param action The action to select
+     * @param action  The action to select
      */
     public static void launchDashboardAction(String appName, String action) {
         openDashboardUsingToolbar();
 
         Object dashboardView = MagicWidgetFinder.findGlobal(DASHBOARD_VIEW_TITLE);
         Object project = MagicWidgetFinder.find(appName, dashboardView, Option.factory().widgetClass(TableItem.class).build());
+        MagicWidgetFinder.go(project);
         MagicWidgetFinder.context(project, action);
     }
 
     /**
      * Returns the object representing the active project matching the input project name.
      * 
-     * @param bot The SWTWorkbenchBot instance.
+     * @param bot  The SWTWorkbenchBot instance.
      * @param item The application name.
      * 
      * @return The object representing the active project matching the input project name.
@@ -338,7 +451,7 @@ public class SWTBotPluginOperations {
     /**
      * Returns the object representing the explorer->project->right-click->Run As menu.
      * 
-     * @param bot The SWTWorkbenchBot instance.
+     * @param bot  The SWTWorkbenchBot instance.
      * @param item The application name.
      * 
      * @return The object representing the Run As menu.
@@ -360,7 +473,7 @@ public class SWTBotPluginOperations {
     /**
      * Returns the object representing the explorer->project->right-click->Debug As menu.
      * 
-     * @param bot The SWTWorkbenchBot instance.
+     * @param bot  The SWTWorkbenchBot instance.
      * @param item The application name.
      * 
      * @return The object representing the Debug As menu.
@@ -384,60 +497,59 @@ public class SWTBotPluginOperations {
      * Sets the absolute path to the maven and gradle executables that should be used for build into the Liberty Tools Plugin
      * Preferences page
      * 
-     * @param bot The SWTWorkbenchBot instance.
+     * @param bot       The SWTWorkbenchBot instance.
      * @param buildTool the build tool to be used (Maven or Gradle)
      */
     public static void setBuildCmdPathInPreferences(SWTWorkbenchBot bot, String buildTool) {
+        // Use Eclipse preference store API directly instead of UI navigation
+        // This avoids issues with menu accessibility in headless CI environments
 
-        /* Preferences are accessed from a different menu on macOS than on Windows and Linux */
-        /* Currently not possible to access the Preferences dialog panel on macOS so we */
-        /* will return and just use an app configured with a wrapper */
-        if (Platform.getOS().equals(Platform.OS_MACOSX)) {
-            return;
+        String finalMvnExecutableLoc = AbstractLibertyPluginSWTBotTest.getMvnCmdPath();
+        String finalGradleExecutableLoc = AbstractLibertyPluginSWTBotTest.getGradleCmdPath();
+
+        // Get the preference store for the Liberty Tools plugin
+        org.eclipse.jface.preference.IPreferenceStore prefStore = new org.eclipse.ui.preferences.ScopedPreferenceStore(org.eclipse.core.runtime.preferences.InstanceScope.INSTANCE, "io.openliberty.tools.eclipse.ui");
+
+        if ("Maven".equals(buildTool)) {
+            prefStore.setValue("MVNPATH", finalMvnExecutableLoc);
+        } else if ("Gradle".equals(buildTool)) {
+            prefStore.setValue("GRADLEPATH", finalGradleExecutableLoc);
         }
 
-        String finalMvnExecutableLoc = null;
-        String finalGradleExecutableLoc = null;
-        Object locationLabel = null;
-        Object locationText = null;
-
-        finalMvnExecutableLoc = AbstractLibertyPluginSWTBotTest.getMvnCmdPath();
-        finalGradleExecutableLoc = AbstractLibertyPluginSWTBotTest.getGradleCmdPath();
-
-        Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
-        goMenuItem(windowMenu, "Preferences");
-
-        TreeItem liberty = (TreeItem) findGlobal("Liberty", Option.factory().widgetClass(TreeItem.class).build());
-        go(liberty);
-        if (buildTool == "Maven") {
-            locationLabel = findGlobal("Maven Install Location:", Option.factory().widgetClass(Label.class).build());
-            locationText = ControlFinder.findControlInRange(locationLabel, Text.class, Direction.EAST);
-            set(locationText, finalMvnExecutableLoc);
-        } else if (buildTool == "Gradle") {
-            locationLabel = findGlobal("Gradle Install Location:", Option.factory().widgetClass(Label.class).build());
-            locationText = ControlFinder.findControlInRange(locationLabel, Text.class, Direction.EAST);
-            set(locationText, finalGradleExecutableLoc);
+        // Save the preference store
+        if (prefStore instanceof org.eclipse.ui.preferences.ScopedPreferenceStore) {
+            try {
+                ((org.eclipse.ui.preferences.ScopedPreferenceStore) prefStore).save();
+            } catch (java.io.IOException e) {
+                System.err.println("Failed to save preferences: " + e.getMessage());
+                e.printStackTrace();
+            }
         }
-
-        goGlobal("Apply and Close");
     }
 
     public static void unsetBuildCmdPathInPreferences(SWTWorkbenchBot bot, String buildTool) {
+        // Use Eclipse preference store API directly instead of UI navigation
+        // This avoids issues with menu accessibility in headless CI environments
 
-        /* Preferences are accessed from a different menu on macOS than on Windows and Linux */
-        /* Currently not possible to access the Preferences dialog panel on macOS so we */
-        /* will return and just use an app configured with a wrapper */
-        if (Platform.getOS().equals(Platform.OS_MACOSX)) {
-            return;
+        // Get the preference store for the Liberty Tools plugin
+        org.eclipse.jface.preference.IPreferenceStore prefStore = new org.eclipse.ui.preferences.ScopedPreferenceStore(org.eclipse.core.runtime.preferences.InstanceScope.INSTANCE, "io.openliberty.tools.eclipse.ui");
+
+        // Reset to default values (empty strings)
+        if ("Maven".equals(buildTool)) {
+            prefStore.setToDefault("MVNPATH");
+        } else if ("Gradle".equals(buildTool)) {
+            prefStore.setToDefault("GRADLEPATH");
         }
 
-        Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
-        goMenuItem(windowMenu, "Preferences");
-
-        findGlobal("Liberty", Option.factory().widgetClass(TreeItem.class).build());
-
-        goGlobal("Restore Defaults");
-        goGlobal("Apply and Close");
+        // Save the preference store
+        if (prefStore instanceof org.eclipse.ui.preferences.ScopedPreferenceStore) {
+            try {
+                ((org.eclipse.ui.preferences.ScopedPreferenceStore) prefStore).save();
+            } catch (java.io.IOException e) {
+                System.err.println("Failed to save preferences: " + e.getMessage());
+                e.printStackTrace();
+            }
+        }
     }
 
     /**
@@ -511,7 +623,7 @@ public class SWTBotPluginOperations {
     /**
      * Deletes Liberty run configuration entries.
      * 
-     * @param bot The SWTWorkbenchBot instance..
+     * @param bot     The SWTWorkbenchBot instance..
      * @param appName The application name.
      */
     public static void deleteLibertyToolsRunConfigEntriesFromAppRunAs(String appName) {
@@ -537,7 +649,7 @@ public class SWTBotPluginOperations {
     /**
      * Deletes Liberty debug configuration entries.
      * 
-     * @param bot The SWTWorkbenchBot instance..
+     * @param bot     The SWTWorkbenchBot instance..
      * @param appName The application name.
      */
     public static void deleteLibertyToolsDebugConfigEntriesFromMenu() {
@@ -580,7 +692,7 @@ public class SWTBotPluginOperations {
      * Launches dev mode with parms using a new Liberty configuration: project -> Run As -> Run Configurations -> Liberty -> New
      * configuration (default) -> update parms -> Run. Note that the changes are not saved.
      * 
-     * @param appName The application name.
+     * @param appName     The application name.
      * @param customParms The parameter(s) to pass to the dev mode start action.
      */
     public static void launchStartWithNewCustomRunConfig(String appName, String customParms) {
@@ -593,7 +705,7 @@ public class SWTBotPluginOperations {
      * Launches dev mode with parms using a new Liberty configuration: project -> Debug As -> Debug Configurations -> Liberty -> New
      * configuration (default) -> update parms -> Debug. Note that the changes are not saved.
      * 
-     * @param appName The application name.
+     * @param appName     The application name.
      * @param customParms The parameter(s) to pass to the dev mode start action.
      */
     public static void launchStartWithNewCustomDebugConfig(String appName, String customParms) {
@@ -639,7 +751,7 @@ public class SWTBotPluginOperations {
         Object libertyConfigTree = getLibertyTreeItem(shell);
 
         Object appConfigEntry = find(runDebugConfigName, libertyConfigTree,
-                Option.factory().useContains(true).widgetClass(TreeItem.class).build());
+                                     Option.factory().useContains(true).widgetClass(TreeItem.class).build());
         go(appConfigEntry);
         Object parmLabel = find("Start parameters:", appConfigEntry, Option.factory().widgetClass(Label.class).build());
 
@@ -652,46 +764,73 @@ public class SWTBotPluginOperations {
         Object libertyConfigTree = getLibertyTreeItem(shell);
 
         Object appConfigEntry = find(runDebugConfigName, libertyConfigTree,
-                Option.factory().useContains(true).widgetClass(TreeItem.class).build());
+                                     Option.factory().useContains(true).widgetClass(TreeItem.class).build());
         go(appConfigEntry);
         Object button = find("Run in Container", appConfigEntry, Option.factory().widgetClass(Button.class).build());
 
         go(button);
     }
 
+    /**
+     * Selects the project clean option under liberty in run configurations
+     * 
+     * @param shell
+     * @param runDebugConfigName
+     */
+    public static void checkRunCleanProjectCheckBox(Shell shell, String runDebugConfigName) {
+
+        Object libertyConfigTree = getLibertyTreeItem(shell);
+
+        Object appConfigEntry = find(runDebugConfigName, libertyConfigTree,
+                                     Option.factory().useContains(true).widgetClass(TreeItem.class).build());
+        go(appConfigEntry);
+        Object button = find("Clean project", appConfigEntry, Option.factory().widgetClass(Button.class).build());
+
+        go(button);
+    }
+
     public static Object getAppInPackageExplorerTree(String appName) {
         openJavaPerspectiveViaMenu();
-        Object windowMenu = findGlobal("Window", Option.factory().widgetClass(MenuItem.class).build());
-        goMenuItem(windowMenu, "Show View", "Package Explorer");
+        // Open Package Explorer view using Eclipse API instead of menu navigation
+        // This is more reliable in headless CI environments
+        showPackageExplorerView();
         Object peView = MagicWidgetFinder.findGlobal("Package Explorer");
 
         Object project = MagicWidgetFinder.find(appName, peView, Option.factory().useContains(true).widgetClass(TreeItem.class).build());
         go(project);
+
+        // Add pause to ensure UI is fully ready after selection
+        // This helps prevent race conditions where TreeItem data isn't fully initialized
+        // particularly on Windows in headless CI environments where selection events
+        // can trigger cascading calls to getSelectedDashboardProject() before the
+        // selection is fully resolved, causing infinite loops
+        MagicWidgetFinder.pause(5000);
+
         return project;
     }
 
     /**
      * Launches the start action using the debug as configuration shortcut.
      * 
-     * @param bot The SWTWorkbenchBot instance.
+     * @param bot     The SWTWorkbenchBot instance.
      * @param appName The application name.
      */
     public static void launchStartWithDebugAsShortcut(String appName) {
         Object project = getAppInPackageExplorerTree(appName);
         MagicWidgetFinder.context(project, "Debug As",
-                WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START + ".*"));
+                                  WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START + ".*"));
     }
 
     /**
      * Launches the start action using the run as configuration shortcut.
      * 
-     * @param bot The SWTWorkbenchBot instance.
+     * @param bot     The SWTWorkbenchBot instance.
      * @param appName The application name.
      */
     public static void launchStartWithRunAsShortcut(String appName) {
         Object project = getAppInPackageExplorerTree(appName);
         MagicWidgetFinder.context(project, "Run As",
-                WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START + ".*"));
+                                  WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START + ".*"));
     }
 
     /**
@@ -702,7 +841,7 @@ public class SWTBotPluginOperations {
     public static void launchStopWithRunAsShortcut(String appName) {
         Object project = getAppInPackageExplorerTree(appName);
         MagicWidgetFinder.context(project, "Run As",
-                WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_STOP + ".*"));
+                                  WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_STOP + ".*"));
     }
 
     /**
@@ -713,7 +852,7 @@ public class SWTBotPluginOperations {
     public static void launchRunTestsWithRunAsShortcut(String appName) {
         Object project = getAppInPackageExplorerTree(appName);
         MagicWidgetFinder.context(project, "Run As",
-                WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_RUN_TESTS + ".*"));
+                                  WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_RUN_TESTS + ".*"));
     }
 
     /**
@@ -724,20 +863,20 @@ public class SWTBotPluginOperations {
     public static void launchRunTestsWithDebugAsShortcut(String appName) {
         Object project = getAppInPackageExplorerTree(appName);
         MagicWidgetFinder.context(project, "Debug As",
-                WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_RUN_TESTS + ".*"));
+                                  WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_RUN_TESTS + ".*"));
     }
 
     /**
      * Launches the view (Maven) integration test report action using the run/debug as configuration shortcut.
      * 
-     * @param bot The SWTWorkbenchBot instance.
+     * @param bot  The SWTWorkbenchBot instance.
      * @param item The application name.
      */
     public static void launchViewITReportWithRunDebugAsShortcut(SWTWorkbenchBot bot, String item) {
         SWTBotMenu runAsMenu = SWTBotPluginOperations.getAppRunAsMenu(bot, item);
         SWTBotMenu stopShortcut = runAsMenu.menu(
-                WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_MVN_VIEW_IT_REPORT + ".*"), false,
-                0);
+                                                 WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_MVN_VIEW_IT_REPORT + ".*"), false,
+                                                 0);
         stopShortcut.setFocus();
         stopShortcut.click();
 
@@ -747,14 +886,14 @@ public class SWTBotPluginOperations {
     /**
      * Launches the view (Maven) unit test report action using the run/debug as configuration shortcut.
      * 
-     * @param bot The SWTWorkbenchBot instance.
+     * @param bot  The SWTWorkbenchBot instance.
      * @param item The application name.
      */
     public static void launchViewUTReportWithRunDebugAsShortcut(SWTWorkbenchBot bot, String item) {
         SWTBotMenu runAsMenu = SWTBotPluginOperations.getAppRunAsMenu(bot, item);
         SWTBotMenu stopShortcut = runAsMenu.menu(
-                WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_MVN_VIEW_UT_REPORT + ".*"), false,
-                0);
+                                                 WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_MVN_VIEW_UT_REPORT + ".*"), false,
+                                                 0);
         stopShortcut.setFocus();
         stopShortcut.click();
 
@@ -764,14 +903,14 @@ public class SWTBotPluginOperations {
     /**
      * Launches the view (Gradle) test report action using the run/debug as configuration shortcut.
      * 
-     * @param bot The SWTWorkbenchBot instance.
+     * @param bot  The SWTWorkbenchBot instance.
      * @param item The application name.
      */
     public static void launchViewTestReportWithRunDebugAsShortcut(SWTWorkbenchBot bot, String item) {
         SWTBotMenu runAsMenu = SWTBotPluginOperations.getAppRunAsMenu(bot, item);
         SWTBotMenu stopShortcut = runAsMenu.menu(
-                WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_GRADLE_VIEW_TEST_REPORT + ".*"),
-                false, 0);
+                                                 WidgetMatcherFactory.withRegex(".*" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_GRADLE_VIEW_TEST_REPORT + ".*"),
+                                                 false, 0);
         stopShortcut.setFocus();
         stopShortcut.click();
 
@@ -793,7 +932,7 @@ public class SWTBotPluginOperations {
     /**
      * Get the content of a text editor view obtained associated with the input title name.
      *
-     * @param bot The SWTWorkbenchBot instance.
+     * @param bot   The SWTWorkbenchBot instance.
      * @param title The complete title view name.
      *
      * @return The content of a text editor view obtained associated with the input title name.
@@ -808,7 +947,7 @@ public class SWTBotPluginOperations {
     /**
      * Searches for the text editor that contains the complete or partial input title name.
      *
-     * @param bot The SWTWorkbenchBot instance.
+     * @param bot          The SWTWorkbenchBot instance.
      * @param titleContent The complete or partial title name.
      *
      * @return The text editor object associated with input title name.
@@ -829,10 +968,10 @@ public class SWTBotPluginOperations {
     /**
      * Returns the content of the file associated with the the input file name under the input application name.
      *
-     * @param bot The SWTWorkbenchBot instance.
+     * @param bot          The SWTWorkbenchBot instance.
      * @param appViewTitle The title of the view (i.e. Project Explorer) where to look.
-     * @param appName The application where to find the file.
-     * @param fileName The name of the file from which to retrieve content.
+     * @param appName      The application where to find the file.
+     * @param fileName     The name of the file from which to retrieve content.
      *
      * @return The content of the file associated with the the input file name under the input application name.
      */
@@ -862,9 +1001,9 @@ public class SWTBotPluginOperations {
     /**
      * Writes the input content to a text editor view.
      *
-     * @param bot The SWTWorkbenchBot instance.
+     * @param bot          The SWTWorkbenchBot instance.
      * @param titleContent The title or part of the title of the text editor view to update.
-     * @param content The content with which the text editor view is updated.
+     * @param content      The content with which the text editor view is updated.
      */
     public static void setEditorText(SWTWorkbenchBot bot, String titleContent, String content) {
         SWTBotEditor editor = searchForEditor(bot, titleContent);
@@ -877,7 +1016,7 @@ public class SWTBotPluginOperations {
     /**
      * Returns the content to a text editor view.
      *
-     * @param bot The SWTWorkbenchBot instance.
+     * @param bot          The SWTWorkbenchBot instance.
      * @param titleContent The title or part of the title of the text editor view.
      *
      * @return The content to a text editor view.
@@ -924,6 +1063,31 @@ public class SWTBotPluginOperations {
         if (dashboard.isActive()) {
             dashboard.close();
         }
+    }
+
+    /**
+     * Opens the Package Explorer view using Eclipse API directly.
+     * This is more reliable than menu navigation in headless CI environments.
+     */
+    private static void showPackageExplorerView() {
+        Display.getDefault().syncExec(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    IWorkbench wb = PlatformUI.getWorkbench();
+                    IWorkbenchWindow window = wb.getActiveWorkbenchWindow();
+                    if (window != null && window.getActivePage() != null) {
+                        // Show the Package Explorer view using its ID
+                        window.getActivePage().showView("org.eclipse.jdt.ui.PackageExplorer");
+                    }
+                } catch (Exception e) {
+                    System.err.println("Failed to open Package Explorer view: " + e.getMessage());
+                    e.printStackTrace();
+                }
+            }
+        });
+        // Give the view time to open
+        MagicWidgetFinder.pause(500);
     }
 
     /**
@@ -984,7 +1148,7 @@ public class SWTBotPluginOperations {
     /**
      * Returns a SWTBotToolbarButton instance representing the toolbar button with the input tooltip prefix.
      *
-     * @param bot The SWTWorkbenchBot instance.
+     * @param bot           The SWTWorkbenchBot instance.
      * @param toolTipPrefix The tooltip prefix.
      *
      * @return A SWTBotToolbarButton instance representing the toolbar button with the input tooltip prefix.
@@ -1000,8 +1164,7 @@ public class SWTBotPluginOperations {
             }
         }
 
-        throw new RuntimeException(
-                "toolbar button of type ToolItem, with style push, and tooltip prefix of " + toolTipPrefix + " was not found.");
+        throw new RuntimeException("toolbar button of type ToolItem, with style push, and tooltip prefix of " + toolTipPrefix + " was not found.");
     }
 
     @SuppressWarnings("unchecked")

@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2024 IBM Corporation and others.
+* Copyright (c) 2024, 2025 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -11,6 +11,8 @@
 *     IBM Corporation - initial implementation
 *******************************************************************************/
 package io.openliberty.tools.eclipse.debug;
+
+import java.time.Instant;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IStatus;
@@ -30,6 +32,7 @@ import org.eclipse.swt.widgets.Shell;
 import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.Project;
 import io.openliberty.tools.eclipse.ui.launch.StartTab;
+import io.openliberty.tools.eclipse.utils.Utils;
 
 /**
  * This class is an extension of the Eclipse JDT HotCodeReplaceErrorDialog. It provides
@@ -39,8 +42,8 @@ import io.openliberty.tools.eclipse.ui.launch.StartTab;
 public class LibertyHotCodeReplaceErrorDialog extends HotCodeReplaceErrorDialog {
 
     public LibertyHotCodeReplaceErrorDialog(Shell parentShell, String dialogTitle, String message, IStatus status, String preferenceKey,
-            String toggleMessage, IPreferenceStore store, IDebugTarget target) {
-        super(parentShell, dialogTitle, message, status, preferenceKey, toggleMessage, store, target);
+                                            String toggleMessage1, String toggleMessage2, IPreferenceStore store, IDebugTarget target) {
+        super(parentShell, dialogTitle, message, status, preferenceKey, toggleMessage1, toggleMessage2, store, target);
     }
 
     @Override
@@ -48,13 +51,14 @@ public class LibertyHotCodeReplaceErrorDialog extends HotCodeReplaceErrorDialog 
         createButton(parent, IDialogConstants.OK_ID, IDialogConstants.OK_LABEL, true);
         createDetailsButton(parent);
         getButton(IDialogConstants.OK_ID).setText(DebugUIMessages.HotCodeReplaceErrorDialog_0);
-        createButton(parent, DISCONNECT_ID, "Refresh Debugger", false);
+        createButton(parent, DISCONNECT_ID, "Refresh", false);
 
         blockMnemonicWithoutModifier(getToggleButton());
     }
 
     /*
      * (non-Javadoc)
+     * 
      * @see org.eclipse.jface.dialogs.Dialog#buttonPressed(int)
      */
     @Override
@@ -68,7 +72,6 @@ public class LibertyHotCodeReplaceErrorDialog extends HotCodeReplaceErrorDialog 
                 public void run() {
                     try {
                         operation[0] = DebugUIMessages.HotCodeReplaceErrorDialog_6;
-                        target.disconnect();
 
                         // Restart the debugger
                         DevModeOperations devModeOps = DevModeOperations.getInstance();
@@ -76,10 +79,20 @@ public class LibertyHotCodeReplaceErrorDialog extends HotCodeReplaceErrorDialog 
                         ILaunch launch = target.getLaunch();
                         String projectName = launch.getLaunchConfiguration().getAttribute(StartTab.PROJECT_NAME, "");
                         Project project = devModeOps.getProjectModel().getProject(projectName);
-
-                        launch.removeDebugTarget(target);
                         DebugModeHandler debugModeHandler = devModeOps.getDebugModeHandler();
-                        debugModeHandler.startDebugAttacher(project, launch, null);
+
+                        // Get time before server restart
+                        Instant preRestartTime = Instant.now();
+
+                        // Restart the server
+                        devModeOps.restartServer(projectName);
+                        if (target.canDisconnect()) {
+                            target.disconnect(); // detaches debugger
+                        }
+                        launch.removeDebugTarget(target);
+
+                        Utils.restartDebugger(project, launch, debugModeHandler, preRestartTime);
+
                     } catch (CoreException e) {
                         ex[0] = e;
                     }

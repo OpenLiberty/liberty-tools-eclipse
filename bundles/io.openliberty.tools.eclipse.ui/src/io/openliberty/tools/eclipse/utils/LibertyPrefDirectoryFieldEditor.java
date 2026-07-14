@@ -17,7 +17,7 @@ import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.swt.widgets.Composite;
 
 public class LibertyPrefDirectoryFieldEditor extends DirectoryFieldEditor {
-    
+
     /*
      * A class to provide keystroke validation when typing in location of
      * maven and gradle executables.
@@ -25,11 +25,10 @@ public class LibertyPrefDirectoryFieldEditor extends DirectoryFieldEditor {
      * Need to subclass the DirectoryFieldEditor class in order to set the validation strategy to
      * VALIDATE_ON_KEY_STROKE
      */
-    
-    public LibertyPrefDirectoryFieldEditor(String name, String labelText, Composite parent){
+
+    public LibertyPrefDirectoryFieldEditor(String name, String labelText, Composite parent) {
         init(name, labelText);
-        setErrorMessage(JFaceResources
-                .getString("DirectoryFieldEditor.errorMessage"));//$NON-NLS-1$
+        setErrorMessage(JFaceResources.getString("DirectoryFieldEditor.errorMessage"));//$NON-NLS-1$
         setChangeButtonText(JFaceResources.getString("openBrowse"));//$NON-NLS-1$
         setValidateStrategy(VALIDATE_ON_KEY_STROKE);
         createControl(parent);

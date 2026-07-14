@@ -43,7 +43,7 @@ public class Logger {
      * Writes an error message and throwable to the log.
      * 
      * @param msg The message to write.
-     * @param t The throwable to write.
+     * @param t   The throwable to write.
      */
     public static void logError(String msg, Throwable t) {
         LOGGER.log(new Status(Status.ERROR, BUNDLE.getSymbolicName(), msg, t));
@@ -62,7 +62,7 @@ public class Logger {
      * Writes an error message and throwable to the log.
      * 
      * @param msg The message to write.
-     * @param t The throwable to write.
+     * @param t   The throwable to write.
      */
     public static void logWarning(String msg, Throwable t) {
         LOGGER.log(new Status(Status.WARNING, BUNDLE.getSymbolicName(), msg, t));

@@ -62,6 +62,9 @@ public class StartTab extends AbstractLaunchConfigurationTab {
     /** Configuration map key with a value stating whether or not the associated project ran in a container. */
     public static final String PROJECT_RUN_IN_CONTAINER = "io.openliberty.tools.eclipse.launch.project.container.run";
 
+    /** Configuration map key with a value stating whether or not the associated project ran with clean option. */
+    public static final String PROJECT_CLEAN = "io.openliberty.tools.eclipse.launch.project.clean";
+
     /** Main preference page ID. */
     public static final String MAIN_PREFERENCE_PAGE_ID = "io.openliberty.tools.eclipse.ui.preferences.page";
 
@@ -84,6 +87,9 @@ public class StartTab extends AbstractLaunchConfigurationTab {
 
     /** Holds the run in container check box. */
     private Button runInContainerCheckBox;
+
+    /** Holds the project clean check box. */
+    private Button projectCleanCheckBox;
 
     /** DevModeOperations instance. */
     private DevModeOperations devModeOps = DevModeOperations.getInstance();
@@ -112,6 +118,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
         Composite parmsGroupComposite = createGroupComposite(mainComposite, "", 2);
         createInputParmText(parmsGroupComposite);
         createRunInContainerButton(parmsGroupComposite);
+        createProjectCleanButton(parmsGroupComposite);
 
         createLabelWithPreferenceLink(mainComposite);
     }
@@ -160,10 +167,13 @@ public class StartTab extends AbstractLaunchConfigurationTab {
             boolean runInContainer = configuration.getAttribute(PROJECT_RUN_IN_CONTAINER, false);
             runInContainerCheckBox.setSelection(runInContainer);
 
+            boolean projectClean = configuration.getAttribute(PROJECT_CLEAN, false);
+            projectCleanCheckBox.setSelection(projectClean);
+
             String projectName = configuration.getAttribute(PROJECT_NAME, (String) null);
             if (projectName == null) {
                 super.setErrorMessage(
-                        "A project must be selected in order to provide a context to associate the run configuration with.  Either use a tree view like Package Explorer or have an editor window.");
+                                      "A project must be selected in order to provide a context to associate the run configuration with.  Either use a tree view like Package Explorer or have an editor window.");
             } else {
                 projectNameLabel.setText(projectName);
             }
@@ -175,7 +185,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, ce);
             }
-            ErrorHandler.processErrorMessage(NLS.bind(Messages.run_config_initialize_error, null), ce, true);
+            ErrorHandler.processErrorMessage(Messages.getMessage("run_config_initialize_error"), ce, true);
         }
 
         if (Trace.isEnabled()) {
@@ -188,11 +198,11 @@ public class StartTab extends AbstractLaunchConfigurationTab {
         String startParamStr = startParmText.getText();
 
         if (startParamStr.startsWith("mvn") || startParamStr.startsWith("gradle")) {
-            super.setErrorMessage("Don't include mvn or gradle executables, just the parameters");
+            super.setErrorMessage(Messages.getMessage("start_params_error"));
             valid = false;
         }
         if (startParamStr.contains("liberty:dev") || startParamStr.contains("libertyDev")) {
-            super.setErrorMessage("Dev mode detected");
+            super.setErrorMessage(Messages.getMessage("dev_mode_detected_error"));
             valid = false;
         }
         return valid;
@@ -205,7 +215,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
 
             if (configProjectName == null) {
                 super.setErrorMessage(
-                        "This Run/Debug config is corrupted and can't be used since no project was selected before creating. To create a new Run/Debug config first select a project in the Liberty dashboard, Project/Package explorer view, or via editor.");
+                                      "This Run/Debug config is corrupted and can't be used since no project was selected before creating. To create a new Run/Debug config first select a project in the Liberty dashboard, Project/Package explorer view, or via editor.");
                 return false;
             }
 
@@ -213,8 +223,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
             if (selectedProject != null) {
                 String selectedProjectName = selectedProject.getName();
                 if (!configProjectName.equals(selectedProjectName)) {
-                    super.setWarningMessage(
-                            "Must use an existing (or new) configuration associated with selected project: " + selectedProjectName);
+                    super.setWarningMessage(Messages.getMessage("config_project_warning", selectedProjectName));
                     return false;
                 }
             }
@@ -225,7 +234,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
                     Trace.getTracer().trace(Trace.TRACE_TOOLS, "The start request was already issued on project " + configProjectName);
                 }
 
-                super.setErrorMessage(NLS.bind(Messages.start_already_issued, configProjectName));
+                super.setErrorMessage(Messages.getMessage("start_already_issued", configProjectName));
                 return false;
             }
         } catch (CoreException ce) {
@@ -233,7 +242,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, ce);
             }
-            ErrorHandler.processErrorMessage(NLS.bind(Messages.project_name_error, null), ce, true);
+            ErrorHandler.processErrorMessage(Messages.getMessage("project_name_error"), ce, true);
             return false;
         }
         return checkForIncorrectTerms();
@@ -249,13 +258,17 @@ public class StartTab extends AbstractLaunchConfigurationTab {
 
         boolean runInContainerBool = runInContainerCheckBox.getSelection();
 
+        boolean projectCleanBool = projectCleanCheckBox.getSelection();
+
         configuration.setAttribute(PROJECT_RUN_IN_CONTAINER, runInContainerBool);
+
+        configuration.setAttribute(PROJECT_CLEAN, projectCleanBool);
 
         configuration.setAttribute(PROJECT_START_PARM, startParamStr);
 
         if (Trace.isEnabled()) {
             Trace.getTracer().trace(Trace.TRACE_UI, "In performApply with project name = " + projectNameLabel.getText() + ", text = "
-                    + startParamStr + ", runInContainer = " + runInContainerBool);
+                                                    + startParamStr + ", runInContainer = " + runInContainerBool + ", clean project = " + projectCleanBool);
         }
     }
 
@@ -288,8 +301,8 @@ public class StartTab extends AbstractLaunchConfigurationTab {
     /**
      * Creates a composite that will display a set of elements as a group.
      * 
-     * @param parent The parent composite.
-     * @param groupName The title of the group to be created.
+     * @param parent     The parent composite.
+     * @param groupName  The title of the group to be created.
      * @param numColumns The number of columns of the grid layout in the composite to be created.
      * 
      * @return A composite that will display a set of elements as a group.
@@ -321,7 +334,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
 
         Label projectLabel = new Label(projectComposite, SWT.NONE);
         projectLabel.setFont(font);
-        projectLabel.setText("Project: ");
+        projectLabel.setText(Messages.getMessage("project_label"));
         GridDataFactory.swtDefaults().applyTo(projectLabel);
 
         projectNameLabel = new Label(projectComposite, SWT.NONE);
@@ -338,7 +351,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
     private void createInputParmText(Composite parent) {
         Label inputParmLabel = new Label(parent, SWT.NONE);
         inputParmLabel.setFont(font);
-        inputParmLabel.setText("Start &parameters:");
+        inputParmLabel.setText(Messages.getMessage("start_parameters_label"));
         GridDataFactory.swtDefaults().indent(20, 0).applyTo(inputParmLabel);
 
         startParmText = new Text(parent, SWT.BORDER);
@@ -371,7 +384,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
 
         Link link = new Link(parent, SWT.WRAP);
         link.setFont(font);
-        link.setText("Maven/Gradle executable paths can be set in <a>Liberty Preferences</a>");
+        link.setText(Messages.getMessage("maven_gradle_prefs_link"));
         link.addSelectionListener(new SelectionAdapter() {
             @Override
             public void widgetSelected(SelectionEvent e) {
@@ -389,7 +402,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
      */
     private void createRunInContainerButton(Composite parent) {
         runInContainerCheckBox = new Button(parent, SWT.CHECK);
-        runInContainerCheckBox.setText("Run in &Container");
+        runInContainerCheckBox.setText(Messages.getMessage("run_in_container_label"));
         runInContainerCheckBox.setSelection(false);
         runInContainerCheckBox.setFont(font);
         runInContainerCheckBox.addSelectionListener(new SelectionAdapter() {
@@ -404,6 +417,33 @@ public class StartTab extends AbstractLaunchConfigurationTab {
             }
         });
         GridDataFactory.swtDefaults().applyTo(runInContainerCheckBox);
+
+        Label emptyColumnLabel = new Label(parent, SWT.NONE);
+        GridDataFactory.swtDefaults().applyTo(emptyColumnLabel);
+    }
+
+    /**
+     * Creates the button entry that indicates whether or not the project should run with project clean command.
+     * 
+     * @param parent The parent composite.
+     */
+     private void createProjectCleanButton(Composite parent) {
+         projectCleanCheckBox = new Button(parent, SWT.CHECK);
+	 projectCleanCheckBox.setText(Messages.getMessage("clean_project_label"));
+	 projectCleanCheckBox.setSelection(false);
+	 projectCleanCheckBox.setFont(font);
+	 projectCleanCheckBox.addSelectionListener(new SelectionAdapter() {
+
+            /**
+             * {@inheritDoc}
+             */
+            @Override
+            public void widgetSelected(SelectionEvent event) {
+                setDirty(true);
+                updateLaunchConfigurationDialog();
+            }
+        });
+        GridDataFactory.swtDefaults().applyTo(projectCleanCheckBox);
 
         Label emptyColumnLabel = new Label(parent, SWT.NONE);
         GridDataFactory.swtDefaults().applyTo(emptyColumnLabel);
@@ -431,7 +471,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }
-            ErrorHandler.processErrorMessage(NLS.bind(Messages.start_parm_retrieve_error, null), e, true);
+            ErrorHandler.processErrorMessage(Messages.getMessage("start_parm_retrieve_error"), e, true);
         }
 
         return parms;

@@ -14,11 +14,13 @@ package io.openliberty.tools.eclipse;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -57,6 +59,7 @@ import io.openliberty.tools.eclipse.messages.Messages;
 import io.openliberty.tools.eclipse.process.ProcessController;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
+import io.openliberty.tools.eclipse.utils.Utils;
 
 /**
  * Provides the implementation of all supported dev mode operations.
@@ -66,8 +69,8 @@ public class DevModeOperations {
     /**
      * Constants.
      */
-    public static final String DEVMODE_START_PARMS_DIALOG_TITLE = "Liberty Dev Mode";
-    public static final String DEVMODE_START_PARMS_DIALOG_MSG = "Specify custom parameters for the liberty dev command.";
+    public static final String DEVMODE_START_PARMS_DIALOG_TITLE = Messages.getMessage("devmode_start_dialog_title");
+    public static final String DEVMODE_START_PARMS_DIALOG_MSG = Messages.getMessage("devmode_start_dialog_msg");
 
     public static final String DEVMODE_COMMAND_EXIT = "exit" + System.lineSeparator();
     public static final String DEVMODE_COMMAND_RUN_TESTS = System.lineSeparator();
@@ -81,12 +84,9 @@ public class DevModeOperations {
     private static final String ANSI_SUPPORT_KEY = "ANSI_support_enabled";
 
     private static final int STOP_TIMEOUT_SECONDS = 60;
-    protected static final QualifiedName STOP_JOB_COMPLETION_TIMEOUT = new QualifiedName("io.openliberty.tools.eclipse.ui",
-            "stopJobCompletionTimeout");
-    protected static final QualifiedName STOP_JOB_COMPLETION_EXIT_CODE = new QualifiedName("io.openliberty.tools.eclipse.ui",
-            "stopJobCompletionExitCode");
-    protected static final QualifiedName STOP_JOB_COMPLETION_OUTPUT = new QualifiedName("io.openliberty.tools.eclipse.ui",
-            "stopJobCompletionOutput");
+    protected static final QualifiedName STOP_JOB_COMPLETION_TIMEOUT = new QualifiedName("io.openliberty.tools.eclipse.ui", "stopJobCompletionTimeout");
+    protected static final QualifiedName STOP_JOB_COMPLETION_EXIT_CODE = new QualifiedName("io.openliberty.tools.eclipse.ui", "stopJobCompletionExitCode");
+    protected static final QualifiedName STOP_JOB_COMPLETION_OUTPUT = new QualifiedName("io.openliberty.tools.eclipse.ui", "stopJobCompletionOutput");
     private Map<Job, Boolean> runningJobs = new ConcurrentHashMap<Job, Boolean>();
 
     /**
@@ -161,24 +161,24 @@ public class DevModeOperations {
     }
 
     /**
-     * @param iProject The project instance to associate with this action.
-     * @param parms The configuration parameters to be used when starting dev mode.
+     * @param iProject     The project instance to associate with this action.
+     * @param parms        The configuration parameters to be used when starting dev mode.
      * @param javaHomePath The configuration java installation home to be set in the process running dev mode.
-     * @param launch The launch associated with this run.
-     * @param mode The configuration mode.
+     * @param launch       The launch associated with this run.
+     * @param mode         The configuration mode.
      */
-    public void start(IProject iProject, String parms, String javaHomePath, ILaunch launch, String mode) {
+    public void start(IProject iProject, String parms, String javaHomePath, ILaunch launch, String mode, boolean runProjectClean) {
 
         if (Trace.isEnabled()) {
             Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { iProject, parms, javaHomePath, mode });
         }
 
         if (iProject == null) {
-            String msg = "An error was detected when the start request was processed. The object that represents the selected project was not found.";
+            String msg = Messages.getMessage("start_no_project_found");
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op.");
             }
-            ErrorHandler.processErrorMessage(NLS.bind(Messages.start_no_project_found, null), true);
+            ErrorHandler.processErrorMessage(msg, true);
             return;
         }
 
@@ -189,13 +189,13 @@ public class DevModeOperations {
         try {
             project = projectModel.getProject(projectName);
             if (project == null) {
-                throw new Exception("Unable to find internal instance of project " + projectName);
+                throw new Exception(Messages.getMessage("internal_project_not_found", projectName));
             }
 
             // Get the absolute path to the application project.
             String projectPath = project.getPath();
             if (projectPath == null) {
-                throw new Exception("Unable to find the path to selected project " + projectName);
+                throw new Exception(Messages.getMessage("project_path_not_found", projectName));
             }
 
             // If in debug mode, adjust the start parameters.
@@ -231,13 +231,23 @@ public class DevModeOperations {
             String cmd = "";
 
             if (buildType == Project.BuildType.MAVEN) {
-                cmd = CommandBuilder.getMavenCommandLine(projectPath, "io.openliberty.tools:liberty-maven-plugin:dev " + startParms,
-                        pathEnv);
+                cmd = CommandBuilder.getMavenCommandLine(projectPath, (runProjectClean == true ? " clean " : "") + "io.openliberty.tools:liberty-maven-plugin:dev " + startParms,
+                                                         pathEnv);
             } else if (buildType == Project.BuildType.GRADLE) {
-                cmd = CommandBuilder.getGradleCommandLine(projectPath, "libertyDev " + startParms, pathEnv);
+
+                if (runProjectClean == true) {
+                    try {
+                        String stopGradleDaemonCmd = CommandBuilder.getGradleCommandLine(projectPath, " --stop", pathEnv);
+                        executeCommand(stopGradleDaemonCmd, projectPath);
+                    } catch (IOException | InterruptedException e) {
+                        Logger.logError(Messages.getMessage("gradle_daemon_stop_failed"));
+                    }
+
+                }
+                cmd = CommandBuilder.getGradleCommandLine(projectPath,
+                                                          (runProjectClean == true ? " clean " : "") + "libertyDev " + startParms, pathEnv);
             } else {
-                throw new Exception("Unexpected project build type: " + buildType + ". Project " + projectName
-                        + "does not appear to be a Maven or Gradle built project.");
+                throw new Exception(Messages.getMessage("unexpected_build_type", buildType, projectName));
             }
 
             // Run the application in dev mode.
@@ -254,10 +264,11 @@ public class DevModeOperations {
             }
             return;
         } catch (Exception e) {
+            String msg = Messages.getMessage("start_general_error", projectName);
             if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_TOOLS, "An error was detected during the start request on project " + projectName, e);
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
             }
-            ErrorHandler.processErrorMessage(NLS.bind(Messages.start_general_error, projectName), e, true);
+            ErrorHandler.processErrorMessage(msg, e, true);
             return;
         }
 
@@ -269,24 +280,24 @@ public class DevModeOperations {
     /**
      * Starts the Liberty server in dev mode in a container.
      * 
-     * @param iProject The project instance to associate with this action.
-     * @param parms The configuration parameters to be used when starting dev mode.
+     * @param iProject     The project instance to associate with this action.
+     * @param parms        The configuration parameters to be used when starting dev mode.
      * @param javaHomePath The configuration java installation home to be set in the process running dev mode.
-     * @param launch The launch associated with this run.
-     * @param mode The configuration mode.
+     * @param launch       The launch associated with this run.
+     * @param mode         The configuration mode.
      */
-    public void startInContainer(IProject iProject, String parms, String javaHomePath, ILaunch launch, String mode) {
+    public void startInContainer(IProject iProject, String parms, String javaHomePath, ILaunch launch, String mode, boolean runProjectClean) {
 
         if (Trace.isEnabled()) {
             Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { iProject, parms, javaHomePath, mode });
         }
 
         if (iProject == null) {
-            String msg = "An error was detected when the start in container request was processed. The object that represents the selected project was not found.";
+            String msg = Messages.getMessage("start_container_no_project_found");
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op.");
             }
-            ErrorHandler.processErrorMessage(NLS.bind(Messages.start_container_no_project_found, null), true);
+            ErrorHandler.processErrorMessage(msg, true);
             return;
         }
 
@@ -338,13 +349,24 @@ public class DevModeOperations {
             // Prepare the Liberty plugin container dev mode command.
             String cmd = "";
             if (buildType == Project.BuildType.MAVEN) {
-                cmd = CommandBuilder.getMavenCommandLine(projectPath, "io.openliberty.tools:liberty-maven-plugin:devc " + startParms,
-                        pathEnv);
+                cmd = CommandBuilder.getMavenCommandLine(projectPath, (runProjectClean == true ? " clean " : "") + "io.openliberty.tools:liberty-maven-plugin:devc " + startParms,
+                                                         pathEnv);
             } else if (buildType == Project.BuildType.GRADLE) {
-                cmd = CommandBuilder.getGradleCommandLine(projectPath, "libertyDevc " + startParms, pathEnv);
+                if (runProjectClean == true) {
+                    try {
+
+                        String stopGradleDaemonCmd = CommandBuilder.getGradleCommandLine(projectPath, " --stop",
+                                                                                         pathEnv);
+                        executeCommand(stopGradleDaemonCmd, projectPath);
+                    } catch (IOException | InterruptedException e) {
+                        Logger.logError("An attempt to stop the Gradle daemon failed....");
+                    }
+                }
+                cmd = CommandBuilder.getGradleCommandLine(projectPath,
+                                                          (runProjectClean == true ? " clean " : "") + "libertyDevc " + startParms, pathEnv);
             } else {
                 throw new Exception("Unexpected project build type: " + buildType + ". Project " + projectName
-                        + "does not appear to be a Maven or Gradle built project.");
+                                    + "does not appear to be a Maven or Gradle built project.");
             }
 
             // Run the application in dev mode.
@@ -355,11 +377,11 @@ public class DevModeOperations {
                 debugModeHandler.startDebugAttacher(project, launch, debugPort);
             }
         } catch (Exception e) {
-            String msg = "An error was detected during the start in container request on project " + projectName;
+            String msg = Messages.getMessage("start_container_general_error", projectName);
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
             }
-            ErrorHandler.processErrorMessage(NLS.bind(Messages.start_container_general_error, projectName), e, true);
+            ErrorHandler.processErrorMessage(msg, e, true);
             return;
         }
 
@@ -390,15 +412,20 @@ public class DevModeOperations {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op.");
             }
-            ErrorHandler.processErrorMessage(NLS.bind(Messages.stop_no_project_found, null), true);
+            ErrorHandler.processErrorMessage(Messages.getMessage("stop_no_project_found"), true);
             return;
         }
 
         String projectName = iProject.getName();
+        Project project = projectModel.getProject(projectName);
+
+        if (project != null) {
+            Utils.reEnableAppMonitoring(project);
+        }
 
         // Check if the stop action has already been issued of if a start action was never issued before.
         if (!processController.isProcessStarted(projectName)) {
-            String msg = NLS.bind(Messages.stop_already_issued, projectName);
+            String msg = Messages.getMessage("stop_already_issued", projectName);
             handleStopActionError(projectName, msg);
 
             return;
@@ -412,7 +439,7 @@ public class DevModeOperations {
             cleanupProcess(projectName);
 
         } catch (Exception e) {
-            String msg = NLS.bind(Messages.stop_general_error, projectName);
+            String msg = Messages.getMessage("stop_general_error", projectName);
             handleStopActionError(projectName, msg);
 
             return;
@@ -449,7 +476,7 @@ public class DevModeOperations {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op.");
             }
-            ErrorHandler.processErrorMessage(NLS.bind(Messages.run_tests_no_project_found, null), true);
+            ErrorHandler.processErrorMessage(Messages.getMessage("run_tests_no_project_found"), true);
             return;
         }
 
@@ -458,11 +485,11 @@ public class DevModeOperations {
         // Check if the stop action has already been issued of if a start action was never issued before.
         if (!processController.isProcessStarted(projectName)) {
             String msg = "No start request was issued first or the stop request was already issued on project " + projectName
-                    + ". Issue a start request before you issue the run tests request.";
+                         + ". Issue a start request before you issue the run tests request.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op. ProcessController: " + processController);
             }
-            ErrorHandler.processErrorMessage(NLS.bind(Messages.run_tests_no_prior_start, projectName), true);
+            ErrorHandler.processErrorMessage(Messages.getMessage("run_tests_no_prior_start", projectName), true);
             return;
         }
 
@@ -474,7 +501,7 @@ public class DevModeOperations {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
             }
-            ErrorHandler.processErrorMessage(NLS.bind(Messages.run_tests_general_error, projectName), e, true);
+            ErrorHandler.processErrorMessage(Messages.getMessage("run_tests_general_error", projectName), e, true);
             return;
         }
 
@@ -505,7 +532,7 @@ public class DevModeOperations {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op.");
             }
-            ErrorHandler.processErrorMessage(NLS.bind(Messages.mvn_int_test_report_no_project_found, null), true);
+            ErrorHandler.processErrorMessage(Messages.getMessage("mvn_int_test_report_no_project_found"), true);
             return;
         }
 
@@ -534,11 +561,11 @@ public class DevModeOperations {
             }
         } catch (Exception e) {
             String msg = "An error was detected when the view integration test report request was processed on project " + projectName
-                    + ".";
+                         + ".";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
             }
-            ErrorHandler.processErrorMessage(NLS.bind(Messages.mvn_int_test_report_general_error, projectName), e, true);
+            ErrorHandler.processErrorMessage(Messages.getMessage("mvn_int_test_report_general_error", projectName), e, true);
             return;
         }
 
@@ -571,7 +598,7 @@ public class DevModeOperations {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op.");
             }
-            ErrorHandler.processErrorMessage(NLS.bind(Messages.mvn_unit_test_report_no_project_found, null), true);
+            ErrorHandler.processErrorMessage(Messages.getMessage("mvn_unit_test_report_no_project_found"), true);
         }
 
         String projectName = iProject.getName();
@@ -602,7 +629,7 @@ public class DevModeOperations {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
             }
-            ErrorHandler.processErrorMessage(NLS.bind(Messages.mvn_unit_test_report_general_error, projectName), e, true);
+            ErrorHandler.processErrorMessage(Messages.getMessage("mvn_unit_test_report_general_error", projectName), e, true);
             return;
         }
 
@@ -633,7 +660,7 @@ public class DevModeOperations {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op.");
             }
-            ErrorHandler.processErrorMessage(NLS.bind(Messages.gradle_test_report_no_project_found, null), true);
+            ErrorHandler.processErrorMessage(Messages.getMessage("gradle_test_report_no_project_found"), true);
             return;
         }
 
@@ -656,15 +683,15 @@ public class DevModeOperations {
             Path path = getGradleTestReportPath(projectPath);
             if (!path.toFile().exists()) {
                 String msg = "No test results were found for project " + projectName + ". Select \""
-                        + DashboardView.APP_MENU_ACTION_RUN_TESTS + "\" before you select \""
-                        + DashboardView.APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT + "\" on the menu.";
+                             + DashboardView.APP_MENU_ACTION_RUN_TESTS + "\" before you select \""
+                             + DashboardView.APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT + "\" on the menu.";
                 if (Trace.isEnabled()) {
                     Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op. Path: " + path);
                 }
                 ErrorHandler
                         .processErrorMessage(
-                                NLS.bind(Messages.gradle_test_report_none_found, new String[] { projectName,
-                                        DashboardView.APP_MENU_ACTION_RUN_TESTS, DashboardView.APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT }),
+                                Messages.getMessage("gradle_test_report_none_found", projectName,
+                                        DashboardView.APP_MENU_ACTION_RUN_TESTS, DashboardView.APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT),
                                 true);
                 return;
             }
@@ -677,7 +704,7 @@ public class DevModeOperations {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
             }
-            ErrorHandler.processErrorMessage(NLS.bind(Messages.gradle_test_report_general_error, projectName));
+            ErrorHandler.processErrorMessage(Messages.getMessage("gradle_test_report_general_error", projectName));
             return;
         }
 
@@ -690,10 +717,10 @@ public class DevModeOperations {
      * Opens the specified report in a browser.
      *
      * @param projectName The application project name.
-     * @param path The path to the HTML report file.
-     * @param browserId The Id to use for the browser display.
-     * @param name The name to use for the browser display.
-     * @param toolTip The tool tip to use for the browser display.
+     * @param path        The path to the HTML report file.
+     * @param browserId   The Id to use for the browser display.
+     * @param name        The name to use for the browser display.
+     * @param toolTip     The tool tip to use for the browser display.
      *
      * @throws Exception If an error occurs while displaying the test report.
      */
@@ -703,7 +730,7 @@ public class DevModeOperations {
         IWebBrowser browser = null;
         if (bSupport.isInternalWebBrowserAvailable()) {
             browser = bSupport.createBrowser(IWorkbenchBrowserSupport.AS_EDITOR | IWorkbenchBrowserSupport.LOCATION_BAR
-                    | IWorkbenchBrowserSupport.NAVIGATION_BAR | IWorkbenchBrowserSupport.STATUS, browserId, name, toolTip);
+                                             | IWorkbenchBrowserSupport.NAVIGATION_BAR | IWorkbenchBrowserSupport.STATUS, browserId, name, toolTip);
         } else {
             browser = bSupport.createBrowser(browserId);
         }
@@ -714,7 +741,7 @@ public class DevModeOperations {
     /**
      * Runs the specified command.
      *
-     * @param cmd The command to run.
+     * @param cmd         The command to run.
      * @param projectName The name of the project currently being processed.
      * @param projectPath The project's path.
      *
@@ -749,10 +776,10 @@ public class DevModeOperations {
      * for the specified project.
      * 
      * @param projectName The name of the project for which the the Liberty plugin stop command is issued.
-     * @param baseMsg The base message to display.
+     * @param baseMsg     The base message to display.
      */
     private void handleStopActionError(String projectName, String baseMsg) {
-        String stopPromptMsg = NLS.bind(Messages.issue_stop_prompt, null);
+        String stopPromptMsg = Messages.getMessage("issue_stop_prompt");
         String msg = baseMsg + "\n\n" + stopPromptMsg;
         Integer response = ErrorHandler.processWarningMessage(msg, true, new String[] { "Yes", "No" }, 0);
         if (response != null && response == 0) {
@@ -797,8 +824,7 @@ public class DevModeOperations {
                 cmd = CommandBuilder.getGradleCommandLine(projectPath, "libertyStop", pathEnv);
                 buildTypeName = "Gradle";
             } else {
-                throw new Exception("Unexpected project build type: " + buildType + ". Project " + projectName
-                        + "does not appear to be a Maven or Gradle built project.");
+                throw new Exception(Messages.getMessage("unexpected_build_type", buildType, projectName));
             }
 
             // Issue the command.
@@ -812,7 +838,7 @@ public class DevModeOperations {
              * Per: https://stackoverflow.com/questions/29793071/rcp-no-progress-dialog-when-starting-a-job it seems that job.setUser(true)
              * is no longer enough to result in the creation of a progress dialog.
              */
-            Job job = new Job("Stopping server via " + buildTypeName + " plugin") {
+            Job job = new Job(Messages.getMessage("stopping_server_job", buildTypeName)) {
 
                 @Override
                 protected IStatus run(IProgressMonitor monitor) {
@@ -850,7 +876,7 @@ public class DevModeOperations {
                             }
                         }
                     } catch (Exception e) {
-                        ErrorHandler.processErrorMessage(NLS.bind(Messages.plugin_stop_issue_error, null), e, false);
+                        ErrorHandler.processErrorMessage(Messages.getMessage("plugin_stop_issue_error"), e, false);
                     }
                     return Status.OK_STATUS;
                 }
@@ -877,12 +903,12 @@ public class DevModeOperations {
                             public void run() {
 
                                 String msg = "The Liberty Maven or Gradle stop command issued for project " + projectName
-                                        + " timed out after " + STOP_TIMEOUT_SECONDS + " seconds.";
+                                             + " timed out after " + STOP_TIMEOUT_SECONDS + " seconds.";
                                 if (Trace.isEnabled()) {
                                     Trace.getTracer().trace(Trace.TRACE_TOOLS, msg);
                                 }
-                                ErrorHandler.rawErrorMessageDialog(NLS.bind(Messages.plugin_stop_timeout,
-                                        new String[] { projectName, Integer.toString(STOP_TIMEOUT_SECONDS) }));
+                                ErrorHandler.rawErrorMessageDialog(Messages.getMessage("plugin_stop_timeout",
+                                        projectName, Integer.toString(STOP_TIMEOUT_SECONDS)));
                             }
                         });
                         return;
@@ -898,7 +924,7 @@ public class DevModeOperations {
                         Display.getDefault().syncExec(new Runnable() {
                             @Override
                             public void run() {
-                                ErrorHandler.processErrorMessage(NLS.bind(Messages.plugin_stop_failed, rc), true);
+                                ErrorHandler.processErrorMessage(Messages.getMessage("plugin_stop_failed", rc), true);
                             }
                         });
                         return;
@@ -916,7 +942,7 @@ public class DevModeOperations {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
             }
-            ErrorHandler.processErrorMessage(NLS.bind(Messages.plugin_stop_general_error, projectName), e, true);
+            ErrorHandler.processErrorMessage(Messages.getMessage("plugin_stop_general_error", projectName), e, true);
             return;
         }
 
@@ -938,28 +964,27 @@ public class DevModeOperations {
 
         if (!path1.toFile().exists() && !path2.toFile().exists()) {
             String msg = "No integration test results were found for project " + projectName + ". Select \""
-                    + DashboardView.APP_MENU_ACTION_RUN_TESTS + "\" before you select \""
-                    + DashboardView.APP_MENU_ACTION_VIEW_MVN_IT_REPORT + "\" on the menu.";
+                         + DashboardView.APP_MENU_ACTION_RUN_TESTS + "\" before you select \""
+                         + DashboardView.APP_MENU_ACTION_VIEW_MVN_IT_REPORT + "\" on the menu.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op. Paths checked: " + path1 + ", " + path2);
             }
-            ErrorHandler.processErrorMessage(NLS.bind(Messages.mvn_int_test_report_none_found, new String[] { projectName,
-                    DashboardView.APP_MENU_ACTION_RUN_TESTS, DashboardView.APP_MENU_ACTION_VIEW_MVN_IT_REPORT }), true);
+            ErrorHandler.processErrorMessage(Messages.getMessage("mvn_int_test_report_none_found", projectName,
+                    DashboardView.APP_MENU_ACTION_RUN_TESTS, DashboardView.APP_MENU_ACTION_VIEW_MVN_IT_REPORT), true);
             return null;
         }
 
         return path1.toFile().exists() ? path1 : path2;
     }
 
-    public Path getLibertyPluginConfigXmlPath(Project project) throws Exception {  	
-    	    	
+    public Path getLibertyPluginConfigXmlPath(Project project) throws Exception {
+
         Project serverProj = getLibertyServerProject(project);
         String buildDir = serverProj.getBuildType() == BuildType.GRADLE ? "build" : "target";
-      
+
         Path path = Paths.get(serverProj.getPath(), buildDir, "liberty-plugin-config.xml");
         return path;
     }
-    
 
     /**
      * Returns the liberty server module project associated with the input project.
@@ -975,11 +1000,11 @@ public class DevModeOperations {
             List<Project> mmps = project.getChildLibertyServerProjects();
             switch (mmps.size()) {
                 case 0:
-                    throw new Exception("Unable to find a child project that contains the Liberty server configuration.");
+                    throw new Exception(Messages.getMessage("child_project_not_found"));
                 case 1:
                     return mmps.get(0);
                 default:
-                    throw new Exception("Multiple child projects containing Liberty server configuration were found.");
+                    throw new Exception(Messages.getMessage("multiple_child_projects_found"));
             }
         }
 
@@ -999,13 +1024,13 @@ public class DevModeOperations {
 
         if (!path1.toFile().exists() && !path2.toFile().exists()) {
             String msg = "No unit test results were found for project " + projectName + ". Select \""
-                    + DashboardView.APP_MENU_ACTION_RUN_TESTS + "\" before you select \""
-                    + DashboardView.APP_MENU_ACTION_VIEW_MVN_UT_REPORT + "\" on the menu.";
+                         + DashboardView.APP_MENU_ACTION_RUN_TESTS + "\" before you select \""
+                         + DashboardView.APP_MENU_ACTION_VIEW_MVN_UT_REPORT + "\" on the menu.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg + " No-op. Paths checked: " + path1 + ", " + path2);
             }
-            ErrorHandler.processErrorMessage(NLS.bind(Messages.mvn_unit_test_report_none_found, new String[] { projectName,
-                    DashboardView.APP_MENU_ACTION_RUN_TESTS, DashboardView.APP_MENU_ACTION_VIEW_MVN_UT_REPORT }), true);
+            ErrorHandler.processErrorMessage(Messages.getMessage("mvn_unit_test_report_none_found", projectName,
+                    DashboardView.APP_MENU_ACTION_RUN_TESTS, DashboardView.APP_MENU_ACTION_VIEW_MVN_UT_REPORT), true);
             return null;
         }
 
@@ -1104,6 +1129,17 @@ public class DevModeOperations {
         return processController.isProcessStarted(projectName);
     }
 
+    public void restartServer(String projectName) {
+    	String restartCommand = "r";
+    	try {
+    		processController.writeToProcessStream(projectName, restartCommand);
+    	} catch (Exception e) {
+    		if (Trace.isEnabled()) {
+    			Trace.getTracer().trace(Trace.TRACE_TOOLS, Messages.getMessage("restart_server_error", projectName), e);
+    		}
+    	}
+    }
+
     /**
      * Refreshes the dashboard view.
      */
@@ -1120,4 +1156,16 @@ public class DevModeOperations {
         // Cancel will remove job from 'runningJobs' Map
         runningJobs.keySet().forEach(j -> j.cancel());
     }
+
+    public void executeCommand(String fullCommand, String projectPath) throws IOException, InterruptedException {
+        // Split the full command into individual arguments
+        List<String> command = Arrays.asList(fullCommand.trim().split("\\s+"));
+
+        ProcessBuilder builder = new ProcessBuilder(command);
+        builder.directory(new File(projectPath)); // Set working directory
+
+        Process process = builder.start();
+        process.waitFor();
+    }
+
 }

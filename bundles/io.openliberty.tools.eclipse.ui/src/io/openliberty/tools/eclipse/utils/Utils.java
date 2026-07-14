@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2022, 2024 IBM Corporation and others.
+* Copyright (c) 2022, 2025 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -12,14 +12,30 @@
 *******************************************************************************/
 package io.openliberty.tools.eclipse.utils;
 
+import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.attribute.FileTime;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Stream;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
+import org.eclipse.core.runtime.jobs.IJobChangeEvent;
+import org.eclipse.core.runtime.jobs.Job;
+import org.eclipse.core.runtime.jobs.JobChangeAdapter;
+import org.eclipse.debug.core.ILaunch;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.swt.graphics.Device;
@@ -35,7 +51,10 @@ import org.eclipse.ui.PlatformUI;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.LibertyDevPlugin;
+import io.openliberty.tools.eclipse.Project;
+import io.openliberty.tools.eclipse.debug.DebugModeHandler;
 import io.openliberty.tools.eclipse.logging.Trace;
+import io.openliberty.tools.eclipse.messages.Messages;
 
 /**
  * Provides a set of utility methods.
@@ -55,7 +74,7 @@ public class Utils {
      * Returns a org.eclipse.swt.graphics.Image object representing the image under the input path.
      * 
      * @param device The device display.
-     * @param path The path to the image.
+     * @param path   The path to the image.
      * 
      * @return A org.eclipse.swt.graphics.Image object representing the Open Liberty image.
      */
@@ -253,7 +272,7 @@ public class Utils {
 
         return sb.toString();
     }
-    
+
     /**
      * Returns the input throwable's root throwable cause.
      * 
@@ -272,5 +291,217 @@ public class Utils {
         }
 
         return cause;
+    }
+
+    /**
+     * Runs a background job to wait for a new server.env file to be created, signifying the restart of the application,
+     * and then reconnects the Liberty debugger.
+     * 
+     * @param project
+     * @param launch
+     * @param debugModeHandler
+     * @param preRestartTime   - The current time prior to restarting the server
+     */
+    public static void restartDebugger(Project project, ILaunch launch, DebugModeHandler debugModeHandler, Instant preRestartTime) {
+
+        Job job = new Job(Messages.getMessage("waiting_for_restart_job")) {
+            @Override
+            protected IStatus run(IProgressMonitor monitor) {
+                if (monitor.isCanceled()) {
+                    return Status.CANCEL_STATUS;
+                }
+
+                int maxAttempts = 30;
+
+                // Check to see if a new server.env file has been created.
+                for (int i = 0; i < maxAttempts; i++) {
+                    try {
+                        // Get server.env file's last modified timestamp
+                        File usrDir = new File(getUsrDirPath(project).toString());
+                        Path serverEnvFilePath = findFileByName(usrDir, "server.env").toPath();
+                        FileTime fileTime = Files.getLastModifiedTime(serverEnvFilePath);
+                        Instant fileModifiedInstant = fileTime.toInstant();
+
+                        // Compare the timestamps
+                        if (fileModifiedInstant.isAfter(preRestartTime)) {
+                            return Status.OK_STATUS;
+                        }
+
+                        Thread.sleep(3000);
+                    } catch (Exception e) {
+                        if (Trace.isEnabled()) {
+                            Trace.getTracer().trace(Trace.TRACE_UI, "Caught exception waiting for application to restart", e);
+                        }
+                        return Status.CANCEL_STATUS;
+                    }
+                }
+
+                return Status.CANCEL_STATUS;
+            }
+        };
+
+        job.addJobChangeListener(new JobChangeAdapter() {
+            @Override
+            public void done(IJobChangeEvent event) {
+                IStatus result = event.getResult();
+                if (result.isOK()) {
+                    debugModeHandler.startDebugAttacher(project, launch, null);
+                } else {
+                    if (Trace.isEnabled()) {
+                        Trace.getTracer().trace(Trace.TRACE_UI, "Timed out waiting for application to restart");
+                    }
+                }
+            }
+        });
+
+        job.schedule();
+    }
+
+    /**
+     * Disable app monitoring by placing an XML file containing the app monitoring
+     * configuration into the 'configDropins/overrides' folder inside the target
+     * directory.
+     * 
+     * @param project a project in the Liberty dashboard.
+     */
+    public static void disableAppMonitoring(Project project) {
+
+        String fileNameTofind = "server.xml";
+        String fileContent = "<server> <applicationMonitor updateTrigger=\"disabled\"/> </server>";
+        try {
+            validateProjectIsGradleOrMaven(project);
+            // Find the 'usr' directory inside 'wlp'
+            File usrDir = new File(getUsrDirPath(project).toString());
+            // Locate the server.xml file inside the server directory.
+            // The configDropins directory should be created at the same level as
+            // server.xml.
+            Path serverXmlFilePath = findFileByName(usrDir, fileNameTofind).toPath();
+            if (serverXmlFilePath != null) {
+                createXmlFile(serverXmlFilePath.getParent().toString(), fileContent);
+            } else {
+                if (Trace.isEnabled()) {
+                    Trace.getTracer().trace(Trace.TRACE_UI,
+                                            "File '" + fileNameTofind + "' not found in the 'usr'folder.");
+                }
+            }
+        } catch (Exception e) {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UI, "Error encountered while adding xml file in the configDropins.",
+                                        e);
+            }
+        }
+    }
+
+    /**
+     * Re-enable app monitoring by removing the XML file containing the app
+     * monitoring configuration from the 'configDropins/overrides' folder inside the
+     * target directory.
+     * 
+     * @param project a project in the Liberty dashboard.
+     */
+    public static void reEnableAppMonitoring(Project project) {
+
+        try {
+            validateProjectIsGradleOrMaven(project);
+            String fileNameTofind = "disableApplicationMonitor.xml";
+            File xmlFile = findFileByName(getUsrDirPath(project), fileNameTofind);
+            if (xmlFile != null) {
+                // Delete the file if exists.
+                deleteFileByName(xmlFile.toPath());
+            }
+        } catch (Exception e) {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UI, "Error encountered while removing xml file from configDropins.",
+                                        e);
+            }
+        }
+    }
+
+    // Method to find a specific file in a folder.
+    private static File findFileByName(File rootDir, String targetFileName) {
+        if (rootDir == null || !rootDir.isDirectory()) {
+            return null;
+        }
+
+        try (Stream<Path> paths = Files.walk(rootDir.toPath())) {
+            Optional<Path> match = paths.filter(Files::isRegularFile).filter(path -> path.getFileName().toString().equals(targetFileName)).findFirst();
+            return match.map(Path::toFile).orElse(null);
+        } catch (IOException e) {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UI, "An error occurred while searching for the file.", e);
+            }
+        }
+        return null; // file not found
+    }
+
+    // Create a directory and a file containing the specified content.
+    private static void createXmlFile(String filePath, String content) {
+        try {
+            Files.createDirectories(getConfigDropinsPath(filePath));
+            Path xmlFilePath = getXmlFilePath(filePath);
+            if (Files.notExists(xmlFilePath)) {
+                Files.createFile(xmlFilePath);
+                Files.writeString(xmlFilePath, content);
+            }
+        } catch (IOException e) {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UI, "An error occurred while creating the file: " + e.getMessage());
+            }
+        }
+    }
+
+    // Method to delete a file by path.
+    private static void deleteFileByName(Path filePath) {
+        try {
+            Files.walk(filePath).filter(Files::isRegularFile).forEach(path -> {
+                try {
+                    Files.delete(path);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
+        } catch (IOException e) {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UI, "Error during file deletion: " + e.getMessage());
+            }
+        }
+    }
+
+    // Method to check for project instance is null or project buildtype is unknowm.
+    private static void validateProjectIsGradleOrMaven(Project project) throws Exception {
+
+        if (project == null) {
+            throw new Exception("Unable to find internal instance of project.");
+        }
+        // Get the absolute path to the application project.
+        if (project.getPath() == null) {
+            throw new Exception("Unable to find the path to selected project.");
+        }
+        if (project.getBuildType() == Project.BuildType.UNKNOWN) {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UI, "Unexpected project build type: " + project.getBuildType()
+                                                        + ". " + "Project does not appear to be a Maven or Gradle built project.");
+                return;
+            }
+        }
+    }
+
+    // Get the usr directory path from the maven/gradle output folder.
+    private static File getUsrDirPath(Project project) {
+        if (project.getBuildType() == Project.BuildType.MAVEN) {
+            return Paths.get(project.getPath(), "target", "liberty", "wlp", "usr").toFile();
+        } else {
+            return Paths.get(project.getPath(), "build", "wlp", "usr").toFile();
+        }
+    }
+
+    // Get the "configDropins/overrides" directory path.
+    private static Path getConfigDropinsPath(String serverDirPath) {
+        return Paths.get(serverDirPath, "configDropins", "overrides");
+    }
+
+    // Get the xml file path.
+    private static Path getXmlFilePath(String serverDirPath) {
+        return Paths.get(serverDirPath, "configDropins", "overrides", "disableApplicationMonitor.xml");
     }
 }

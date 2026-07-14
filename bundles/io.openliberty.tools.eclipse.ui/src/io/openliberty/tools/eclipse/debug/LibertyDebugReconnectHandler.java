@@ -73,8 +73,7 @@ public class LibertyDebugReconnectHandler extends AbstractHandler {
     public Object execute(ExecutionEvent event) throws ExecutionException {
 
         Object target = null;
-        ISelection selection = HandlerUtil.getActiveWorkbenchWindow(event)
-                .getActivePage().getSelection();
+        ISelection selection = HandlerUtil.getActiveWorkbenchWindow(event).getActivePage().getSelection();
         if (selection != null & selection instanceof IStructuredSelection) {
             IStructuredSelection strucSelection = (IStructuredSelection) selection;
             Object[] elements = strucSelection.toArray();
@@ -104,11 +103,11 @@ public class LibertyDebugReconnectHandler extends AbstractHandler {
             try {
                 projectName = launch.getLaunchConfiguration().getAttribute(StartTab.PROJECT_NAME, "");
             } catch (CoreException e) {
-                String msg = "An error was detected during debugger reconnect";
+                String msg = Messages.getMessage("project_name_error");
                 if (Trace.isEnabled()) {
                     Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
                 }
-                ErrorHandler.processErrorMessage(NLS.bind(Messages.project_name_error, null), e, true);
+                ErrorHandler.processErrorMessage(msg, e, true);
             }
 
             if (projectName != null && !projectName.isBlank()) {

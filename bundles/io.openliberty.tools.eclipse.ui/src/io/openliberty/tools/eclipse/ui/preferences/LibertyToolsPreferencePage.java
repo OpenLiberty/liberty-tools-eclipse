@@ -24,6 +24,7 @@ import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchPreferencePage;
 import org.eclipse.ui.preferences.ScopedPreferenceStore;
 
+import io.openliberty.tools.eclipse.messages.Messages;
 import io.openliberty.tools.eclipse.utils.LibertyPrefDirectoryFieldEditor;
 import io.openliberty.tools.eclipse.utils.Utils;
 
@@ -52,8 +53,7 @@ public class LibertyToolsPreferencePage extends FieldEditorPreferencePage implem
     public void init(IWorkbench workbench) {
         // second parameter is typically the plug-in id
         setPreferenceStore(new ScopedPreferenceStore(InstanceScope.INSTANCE, "io.openliberty.tools.eclipse.ui"));
-        setDescription(
-                "Use the Browse buttons to specify the Maven and Gradle installation locations to be used for starting the application in dev mode, which will be used if no mvnw/gradlew wrapper is found.");
+        setDescription(Messages.getMessage("preference_page_description"));
     }
 
     @Override
@@ -91,11 +91,11 @@ public class LibertyToolsPreferencePage extends FieldEditorPreferencePage implem
             else {
                 setValid(false);
                 if (!installMvnLocValid && !installGradleLocValid) {
-                    setErrorMessage("Install locations must contain mvn and gradle executables");
+                    setErrorMessage(Messages.getMessage("mvn_gradle_exec_error"));
                 } else if (!installMvnLocValid && installGradleLocValid) {
-                    setErrorMessage("Install location must contain a bin directory containing a mvn executable");
+                    setErrorMessage(Messages.getMessage("mvn_exec_error"));
                 } else {
-                    setErrorMessage("Install location must contain a bin directory containing a gradle executable");
+                    setErrorMessage(Messages.getMessage("gradle_exec_error"));
                 }
             }
         }

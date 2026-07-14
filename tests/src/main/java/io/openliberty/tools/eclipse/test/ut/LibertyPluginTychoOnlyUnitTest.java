@@ -61,28 +61,28 @@ public class LibertyPluginTychoOnlyUnitTest {
         System.out.println("INFO: Test " + info.getDisplayName() + " exit: " + java.time.LocalDateTime.now());
     }
 
-
-    
     /**
-     * Test that run configs with similar attributes (project name, local vs. container), are reused by {@link LaunchConfigurationHelper#getLaunchConfiguration(IProject, String, RuntimeEnv)}
+     * Test that run configs with similar attributes (project name, local vs. container), are reused by
+     * {@link LaunchConfigurationHelper#getLaunchConfiguration(IProject, String, RuntimeEnv)}
      * 
-     * Perhaps ideally the filter method called within would be separately tested.   But this test would've been enough to catch https://github.com/OpenLiberty/liberty-tools-eclipse/issues/357
+     * Perhaps ideally the filter method called within would be separately tested. But this test would've been enough to catch
+     * https://github.com/OpenLiberty/liberty-tools-eclipse/issues/357
      * 
      * @throws Exception
      */
     @Test
     public void testGetLaunchConfiguration() throws Exception {
-        
+
         DevModeOperations devModeOps = mock(DevModeOperations.class);
         WorkspaceProjectsModel projModel = mock(WorkspaceProjectsModel.class);
-        try( MockedStatic<DevModeOperations> devModeOpsMock = mockStatic(DevModeOperations.class);
-             MockedStatic<JRETab> jreTabMock = mockStatic(JRETab.class)) {
+        try (MockedStatic<DevModeOperations> devModeOpsMock = mockStatic(DevModeOperations.class);
+                        MockedStatic<JRETab> jreTabMock = mockStatic(JRETab.class)) {
 
             devModeOpsMock.when(DevModeOperations::getInstance).thenReturn(devModeOps);
-            jreTabMock.when(()-> JRETab.getDefaultJavaFromBuildPath(any())).thenReturn("mock-build-path");
+            jreTabMock.when(() -> JRETab.getDefaultJavaFromBuildPath(any())).thenReturn("mock-build-path");
 
             when(devModeOps.getProjectModel()).thenReturn(projModel);
-            when (projModel.getDefaultStartParameters(any())).thenReturn("");
+            when(projModel.getDefaultStartParameters(any())).thenReturn("");
 
             LaunchConfigurationHelper launchConfigHelper = LaunchConfigurationHelper.getInstance();
             ILaunchConfiguration cfg1 = launchConfigHelper.getLaunchConfiguration(mockIProject("getLaunchConfiguration"), "run", RuntimeEnv.LOCAL);
@@ -92,23 +92,23 @@ public class LibertyPluginTychoOnlyUnitTest {
             ILaunchConfiguration cfg5 = launchConfigHelper.getLaunchConfiguration(mockIProject("getLaunchConfiguration"), "run", RuntimeEnv.CONTAINER);
             ILaunchConfiguration cfg6 = launchConfigHelper.getLaunchConfiguration(mockIProject("getLaunchConfiguration"), "run", RuntimeEnv.CONTAINER);
             ILaunchConfiguration cfg7 = launchConfigHelper.getLaunchConfiguration(mockIProject("getLaunchConfiguration"), "run", RuntimeEnv.LOCAL);
-            Set<String> uniqueConfigNames  = new HashSet<String>();
-            ILaunchConfiguration[] configs = {cfg1, cfg2, cfg3, cfg4, cfg5, cfg6, cfg7};
+            Set<String> uniqueConfigNames = new HashSet<String>();
+            ILaunchConfiguration[] configs = { cfg1, cfg2, cfg3, cfg4, cfg5, cfg6, cfg7 };
             for (ILaunchConfiguration config : configs) {
                 uniqueConfigNames.add(config.getName());
             }
-            
-            Assertions.assertFalse(cfg1.getAttribute(StartTab.PROJECT_RUN_IN_CONTAINER,(boolean)true), "Expecting local config for cfg1");
-            Assertions.assertTrue(cfg2.getAttribute(StartTab.PROJECT_RUN_IN_CONTAINER, (boolean)false), "Expecting container config for cfg2");
+
+            Assertions.assertFalse(cfg1.getAttribute(StartTab.PROJECT_RUN_IN_CONTAINER, (boolean) true), "Expecting local config for cfg1");
+            Assertions.assertTrue(cfg2.getAttribute(StartTab.PROJECT_RUN_IN_CONTAINER, (boolean) false), "Expecting container config for cfg2");
 
             Assertions.assertEquals(2, uniqueConfigNames.size(),
-                    "Expecting only two unique configs, one for local, one for container");
+                                    "Expecting only two unique configs, one for local, one for container");
         }
     }
-                
+
     public static IProject mockIProject(String projectName) throws CoreException {
         IProject mockProject = mock(IProject.class);
-        when (mockProject.getName()).thenReturn(projectName);
+        when(mockProject.getName()).thenReturn(projectName);
         return mockProject;
     }
 }

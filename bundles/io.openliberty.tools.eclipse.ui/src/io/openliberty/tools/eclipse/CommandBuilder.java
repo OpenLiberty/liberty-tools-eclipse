@@ -31,6 +31,14 @@ public class CommandBuilder {
 
     private boolean isMaven;
 
+    private String MVNW_WRAPPER = "./mvnw";
+
+    private String MVNW_WRAPPER_WIN = ".\\mvnw.cmd";
+
+    private String GRADLE_WRAPPER = "./gradlew";
+
+    private String GRADLE_WRAPPER_WIN = ".\\gradlew.bat";
+
     /**
      * @param pathEnv
      * @param isMaven true for Maven, false for Gradle
@@ -46,15 +54,14 @@ public class CommandBuilder {
      * Returns the full Maven command to run.
      *
      * @param projectPath The project's path.
-     * @param cmdArgs The mvn command args
-     * @param pathEnv The PATH env var
+     * @param cmdArgs     The mvn command args
+     * @param pathEnv     The PATH env var
      *
      * @return The full Maven command to run.
      * 
      * @throws CommandNotFoundException
      */
-    public static String getMavenCommandLine(String projectPath, String cmdArgs, String pathEnv)
-            throws CommandBuilder.CommandNotFoundException {
+    public static String getMavenCommandLine(String projectPath, String cmdArgs, String pathEnv) throws CommandBuilder.CommandNotFoundException {
         if (Trace.isEnabled()) {
             Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { projectPath, cmdArgs });
         }
@@ -67,8 +74,7 @@ public class CommandBuilder {
         return cmdLine;
     }
 
-    public static String getGradleCommandLine(String projectPath, String cmdArgs, String pathEnv)
-            throws CommandBuilder.CommandNotFoundException {
+    public static String getGradleCommandLine(String projectPath, String cmdArgs, String pathEnv) throws CommandBuilder.CommandNotFoundException {
         if (Trace.isEnabled()) {
             Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { projectPath, cmdArgs });
         }
@@ -103,15 +109,15 @@ public class CommandBuilder {
             }
 
             if (isMaven) {
-                ErrorHandler.processPreferenceErrorMessage(NLS.bind(Messages.maven_exec_not_found, null), true);
+                ErrorHandler.processPreferenceErrorMessage(Messages.getMessage("maven_exec_not_found"), true);
             } else {
-                ErrorHandler.processPreferenceErrorMessage(NLS.bind(Messages.gradle_exec_not_found, null), true);
+                ErrorHandler.processPreferenceErrorMessage(Messages.getMessage("gradle_exec_not_found"), true);
             }
 
             throw new CommandNotFoundException(errorMsg);
         }
 
-        return cmd;
+        return encloseCmdInQuotesIfNeeded(cmd);
     }
 
     private String getCommandFromWrapper() {
@@ -122,7 +128,7 @@ public class CommandBuilder {
             Path p2mwProps = Paths.get(projectPath, ".mvn", "wrapper", "maven-wrapper.properties");
 
             if (p2mw.toFile().exists() && p2mwProps.toFile().exists()) {
-                cmd = p2mw.toString();
+                cmd = Utils.isWindows() ? MVNW_WRAPPER_WIN : MVNW_WRAPPER;
             }
         } else {
             // Check if there is wrapper defined.
@@ -131,7 +137,7 @@ public class CommandBuilder {
             Path p2gwProps = Paths.get(projectPath, "gradle", "wrapper", "gradle-wrapper.properties");
 
             if (p2gw.toFile().exists() && p2gwJar.toFile().exists() && p2gwProps.toFile().exists()) {
-                cmd = p2gw.toString();
+                cmd = Utils.isWindows() ? GRADLE_WRAPPER_WIN : GRADLE_WRAPPER;
             }
         }
         if (cmd != null) {
@@ -152,7 +158,7 @@ public class CommandBuilder {
         if (installLocPref == null || installLocPref.isBlank() || installLocPref.isEmpty()) {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS,
-                        "The mvn/gradle preference path: " + installLocPref + " was null, blank, or empty");
+                                        "The mvn/gradle preference path: " + installLocPref + " was null, blank, or empty");
             }
             return null;
         }
@@ -246,5 +252,15 @@ public class CommandBuilder {
             super(cause);
         }
 
+    }
+
+    /**
+     * Function to enclose the command in double quotes if it contains any spaces
+     */
+    private String encloseCmdInQuotesIfNeeded(String cmd) {
+        if (cmd.contains(" ")) {
+            return "\"" + cmd + "\"";
+        }
+        return cmd;
     }
 }

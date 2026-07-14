@@ -46,11 +46,11 @@ public class LaunchConfigurationHelper {
     /**
      * Returns the configuration to be used by the project associated with the action being processed.
      * 
-     * @param iProject The project for which the configuration will be returned. It must not be null.
-     * @param mode The launch mode.
+     * @param iProject  The project for which the configuration will be returned. It must not be null.
+     * @param mode      The launch mode.
      * @param container The indicator of whether or not the caller is running in a container. If true, It allows multiple
-     *        configurations associated to a single project to be filtered based on whether or not the configuration was previously
-     *        used to run the project in a container.
+     *                      configurations associated to a single project to be filtered based on whether or not the configuration was previously
+     *                      used to run the project in a container.
      * 
      * @return The configuration to be used by the project associated with the action being processed.
      * 
@@ -64,8 +64,7 @@ public class LaunchConfigurationHelper {
         DevModeOperations devModeOps = DevModeOperations.getInstance();
         ILaunchConfiguration configuration = null;
         ILaunchManager iLaunchMgr = DebugPlugin.getDefault().getLaunchManager();
-        ILaunchConfigurationType iLaunchConfigType = iLaunchMgr
-                .getLaunchConfigurationType(LaunchConfigurationDelegateLauncher.LAUNCH_CONFIG_TYPE_ID);
+        ILaunchConfigurationType iLaunchConfigType = iLaunchMgr.getLaunchConfigurationType(LaunchConfigurationDelegateLauncher.LAUNCH_CONFIG_TYPE_ID);
 
         // Find the set of configurations that were used by the currently active project last.
         ILaunchConfiguration[] existingConfigs = iLaunchMgr.getLaunchConfigurations(iLaunchConfigType);
@@ -111,15 +110,15 @@ public class LaunchConfigurationHelper {
      * Returns a filtered list of launch configurations.
      * 
      * @param rawConfigList The raw list of Liberty associated launch configurations to be filtered.
-     * @param projectName The project name to be used as filter.
-     * @param container The processing type to be used as filter.
+     * @param projectName   The project name to be used as filter.
+     * @param container     The processing type to be used as filter.
      * 
      * @return A filtered list of launch configurations.
      * 
      * @throws Exception
      */
     public List<ILaunchConfiguration> filterLaunchConfigurations(ILaunchConfiguration[] rawConfigList, String projectName,
-            RuntimeEnv runtimeEnv) throws Exception {
+                                                                 RuntimeEnv runtimeEnv) throws Exception {
         ArrayList<ILaunchConfiguration> matchingConfigList = new ArrayList<>();
         for (ILaunchConfiguration existingConfig : rawConfigList) {
             String configProjName = existingConfig.getAttribute(StartTab.PROJECT_NAME, "");
@@ -176,7 +175,7 @@ public class LaunchConfigurationHelper {
                     rc = (time2 > time1) ? 1 : -1;
                 } catch (Exception e) {
                     String msg = "An error occurred while trying to determine which configuration ran last. Configuration list: "
-                            + launchConfigList;
+                                 + launchConfigList;
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
                     }

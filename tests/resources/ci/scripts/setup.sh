@@ -95,6 +95,17 @@ installCustomSoftware() {
 installJDK() {
 	local javaHome="${SOFTWARE_INSTALL_DIR}/jdk-${SEMERU_OPEN_JDK_VERSION}+${SEMERU_OPEN_JDK_BUILD}"
 
+    # Skip installation if JDK is already installed (from cache)
+    if [[ -d "${javaHome}" ]] || [[ -d "${javaHome}/Contents/Home" ]]; then
+        echo "JDK ${SEMERU_OPEN_JDK_VERSION}+${SEMERU_OPEN_JDK_BUILD} already installed, skipping download"
+        if [[ $OS == "Darwin" ]]; then
+            javaHome="${javaHome}/Contents/Home"
+        fi
+        echo "JAVA_HOME=${javaHome}" >> $GITHUB_ENV
+        echo "${javaHome}/bin" >> $GITHUB_PATH
+        return 0
+    fi
+
     # Download, validate, and expand the JDK archive.
 	if [[ $OS == "Linux" ]]; then
         local url="https://github.com/ibmruntimes/semeru${SEMERU_OPEN_JDK_MAJOR}-binaries/releases/download/jdk-${SEMERU_OPEN_JDK_VERSION}%2B${SEMERU_OPEN_JDK_BUILD}_openj9-${SEMERU_OPENJ9_VERSION}/ibm-semeru-open-jdk_x64_linux_${SEMERU_OPEN_JDK_VERSION}_${SEMERU_OPEN_JDK_BUILD}_openj9-${SEMERU_OPENJ9_VERSION}.tar.gz"
@@ -142,6 +153,13 @@ installMaven() {
     local mavenHome="${SOFTWARE_INSTALL_DIR}/apache-maven-${MAVEN_VERSION}"
 	local url="https://archive.apache.org/dist/maven/maven-3/${MAVEN_VERSION}/binaries/apache-maven-${MAVEN_VERSION}-bin.zip"
 
+    # Skip installation if Maven is already installed (from cache)
+    if [[ -d "${mavenHome}" ]]; then
+        echo "Maven ${MAVEN_VERSION} already installed at ${mavenHome}, skipping download"
+        echo "${mavenHome}/bin" >> $GITHUB_PATH
+        return 0
+    fi
+
     # Download the Maven archive.
 	curl -fsSL -o /tmp/liberty-dev-tool-apache-maven.zip "$url"
 
@@ -170,6 +188,13 @@ installMaven() {
 installGradle() {
     local gradleHome="${SOFTWARE_INSTALL_DIR}/gradle-${GRADLE_VERSION}"
 	local url="https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip"
+
+    # Skip installation if Gradle is already installed (from cache)
+    if [[ -d "${gradleHome}" ]]; then
+        echo "Gradle ${GRADLE_VERSION} already installed at ${gradleHome}, skipping download"
+        echo "${gradleHome}/bin" >> $GITHUB_PATH
+        return 0
+    fi
 
     # Download the Gradle archive.
     curl -fsSL -o /tmp/liberty-dev-tool-gradle.zip "$url"

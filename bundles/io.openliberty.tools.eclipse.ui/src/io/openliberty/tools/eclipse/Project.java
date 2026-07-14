@@ -89,7 +89,7 @@ public class Project {
         } catch (Exception e) {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS,
-                        "An error occurred while attempting to find the nature of project " + iProject.getName(), e);
+                                        "An error occurred while attempting to find the nature of project " + iProject.getName(), e);
             }
             return false;
         }
@@ -120,7 +120,7 @@ public class Project {
         } catch (Exception e) {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS,
-                        "An error occurred while attempting to find the nature of project " + iProject.getName(), e);
+                                        "An error occurred while attempting to find the nature of project " + iProject.getName(), e);
             }
         }
 
@@ -212,7 +212,7 @@ public class Project {
                     javaProjecs.add(child);
                 }
             } catch (CoreException e) {
-                ErrorHandler.processWarningMessage(NLS.bind(Messages.determine_java_project_error, child.getName()), e, false);
+                ErrorHandler.processWarningMessage(Messages.getMessage("determine_java_project_error", child.getName()), e, false);
             }
         }
         return javaProjecs;
@@ -269,7 +269,7 @@ public class Project {
                 libertyServerModule = false;
             }
         } catch (Exception e) {
-            ErrorHandler.processWarningMessage(NLS.bind(Messages.liberty_nature_add_error, null), e, false);
+            ErrorHandler.processWarningMessage(Messages.getMessage("liberty_nature_add_error"), e, false);
         }
     }
 
@@ -292,14 +292,14 @@ public class Project {
                 }
             }
         } catch (Exception e) {
-            ErrorHandler.processWarningMessage(NLS.bind(Messages.liberty_nature_add_error, null), e, false);
+            ErrorHandler.processWarningMessage(Messages.getMessage("liberty_nature_add_error"), e, false);
         }
     }
 
     /**
      * Adds the specified nature ID to the project's description/metadata (.project).
      * 
-     * @param project The project to process.
+     * @param project  The project to process.
      * @param natureId The nature ID to add.
      * 
      * @throws Exception
@@ -331,7 +331,7 @@ public class Project {
     /**
      * Removes the specified nature ID from the project's description/metadata (.project).
      *
-     * @param project The project to process.
+     * @param project  The project to process.
      * @param natureId The nature ID to remove.
      *
      * @throws Exception
@@ -403,9 +403,9 @@ public class Project {
     @Override
     public String toString() {
         return "IProject: " + iProject.toString() + ". BuildType: " + type + ". Liberty Server Module: " + libertyServerModule
-                + ". isParentOfServerModule:" + isParentOfServerModule + ". parentDirProj: "
-                + (parentDirProject != null ? parentDirProject.getName() : "<null> ") + ". childDirProjects: "
-                + formatChildProjectToString() + ";";
+               + ". isParentOfServerModule:" + isParentOfServerModule + ". parentDirProj: "
+               + (parentDirProject != null ? parentDirProject.getName() : "<null> ") + ". childDirProjects: "
+               + formatChildProjectToString() + ";";
     }
 
     public boolean isLibertyServerModule() {

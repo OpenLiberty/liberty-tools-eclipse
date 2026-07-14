@@ -560,8 +560,7 @@ public class MagicWidgetFinder {
 
     public static void go(Object o, Option options) {
         if (o == null) {
-            throw new IllegalArgumentException(
-                    "Object param may not be null; this likely means a widget could not be found in a previous step.");
+            throw new IllegalArgumentException("Object param may not be null; this likely means a widget could not be found in a previous step.");
         }
 
         boolean recognized = true;
@@ -641,16 +640,16 @@ public class MagicWidgetFinder {
                 SWTBotCTabItem cti = new SWTBotCTabItem((CTabItem) o);
                 cti.show();
             } else if (o instanceof ToolItem) {
-            	ToolItem ti = (ToolItem)o;
-            	if (SWTUtils.hasStyle((ToolItem)o, SWT.PUSH)) {
-            		SWTBotToolbarPushButton sb = new SWTBotToolbarPushButton(ti);
+                ToolItem ti = (ToolItem) o;
+                if (SWTUtils.hasStyle((ToolItem) o, SWT.PUSH)) {
+                    SWTBotToolbarPushButton sb = new SWTBotToolbarPushButton(ti);
                     long expireTimeInNanos = System.nanoTime() + TimeUnit.NANOSECONDS.convert(30, TimeUnit.SECONDS);
                     while (!sb.isEnabled() && System.nanoTime() < expireTimeInNanos) {
                         System.out.println("Waiting for button enabled.");
                         pause(1000);
                     }
                     sb.click();
-            	}                    
+                }
             } else {
                 logErr("Unrecognized tester item (3): " + o.getClass().getName(), options);
                 recognized = false;
@@ -719,29 +718,24 @@ public class MagicWidgetFinder {
 
     }
 
-    
-    
-    
-	public static Shell activeShell() {
+    public static Shell activeShell() {
 
-		final Shell shell[] = new Shell[1];
-		Display.getDefault().syncExec(new Runnable() {
-			public void run() {
-				shell[0] = Display.getDefault().getActiveShell();
-				
-				if(shell[0] == null) {
-					Shell[] shells = Display.getDefault().getShells();
-					if(shells.length == 1) {
-						shell[0] = shells[1];
-					}
-				}
-				
-			}
-		});
-		return shell[0];
-	}
+        final Shell shell[] = new Shell[1];
+        Display.getDefault().syncExec(new Runnable() {
+            public void run() {
+                shell[0] = Display.getDefault().getActiveShell();
 
-	
+                if (shell[0] == null) {
+                    Shell[] shells = Display.getDefault().getShells();
+                    if (shells.length == 1) {
+                        shell[0] = shells[1];
+                    }
+                }
+
+            }
+        });
+        return shell[0];
+    }
 
     public static void debugDumpNodes(Node n, int depth, OutputStream s) throws IOException {
         for (int x = 0; x < depth; x++) {
@@ -794,7 +788,7 @@ public class MagicWidgetFinder {
                     result[0] = ti.getParent().getShell();
                 } else {
                     logErr("shell(...) called on object w/o a shell." + widget + " " + widget.getClass().getName(),
-                            Option.getGlobalOptions());
+                           Option.getGlobalOptions());
                 }
             }
 
@@ -974,9 +968,9 @@ public class MagicWidgetFinder {
                         Magic.visitQueue(neighbour, name, parent, shellConstraint, matches, new HashMap<Object, Boolean>(), options);
 
                         logOut("* Magic.visitQueue time: [" + name + "]: "
-                                + ((double) TimeUnit.MILLISECONDS.convert(System.nanoTime() - startTimeInNanos, TimeUnit.NANOSECONDS))
-                                        / 1000d,
-                                options);
+                               + ((double) TimeUnit.MILLISECONDS.convert(System.nanoTime() - startTimeInNanos, TimeUnit.NANOSECONDS))
+                                 / 1000d,
+                               options);
                     } catch (IllegalArgumentException e) {
                         e.printStackTrace();
                     } catch (IllegalAccessException e) {
@@ -1128,7 +1122,7 @@ public class MagicWidgetFinder {
 
             }
         }
-        
+
         // Added for Liberty Tools Eclipse
         if (itemInfo.getTooltipText() != null) {
             String text = itemInfo.getTooltipText().replace("&", "");
@@ -1211,9 +1205,7 @@ public class MagicWidgetFinder {
 
         private boolean logOut = true; // whether to log non-errors
 
-        private static final Option DEFAULT = (new Builder()).setDelayAfterActionInMsecs(500).setRetryAttempts(5)
-                .setUnrestrictedSearch(false).setMatcher(null).setUseContains(false).setWidgetClass(null).setThrowExceptionOnNotFound(true)
-                .build();
+        private static final Option DEFAULT = (new Builder()).setDelayAfterActionInMsecs(500).setRetryAttempts(5).setUnrestrictedSearch(false).setMatcher(null).setUseContains(false).setWidgetClass(null).setThrowExceptionOnNotFound(true).build();
 
         private static Option globalOptions = DEFAULT;
 
@@ -1457,19 +1449,19 @@ public class MagicWidgetFinder {
 
                                 if (d == Direction.NORTH && diffY <= 5) {
                                     result.add(new Object[] { current.getItem(), Math.sqrt(Math.pow(diffX * 2, 2) + Math.pow(diffY, 2)),
-                                            new Point(diffX, diffY) });
+                                                              new Point(diffX, diffY) });
                                 }
                                 if (d == Direction.SOUTH && diffY >= 5) {
                                     result.add(new Object[] { current.getItem(), Math.sqrt(Math.pow(diffX * 2, 2) + Math.pow(diffY, 2)),
-                                            new Point(diffX, diffY) });
+                                                              new Point(diffX, diffY) });
                                 }
                                 if (d == Direction.EAST && diffX > 5) {
                                     result.add(new Object[] { current.getItem(), Math.sqrt(Math.pow(diffX, 2) + Math.pow(diffY * 2, 2)),
-                                            new Point(diffX, diffY) });
+                                                              new Point(diffX, diffY) });
                                 }
                                 if (d == Direction.WEST && diffX < 5) {
                                     result.add(new Object[] { current.getItem(), Math.sqrt(Math.pow(diffX, 2) + Math.pow(diffY * 2, 2)),
-                                            new Point(diffX, diffY) });
+                                                              new Point(diffX, diffY) });
                                 }
 
                             }
@@ -1677,7 +1669,7 @@ public class MagicWidgetFinder {
         }
 
         private static void addObjectFieldsQ(Queue<QueueObj> queue, Object obj, Node currNode, QueueObj currQueueObj, Option options,
-                List<Object> visitedObjects) throws IllegalArgumentException, IllegalAccessException {
+                                             List<Object> visitedObjects) throws IllegalArgumentException, IllegalAccessException {
 
             List<Field> farr = Magic.getAllFields(obj.getClass());
 
@@ -1700,11 +1692,11 @@ public class MagicWidgetFinder {
 
                 String fieldObjectClassName = fieldObject.getClass().getName();
                 if (fieldObjectClassName.contains("org.eclipse.osgi.internal") || fieldObjectClassName.contains("java.lang.reflect")
-                        || fieldObjectClassName.contains("org.eclipse.core.internal")
-                        || fieldObjectClassName.contains("org.eclipse.e4.ui.workbench.renderers.swt.")
-                        || fieldObjectClassName.equals("org.eclipse.swt.widgets.Event") || fieldObjectClassName.contains("ClassLoader")
-                        || fieldObjectClassName.contains("org.eclipse.wst.common.frameworks.internal.ui.ValidationStatus")
-                        || fieldObjectClassName.contains("org.eclipse.ui.internal.contexts.") || fieldObject instanceof Class) {
+                    || fieldObjectClassName.contains("org.eclipse.core.internal")
+                    || fieldObjectClassName.contains("org.eclipse.e4.ui.workbench.renderers.swt.")
+                    || fieldObjectClassName.equals("org.eclipse.swt.widgets.Event") || fieldObjectClassName.contains("ClassLoader")
+                    || fieldObjectClassName.contains("org.eclipse.wst.common.frameworks.internal.ui.ValidationStatus")
+                    || fieldObjectClassName.contains("org.eclipse.ui.internal.contexts.") || fieldObject instanceof Class) {
                     continue;
                 }
 
@@ -1720,7 +1712,7 @@ public class MagicWidgetFinder {
                             for (int i = 0; i < length; i++) {
                                 Object arrayElement = Array.get(fieldObject, i);
                                 if (arrayElement != null && !arrayElement.getClass().isPrimitive()
-                                        && Magic.isUIObject(arrayElement, options)) {
+                                    && Magic.isUIObject(arrayElement, options)) {
                                     toVisit.add(arrayElement);
                                     visitedObjects.add(arrayElement);
                                 }
@@ -1750,7 +1742,7 @@ public class MagicWidgetFinder {
         }
 
         public static void addMiscFieldsQ(final Object uiObject, final Node thisNode, final QueueObj currQueueObj,
-                final List<Object> visitedObjects, final Queue<QueueObj> queue) {
+                                          final List<Object> visitedObjects, final Queue<QueueObj> queue) {
 
             if (uiObject instanceof CommonNavigator) {
                 CommonNavigator cn = (CommonNavigator) uiObject;
@@ -1813,8 +1805,7 @@ public class MagicWidgetFinder {
         }
 
         public static void visitQueue(final Object initialObject, String matchingText, final Node parent, final Shell shellConstraint,
-                List<Node> matches, final HashMap<Object, Boolean> allSeen, final Option options)
-                throws IllegalArgumentException, IllegalAccessException {
+                                      List<Node> matches, final HashMap<Object, Boolean> allSeen, final Option options) throws IllegalArgumentException, IllegalAccessException {
             if (initialObject == null) {
                 return;
             }
@@ -1923,10 +1914,10 @@ public class MagicWidgetFinder {
 
             String className = o.getClass().getName();
             if (className.equals(String.class.getName()) || className.equals(Boolean.class.getName())
-                    || className.equals(Long.class.getName()) || className.equals(Byte.class.getName())
-                    || className.equals(Integer.class.getName()) || className.equals(Double.class.getName())
-                    || className.equals(Short.class.getName()) || className.equals(Float.class.getName())
-                    || className.equals(Integer.class.getName()) || className.equals(Character.class.getName())) {
+                || className.equals(Long.class.getName()) || className.equals(Byte.class.getName())
+                || className.equals(Integer.class.getName()) || className.equals(Double.class.getName())
+                || className.equals(Short.class.getName()) || className.equals(Float.class.getName())
+                || className.equals(Integer.class.getName()) || className.equals(Character.class.getName())) {
                 return false;
             }
 
@@ -1944,9 +1935,9 @@ public class MagicWidgetFinder {
 
             do {
                 if (curr.getName().contains("org.eclipse.e4") || curr.getName().contains("org.eclipse.swt")
-                        || curr.getName().contains("org.eclipse.ui.") || curr.getName().contains("org.eclipse.jface")
-                        || (curr.getName().contains("com.ibm.etools.") /* && curr.getName().contains(".ui.") */ ) // slick ui : |
-                        || o instanceof Reference) {
+                    || curr.getName().contains("org.eclipse.ui.") || curr.getName().contains("org.eclipse.jface")
+                    || (curr.getName().contains("com.ibm.etools.") /* && curr.getName().contains(".ui.") */ ) // slick ui : |
+                    || o instanceof Reference) {
                     foundEclipse = true;
                 }
 
@@ -2096,8 +2087,7 @@ public class MagicWidgetFinder {
             }
 
             if (o == null) {
-                throw new IllegalArgumentException(
-                        "param must not be null. This likely means a widget from a previous step could not be located.");
+                throw new IllegalArgumentException("param must not be null. This likely means a widget from a previous step could not be located.");
             }
 
             info.setRecognized(true);
@@ -2284,8 +2274,8 @@ public class MagicWidgetFinder {
          * Gets the active {@link IWorkbenchWindow}.
          * 
          * @param activate If <code>activate</code> is <code>true</code> and no workbench window is active then a visible workbench window
-         *        will be activated. If <code>activate</code> is <code>false</code> and no workbench window is active then no workbench
-         *        window will be activated and <code>null</code> will be returned.
+         *                     will be activated. If <code>activate</code> is <code>false</code> and no workbench window is active then no workbench
+         *                     window will be activated and <code>null</code> will be returned.
          * 
          * @return the active workbench window or <code>null</code>
          */

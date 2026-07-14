@@ -48,6 +48,11 @@ This guide provides detailed instructions on how to use Liberty Tools for the Ec
 |  24.0.6       | 2024-03 - Eclipse v4.31 |
 |  24.0.9       | 2024-06 - Eclipse v4.32 |
 |  24.0.12      | 2024-09 - Eclipse v4.33 |
+|  25.0.3       | 2024-12 - Eclipse v4.34 |
+|  25.0.6       | 2025-03 - Eclipse v4.35 |
+|  25.0.8       | 2025-06 - Eclipse v4.36 |
+|  25.0.12      | 2025-09 - Eclipse v4.37 |
+|  26.0.2      	| 2025-12 - Eclipse v4.38 |
 
 **NOTE:** Tested with each of the `Eclipse IDE for Enterprise Java and Web Developers` and `Eclipse IDE for Java Developers` packages
 
@@ -140,7 +145,7 @@ Three options are available to start your Liberty application in dev mode: Start
 
 To start your application in dev mode, you can either right-click the application listed in the Liberty dashboard and click the **Start** action, or right-click the application in the project explorer, select **Run As**, and select the **Liberty Start** launch shortcut.
 
-A new terminal tab opens to run the application in dev mode.
+A new Console opens to run the application in dev mode.
 
 ![Start action started](images/maven-devModeStarted.png)
 
@@ -148,7 +153,7 @@ A new terminal tab opens to run the application in dev mode.
 
 To start your application in dev mode with customizations, you can either right-click on the application listed in the Liberty dashboard and click the  **Start...** action, or you can right-click the application in the project explorer, select **Run As** from the menu, and click the **Liberty Start...** launch shortcut. This action opens the Liberty configuration dialog that provides two customization tabs: **Start** and **JRE**.
 
-Use the **Start** tab to customize how and where dev mode is run. On this tab, you can specify parameters such as `-DhotTests=true` and whether or not you want your application to run in a container.
+Use the **Start** tab to customize how and where dev mode is run. On this tab, you can specify parameters such as `-DhotTests=true` and whether or not you want your application to run in a container. You can also specify if you want to run a clean before building the application. 
 
 ![Liberty configuration dialog start tab](images/maven-runConfigurationsDialogStartTab.png)
 
@@ -158,7 +163,7 @@ Use the **JRE** tab to customize the Java installation to use when you run dev m
 
 When you finish customizing the configuration, click **Run**. 
 
-A new terminal tab opens to run the application in dev mode. 
+A new Console opens to run the application in dev mode. 
 
 ![Start with parameters started](images/maven-devModeITRun.png)
 
@@ -182,7 +187,7 @@ Once your application is running on Liberty using dev mode, you can easily run t
 
 To run tests, you can either right-click on the application listed in the Liberty dashboard, and click on the **Run tests** action, or you can right-click on the application in the project explorer, select **Run As** from the menu, and click the **Liberty Run Tests** launch shortcut.
 
-The tests are run in the corresponding terminal.
+The tests are run in the corresponding console.
 
 ![Run tests](images/maven-devModeITRun.png)
 
@@ -214,8 +219,6 @@ To stop your application, you can either right-click on the application listed i
 
 ![Stop action](images/maven-devModeStopped.png)
 
-When the project is stopped, the terminal in which it ran is closed.
-
 ## Debugging your application
 
 To debug your application, you can start dev mode with the debugger automatically attached to the Liberty server JVM running your application.
@@ -238,7 +241,18 @@ Under the `Source` tab you can also customize the source lookup locations for yo
 
 When you finish with the customizations, click the **Debug** button to launch dev mode and attach the debugger. 
 
-![Debugger Attached](images/maven-DebuggerAttachedToJVMBreakpoint.png)
+Additionally, if you do not start your application with the Debug option, you can attach a debugger at any time using the **Connect Liberty Debugger** context menu action. 
+
+From the Debug View in the Debug Perspective, right-click on the launched application and select **Connect Liberty Debugger**. 
+
+![Connect Liberty Debugger action](images/maven-ConnectLibertyDebuggerAction.png)
+
+### Enhanced application monitoring
+
+The Liberty Debugger is automatically launched with enhanced application monitoring. When this happens, application monitoring is disabled in the Liberty runtime and updates are automatically hot swapped into the running JVM using Eclipse's Hot Code Replace (HCR) functionality. 
+This provides a significant performance improvement, removing the need to restart the application on every code change. For changes that cannot be hot swapped due to JVM limitations, an option to restart the server is presented. 
+
+Note: For multi-module applications, the application must be launched from the module that contains the liberty server configuration. 
 
 ## Manually adding the Liberty nature to a project
 
@@ -302,7 +316,7 @@ Liberty Tools editing assistance provides code completion, diagnostics, and quic
 
 4. To use Jakarta EE-specific quick-fixes, hover over a supported Jakarta EE error. A drop-down list of quick-fixes appears.
 
-![Jakarta EE quick-dix](images/jakarta-ee-ls-quick-fix.png)
+![Jakarta EE quick-fix](images/jakarta-ee-ls-quick-fix.png)
 
 Jakarta EE API configuration assistance is offered through Eclipse LSP4Jakarta, the Language Server for Jakarta EE. For more information, see the [project documentation in GitHub](https://github.com/eclipse/lsp4jakarta#eclipse-lsp4jakarta).
 

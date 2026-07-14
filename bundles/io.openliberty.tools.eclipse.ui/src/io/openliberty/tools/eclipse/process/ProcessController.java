@@ -23,6 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import org.eclipse.debug.core.DebugPlugin;
 
 import io.openliberty.tools.eclipse.logging.Trace;
+import io.openliberty.tools.eclipse.messages.Messages;
 import io.openliberty.tools.eclipse.utils.Utils;
 
 /**
@@ -60,13 +61,12 @@ public class ProcessController {
      *
      * @param projectName The application project name.
      * @param projectPath The application project path.
-     * @param command The command to execute.
-     * @param envs The environment properties to be set for the process.
+     * @param command     The command to execute.
+     * @param envs        The environment properties to be set for the process.
      * 
      * @throws IOException
      */
-    public Process runProcess(String projectName, String projectPath, String command, List<String> envs, boolean printCmd)
-            throws IOException {
+    public Process runProcess(String projectName, String projectPath, String command, List<String> envs, boolean printCmd) throws IOException {
 
         List<String> commandList = new ArrayList<String>();
 
@@ -125,7 +125,7 @@ public class ProcessController {
      * Writes the input data to the running process associated with the input project name.
      *
      * @param projectName The application project name.
-     * @param content The data to write.
+     * @param content     The data to write.
      *
      * @throws Exception
      */
@@ -133,8 +133,7 @@ public class ProcessController {
         Process process = projectProcessMap.get(projectName);
 
         if (process == null) {
-            String msg = "Unable to write to the process associated with project " + projectName
-                    + ". Internal process object not found.";
+            String msg = Messages.getMessage("process_write_error", projectName);
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg + ". Data to write: " + new String(data));
             }

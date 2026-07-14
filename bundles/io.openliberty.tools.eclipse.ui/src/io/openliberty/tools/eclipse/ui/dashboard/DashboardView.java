@@ -71,18 +71,18 @@ public class DashboardView extends ViewPart {
     /**
      * Menu Constants.
      */
-    public static final String APP_MENU_ACTION_START = "Start";
-    public static final String APP_MENU_ACTION_START_CONFIG = "Start...";
-    public static final String APP_MENU_ACTION_START_IN_CONTAINER = "Start in container";
-    public static final String APP_MENU_ACTION_DEBUG = "Debug";
-    public static final String APP_MENU_ACTION_DEBUG_CONFIG = "Debug...";
-    public static final String APP_MENU_ACTION_DEBUG_IN_CONTAINER = "Debug in container";
-    public static final String APP_MENU_ACTION_STOP = "Stop";
-    public static final String APP_MENU_ACTION_RUN_TESTS = "Run tests";
-    public static final String APP_MENU_ACTION_VIEW_MVN_IT_REPORT = "View integration test report";
-    public static final String APP_MENU_ACTION_VIEW_MVN_UT_REPORT = "View unit test report";
-    public static final String APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT = "View test report";
-    public static final String DASHBORD_TOOLBAR_ACTION_REFRESH = "refresh";
+    public static final String APP_MENU_ACTION_START = Messages.getMessage("dashboard_action_start");
+    public static final String APP_MENU_ACTION_START_CONFIG = Messages.getMessage("dashboard_action_start_config");
+    public static final String APP_MENU_ACTION_START_IN_CONTAINER = Messages.getMessage("dashboard_action_start_in_container");
+    public static final String APP_MENU_ACTION_DEBUG = Messages.getMessage("dashboard_action_debug");
+    public static final String APP_MENU_ACTION_DEBUG_CONFIG = Messages.getMessage("dashboard_action_debug_config");
+    public static final String APP_MENU_ACTION_DEBUG_IN_CONTAINER = Messages.getMessage("dashboard_action_debug_in_container");
+    public static final String APP_MENU_ACTION_STOP = Messages.getMessage("dashboard_action_stop");
+    public static final String APP_MENU_ACTION_RUN_TESTS = Messages.getMessage("dashboard_action_run_tests");
+    public static final String APP_MENU_ACTION_VIEW_MVN_IT_REPORT = Messages.getMessage("dashboard_action_view_mvn_it_report");
+    public static final String APP_MENU_ACTION_VIEW_MVN_UT_REPORT = Messages.getMessage("dashboard_action_view_mvn_ut_report");
+    public static final String APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT = Messages.getMessage("dashboard_action_view_gradle_test_report");
+    public static final String DASHBORD_TOOLBAR_ACTION_REFRESH = Messages.getMessage("dashboard_toolbar_refresh");
 
     /**
      * view actions.
@@ -211,7 +211,7 @@ public class DashboardView extends ViewPart {
                 if (Trace.isEnabled()) {
                     Trace.getTracer().trace(Trace.TRACE_UI, msg);
                 }
-                ErrorHandler.processErrorMessage(NLS.bind(Messages.project_not_gradle_or_maven, projectName), true);
+                ErrorHandler.processErrorMessage(Messages.getMessage("project_not_gradle_or_maven", projectName), true);
                 return;
             }
         }
@@ -227,15 +227,14 @@ public class DashboardView extends ViewPart {
         // Get the image descriptors for the menu actions and toolbar.
         // If there is a failure, display the error and proceed without the icons.
         try {
-            ActionImg = ImageDescriptor
-                    .createFromURL(new URL("platform:/plugin/org.eclipse.jdt.debug.ui/icons/full/elcl16/thread_view.gif"));
+            ActionImg = ImageDescriptor.createFromURL(new URL("platform:/plugin/org.eclipse.jdt.debug.ui/icons/full/elcl16/thread_view.gif"));
             refreshImg = ImageDescriptor.createFromURL(new URL("platform:/plugin/org.eclipse.ui.browser/icons/clcl16/nav_refresh.png"));
         } catch (Exception e) {
             String msg = "An error was detected while retrieving image descriptions.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }
-            ErrorHandler.processWarningMessage(NLS.bind(Messages.image_descriptions_error, null), e, true);
+            ErrorHandler.processWarningMessage(Messages.getMessage("image_descriptions_error"), e, true);
         }
 
         // Activate the Liberty tools context.
@@ -254,7 +253,7 @@ public class DashboardView extends ViewPart {
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
                     }
-                    ErrorHandler.processErrorMessage(NLS.bind(Messages.action_general_error, APP_MENU_ACTION_START), e, true);
+                    ErrorHandler.processErrorMessage(Messages.getMessage("action_general_error", APP_MENU_ACTION_START), e, true);
                 }
             }
         };
@@ -277,7 +276,7 @@ public class DashboardView extends ViewPart {
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
                     }
-                    ErrorHandler.processErrorMessage(NLS.bind(Messages.action_general_error, APP_MENU_ACTION_START_CONFIG), e,
+                    ErrorHandler.processErrorMessage(Messages.getMessage("action_general_error", APP_MENU_ACTION_START_CONFIG), e,
                             true);
                 }
             }
@@ -296,11 +295,11 @@ public class DashboardView extends ViewPart {
                     StartInContainerAction.run(iProject, ILaunchManager.RUN_MODE);
                 } catch (Exception e) {
                     String msg = "An error was detected during the " + APP_MENU_ACTION_START_IN_CONTAINER
-                            + " action.";
+                                 + " action.";
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
                     }
-                    ErrorHandler.processErrorMessage(NLS.bind(Messages.action_general_error, APP_MENU_ACTION_START_IN_CONTAINER), e, true);
+                    ErrorHandler.processErrorMessage(Messages.getMessage("action_general_error", APP_MENU_ACTION_START_IN_CONTAINER), e, true);
                 }
             }
         };
@@ -318,11 +317,11 @@ public class DashboardView extends ViewPart {
                     StartInContainerAction.run(iProject, ILaunchManager.DEBUG_MODE);
                 } catch (Exception e) {
                     String msg = "An error was detected during the " + APP_MENU_ACTION_DEBUG_IN_CONTAINER
-                            + " action.";
+                                 + " action.";
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
                     }
-                    ErrorHandler.processErrorMessage(NLS.bind(Messages.action_general_error, APP_MENU_ACTION_DEBUG_IN_CONTAINER), e, true);
+                    ErrorHandler.processErrorMessage(Messages.getMessage("action_general_error", APP_MENU_ACTION_DEBUG_IN_CONTAINER), e, true);
                 }
             }
         };
@@ -343,7 +342,7 @@ public class DashboardView extends ViewPart {
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
                     }
-                    ErrorHandler.processErrorMessage(NLS.bind(Messages.action_general_error, APP_MENU_ACTION_DEBUG), e, true);
+                    ErrorHandler.processErrorMessage(Messages.getMessage("action_general_error", APP_MENU_ACTION_DEBUG), e, true);
                 }
             }
         };
@@ -365,7 +364,7 @@ public class DashboardView extends ViewPart {
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
                     }
-                    ErrorHandler.processErrorMessage(NLS.bind(Messages.action_general_error, APP_MENU_ACTION_DEBUG_CONFIG), e, true);
+                    ErrorHandler.processErrorMessage(Messages.getMessage("action_general_error", APP_MENU_ACTION_DEBUG_CONFIG), e, true);
                 }
             }
         };
@@ -386,7 +385,7 @@ public class DashboardView extends ViewPart {
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
                     }
-                    ErrorHandler.processErrorMessage(NLS.bind(Messages.action_general_error, APP_MENU_ACTION_STOP), e, true);
+                    ErrorHandler.processErrorMessage(Messages.getMessage("action_general_error", APP_MENU_ACTION_STOP), e, true);
                 }
             }
         };
@@ -407,7 +406,7 @@ public class DashboardView extends ViewPart {
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
                     }
-                    ErrorHandler.processErrorMessage(NLS.bind(Messages.action_general_error, APP_MENU_ACTION_RUN_TESTS), e, true);
+                    ErrorHandler.processErrorMessage(Messages.getMessage("action_general_error", APP_MENU_ACTION_RUN_TESTS), e, true);
                 }
             }
         };
@@ -425,11 +424,11 @@ public class DashboardView extends ViewPart {
                     OpenMavenITestReportAction.run(iProject);
                 } catch (Exception e) {
                     String msg = "An error was detected during the " + APP_MENU_ACTION_VIEW_MVN_IT_REPORT
-                            + " action.";
+                                 + " action.";
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
                     }
-                    ErrorHandler.processErrorMessage(NLS.bind(Messages.action_general_error, APP_MENU_ACTION_VIEW_MVN_IT_REPORT), e, true);
+                    ErrorHandler.processErrorMessage(Messages.getMessage("action_general_error", APP_MENU_ACTION_VIEW_MVN_IT_REPORT), e, true);
                 }
             }
         };
@@ -447,11 +446,11 @@ public class DashboardView extends ViewPart {
                     OpenMavenUTestReportAction.run(iProject);
                 } catch (Exception e) {
                     String msg = "An error was detected during the " + APP_MENU_ACTION_VIEW_MVN_UT_REPORT
-                            + " action.";
+                                 + " action.";
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
                     }
-                    ErrorHandler.processErrorMessage(NLS.bind(Messages.action_general_error, APP_MENU_ACTION_VIEW_MVN_UT_REPORT), e, true);
+                    ErrorHandler.processErrorMessage(Messages.getMessage("action_general_error", APP_MENU_ACTION_VIEW_MVN_UT_REPORT), e, true);
                 }
             }
         };
@@ -469,11 +468,11 @@ public class DashboardView extends ViewPart {
                     OpenGradleTestReportAction.run(iProject);
                 } catch (Exception e) {
                     String msg = "An error was detected during the " + APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT
-                            + " action.";
+                                 + " action.";
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
                     }
-                    ErrorHandler.processErrorMessage(NLS.bind(Messages.action_general_error, APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT), e,
+                    ErrorHandler.processErrorMessage(Messages.getMessage("action_general_error", APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT), e,
                             true);
                 }
             }
@@ -511,7 +510,7 @@ public class DashboardView extends ViewPart {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }
-            ErrorHandler.processErrorMessage(NLS.bind(Messages.dashboard_refresh_error, null), e, reportError);
+            ErrorHandler.processErrorMessage(Messages.getMessage("dashboard_refresh_error"), e, reportError);
             return;
         }
     }

@@ -14,6 +14,7 @@ package io.openliberty.tools.eclipse.test.it;
 
 import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.context;
 import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.go;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.checkRunCleanProjectCheckBox;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.deleteLibertyToolsRunConfigEntriesFromAppRunAs;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.enableLibertyTools;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getAppDebugAsMenu;
@@ -24,6 +25,8 @@ import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getDefaultSourceLookupTreeItemNoBot;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getLibertyTreeItem;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getLibertyTreeItemNoBot;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getObjectInDebugView;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getRunConfigurationsShell;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchCustomDebugFromDashboard;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchCustomRunFromDashboard;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchDashboardAction;
@@ -43,6 +46,7 @@ import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.refreshDashboard;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.refreshProjectUsingExplorerView;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.setBuildCmdPathInPreferences;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.terminateLaunch;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.unsetBuildCmdPathInPreferences;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -70,10 +74,12 @@ import org.eclipse.swtbot.swt.finder.widgets.SWTBotCombo;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotMenu;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
 import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 
 import io.openliberty.tools.eclipse.CommandBuilder;
 import io.openliberty.tools.eclipse.CommandBuilder.CommandNotFoundException;
@@ -121,26 +127,26 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
      * Expected menu items.
      */
     static String[] gradleMenuItems = new String[] { DashboardView.APP_MENU_ACTION_START, DashboardView.APP_MENU_ACTION_START_CONFIG,
-            DashboardView.APP_MENU_ACTION_START_IN_CONTAINER, DashboardView.APP_MENU_ACTION_DEBUG,
-            DashboardView.APP_MENU_ACTION_DEBUG_CONFIG, DashboardView.APP_MENU_ACTION_DEBUG_IN_CONTAINER,
-            DashboardView.APP_MENU_ACTION_STOP, DashboardView.APP_MENU_ACTION_RUN_TESTS,
-            DashboardView.APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT };
+                                                     DashboardView.APP_MENU_ACTION_START_IN_CONTAINER, DashboardView.APP_MENU_ACTION_DEBUG,
+                                                     DashboardView.APP_MENU_ACTION_DEBUG_CONFIG, DashboardView.APP_MENU_ACTION_DEBUG_IN_CONTAINER,
+                                                     DashboardView.APP_MENU_ACTION_STOP, DashboardView.APP_MENU_ACTION_RUN_TESTS,
+                                                     DashboardView.APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT };
 
     /**
      * Run As configuration menu items.
      */
     static String[] runAsShortcuts = new String[] { LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START,
-            LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONFIG,
-            LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONTAINER, LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_STOP,
-            LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_RUN_TESTS,
-            LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_GRADLE_VIEW_TEST_REPORT };
+                                                    LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONFIG,
+                                                    LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONTAINER, LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_STOP,
+                                                    LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_RUN_TESTS,
+                                                    LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_GRADLE_VIEW_TEST_REPORT };
 
     /**
      * Debug As configuration menu items.
      */
     static String[] debugAsShortcuts = new String[] { LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START,
-            LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONFIG,
-            LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONTAINER };
+                                                      LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONFIG,
+                                                      LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONTAINER };
 
     /**
      * Setup.
@@ -195,6 +201,17 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         setBuildCmdPathInPreferences(bot, "Gradle");
         LibertyPluginTestUtils.validateLibertyToolsPreferencesSet();
 
+    }
+
+    @AfterEach
+    public void afterEach(TestInfo info) {
+        terminateLaunch();
+
+        // Validate that launch has been removed
+        Object launch = getObjectInDebugView("[Liberty]");
+        Assertions.assertNull(launch);
+
+        super.afterEach(info);
     }
 
     @AfterAll
@@ -258,16 +275,16 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         // Check that the menu for the expected application contains the required actions.
         List<String> menuItems = getDashboardItemMenuActions(GRADLE_APP_NAME);
         Assertions.assertTrue(menuItems.size() == gradleMenuItems.length, () -> "Gradle application " + GRADLE_APP_NAME
-                + " does not contain the expected number of menu items: " + gradleMenuItems.length);
+                                                                                + " does not contain the expected number of menu items: " + gradleMenuItems.length);
         Assertions.assertTrue(menuItems.containsAll(Arrays.asList(gradleMenuItems)),
-                () -> "Gradle application " + GRADLE_APP_NAME + " does not contain the expected menu items: " + gradleMenuItems);
+                              () -> "Gradle application " + GRADLE_APP_NAME + " does not contain the expected menu items: " + gradleMenuItems);
 
         // Check that the Run As menu contains the expected shortcut
         SWTBotMenu runAsMenu = getAppRunAsMenu(bot, GRADLE_APP_NAME);
         Assertions.assertTrue(runAsMenu != null, "The runAs menu associated with project: " + GRADLE_APP_NAME + " is null.");
         List<String> runAsMenuItems = runAsMenu.menuItems();
         Assertions.assertTrue(runAsMenuItems != null && !runAsMenuItems.isEmpty(),
-                "The runAs menu associated with project: " + GRADLE_APP_NAME + " is null or empty.");
+                              "The runAs menu associated with project: " + GRADLE_APP_NAME + " is null or empty.");
         int foundRunAsItems = 0;
 
         for (String expectedItem : runAsShortcuts) {
@@ -280,16 +297,16 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         }
 
         Assertions.assertTrue(foundRunAsItems == runAsShortcuts.length,
-                "The runAs menu associated with project: " + GRADLE_APP_NAME
-                        + " does not contain one or more expected entries. Expected number of entries: " + runAsShortcuts.length
-                        + "Found entry count: " + foundRunAsItems + ". Found menu entries: " + runAsMenuItems);
+                              "The runAs menu associated with project: " + GRADLE_APP_NAME
+                                                                        + " does not contain one or more expected entries. Expected number of entries: " + runAsShortcuts.length
+                                                                        + "Found entry count: " + foundRunAsItems + ". Found menu entries: " + runAsMenuItems);
 
         // Check that the Debug As menu contains the expected shortcut
         SWTBotMenu debugAsMenu = getAppDebugAsMenu(bot, GRADLE_APP_NAME);
         Assertions.assertTrue(debugAsMenu != null, "The debugAs menu associated with project: " + GRADLE_APP_NAME + " is null.");
         List<String> debugAsMenuItems = debugAsMenu.menuItems();
         Assertions.assertTrue(debugAsMenuItems != null && !debugAsMenuItems.isEmpty(),
-                "The debugAs menu associated with project: " + GRADLE_APP_NAME + " is null or empty.");
+                              "The debugAs menu associated with project: " + GRADLE_APP_NAME + " is null or empty.");
         int foundDebugAsItems = 0;
 
         for (String expectedItem : debugAsShortcuts) {
@@ -302,9 +319,10 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         }
 
         Assertions.assertTrue(foundDebugAsItems == debugAsShortcuts.length,
-                "The debugAs menu associated with project: " + GRADLE_APP_NAME
-                        + " does not contain one or more expected entries. Expected number of entries: " + debugAsShortcuts.length
-                        + "Found entry count: " + foundDebugAsItems + ". Found menu entries: " + debugAsMenuItems);
+                              "The debugAs menu associated with project: " + GRADLE_APP_NAME
+                                                                            + " does not contain one or more expected entries. Expected number of entries: "
+                                                                            + debugAsShortcuts.length
+                                                                            + "Found entry count: " + foundDebugAsItems + ". Found menu entries: " + debugAsMenuItems);
 
         // Check that the Run As -> Run Configurations ... contains the Liberty entry in the menu.
         Shell configShell = launchRunConfigurationsDialogFromAppRunAs(GRADLE_APP_NAME);
@@ -383,6 +401,10 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
 
         // Doing a 'clean' first in case server was started previously and terminated abruptly
         String cmd = CommandBuilder.getGradleCommandLine(wrapperProject.toString(), "clean libertyDev", null);
+
+        if (LibertyPluginTestUtils.onWindows()) {
+            cmd = "cmd.exe /c" + cmd;
+        }
         String[] cmdParts = cmd.split(" ");
         ProcessBuilder pb = new ProcessBuilder(cmdParts).inheritIO().directory(wrapperProject.toFile()).redirectErrorStream(true);
         pb.environment().put("JAVA_HOME", JavaRuntime.getDefaultVMInstall().getInstallLocation().getAbsolutePath());
@@ -487,6 +509,12 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
 
         // Start dev mode.
         launchDashboardAction(GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_START);
+        try {
+            Thread.sleep(10000); // sleep for 1 min
+        } catch (InterruptedException e) {
+            // Handle interruption
+            Thread.currentThread().interrupt();
+        }
 
         // Validate application is up and running.
         LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_APP_NAME, true, testAppPath + "/build");
@@ -497,6 +525,14 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         try {
             // Run Tests.
             launchDashboardAction(GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_RUN_TESTS);
+
+            // Sleep for a bit to allow tests to complete and not have the console tab take focus
+            try {
+                Thread.sleep(10000);
+            } catch (InterruptedException e) {
+                // Handle interruption
+                Thread.currentThread().interrupt();
+            }
 
             // Validate that the reports were generated and the the browser editor was launched.
             LibertyPluginTestUtils.validateTestReportExists(pathToTestReport);
@@ -529,28 +565,26 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         Project.removeNature(iProject, LibertyNature.NATURE_ID);
 
         // Rename the server.xml file.
-        Path originalPath = Paths
-                .get("resources", "applications", "gradle", "liberty-gradle-test-app", "src", "main", "liberty", "config", "server.xml")
-                .toAbsolutePath();
+        Path originalPath = Paths.get("resources", "applications", "gradle", "liberty-gradle-test-app", "src", "main", "liberty", "config", "server.xml").toAbsolutePath();
         Path renamedPath = Paths.get("resources", "applications", "gradle", "liberty-gradle-test-app", "src", "main", "liberty", "config",
-                "server.xml.renamed").toAbsolutePath();
+                                     "server.xml.renamed").toAbsolutePath();
 
         File originalFile = originalPath.toFile();
         Assertions.assertTrue(originalFile.exists(), () -> "The server.xml for project " + projectName
-                + " should exist, but it could not be found at this location: " + originalPath);
+                                                           + " should exist, but it could not be found at this location: " + originalPath);
 
         Files.copy(originalPath, renamedPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
         Files.delete(originalPath);
 
         File renamedFile = renamedPath.toFile();
         Assertions.assertTrue(renamedFile.exists(), () -> "The server.xml for project " + projectName
-                + " should have been renamed to server.xml.renamed. The renamed file does not exist at this location: " + renamedPath);
+                                                          + " should have been renamed to server.xml.renamed. The renamed file does not exist at this location: " + renamedPath);
 
         Assertions.assertTrue(!originalFile.exists(), () -> "The server.xml for project " + projectName
-                + " should no longer exist because it was renamed. File still exists at this location: " + originalPath);
+                                                            + " should no longer exist because it was renamed. File still exists at this location: " + originalPath);
 
         Assertions.assertTrue(iProject.getDescription().hasNature(LibertyNature.NATURE_ID) == false,
-                () -> "The nature ID should have been removed, but it is still present.");
+                              () -> "The nature ID should have been removed, but it is still present.");
 
         try {
             // Refresh the project through the explorer view to pick up the nature removal.
@@ -598,9 +632,9 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
             // Files.move(renamedPath, originalPath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
 
             Assertions.assertTrue(!renamedFile.exists(), () -> "File server.xml.renamed for project " + projectName
-                    + " should have been renamed to server.xml, but it was found at this location: " + renamedPath);
+                                                               + " should have been renamed to server.xml, but it was found at this location: " + renamedPath);
             Assertions.assertTrue(originalFile.exists(), () -> "The server.xml for project " + projectName
-                    + " should exist, but it could not be found at this location: " + originalPath);
+                                                               + " should exist, but it could not be found at this location: " + originalPath);
         }
     }
 
@@ -665,6 +699,51 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
             // Validate application stopped.
             LibertyPluginTestUtils.validateLibertyServerStopped(testAppPath + "/build");
         }
+    }
+
+    /**
+     * Tests the Clean project option provided under liberty run configuration option. Test will check
+     * if the application has started and also will check for the presence of project clean and dev mode commands
+     * from the console tab
+     */
+
+    @Test
+    public void testRunCleanProjectCheckbox() {
+
+        // Delete any previously created configs.
+        deleteLibertyToolsRunConfigEntriesFromAppRunAs(GRADLE_APP_NAME);
+
+        // Launch "Run Configurations" window and check "Clean project"
+        launchDashboardAction(GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_START_CONFIG);
+        Shell shell = getRunConfigurationsShell();
+        checkRunCleanProjectCheckBox(shell, GRADLE_APP_NAME);
+
+        // No need to run here. Just Apply and Close.
+        go("Apply", shell);
+        go("Close", shell);
+
+        // Start dev mode. This should start locally.
+        launchDashboardAction(GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_START);
+        try {
+            Thread.sleep(10000); // sleep for 1 min
+        } catch (InterruptedException e) {
+            // Handle interruption
+            Thread.currentThread().interrupt();
+        }
+
+        LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_APP_NAME, true, testAppPath + "/build");
+        // Reads the text from the console output tab
+        String consoleText = LibertyPluginTestUtils.getConsoleOutput();
+        Assertions.assertTrue(consoleText.contains("clean libertyDev"), "Console text should contain 'clean libertyDev'");
+        // If there are issues with the workspace, close the error dialog.
+        pressWorkspaceErrorDialogProceedButton(bot);
+
+        // Stop dev mode.
+        launchDashboardAction(GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
+
+        // Validate application stopped.
+        LibertyPluginTestUtils.validateLibertyServerStopped(testAppPath + "/build");
+
     }
 
     /**
@@ -796,17 +875,16 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
             String buildPathJRE = LibertyPluginTestUtils.getJREFromBuildpath(testAppPath);
 
             Assertions.assertTrue(buildPathJRE != null,
-                    () -> "Unable to find the JRE configured in the project's build path (.classpath).");
+                                  () -> "Unable to find the JRE configured in the project's build path (.classpath).");
 
             SWTBotCombo comboJREBox = getComboTextBoxWithTextPrefix(bot, buildPathJRE);
 
             Assertions.assertTrue(comboJREBox != null,
-                    () -> "The java installation shown on the Liberty run configurations JRE tab does not contain the Java installation configured on project's the build path (claspath):"
-                            + buildPathJRE);
+                                  () -> "The java installation shown on the Liberty run configurations JRE tab does not contain the Java installation configured on project's the build path (claspath):"
+                                        + buildPathJRE);
             Assertions.assertTrue(comboJREBox.isEnabled(),
-                    () -> "The JRE tab box showing Java installation \" + buildPathJRE + \" is not selected.");
+                                  () -> "The JRE tab box showing Java installation \" + buildPathJRE + \" is not selected.");
         } finally {
-            go("Apply", configShell);
             go("Close", configShell);
         }
     }
@@ -848,7 +926,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
 
         // Validate dependency projects are in source lookup list
         Assertions.assertTrue(jarEntryFound, "The dependency project, " + MVN_SHARED_LIB_NAME
-                + ", was not listed in the source lookup list for project " + GRADLE_APP_NAME);
+                                             + ", was not listed in the source lookup list for project " + GRADLE_APP_NAME);
 
     }
 }

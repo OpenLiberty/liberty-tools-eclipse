@@ -7,6 +7,12 @@ pipeline {
     }
 
     stages {
+        stage('Install lftp') {
+            steps {
+                sh "sudo apt-get update && sudo apt-get install -y lftp"
+            }
+        }
+        
         stage('Clone') {
             steps {
                 dir('liberty-tools-eclipse') {
@@ -63,8 +69,8 @@ pipeline {
                                 ).trim()
                                 echo "Checking ${LAST_COMMIT}"
                             waitUntil {
-                                // NOTE: We are using curl rsther than sftp directly because curl will allow you to specify a password in one command. 
-                                def rc = sh(script: "curl -k sftp://rtpgsa.ibm.com/projects/c/certsign/liberty_tools/signed/${LAST_COMMIT}/ --user '$user:$password'", returnStatus:true)
+                                // NOTE: We are using lftp for SFTP operations as it provides a way to pass a username and password on one command.
+                                def rc = sh(script: """lftp -u '$user,$password' -e 'set sftp:auto-confirm yes; set ssl:verify-certificate no; cls /projects/c/certsign/liberty_tools/signed/${LAST_COMMIT}/; quit' sftp://rtpgsa.ibm.com""", returnStatus:true)
                                 if(rc != 0) {
                                     return(true)
                                 }
@@ -78,18 +84,18 @@ pipeline {
                             echo "Using commit ${LAST_COMMIT}"
                         }
                         
-                        // Make new dir in "incomming"
-                        sh "curl -k sftp://rtpgsa.ibm.com/projects/c/certsign/liberty_tools/incoming/ -Q \"-MKDIR /projects/c/certsign/liberty_tools/incoming/${LAST_COMMIT}\" --ftp-create-dirs --user '$user:$password'"
+                        // Make new dir in "incoming"
+                        sh """lftp -u '$user,$password' -e 'set sftp:auto-confirm yes; set ssl:verify-certificate no; mkdir -p /projects/c/certsign/liberty_tools/incoming/${LAST_COMMIT}; quit' sftp://rtpgsa.ibm.com"""
                         
-                        // Upload jars to "incomming" dir
-                        sh "cd features && curl -k sftp://rtpgsa.ibm.com/projects/c/certsign/liberty_tools/incoming/${LAST_COMMIT}/ -T \"${FEATURE_JAR}\" --user '$user:$password'"
-                        sh "cd plugins && curl -k sftp://rtpgsa.ibm.com/projects/c/certsign/liberty_tools/incoming/${LAST_COMMIT}/ -T \"${LS_JAR}\" --user '$user:$password'"
-                        sh "cd plugins && curl -k sftp://rtpgsa.ibm.com/projects/c/certsign/liberty_tools/incoming/${LAST_COMMIT}/ -T \"${UI_JAR}\" --user '$user:$password'"
-                        sh "cd plugins && curl -k sftp://rtpgsa.ibm.com/projects/c/certsign/liberty_tools/incoming/${LAST_COMMIT}/ -T \"${PRODUCT_JAR}\" --user '$user:$password'"
+                        // Upload jars to "incoming" dir
+                        sh """cd features && lftp -u '$user,$password' -e 'set sftp:auto-confirm yes; set ssl:verify-certificate no; put ${FEATURE_JAR} -o /projects/c/certsign/liberty_tools/incoming/${LAST_COMMIT}/${FEATURE_JAR}; quit' sftp://rtpgsa.ibm.com"""
+                        sh """cd plugins && lftp -u '$user,$password' -e 'set sftp:auto-confirm yes; set ssl:verify-certificate no; put ${LS_JAR} -o /projects/c/certsign/liberty_tools/incoming/${LAST_COMMIT}/${LS_JAR}; quit' sftp://rtpgsa.ibm.com"""
+                        sh """cd plugins && lftp -u '$user,$password' -e 'set sftp:auto-confirm yes; set ssl:verify-certificate no; put ${UI_JAR} -o /projects/c/certsign/liberty_tools/incoming/${LAST_COMMIT}/${UI_JAR}; quit' sftp://rtpgsa.ibm.com"""
+                        sh """cd plugins && lftp -u '$user,$password' -e 'set sftp:auto-confirm yes; set ssl:verify-certificate no; put ${PRODUCT_JAR} -o /projects/c/certsign/liberty_tools/incoming/${LAST_COMMIT}/${PRODUCT_JAR}; quit' sftp://rtpgsa.ibm.com"""
     
                         // Upload "done" file
                         sh "echo  >> done"
-                        sh "curl -k sftp://rtpgsa.ibm.com/projects/c/certsign/liberty_tools/incoming/${LAST_COMMIT}/ -T \"done\" --user '$user:$password'"
+                        sh """lftp -u '$user,$password' -e 'set sftp:auto-confirm yes; set ssl:verify-certificate no; put done -o /projects/c/certsign/liberty_tools/incoming/${LAST_COMMIT}/done; quit' sftp://rtpgsa.ibm.com"""
                         sh "rm -f done"
                         
                         // Loop and wait for dir to appear in "signed"
@@ -97,7 +103,7 @@ pipeline {
                             timeout(5) {
                                 waitUntil {
                                     println "Waiting for jars to be signed..."
-                                    def rc = sh(script: "curl -k sftp://rtpgsa.ibm.com/projects/c/certsign/liberty_tools/signed/${LAST_COMMIT}/ --user '$user:$password'", returnStatus:true)
+                                    def rc = sh(script: """lftp -u '$user,$password' -e 'set sftp:auto-confirm yes; set ssl:verify-certificate no; cls /projects/c/certsign/liberty_tools/signed/${LAST_COMMIT}/; quit' sftp://rtpgsa.ibm.com""", returnStatus:true)
                                     if(rc == 0) {
                                         return(true)
                                     }
@@ -107,10 +113,10 @@ pipeline {
                         }
                         
                         // Download signed jars
-                        sh "cd features && curl -k sftp://rtpgsa.ibm.com/projects/c/certsign/liberty_tools/signed/${LAST_COMMIT}/${FEATURE_JAR} -o ${FEATURE_JAR} --user '$user:$password'"
-                        sh "cd plugins && curl -k sftp://rtpgsa.ibm.com/projects/c/certsign/liberty_tools/signed/${LAST_COMMIT}/${LS_JAR} -o ${LS_JAR} --user '$user:$password'"
-                        sh "cd plugins && curl -k sftp://rtpgsa.ibm.com/projects/c/certsign/liberty_tools/signed/${LAST_COMMIT}/${UI_JAR} -o ${UI_JAR} --user '$user:$password'"
-                        sh "cd plugins && curl -k sftp://rtpgsa.ibm.com/projects/c/certsign/liberty_tools/signed/${LAST_COMMIT}/${PRODUCT_JAR} -o ${PRODUCT_JAR} --user '$user:$password'"
+                        sh """cd features && lftp -u '$user,$password' -e 'set sftp:auto-confirm yes; set ssl:verify-certificate no; set xfer:clobber on; get /projects/c/certsign/liberty_tools/signed/${LAST_COMMIT}/${FEATURE_JAR} -o ${FEATURE_JAR}; quit' sftp://rtpgsa.ibm.com"""
+                        sh """cd plugins && lftp -u '$user,$password' -e 'set sftp:auto-confirm yes; set ssl:verify-certificate no; set xfer:clobber on; get /projects/c/certsign/liberty_tools/signed/${LAST_COMMIT}/${LS_JAR} -o ${LS_JAR}; quit' sftp://rtpgsa.ibm.com"""
+                        sh """cd plugins && lftp -u '$user,$password' -e 'set sftp:auto-confirm yes; set ssl:verify-certificate no; set xfer:clobber on; get /projects/c/certsign/liberty_tools/signed/${LAST_COMMIT}/${UI_JAR} -o ${UI_JAR}; quit' sftp://rtpgsa.ibm.com"""
+                        sh """cd plugins && lftp -u '$user,$password' -e 'set sftp:auto-confirm yes; set ssl:verify-certificate no; set xfer:clobber on; get /projects/c/certsign/liberty_tools/signed/${LAST_COMMIT}/${PRODUCT_JAR} -o ${PRODUCT_JAR}; quit' sftp://rtpgsa.ibm.com"""
                     }  
                 }
                 

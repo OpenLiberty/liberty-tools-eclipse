@@ -1,5 +1,57 @@
 # Liberty Tools Eclipse Changelog
 
+
+## 26.0.12 [changes](https://github.com/OpenLiberty/liberty-tools-eclipse/milestone/14) / [release](https://github.com/OpenLiberty/liberty-tools-eclipse/releases/tag/liberty-tools-26.0.2.202602260639) (February 27, 2025)
+
+### Eclipse Platform target release upgrade
+ * 4.38 (2025-12)
+
+### Dependency Upgrades
+ * Language Server for MicroProfile (LSP4MP) => 0.16.0
+ 
+## 25.0.12 [changes](https://github.com/OpenLiberty/liberty-tools-eclipse/milestone/13) / [release](https://github.com/OpenLiberty/liberty-tools-eclipse/releases/tag/liberty-tools-25.0.12.202512101531) (December 10, 2025)
+
+### Eclipse Platform target release upgrade
+ * 4.37 (2025-09)
+
+### Dependency Upgrades
+ * Liberty Config Language Server (LCLS) => 2.4
+ * Language Server for Jakarta EE (LSP4Jakarta) => 0.2.5
+ 
+## 25.0.8 [changes](https://github.com/OpenLiberty/liberty-tools-eclipse/milestone/12) / [release](https://github.com/OpenLiberty/liberty-tools-eclipse/releases/tag/liberty-tools-25.0.8.202508151719) (August 18, 2025)
+
+### Eclipse Platform target release upgrade
+ * 4.36 (2025-06)
+
+### Dependency Upgrades
+ * Liberty Config Language Server (LCLS) => 2.3.2
+
+## 25.0.6 [changes](https://github.com/OpenLiberty/liberty-tools-eclipse/milestone/11) / [release](https://github.com/OpenLiberty/liberty-tools-eclipse/releases/tag/liberty-tools-25.0.6.202506241559) (June 24, 2025)
+
+### Eclipse Platform target release upgrade
+ * 4.35 (2025-03)
+
+### Enhancements
+ * Enhanced debug monitoring: https://github.com/OpenLiberty/liberty-tools-eclipse/issues/557
+ * Add a "clean" option when starting an application: https://github.com/OpenLiberty/liberty-tools-eclipse/issues/239
+
+## 25.0.3 [changes](https://github.com/OpenLiberty/liberty-tools-eclipse/milestone/10) / [release](https://github.com/OpenLiberty/liberty-tools-eclipse/releases/tag/liberty-tools-25.0.3.202503281600) (March 28, 2025)
+
+### Eclipse Platform target release upgrade
+ * 4.34 (2024-12)
+
+### Dependency Upgrades
+ * Liberty Config Language Server (LCLS) => 2.2.1
+ * Language Server for Jakarta EE (LSP4Jakarta) => 0.2.3
+
+### Enhancements
+ * New Liberty debugger reconnect support: https://github.com/OpenLiberty/liberty-tools-eclipse/issues/498
+
+ * Switch from using Terminal to Console: https://github.com/OpenLiberty/liberty-tools-eclipse/pull/538
+
+### Bug Fixes
+ * Terminate and remove launches in Debug view: https://github.com/OpenLiberty/liberty-tools-eclipse/issues/293
+
 ## 24.0.12 [changes](https://github.com/OpenLiberty/liberty-tools-eclipse/milestone/9) / [release](https://github.com/OpenLiberty/liberty-tools-eclipse/releases/tag/liberty-tools-24.0.12.202412180117) (Dec 18, 2024)
 
 ### Eclipse Platform target release upgrade

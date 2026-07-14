@@ -23,55 +23,55 @@ import org.osgi.framework.BundleContext;
  */
 public class LibertyToolsLSPlugin extends AbstractUIPlugin {
 
-	// The plug-in ID
-	public static final String PLUGIN_ID = "io.openliberty.tools.eclipse.lsp4e"; //$NON-NLS-1$
+    // The plug-in ID
+    public static final String PLUGIN_ID = "io.openliberty.tools.eclipse.lsp4e"; //$NON-NLS-1$
 
-	// The shared instance
-	private static LibertyToolsLSPlugin plugin;
+    // The shared instance
+    private static LibertyToolsLSPlugin plugin;
 
-	/**
-	 * The constructor
-	 */
-	public LibertyToolsLSPlugin() {
-	}
+    /**
+     * The constructor
+     */
+    public LibertyToolsLSPlugin() {
+    }
 
-	@Override
-	public void start(BundleContext context) throws Exception {
-		super.start(context);
-		plugin = this;
-	}
+    @Override
+    public void start(BundleContext context) throws Exception {
+        super.start(context);
+        plugin = this;
+    }
 
-	@Override
-	public void stop(BundleContext context) throws Exception {
-		plugin = null;
-		super.stop(context);
-	}
+    @Override
+    public void stop(BundleContext context) throws Exception {
+        plugin = null;
+        super.stop(context);
+    }
 
-	/**
-	 * Returns the shared instance
-	 *
-	 * @return the shared instance
-	 */
-	public static LibertyToolsLSPlugin getDefault() {
-		return plugin;
-	}
+    /**
+     * Returns the shared instance
+     *
+     * @return the shared instance
+     */
+    public static LibertyToolsLSPlugin getDefault() {
+        return plugin;
+    }
 
-	public static void logException(String localizedMessage, JavaModelException e) {
-		// TODO Auto-generated method stub
+    public static void logException(String localizedMessage, JavaModelException e) {
+        // TODO Auto-generated method stub
 
-	}
+    }
 
-	public static String getPluginId() {
-		return LibertyToolsLSPlugin.PLUGIN_ID;
-	}
+    public static String getPluginId() {
+        return LibertyToolsLSPlugin.PLUGIN_ID;
+    }
 
-	public static void log(IStatus status) {
-		getDefault().getLog().log(status);
-	}
+    public static void log(IStatus status) {
+        getDefault().getLog().log(status);
+    }
 
-	public static void logException(String errMsg, Throwable ex) {
-		getDefault().getLog().log(new Status(IStatus.ERROR, getPluginId(), errMsg, ex));
+    public static void logException(String errMsg, Throwable ex) {
+        getDefault().getLog().log(new Status(IStatus.ERROR, getPluginId(), errMsg, ex));
 
-	}
+    }
 
 }
