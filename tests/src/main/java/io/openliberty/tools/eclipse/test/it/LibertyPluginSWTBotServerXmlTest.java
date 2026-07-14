@@ -76,11 +76,12 @@ public class LibertyPluginSWTBotServerXmlTest extends AbstractLibertyPluginSWTBo
     /**
      * Expected features
      */
-    public static String[] expectedFeatures = new String[] {
-                                                             "servlet", "jsp", "jaxrs", "cdi", "ejb", "jpa", "jdbc", "jsonp", "jsonb"
+    public static String[] expectedFeatures = new String[] { "servlet", "jsp", "jaxrs", "cdi", "ejb", "jpa", "jdbc", "jsonp", "jsonb"
     };
 
     public static String serverXmlPropertiesContent = "<logging></logging>";
+    public static String versionlessFeature = "<feature>servlet-3.1</feature>\n"
+                                              + "        <platform>jakartaee</platform>";
     public static String serverxmlDiagnostics = "not a valid value of union type 'booleanType'.";
 
     public static String[] serverxml_quickFixes = new String[] { " Replace value with 'true'", "Replace value with 'true'" };
@@ -142,7 +143,7 @@ public class LibertyPluginSWTBotServerXmlTest extends AbstractLibertyPluginSWTBo
             // Position cursor inside server tag
             serverXmlEditor.navigateTo(14, 4);
 
-            bot.sleep(2000); 
+            bot.sleep(2000);
             serverXmlEditor.insertText("\n");
 
             // Get completion list
@@ -204,7 +205,7 @@ public class LibertyPluginSWTBotServerXmlTest extends AbstractLibertyPluginSWTBo
                                                                                          "src/main/liberty/config",
                                                                                          "server.xml");
 
-            serverXmlEditor.navigateTo(18, 8);
+            serverXmlEditor.navigateTo(15, 8);
 
             bot.sleep(2000);
             serverXmlEditor.insertText("\n");
@@ -247,7 +248,7 @@ public class LibertyPluginSWTBotServerXmlTest extends AbstractLibertyPluginSWTBo
                                                                                          "liberty.maven.test.app (in liberty-maven-test-app)",
                                                                                          "src/main/liberty/config",
                                                                                          "server.xml");
-            serverXmlEditor.navigateTo(18, 8);
+            serverXmlEditor.navigateTo(15, 8);
 
             bot.sleep(2000);
             serverXmlEditor.insertText("\n");
@@ -255,7 +256,7 @@ public class LibertyPluginSWTBotServerXmlTest extends AbstractLibertyPluginSWTBo
 
             bot.sleep(3000);
             // Get platform value completions
-            List<String> platforms = SWTBotPluginOperations.getTypeAheadList(bot, "server.xml", "", 18, 17);
+            List<String> platforms = SWTBotPluginOperations.getTypeAheadList(bot, "server.xml", "", 15, 17);
             System.out.println("INFO: Available feature values = " + Arrays.toString(platforms.toArray()));
 
             boolean allFound = true;
@@ -285,7 +286,7 @@ public class LibertyPluginSWTBotServerXmlTest extends AbstractLibertyPluginSWTBo
                                                                                          "liberty.maven.test.app (in liberty-maven-test-app)",
                                                                                          "src/main/liberty/config",
                                                                                          "server.xml");
-            serverXmlEditor.navigateTo(18, 8);
+            serverXmlEditor.navigateTo(15, 8);
             bot.sleep(2000);
             serverXmlEditor.insertText("\n");
             serverXmlEditor.insertText("<feature>invalid-feature-0.7</feature>");
@@ -324,11 +325,12 @@ public class LibertyPluginSWTBotServerXmlTest extends AbstractLibertyPluginSWTBo
                                                                                          "liberty.maven.test.app (in liberty-maven-test-app)",
                                                                                          "src/main/liberty/config",
                                                                                          "server.xml");
-            serverXmlEditor.navigateTo(18, 8);
+            serverXmlEditor.navigateTo(15, 8);
 
             bot.sleep(2000);
             serverXmlEditor.insertText("\n");
-            serverXmlEditor.insertText("<feature>servlet</feature>");
+            serverXmlEditor.insertText("<feature>servlet-3.1</feature>\n"
+                                       + "        <feature>servlet</feature>");
 
             bot.sleep(3000);
 
@@ -367,11 +369,11 @@ public class LibertyPluginSWTBotServerXmlTest extends AbstractLibertyPluginSWTBo
                                                                                          "liberty.maven.test.app (in liberty-maven-test-app)",
                                                                                          "src/main/liberty/config",
                                                                                          "server.xml");
-            serverXmlEditor.navigateTo(18, 8);
+            serverXmlEditor.navigateTo(15, 8);
 
             bot.sleep(2000);
             serverXmlEditor.insertText("\n");
-            serverXmlEditor.insertText("<platform>jakartaee</platform>");
+            serverXmlEditor.insertText(versionlessFeature);
 
             bot.sleep(10000);
 
@@ -415,7 +417,7 @@ public class LibertyPluginSWTBotServerXmlTest extends AbstractLibertyPluginSWTBo
                                                                                          "liberty.maven.test.app (in liberty-maven-test-app)",
                                                                                          "src/main/liberty/config",
                                                                                          "server.xml");
-            serverXmlEditor.navigateTo(18, 8);
+            serverXmlEditor.navigateTo(15, 8);
 
             bot.sleep(2000);
             serverXmlEditor.insertText("\n");
@@ -458,7 +460,7 @@ public class LibertyPluginSWTBotServerXmlTest extends AbstractLibertyPluginSWTBo
                                                                                          "liberty.maven.test.app (in liberty-maven-test-app)",
                                                                                          "src/main/liberty/config",
                                                                                          "server.xml");
-            serverXmlEditor.navigateTo(18, 8);
+            serverXmlEditor.navigateTo(15, 8);
 
             bot.sleep(2000);
             serverXmlEditor.insertText("\n");
@@ -466,7 +468,7 @@ public class LibertyPluginSWTBotServerXmlTest extends AbstractLibertyPluginSWTBo
 
             bot.sleep(5000);
             // Get platform value completions
-            List<String> platforms = SWTBotPluginOperations.getTypeAheadList(bot, "server.xml", "", 18, 18);
+            List<String> platforms = SWTBotPluginOperations.getTypeAheadList(bot, "server.xml", "", 15, 18);
             System.out.println("INFO: Available platform values = " + Arrays.toString(platforms.toArray()));
 
             boolean allFound = true;
@@ -496,11 +498,11 @@ public class LibertyPluginSWTBotServerXmlTest extends AbstractLibertyPluginSWTBo
                                                                                          "liberty.maven.test.app (in liberty-maven-test-app)",
                                                                                          "src/main/liberty/config",
                                                                                          "server.xml");
-            serverXmlEditor.navigateTo(22, 4);
+            serverXmlEditor.navigateTo(18, 4);
 
             bot.sleep(2000);
             serverXmlEditor.insertText("\n");
-            serverXmlEditor.insertText(22, 4, "<logging appsWriteJson=\"invalid\"></logging>");
+            serverXmlEditor.insertText(18, 4, "<logging appsWriteJson=\"invalid\"></logging>");
             bot.sleep(3000);
 
             IEditorPart serverXmlEditorPart = serverXmlEditor.getReference().getEditor(false);
