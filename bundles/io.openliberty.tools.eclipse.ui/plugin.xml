@@ -374,6 +374,17 @@
         </menuContribution>
    </extension>
    
+   <!-- Liberty project property tester -->
+   <extension point="org.eclipse.core.expressions.propertyTesters">
+      <propertyTester
+            id="io.openliberty.tools.eclipse.ui.launch.libertyProjectPropertyTester"
+            type="org.eclipse.core.resources.IProject"
+            namespace="io.openliberty.tools.eclipse.ui.launch"
+            properties="aggregateStateActive,aggregateStateInactive"
+            class="io.openliberty.tools.eclipse.ui.launch.LibertyProjectPropertyTester">
+      </propertyTester>
+   </extension>
+
    <extension point="org.eclipse.debug.core.sourceLocators">
 	   <sourceLocator
 	       name="Liberty Source Lookup Director"
@@ -400,6 +411,7 @@
           sourcePathComputerId="io.openliberty.tools.eclipse.debug.libertySourcePathComputer">
       </launchConfigurationType>
   </extension>
+
   <extension point="org.eclipse.debug.ui.launchConfigurationTypeImages">
       <launchConfigurationTypeImage
           id="io.openliberty.tools.eclipse.launch.type.image"
@@ -431,6 +443,7 @@
                           <and>
                               <instanceof value="org.eclipse.core.runtime.IAdaptable"/>
                               <test forcePluginActivation="true" property="org.eclipse.debug.ui.projectNature" value="io.openliberty.tools.eclipse.ui.libertyNature"/>
+                              <test forcePluginActivation="true" property="io.openliberty.tools.eclipse.ui.launch.aggregateStateActive" value="false"/>
                           </and>
                       </iterate>
                   </with>
@@ -453,6 +466,7 @@
                           <and>
                               <instanceof value="org.eclipse.core.runtime.IAdaptable"/>
                               <test forcePluginActivation="true" property="org.eclipse.debug.ui.projectNature" value="io.openliberty.tools.eclipse.ui.libertyNature"/>
+                              <test forcePluginActivation="true" property="io.openliberty.tools.eclipse.ui.launch.aggregateStateActive" value="false"/>
                           </and>
                       </iterate>
                   </with>
@@ -475,6 +489,7 @@
                           <and>
                               <instanceof value="org.eclipse.core.runtime.IAdaptable"/>
                               <test forcePluginActivation="true" property="org.eclipse.debug.ui.projectNature" value="io.openliberty.tools.eclipse.ui.libertyNature"/>
+                              <test forcePluginActivation="true" property="io.openliberty.tools.eclipse.ui.launch.aggregateStateActive" value="false"/>
                           </and>
                       </iterate>
                   </with>
@@ -497,6 +512,7 @@
                           <and>
                               <instanceof value="org.eclipse.core.runtime.IAdaptable"/>
                               <test forcePluginActivation="true" property="org.eclipse.debug.ui.projectNature" value="io.openliberty.tools.eclipse.ui.libertyNature"/>
+                              <test forcePluginActivation="true" property="io.openliberty.tools.eclipse.ui.launch.aggregateStateActive" value="false"/>
                           </and>
                       </iterate>
                   </with>
@@ -519,6 +535,7 @@
                           <and>
                               <instanceof value="org.eclipse.core.runtime.IAdaptable"/>
                               <test forcePluginActivation="true" property="org.eclipse.debug.ui.projectNature" value="io.openliberty.tools.eclipse.ui.libertyNature"/>
+                              <test forcePluginActivation="true" property="io.openliberty.tools.eclipse.ui.launch.aggregateStateActive" value="false"/>
                           </and>
                       </iterate>
                   </with>
@@ -541,6 +558,7 @@
                           <and>
                               <instanceof value="org.eclipse.core.runtime.IAdaptable"/>
                               <test forcePluginActivation="true" property="org.eclipse.debug.ui.projectNature" value="io.openliberty.tools.eclipse.ui.libertyNature"/>
+                              <test forcePluginActivation="true" property="io.openliberty.tools.eclipse.ui.launch.aggregateStateActive" value="false"/>
                           </and>
                       </iterate>
                   </with>
@@ -563,6 +581,7 @@
                           <and>
                               <instanceof value="org.eclipse.core.runtime.IAdaptable"/>
                               <test forcePluginActivation="true" property="org.eclipse.debug.ui.projectNature" value="io.openliberty.tools.eclipse.ui.libertyNature"/>
+                              <test forcePluginActivation="true" property="io.openliberty.tools.eclipse.ui.launch.aggregateStateInactive" value="false"/>
                           </and>
                       </iterate>
                   </with>
@@ -585,6 +604,7 @@
                           <and>
                               <instanceof value="org.eclipse.core.runtime.IAdaptable"/>
                               <test forcePluginActivation="true" property="org.eclipse.debug.ui.projectNature" value="io.openliberty.tools.eclipse.ui.libertyNature"/>
+                              <test forcePluginActivation="true" property="io.openliberty.tools.eclipse.ui.launch.aggregateStateInactive" value="false"/>
                           </and>
                       </iterate>
                   </with>
