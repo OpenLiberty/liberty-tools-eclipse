@@ -74,6 +74,26 @@ import io.openliberty.tools.eclipse.utils.Utils;
 public class DevModeOperations {
 
     /**
+     * Liberty module state filter options. Used to resolve modules
+     * based on their state (active/started or inactive/stopped).
+     */
+    public enum ModuleStateFilter {
+        ALL,
+        ACTIVE,
+        INACTIVE
+    }
+
+    /**
+     * Represents the combined active/inactive/mixed state of all modules associated
+     * with a project.
+     */
+    public enum ProjectAggregatedState {
+        ACTIVE,
+        INACTIVE,
+        MIXED
+    }
+
+    /**
      * Supported actions types.
      */
     public static enum DashboardAction {
@@ -116,10 +136,6 @@ public class DevModeOperations {
     /**
      * Constants.
      */
-    public static final String ACTION_MVN_IT_REPORT_NAME = "View integration test report";
-    public static final String ACTION_MVN_UT_REPORT_NAME = "View unit test report";
-    public static final String ACTION_GDLTEST_REPORT_NAME = "View test report";
-
     public static final String DEVMODE_START_PARMS_DIALOG_TITLE = Messages.getMessage("devmode_start_dialog_title");
     public static final String DEVMODE_START_PARMS_DIALOG_MSG = Messages.getMessage("devmode_start_dialog_msg");
 
@@ -1137,51 +1153,40 @@ public class DevModeOperations {
     }
 
     /**
-     * Server filter mode for resolving command targets in multi-module projects.
-     * Used to filter Liberty modules based on their server state (running or stopped).
-     */
-    public enum ServerFilterMode {
-        /** Show all Liberty projects regardless of server state. */
-        ALL,
-        /** Show only Liberty projects with active (running) servers. */
-        ACTIVE_ONLY,
-        /** Show only Liberty projects with inactive (stopped) servers. */
-        INACTIVE_ONLY
-    }
-
-    /**
      * Resolve the target project for a given action command.
      *
-     * @param projectModel The project to resolve.
-     * @param commandName  The command name for display purposes.
-     * @param filterMode   The server filter mode to apply.
+     * @param projectModel        The project to resolve.
+     * @param commandName         The command name for display purposes.
+     * @param expectedModuleState The expected module state to filter on.
      *
      * @return The target project to execute or null if the user did not select one from a list options.
      *
-     * @throws Exception if input the project is not Liberty configured, or it does not have a liberty configured module.
+     * @throws Exception if the input project is not Liberty configured, or it does not have a liberty configured module.
      */
-    public ProjectModel resolveCommandTarget(ProjectModel projectModel, DashboardAction action, ServerFilterMode filterMode) throws Exception {
+    public ProjectModel resolveCommandTarget(ProjectModel projectModel, DashboardAction action, ModuleStateFilter expectedModuleState) throws Exception {
         if (Trace.isEnabled()) {
             Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { projectModel, action.toString() });
         }
 
         final ProjectModel[] targetProject = new ProjectModel[1];
 
-        // If the project is an aggregator
+        // If the module is an aggregator, gather the list of child modules associated with it.
         if (projectModel.getBuildConfigMetadata().isAggregator()) {
             List<ProjectModel> allLibertyChildren = workspaceModel.findLibertyDescendants(projectModel);
 
-            // Filter by server state based on filter mode
-            final List<ProjectModel> libertyChildren;
-            if (filterMode == ServerFilterMode.ACTIVE_ONLY) {
+            // Filter the list by the current module state based on expected module state.
+            // For example, if the action is "Start", the expected module state is INACTIVE. That is
+            // because only modules that are not active can be started.
+            final List<ProjectModel> childModules;
+            if (expectedModuleState == ModuleStateFilter.ACTIVE) {
                 List<ProjectModel> activeChildren = new ArrayList<>();
                 for (ProjectModel child : allLibertyChildren) {
                     if (isProjectStarted(child)) {
                         activeChildren.add(child);
                     }
                 }
-                libertyChildren = activeChildren;
-            } else if (filterMode == ServerFilterMode.INACTIVE_ONLY) {
+                childModules = activeChildren;
+            } else if (expectedModuleState == ModuleStateFilter.INACTIVE) {
                 List<ProjectModel> inactiveChildren = new ArrayList<>();
                 for (ProjectModel child : allLibertyChildren) {
                     if (!isProjectStarted(child)) {
@@ -1189,36 +1194,32 @@ public class DevModeOperations {
                     }
                 }
 
-                if (!allLibertyChildren.isEmpty() && inactiveChildren.size() == 0 &&
-                    (action == DashboardAction.START || action == DashboardAction.START_CFG ||
-                     action == DashboardAction.START_CTR || action == DashboardAction.DEBUG ||
-                     action == DashboardAction.DEBUG_CFG || action == DashboardAction.DEBUG_CTR)) {
+                if (!allLibertyChildren.isEmpty() && inactiveChildren.isEmpty()) {
                     throw new Exception(Messages.getMessage("no_inactive_liberty_modules_found"));
                 }
 
-                libertyChildren = inactiveChildren;
+                childModules = inactiveChildren;
             } else {
-                libertyChildren = allLibertyChildren;
+                childModules = allLibertyChildren;
             }
 
             // There should never be the case that there are no children found because a parent without
             // child Liberty modules should not be shown in the dashboard, and the user should not be given
             // the option to select an action through the explorers. If this case is encountered, it is
-            // an internal error an it should be reported as such.
-            if (libertyChildren.isEmpty()) {
+            // an internal error and it should be reported as such.
+            if (childModules.isEmpty()) {
                 String msg = Messages.getMessage("no_liberty_modules_found", projectModel.getName());
                 throw new Exception(msg);
             }
 
-            // If this parent project has a single child, return it as the target.
-            if (libertyChildren.size() == 1) {
+            // If this parent project has a single child module, return it as the target.
+            if (childModules.size() == 1) {
                 if (Trace.isEnabled()) {
-                    Trace.getTracer().traceExit(Trace.TRACE_TOOLS, libertyChildren.get(0));
+                    Trace.getTracer().traceExit(Trace.TRACE_TOOLS, childModules.get(0));
                 }
-                targetProject[0] = libertyChildren.get(0);
+                targetProject[0] = childModules.get(0);
             } else {
-
-                // If this parent project has multiple projects, ask the user to pick one,
+                // If this parent project has multiple child modules, ask the user to pick one,
                 // and return it as the target.
                 Display.getDefault().syncExec(new Runnable() {
                     @Override
@@ -1249,25 +1250,22 @@ public class DevModeOperations {
                             // Set size to show up to 10 items, then scrollbar appears
                             dialog.setSize(60, 10);
 
-                            // Customize dialog title and message based on filter mode
-                            String dialogTitle;
-                            String dialogMessage;
+                            // Customize dialog message based on the expected module state filter.
                             String actionName = getTranslatedActionCommand(action);
-                            if (filterMode == ServerFilterMode.ACTIVE_ONLY) {
-                                dialogTitle = Messages.getMessage("select_module_title");
+                            String dialogMessage;
+                            if (expectedModuleState == ModuleStateFilter.ACTIVE) {
                                 dialogMessage = Messages.getMessage("select_active_module_for_command_description", actionName);
-                            } else if (filterMode == ServerFilterMode.INACTIVE_ONLY) {
-                                dialogTitle = Messages.getMessage("select_module_title");
+                            } else if (expectedModuleState == ModuleStateFilter.INACTIVE) {
                                 dialogMessage = Messages.getMessage("select_inactive_module_for_command_description", actionName);
                             } else {
-                                dialogTitle = Messages.getMessage("select_module_title");
                                 dialogMessage = Messages.getMessage("select_module_for_command_description", actionName);
                             }
+                            String dialogTitle = Messages.getMessage("select_module_title");
 
                             dialog.setTitle(dialogTitle);
                             dialog.setMessage(dialogMessage);
-                            dialog.setElements(libertyChildren.toArray());
-                            dialog.setInitialSelections(new Object[] { libertyChildren.get(0) });
+                            dialog.setElements(childModules.toArray());
+                            dialog.setInitialSelections(new Object[] { childModules.get(0) });
                             dialog.setHelpAvailable(false);
 
                             if (dialog.open() == Window.OK) {
@@ -1492,5 +1490,39 @@ public class DevModeOperations {
 
         Process process = builder.start();
         process.waitFor();
+    }
+
+    /**
+     * Determines whether all, none, or only some of the Liberty modules associated with
+     * the given project are currently active.
+     *
+     * @param projectModel The project to evaluate.
+     * 
+     * @return The aggregated state for the input project.
+     */
+    public ProjectAggregatedState computeProjectAggregateState(ProjectModel projectModel) {
+        List<ProjectModel> modules;
+
+        if (projectModel.getBuildConfigMetadata() != null && projectModel.getBuildConfigMetadata().isAggregator()) {
+            modules = workspaceModel.findLibertyDescendants(projectModel);
+        } else {
+            modules = new ArrayList<>();
+            modules.add(projectModel);
+        }
+
+        int activeCount = 0;
+        for (ProjectModel module : modules) {
+            if (isProjectStarted(module)) {
+                activeCount++;
+            }
+        }
+
+        if (activeCount == 0) {
+            return ProjectAggregatedState.INACTIVE;
+        } else if (activeCount == modules.size()) {
+            return ProjectAggregatedState.ACTIVE;
+        } else {
+            return ProjectAggregatedState.MIXED;
+        }
     }
 }

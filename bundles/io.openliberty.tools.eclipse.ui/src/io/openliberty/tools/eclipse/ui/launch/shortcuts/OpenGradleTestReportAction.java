@@ -116,7 +116,7 @@ public class OpenGradleTestReportAction implements ILaunchShortcut {
         }
 
         // Resolve the target project taking into account only those that are actively running.
-        ProjectModel targetProjectModel = devModeOps.resolveCommandTarget(selectedProjectModel, DashboardAction.OPEN_GRADLE_TEST_REPORT, DevModeOperations.ServerFilterMode.ACTIVE_ONLY);
+        ProjectModel targetProjectModel = devModeOps.resolveCommandTarget(selectedProjectModel, DashboardAction.OPEN_GRADLE_TEST_REPORT, DevModeOperations.ModuleStateFilter.ALL);
         if (targetProjectModel == null) {
             return;
         }
