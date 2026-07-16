@@ -134,12 +134,12 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
                                                      DashboardView.APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT };
 
     /**
-     * Run As configuration menu items.
+     * Run As configuration menu items for an inactive project. Actions such
+     * as "Stop" and "Run Tests" are only present when the project is active.
      */
     static String[] runAsShortcuts = new String[] { LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START,
                                                     LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONFIG,
-                                                    LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONTAINER, LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_STOP,
-                                                    LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_RUN_TESTS,
+                                                    LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONTAINER,
                                                     LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_GRADLE_VIEW_TEST_REPORT };
 
     /**
