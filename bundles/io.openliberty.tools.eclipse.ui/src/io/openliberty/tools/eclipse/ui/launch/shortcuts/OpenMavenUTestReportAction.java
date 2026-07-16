@@ -117,7 +117,7 @@ public class OpenMavenUTestReportAction implements ILaunchShortcut {
 
         // Resolve the target project taking into account only those that are actively running.
         ProjectModel targetProjectModel = devModeOps.resolveCommandTarget(selectedProjectModel, DashboardAction.OPEN_MVN_UT_TEST_REPORT,
-                                                                          DevModeOperations.ServerFilterMode.ACTIVE_ONLY);
+                                                                          DevModeOperations.ModuleStateFilter.ALL);
         if (targetProjectModel == null) {
             return;
         }
