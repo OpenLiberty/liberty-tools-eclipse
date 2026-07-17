@@ -117,7 +117,7 @@ public class StopAction implements ILaunchShortcut {
         }
 
         // Resolve the target project taking into account only those that are actively running.
-        ProjectModel targetProjectModel = devModeOps.resolveCommandTarget(selectedProjectModel, DashboardAction.STOP, DevModeOperations.ServerFilterMode.ACTIVE_ONLY);
+        ProjectModel targetProjectModel = devModeOps.resolveCommandTarget(selectedProjectModel, DashboardAction.STOP, DevModeOperations.ModuleStateFilter.ACTIVE);
         if (targetProjectModel == null) {
             return;
         }

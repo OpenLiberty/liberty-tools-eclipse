@@ -102,13 +102,12 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
                                                   DashboardView.APP_MENU_ACTION_VIEW_MVN_UT_REPORT };
 
     /**
-     * Run As configuration menu items.
+     * Run As configuration menu items with the project inactive. Actions such 
+     * as "Stop" and "Run Tests" are only present when the project is active.
      */
     static String[] runAsShortcuts = new String[] { LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START,
                                                     LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONFIG,
                                                     LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONTAINER,
-                                                    LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_STOP,
-                                                    LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_RUN_TESTS,
                                                     LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_MVN_VIEW_IT_REPORT,
                                                     LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_MVN_VIEW_UT_REPORT, };
 
@@ -210,7 +209,7 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
         Assertions.assertTrue(foundItems == runAsShortcuts.length,
                               "The runAs menu associated with project: " + MVN_APP_NAME
                                                                    + " does not contain one or more expected entries. Expected number of entries: " + runAsShortcuts.length
-                                                                   + "Found entry count: " + foundItems + ". Found menu entries: " + runAsMenuItems);
+                                                                   + ". Found menu entries count: " + foundItems + ". Found menu entries: " + runAsMenuItems);
 
         // Check that the Run As -> Run Configurations... contains the Liberty entry in the menu.
         Shell configShell = launchRunConfigurationsDialogFromAppRunAs(MVN_APP_NAME);

@@ -50,6 +50,7 @@ import org.eclipse.ui.handlers.IHandlerService;
 import org.eclipse.ui.part.ViewPart;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
+import io.openliberty.tools.eclipse.DevModeOperations.ProjectAggregatedState;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.messages.Messages;
 import io.openliberty.tools.eclipse.model.ProjectModel;
@@ -371,17 +372,64 @@ public class DashboardView extends ViewPart {
     private void addActionsToContextMenu(IMenuManager mgr) {
         IProject iProject = Utils.getActiveProject();
 
-        // If no project is selected (e.g., selection was cleared for non-Liberty project), don't show menu
+        // If no project is selected just return.
         if (iProject == null) {
             return;
         }
 
         String projectLocation = iProject.getLocation().toOSString();
         ProjectModel projectModel = devModeOps.getWorkspaceModel().getProjectByLocation(projectLocation);
-        String projectName = projectModel.getName();
 
-        // Only show the context menu if the project has been configured to run on Liberty.
+
+        // Only show the context menu if the project has been configured to run in Liberty.
         if (projectModel != null && projectModel.hasLibertyNature()) {
+            String projectName = projectModel.getName();
+            
+            // Determine which actions should be enabled or disabled based on the aggregated
+            // project state.
+            boolean isChildModule = (projectModel.getParentProjectModel() != null);
+            ProjectAggregatedState aggregatedState = devModeOps.computeProjectAggregateState(projectModel);
+
+            
+            // Enable action group: Start* and Debug* if the project aggregate state is inactive.
+            // Enable action group: Stop and Run Tests if the project's aggregate state is active.
+            // All groups are enabled if the state is mixed.
+            boolean enableProjInactiveGroup;
+            boolean enableProjActiveGroup;
+            if (isChildModule) {
+                // Child module: enable start group when inactive, stop group when active.
+                enableProjInactiveGroup = (aggregatedState == ProjectAggregatedState.INACTIVE);
+                enableProjActiveGroup  = (aggregatedState == ProjectAggregatedState.ACTIVE);
+            } else {
+                // Parent or standalone project.
+                switch (aggregatedState) {
+                    case INACTIVE:
+                        enableProjInactiveGroup = true;
+                        enableProjActiveGroup  = false;
+                        break;
+                    case ACTIVE:
+                        enableProjInactiveGroup = false;
+                        enableProjActiveGroup  = true;
+                        break;
+                    case MIXED:
+                    default:
+                        // Some modules running – expose the full set of actions.
+                        enableProjInactiveGroup = true;
+                        enableProjActiveGroup  = true;
+                        break;
+                }
+            }
+
+            startAction.setEnabled(enableProjInactiveGroup);
+            startConfigDialogAction.setEnabled(enableProjInactiveGroup);
+            startInContainerAction.setEnabled(enableProjInactiveGroup);
+            debugAction.setEnabled(enableProjInactiveGroup);
+            debugConfigDialogAction.setEnabled(enableProjInactiveGroup);
+            debugInContainerAction.setEnabled(enableProjInactiveGroup);
+            
+            stopAction.setEnabled(enableProjActiveGroup);
+            runTestAction.setEnabled(enableProjActiveGroup);
+
             mgr.add(startAction);
             mgr.add(startInContainerAction);
             mgr.add(startConfigDialogAction);
@@ -391,6 +439,7 @@ public class DashboardView extends ViewPart {
             mgr.add(stopAction);
             mgr.add(runTestAction);
 
+            // Viewing test report actions are always enabled.
             if (projectModel.getBuildType() == ProjectModel.BuildType.Maven) {
                 mgr.add(viewMavenITestReportsAction);
                 mgr.add(viewMavenUTestReportsAction);

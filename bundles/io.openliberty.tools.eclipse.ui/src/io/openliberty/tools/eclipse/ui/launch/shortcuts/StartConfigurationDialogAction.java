@@ -134,7 +134,7 @@ public class StartConfigurationDialogAction implements ILaunchShortcut {
             }
 
             // Resolve the target project taking into account only those that are not actively running.
-            targetProjectModel = devModeOps.resolveCommandTarget(selectedProjectModel, DashboardAction.START_CFG, DevModeOperations.ServerFilterMode.INACTIVE_ONLY);
+            targetProjectModel = devModeOps.resolveCommandTarget(selectedProjectModel, DashboardAction.START_CFG, DevModeOperations.ModuleStateFilter.INACTIVE);
             if (targetProjectModel == null) {
                 return;
             }
