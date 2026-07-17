@@ -115,7 +115,7 @@ public class StartAction implements ILaunchShortcut {
         }
 
         // Resolve the target project taking into account only those that are not actively running.
-        ProjectModel targetProjectModel = devModeOps.resolveCommandTarget(selectedProjectModel, DashboardAction.START, DevModeOperations.ServerFilterMode.INACTIVE_ONLY);
+        ProjectModel targetProjectModel = devModeOps.resolveCommandTarget(selectedProjectModel, DashboardAction.START, DevModeOperations.ModuleStateFilter.INACTIVE);
         if (targetProjectModel == null) {
             return;
         }
