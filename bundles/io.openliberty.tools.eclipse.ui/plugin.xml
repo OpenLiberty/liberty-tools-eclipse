@@ -378,7 +378,7 @@
    <extension point="org.eclipse.core.expressions.propertyTesters">
       <propertyTester
             id="io.openliberty.tools.eclipse.ui.launch.libertyProjectPropertyTester"
-            type="org.eclipse.core.resources.IProject"
+            type="org.eclipse.core.runtime.IAdaptable"
             namespace="io.openliberty.tools.eclipse.ui.launch"
             properties="aggregateStateActive,aggregateStateInactive"
             class="io.openliberty.tools.eclipse.ui.launch.LibertyProjectPropertyTester">
