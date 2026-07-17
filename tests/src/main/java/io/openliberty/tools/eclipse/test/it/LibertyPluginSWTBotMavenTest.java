@@ -146,12 +146,12 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
                                                   DashboardView.APP_MENU_ACTION_VIEW_MVN_UT_REPORT };
 
     /**
-     * Run As configuration menu items for an inactive project. Actions such 
+     * Run As configuration menu items for an inactive project. Actions such
      * as "Stop" and "Run Tests" are only present when the project is active.
      */
     static String[] runAsShortcuts = new String[] { LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START,
                                                     LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONFIG,
-                                                    LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONTAINER, 
+                                                    LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONTAINER,
                                                     LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_MVN_VIEW_IT_REPORT,
                                                     LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_MVN_VIEW_UT_REPORT, };
 
@@ -419,6 +419,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
      * @throws InterruptedException
      */
     @Test
+    @Disabled("Until the option to stop an externally start module is added. The stop action is no longer enabled if LT did not start dev mode.")
     public void testDashboardStopExternalServer() throws CommandNotFoundException, IOException, InterruptedException {
 
         Path projAbsolutePath = wrapperProjectPath.toAbsolutePath();

@@ -39,7 +39,7 @@ public class LibertyProjectPropertyTester extends PropertyTester {
     @Override
     public boolean test(Object receiver, String property, Object[] args, Object expectedValue) {
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_UI, new Object[] { receiver, property, expectedValue });
+            Trace.getTracer().traceEntry(Trace.TRACE_UI, new Object[] { property, args, expectedValue });
         }
 
         // Resolve the IProject from the receiver.
