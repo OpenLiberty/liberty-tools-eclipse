@@ -94,7 +94,6 @@ import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLaunche
 /**
  * Tests Open Liberty Eclipse plugin functions.
  */
-@Disabled("Until full multi-module support is put in place.")
 public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTest {
 
     /**
@@ -388,6 +387,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
      * @throws InterruptedException
      */
     @Test
+    @Disabled("Until the option to stop an externally start module is added. The stop action is no longer enabled if LT did not start dev mode.")
     public void testDashboardStopExternalServer() throws CommandNotFoundException, IOException, InterruptedException {
         IProject iProject = LibertyPluginTestUtils.getProject(GRADLE_WRAPPER_APP_NAME);
         ProjectModel projectModel = new ProjectModel(iProject);
