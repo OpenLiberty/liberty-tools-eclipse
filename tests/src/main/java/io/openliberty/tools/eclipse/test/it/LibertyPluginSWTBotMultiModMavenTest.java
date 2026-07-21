@@ -102,7 +102,7 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
                                                   DashboardView.APP_MENU_ACTION_VIEW_MVN_UT_REPORT };
 
     /**
-     * Run As configuration menu items with the project inactive. Actions such 
+     * Run As configuration menu items with the project inactive. Actions such
      * as "Stop" and "Run Tests" are only present when the project is active.
      */
     static String[] runAsShortcuts = new String[] { LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START,
