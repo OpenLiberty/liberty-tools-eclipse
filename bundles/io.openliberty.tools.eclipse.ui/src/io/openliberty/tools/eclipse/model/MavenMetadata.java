@@ -122,11 +122,9 @@ public class MavenMetadata implements Metadata {
 
     /**
      * Extracts metadata from a Maven POM file.
-     * 
+     *
      * @param pomXmlPath The path to the pom.xml file.
-     * 
-     * @return The MavenProjectMetadata object containing extracted information.
-     * 
+     *
      * @throws Exception if parsing fails.
      */
     public void extract(String pomXmlPath) throws Exception {
@@ -147,10 +145,8 @@ public class MavenMetadata implements Metadata {
      * Parses POM XML content to extract metadata.
      *
      * @param xmlContent The XML content of pom.xml.
-     * 
-     * @return The MavenProjectMetadata object.
-     * 
-     * @throws Exception if parsing fails
+     *
+     * @throws Exception if parsing fails.
      */
     private void parsePomXml(String xmlContent) throws Exception {
         DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -237,7 +233,7 @@ public class MavenMetadata implements Metadata {
     }
 
     /**
-     * Checks if POM contains Liberty Maven plugin and detect skip configuration.
+     * Checks if POM contains Liberty Maven plugin and detects skip configuration.
      * Sets both hasLibertyPlugin and libertyPluginSkipped fields.
      *
      * @param doc The parsed POM document.
@@ -272,7 +268,7 @@ public class MavenMetadata implements Metadata {
     }
 
     /**
-     * Checks for Liberty plugin in a specific element and detect skip configuration.
+     * Checks for Liberty plugin in a specific element and detects skip configuration.
      * Sets libertyPluginSkipped field if <skip>true</skip> is found in any plugin configuration.
      *
      * @param element The element to search in.
@@ -390,7 +386,7 @@ public class MavenMetadata implements Metadata {
      * Gets text content of a child element.
      *
      * @param parent  The parent element.
-     * @param tagName The tag name to search.
+     * @param tagName The tag name to search for.
      * 
      * @return The text content or empty string.
      */
