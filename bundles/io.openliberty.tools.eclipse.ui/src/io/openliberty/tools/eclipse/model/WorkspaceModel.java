@@ -13,6 +13,9 @@
 package io.openliberty.tools.eclipse.model;
 
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -22,8 +25,12 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IProjectDescription;
+import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.NullProgressMonitor;
 
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.model.ProjectModel.BuildType;
@@ -53,9 +60,9 @@ public class WorkspaceModel {
     }
 
     /**
-     * Discard previous model and build new model from open projects
-     * 
-     * @param whether to classify or not
+     * Discards the previous model and builds a new model from open projects.
+     *
+     * @param classify Whether to classify projects or not.
      */
     private void createNewCompleteWorkspaceModel(boolean classify) {
 
@@ -113,20 +120,32 @@ public class WorkspaceModel {
                         // Log it and continue.
                         String msg = "The build metadata associated with project " + projectModel.getName() + " of build type: " + projectModel.getBuildType()
                                      + " was not found or could not be read. Project Path: "
-                                     + projectModel.getPath();
+                                     + projectModel.getPath() + ". This project is not being tracked.";
                         if (Trace.isEnabled()) {
                             Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
                         }
+
                     }
                 }
             }
         }
+
+        // Step 1b: For Gradle aggregator projects imported via "General → Project from Folder",
+        // submodule directories are not yet Eclipse projects. Register any missing submodules so
+        // that subsequent steps can see and classify them.
+        ensureGradleSubmodulesRegistered(classify);
 
         // Step 2: Build parent-child relationships using the project configuration.
         for (IProject iProject : projectsToScan) {
             if (iProject.isOpen()) {
                 String projectLocation = iProject.getLocation().toOSString();
                 ProjectModel projectModel = projectsByLocation.get(projectLocation);
+
+                // An error happened in step one. This project is not being tracked.
+                if (projectModel == null) {
+                    continue;
+                }
+
                 Metadata metadata = projectModel.getBuildConfigMetadata();
 
                 if (metadata != null) {
@@ -194,6 +213,12 @@ public class WorkspaceModel {
             if (iProject.isOpen()) {
                 String projectLocation = iProject.getLocation().toOSString();
                 ProjectModel projectModel = projectsByLocation.get(projectLocation);
+
+                // An error happened in step one. This project is not being tracked.
+                if (projectModel == null) {
+                    continue;
+                }
+
                 Metadata metadata = projectModel.getBuildConfigMetadata();
 
                 if (metadata != null) {
@@ -219,6 +244,12 @@ public class WorkspaceModel {
                 if (iProject.isOpen()) {
                     String projectLocation = iProject.getLocation().toOSString();
                     ProjectModel projectModel = projectsByLocation.get(projectLocation);
+
+                    // An error happened in step one. This project is not being tracked.
+                    if (projectModel == null) {
+                        continue;
+                    }
+
                     projectModel.classifyAsLibertyNature();
                 }
             }
@@ -308,21 +339,40 @@ public class WorkspaceModel {
     private Metadata getBuildConfigMetadata(ProjectModel projectModel) throws Exception {
         BuildType buildType = projectModel.getBuildType();
         IProject iProject = projectModel.getIProject();
-        String projectDir = iProject.getLocation().toOSString();
+        String projectLocation = iProject.getLocation().toOSString();
+        Path projectPath = Paths.get(projectLocation);
         Metadata metadata = null;
 
         if (buildType == BuildType.Maven) {
-            File pomFile = new File(projectDir, "pom.xml");
-            String buildFilePath = pomFile.getAbsolutePath();
-
-            metadata = new MavenMetadata(buildFilePath);
+            File pomFile = new File(projectLocation, "pom.xml");
+            if (!pomFile.exists()) {
+                throw new FileNotFoundException("pom.xml not found for Maven project '" + iProject.getName() + "' at: " + pomFile.getAbsolutePath());
+            }
+            metadata = new MavenMetadata(pomFile.getAbsolutePath());
 
         } else if (buildType == BuildType.Gradle) {
-            File pomFile = new File(projectDir, "build.gradle");
-            String buildFilePath = pomFile.getAbsolutePath();
+            Path buildFile = GradleMetadata.findBuildFile(projectPath);
+            Path settingsFile = GradleMetadata.findSettingsFile(projectPath);
 
-            metadata = new GradleMetadata(buildFilePath);
+            if (buildFile == null && settingsFile == null) {
+                throw new FileNotFoundException("Neither a build file nor a settings file "
+                                                + "was found for Gradle project: '"
+                                                + iProject.getName() + "'. Project location: " + projectLocation);
+            }
 
+            if (buildFile == null) {
+                // There is a settings file only. However, this scenario is only meaningful
+                // if the project being analyzed is a multi-module aggregator root.
+                GradleMetadata settingsOnlyMetadata = new GradleMetadata(null, settingsFile.toAbsolutePath().toString());
+                if (!settingsOnlyMetadata.isAggregator()) {
+                    throw new IllegalStateException("Gradle project '" + iProject.getName()
+                                                    + "' has a settings file but no build file and declares no submodules. "
+                                                    + "Project location: " + projectLocation);
+                }
+                metadata = settingsOnlyMetadata;
+            } else {
+                metadata = new GradleMetadata(buildFile.toAbsolutePath().toString(), settingsFile != null ? settingsFile.toAbsolutePath().toString() : null);
+            }
         } else {
             throw new IllegalStateException("Build type: " + buildType.name() + " is not supported.");
         }
@@ -331,9 +381,9 @@ public class WorkspaceModel {
     }
 
     /**
-     * Returns Liberty server modules grouped into two groups: Maven, then Gradle. Within each of 
-     * the two groups, modules of that group will be sorted in alphabetic order by project name. 
-     * So you will get the sorted list of Maven Liberty server project names followed by the sorted 
+     * Returns Liberty server modules grouped into two groups: Maven, then Gradle. Within each of
+     * the two groups, modules of that group will be sorted in alphabetic order by project name.
+     * So you will get the sorted list of Maven Liberty server project names followed by the sorted
      * list of Gradle Liberty server project names.
      * 
      * @return Liberty server project names sorted and grouped.
@@ -406,5 +456,109 @@ public class WorkspaceModel {
         }
 
         return descendants;
+    }
+
+    /**
+     * Ensures that all submodule directories declared by Gradle aggregator projects are
+     * registered as Eclipse {@link IProject} instances in the workspace.
+     *
+     * <p>When a multi-module Gradle project is imported via <em>File → General → Project from
+     * Folder and Archive</em>, only the root directory becomes an Eclipse project. Submodule
+     * directories are not registered, so they are invisible to the workspace model and cannot
+     * receive the Liberty nature. This method detects that situation and programmatically
+     * registers any missing submodule directories as Eclipse projects.</p>
+     *
+     * <p>After registration the new projects are also parsed for metadata and added to the
+     * internal maps ({@code projectsByLocation} and {@code projectsByName}) so that the
+     * parent-child relationship steps that follow can wire them up correctly.</p>
+     *
+     * <p>The method is idempotent: if a submodule directory is already registered as an Eclipse
+     * project it is left untouched.</p>
+     *
+     * @param classify whether to classify newly registered projects as Liberty server modules
+     */
+    private void ensureGradleSubmodulesRegistered(boolean classify) {
+        IWorkspace workspace = ResourcesPlugin.getWorkspace();
+
+        // Snapshot the currently known project models to avoid modifying the map
+        // while iterating over it.
+        List<ProjectModel> currentModels = new ArrayList<>(projectsByLocation.values());
+
+        for (ProjectModel projectModel : currentModels) {
+            // Only process Gradle aggregator projects.
+            if (projectModel.getBuildType() != BuildType.Gradle) {
+                continue;
+            }
+            Metadata metadata = projectModel.getBuildConfigMetadata();
+            if (metadata == null || !metadata.isAggregator()) {
+                continue;
+            }
+
+            String aggregatorLocation = projectModel.getPath();
+            if (aggregatorLocation == null) {
+                continue;
+            }
+
+            List<String> subprojectNames = metadata.getSubprojects();
+            if (subprojectNames == null || subprojectNames.isEmpty()) {
+                continue;
+            }
+
+            for (String subprojectName : subprojectNames) {
+                File submoduleDir = new File(aggregatorLocation, subprojectName);
+                if (!submoduleDir.exists() || !submoduleDir.isDirectory()) {
+                    // Directory does not exist on disk; skip.
+                    continue;
+                }
+
+                String submodulePath = submoduleDir.getAbsolutePath();
+
+                // Already registered as an Eclipse project; nothing to do.
+                if (projectsByLocation.containsKey(submodulePath)) {
+                    continue;
+                }
+
+                // Register the submodule directory as a new Eclipse project.
+                try {
+                    IPath location = new org.eclipse.core.runtime.Path(submodulePath);
+                    IProjectDescription desc = workspace.newProjectDescription(subprojectName);
+                    desc.setLocation(location);
+
+                    IProject newProject = workspace.getRoot().getProject(subprojectName);
+                    if (!newProject.exists()) {
+                        newProject.create(desc, new NullProgressMonitor());
+                    }
+                    if (!newProject.isOpen()) {
+                        newProject.open(new NullProgressMonitor());
+                    }
+
+                    // Immediately parse and register the new project so that it is available
+                    // for the parent-child relationship steps that follow in this same model build.
+                    ProjectModel newModel = new ProjectModel(newProject);
+                    try {
+                        Metadata newMetadata = getBuildConfigMetadata(newModel);
+                        newModel.setBuildConfigMetadata(newMetadata);
+                        projectsByLocation.put(submodulePath, newModel);
+                        projectsByName.put(newMetadata.getProjectName(), newModel);
+
+                        if (classify) {
+                            newModel.classifyAsLibertyServerModule();
+                        }
+                        newModel.classifyAsHavingTests();
+                    } catch (Exception e) {
+                        if (Trace.isEnabled()) {
+                            Trace.getTracer().trace(Trace.TRACE_TOOLS,
+                                                    "Failed to build metadata for auto-registered submodule: " + submodulePath, e);
+                        }
+                    }
+
+                } catch (Exception e) {
+                    if (Trace.isEnabled()) {
+                        Trace.getTracer().trace(Trace.TRACE_TOOLS,
+                                                "Failed to auto-register Gradle submodule as Eclipse project: " + submodulePath, e);
+                    }
+                }
+            }
+        }
     }
 }
