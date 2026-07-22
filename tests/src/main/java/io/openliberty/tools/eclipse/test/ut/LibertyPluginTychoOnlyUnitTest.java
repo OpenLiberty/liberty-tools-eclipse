@@ -113,6 +113,7 @@ public class LibertyPluginTychoOnlyUnitTest {
         IProject mockProject = mock(IProject.class);
         IFile mockPomFile = mock(IFile.class);
         IFile mockBuildGradleFile = mock(IFile.class);
+        IFile mockBuildGradleKtsFile = mock(IFile.class);
         IProjectDescription mockProjectDescription = mock(IProjectDescription.class);
 
         when(mockProject.getName()).thenReturn(projectName);
@@ -120,10 +121,12 @@ public class LibertyPluginTychoOnlyUnitTest {
         // Mock getFile() to return mock IFile objects.
         when(mockProject.getFile("pom.xml")).thenReturn(mockPomFile);
         when(mockProject.getFile("build.gradle")).thenReturn(mockBuildGradleFile);
+        when(mockProject.getFile("build.gradle.kts")).thenReturn(mockBuildGradleKtsFile);
 
         // Mock the exists() method to return false (no build files).
         when(mockPomFile.exists()).thenReturn(false);
         when(mockBuildGradleFile.exists()).thenReturn(false);
+        when(mockBuildGradleKtsFile.exists()).thenReturn(false);
 
         // Mock getDescription().
         when(mockProject.getDescription()).thenReturn(mockProjectDescription);

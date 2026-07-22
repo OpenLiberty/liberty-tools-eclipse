@@ -15,12 +15,12 @@ package io.openliberty.tools.eclipse.test.it;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.disconnectDebugTarget;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getDebuggerConnectMenuForDebugObject;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getObjectInDebugView;
-import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.waitForDebuggerConnectMenuState;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchDashboardAction;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.setBuildCmdPathInPreferences;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.terminateLaunch;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.unsetBuildCmdPathInPreferences;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.waitForDebuggerConnectMenuState;
 
 import java.io.File;
 import java.nio.file.Path;
