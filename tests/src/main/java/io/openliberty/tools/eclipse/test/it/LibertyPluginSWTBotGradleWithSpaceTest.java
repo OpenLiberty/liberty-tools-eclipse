@@ -27,7 +27,6 @@ import java.util.ArrayList;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
 
@@ -37,7 +36,6 @@ import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
 /**
  * Tests Open Liberty Eclipse plugin functions for the Gradle project with spaces in the path
  */
-@Disabled("Until full multi-module support is put in place.")
 public class LibertyPluginSWTBotGradleWithSpaceTest extends AbstractLibertyPluginSWTBotTest {
 
     /**

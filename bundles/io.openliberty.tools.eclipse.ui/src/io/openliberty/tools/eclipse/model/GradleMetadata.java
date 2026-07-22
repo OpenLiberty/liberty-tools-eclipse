@@ -13,22 +13,77 @@
 package io.openliberty.tools.eclipse.model;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileReader;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import io.openliberty.tools.eclipse.logging.Trace;
 
 /**
- * Represents metadata extracted from a Gradle build file.
+ * Extracts build metadata from a Gradle project directory.
+ * It supports both Groovy DSL (build.gradle, settings.gradle) and
+ * Kotlin DSL (build.gradle.kts, settings.gradle.kts).
  */
 public class GradleMetadata implements Metadata {
+
+    /** Matches: rootProject.name = 'value' or rootProject.name = "value" */
+    private static final Pattern ROOT_NAME_PATTERN = Pattern.compile("rootProject\\.name\\s*=\\s*[\"']([^\"']+)[\"']");
+
+    /**
+     * Matches an include statement opener; handles:
+     * include 'a', 'b'
+     * include('a', 'b')
+     * include ':a', ':b'
+     * include(":a")
+     * The capture group is everything after the keyword on the same line.
+     */
+    private static final Pattern INCLUDE_START_PATTERN = Pattern.compile("^\\s*include\\s*\\(?(.*)");
+
+    /**
+     * Matches an optional projectDir remapping:
+     * project(':name').projectDir = new File('dir')
+     * project(":name").projectDir = new File("dir")
+     */
+    private static final Pattern PROJECT_DIR_REMAP_PATTERN = Pattern.compile("project\\s*\\([\"']:(\\w[\\w/-]*)['\"']\\)\\.projectDir\\s*=\\s*new\\s+File\\s*\\([\"']([^\"']+)[\"']\\)");
+
+    /**
+     * Matches a project(...) dependency inside a dependencies {} block.
+     * Handles:
+     * project(':name')
+     * project(":group:name")
+     * project(path: ':name')
+     * project(path: ':name', ...)
+     */
+    private static final Pattern PROJECT_DEP_PATTERN = Pattern.compile("project\\s*\\(\\s*(?:path\\s*:\\s*)?[\"'](:(?:[\\w/-]+:)*[\\w/-]+)[\"']");
+
+    /**
+     * Liberty plugin detection patterns (covers both DSLs and all application styles)
+     */
+    private static final Pattern[] LIBERTY_PLUGIN_PATTERNS = {
+                                                               // plugins { id 'io.openliberty.tools.gradle.Liberty' }  (Groovy)
+                                                               // plugins { id("io.openliberty.tools.gradle.Liberty") } (Kotlin)
+                                                               Pattern.compile("id\\s*\\(?\\s*[\"']io\\.openliberty\\.tools\\.gradle\\.Liberty[\"']\\s*\\)?"),
+                                                               // apply plugin: 'liberty'  /  apply plugin: "liberty"
+                                                               Pattern.compile("apply\\s+plugin\\s*:\\s*[\"']liberty[\"']"),
+                                                               // apply plugin: 'io.openliberty.tools.gradle.Liberty'
+                                                               Pattern.compile("apply\\s+plugin\\s*:\\s*[\"']io\\.openliberty\\.tools\\.gradle\\.Liberty[\"']"),
+                                                               // classpath 'io.openliberty.tools:liberty-gradle-plugin:...'
+                                                               Pattern.compile("classpath\\s+[\"']io\\.openliberty\\.tools:liberty-gradle-plugin"),
+    };
+
+    /**
+     * Matches the opening of an {@code allprojects} or {@code subprojects} block.
+     * Used when scanning the parent build file for inherited Liberty plugin application.
+     */
+    private static final Pattern ALL_OR_SUB_PROJECTS_BLOCK_PATTERN = Pattern.compile("^\\s*(allprojects|subprojects)\\s*\\{");
 
     private String projectName;
     private String parentProjectName;
@@ -37,114 +92,105 @@ public class GradleMetadata implements Metadata {
     private boolean hasLibertyPlugin;
     private boolean isAggregator;
     private String buildFilePath;
+    private String settingsFilePath;
 
     /**
-     * Constructor.
+     * Constructs Gradle metadata from the paths to the build file and/or the settings file.
      *
-     * @param buildGradlePath
+     * @param buildFilePath    The absolute path to the build file, or null.
+     * @param settingsFilePath The absolute path to the settings file, or null.
+     * 
+     * @throws Exception If required files cannot be read
      */
-    public GradleMetadata(String buildGradlePath) throws Exception {
-        extract(buildGradlePath);
+    public GradleMetadata(String buildFilePath, String settingsFilePath) throws Exception {
+        this.buildFilePath = buildFilePath;
+        this.settingsFilePath = settingsFilePath;
+        extract();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String getProjectName() {
         return projectName;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String getParentProjectName() {
         return parentProjectName;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public List<String> getSubprojects() {
-        return subprojects;
+        return subprojects != null ? subprojects : new ArrayList<>();
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isLibertyPluginConfigured() {
         return hasLibertyPlugin;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public boolean isAggregator() {
         return isAggregator;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public String getBuildFilePath() {
         return buildFilePath;
     }
 
     /**
-     * {@inheritDoc}
+     * Returns the absolute path to the Gradle settings file (settings.gradle or
+     * settings.gradle.kts), or null if no settings file was found.
+     *
+     * @return The absolute path to the settings file, or null.
      */
+    public String getSettingsFilePath() {
+        return settingsFilePath;
+    }
+
+    /** {@inheritDoc} */
     @Override
     public boolean isModuleDisabled() {
+        // The Liberty Gradle plugin (LGP) has no skip mechanism like there is with LMP.
         return false;
     }
 
-    /**
-     * {@inheritDoc}
-     */
+    /** {@inheritDoc} */
     @Override
     public List<String> getProjectDependencies() {
-        if (projectDependencies == null) {
-            return new ArrayList<>();
-        }
-        return projectDependencies;
+        return projectDependencies != null ? projectDependencies : new ArrayList<>();
     }
 
     /**
-     * Extracts metadata from a Gradle build file.
+     * Populates all fields. The project directory is derived from whichever path was
+     * saved by the constructor: the build file parent is preferred; the settings file
+     * parent is used when no build file is present.
      *
-     * @param buildGradlePath The path to the build.gradle file
-     * 
-     * @return The GradleProjectMetadata object containing extracted information.
-     * 
-     * @throws Exception if parsing fails,
+     * @throws Exception if required files cannot be read.
      */
-    public void extract(String buildGradlePath) throws Exception {
+    private void extract() throws Exception {
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, buildGradlePath);
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, buildFilePath);
         }
 
-        buildFilePath = buildGradlePath;
+        // Derive project directory from whichever path is available.
+        Path projectDir = buildFilePath != null ? Paths.get(buildFilePath).getParent() : Paths.get(settingsFilePath).getParent();
 
-        // Extract project name from settings.gradle or directory name
-        projectName = getProjectName(buildGradlePath);
-
-        // Extract subprojects from settings.gradle
-        subprojects = getSubprojects(buildGradlePath);
+        projectName = resolveProjectName(projectDir);
+        subprojects = resolveSubprojects(projectDir);
         isAggregator = !subprojects.isEmpty();
+        parentProjectName = resolveParentProjectName(projectDir);
 
-        // Determine parent project name
-        parentProjectName = getParentProjectName(buildGradlePath);
+        hasLibertyPlugin = (buildFilePath != null && isLibertyPluginInBuildFile(buildFilePath))
+                           || isLibertyPluginInheritedFromParent(projectDir);
 
-        // Extract project dependencies from build.gradle
-        projectDependencies = extractProjectDependencies(buildGradlePath);
-
-        // Check for Liberty plugin
-        hasLibertyPlugin = isLibertyPluginInConfig(buildGradlePath);
+        projectDependencies = buildFilePath != null ? resolveProjectDependencies(buildFilePath) : new ArrayList<>();
 
         if (Trace.isEnabled()) {
             Trace.getTracer().traceExit(Trace.TRACE_TOOLS, this);
@@ -152,235 +198,461 @@ public class GradleMetadata implements Metadata {
     }
 
     /**
-     * Extracts project name from settings.gradle or use directory name.
-     * 
-     * @param buildGradlePath The path to build.gradle.
-     * @return The project name.
+     * Returns the project name.
      */
-    private String getProjectName(String buildGradlePath) {
-        Path buildPath = Paths.get(buildGradlePath);
-        Path projectDir = buildPath.getParent();
+    private String resolveProjectName(Path projectDir) {
+        if (projectDir == null) {
+            return null;
+        }
 
-        // Try to get name from settings.gradle
-        Path settingsPath = projectDir.resolve("settings.gradle");
-        if (Files.exists(settingsPath)) {
-            try (BufferedReader reader = new BufferedReader(new FileReader(settingsPath.toFile()))) {
+        // Read the name from settings.
+        Path settingsFile = findSettingsFile(projectDir);
+        if (settingsFile != null) {
+            try (BufferedReader reader = new BufferedReader(new FileReader(settingsFile.toFile()))) {
                 String line;
-                Pattern pattern = Pattern.compile("rootProject\\.name\\s*=\\s*['\"]([^'\"]+)['\"]");
                 while ((line = reader.readLine()) != null) {
-                    Matcher matcher = pattern.matcher(line);
-                    if (matcher.find()) {
-                        return matcher.group(1);
+                    Matcher m = ROOT_NAME_PATTERN.matcher(line);
+                    if (m.find()) {
+                        return m.group(1);
                     }
                 }
-            } catch (Exception e) {
+            } catch (IOException e) {
                 if (Trace.isEnabled()) {
-                    Trace.getTracer().trace(Trace.TRACE_TOOLS, "Error reading settings.gradle", e);
+                    Trace.getTracer().trace(Trace.TRACE_TOOLS, "Error reading settings file for project name", e);
                 }
             }
         }
 
-        // Fall back to directory name
+        // If the name is not present in settings, default to the directory name.
         return projectDir.getFileName().toString();
     }
 
     /**
-     * Extracts subproject names from settings.gradle.
-     * 
-     * @param The buildGradlePath Path to build.gradle.
-     * 
-     * @return The list of subproject names.
-     */
-    private List<String> getSubprojects(String buildGradlePath) throws Exception {
-        List<String> subprojects = new ArrayList<>();
-        Path buildPath = Paths.get(buildGradlePath);
-        Path projectDir = buildPath.getParent();
-        Path settingsPath = projectDir.resolve("settings.gradle");
-
-        if (!Files.exists(settingsPath)) {
-            return subprojects;
-        }
-
-        try (BufferedReader reader = new BufferedReader(new FileReader(settingsPath.toFile()))) {
-            String line;
-            StringBuilder includeBlock = new StringBuilder();
-            boolean inInclude = false;
-
-            while ((line = reader.readLine()) != null) {
-                line = line.trim();
-
-                // Check for include statement
-                if (line.startsWith("include")) {
-                    inInclude = true;
-                    includeBlock.append(line);
-
-                    // Check if it's a single-line include
-                    if (line.contains(")")) {
-                        parseIncludeStatement(includeBlock.toString(), subprojects);
-                        includeBlock.setLength(0);
-                        inInclude = false;
-                    }
-                } else if (inInclude) {
-                    includeBlock.append(" ").append(line);
-                    if (line.contains(")")) {
-                        parseIncludeStatement(includeBlock.toString(), subprojects);
-                        includeBlock.setLength(0);
-                        inInclude = false;
-                    }
-                }
-            }
-        }
-
-        return subprojects;
-    }
-
-    /**
-     * Parses an include statement to extract module names.
-     * 
-     * @param includeStatement The include statement.
-     * 
-     * @param subprojects      The List to add subprojects to.
-     */
-    private void parseIncludeStatement(String includeStatement, List<String> subprojects) {
-        // Remove 'include' keyword and parentheses
-        String content = includeStatement.replaceAll("include\\s*\\(", "").replaceAll("\\)", "");
-
-        // Split by comma and extract module names
-        String[] parts = content.split(",");
-        for (String part : parts) {
-            // Remove quotes and colons, trim whitespace
-            String moduleName = part.replaceAll("['\"]", "").replaceAll(":", "").trim();
-            if (!moduleName.isEmpty()) {
-                subprojects.add(moduleName);
-            }
-        }
-    }
-
-    /**
-     * Returns the parent project name by checking parent directory's settings.gradle.
-     * 
-     * @param The buildGradlePath Path to build.gradle.
-     * 
-     * @return The parent project name or null.
-     */
-    private String getParentProjectName(String buildGradlePath) throws Exception {
-        Path buildPath = Paths.get(buildGradlePath);
-        Path projectDir = buildPath.getParent();
-        String currentDirName = projectDir.getFileName().toString();
-        Path parentDir = projectDir.getParent();
-
-        if (parentDir == null) {
-            return null;
-        }
-
-        Path parentSettings = parentDir.resolve("settings.gradle");
-        if (!Files.exists(parentSettings)) {
-            return null;
-        }
-
-        // Check if current directory is in parent's includes
-        List<String> parentSubprojects = getSubprojects(parentDir.resolve("build.gradle").toString());
-        if (parentSubprojects.contains(currentDirName)) {
-            // Get parent project name
-            return getProjectName(parentDir.resolve("build.gradle").toString());
-        }
-
-        return null;
-    }
-
-    /**
-     * Checks if build.gradle contains Liberty plugin.
-     * 
-     * @param buildGradlePath The path to build.gradle.
-     * 
-     * @return true if Liberty plugin is found.
-     */
-    private boolean isLibertyPluginInConfig(String buildGradlePath) throws Exception {
-        try (BufferedReader reader = new BufferedReader(new FileReader(buildGradlePath))) {
-            String line;
-            while ((line = reader.readLine()) != null) {
-                // Check for Liberty plugin application
-                if (line.contains("io.openliberty.tools.gradle.Liberty") ||
-                    line.contains("liberty-gradle-plugin") ||
-                    line.contains("apply plugin: 'liberty'") ||
-                    line.contains("id 'liberty'")) {
-                    return true;
-                }
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Extracts project dependencies from build.gradle.
-     * Looks for project() dependencies ONLY within dependencies {} blocks.
-     * Inter-module dependencies are declared in each module's own dependencies block,
-     * not in parent-level allprojects/subprojects blocks.
+     * Parses the settings file in projectDir and returns the list of subproject
+     * directory names declared via include statements.
      *
-     * @param buildGradlePath The path to build.gradle.
-     * 
-     * @return The list of project names from dependencies.
+     * All of the following forms are handled:
+     *
+     * include 'web', 'ejb' // Groovy, no parens
+     * include('web', 'ejb') // Groovy, with parens
+     * include ':web', ':ejb' // colon-prefixed, no parens
+     * include(':web') // colon-prefixed, with parens
+     * include("web") // Kotlin DSL
+     * include(":web", ":ejb") // Kotlin DSL, colon-prefixed
+     *
+     * Custom projectDir remappings are applied so the returned names are actual
+     * filesystem directory names, not Gradle project-path labels.
      */
-    private List<String> extractProjectDependencies(String buildGradlePath) throws Exception {
-        List<String> dependencies = new ArrayList<>();
+    private List<String> resolveSubprojects(Path projectDir) {
+        List<String> result = new ArrayList<>();
+        if (projectDir == null) {
+            return result;
+        }
 
-        try (BufferedReader reader = new BufferedReader(new FileReader(buildGradlePath))) {
+        Path settingsFile = findSettingsFile(projectDir);
+        if (settingsFile == null) {
+            return result;
+        }
+
+        // Read the entire settings file and collect projectDir remappings alongside includes.
+        Map<String, String> projectDirRemappings = new HashMap<>();
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(settingsFile.toFile()))) {
+            StringBuilder currentStatement = new StringBuilder();
+            boolean collectingInclude = false;
             String line;
-            int braceDepth = 0;
-            boolean inDependenciesBlock = false;
-
-            // Pattern for project dependencies: implementation project(':module-name')
-            Pattern projectPattern = Pattern.compile("\\s*(implementation|compile|api|testImplementation|testCompile|runtimeOnly|compileOnly)\\s+project\\s*\\(['\"]:(\\S+)['\"]\\)");
 
             while ((line = reader.readLine()) != null) {
-                String trimmedLine = line.trim();
+                String trimmed = line.trim();
 
-                // Check if entering dependencies block
-                if (trimmedLine.startsWith("dependencies") && trimmedLine.contains("{")) {
-                    inDependenciesBlock = true;
-                    braceDepth = 1; // Start counting from the dependencies block
+                // Skip blank lines and comment lines.
+                if (trimmed.isEmpty() || trimmed.startsWith("//") || trimmed.startsWith("#")) {
+                    if (collectingInclude) {
+                        // A blank line terminates a multi-line include that had no closing paren.
+                        parseIncludeContent(currentStatement.toString(), result);
+                        currentStatement.setLength(0);
+                        collectingInclude = false;
+                    }
                     continue;
                 }
 
-                // Track brace depth only when inside dependencies block
-                if (inDependenciesBlock) {
-                    braceDepth += countChar(trimmedLine, '{') - countChar(trimmedLine, '}');
+                // Check for projectDir remapping before include processing.
+                Matcher remapMatcher = PROJECT_DIR_REMAP_PATTERN.matcher(trimmed);
+                if (remapMatcher.find()) {
+                    // key = bare module name (without colon), value = actual directory name
+                    projectDirRemappings.put(remapMatcher.group(1), remapMatcher.group(2));
+                }
 
-                    // Exit dependencies block when braces are balanced
-                    if (braceDepth == 0) {
-                        inDependenciesBlock = false;
-                        continue;
+                if (collectingInclude) {
+                    currentStatement.append(" ").append(trimmed);
+                    // The statement ends when we see a closing paren, or when the line does
+                    // not end with a comma (meaning no more arguments follow on the next line).
+                    if (trimmed.contains(")") || !trimmed.endsWith(",")) {
+                        parseIncludeContent(currentStatement.toString(), result);
+                        currentStatement.setLength(0);
+                        collectingInclude = false;
                     }
-
-                    // Look for project dependencies only inside dependencies block
-                    Matcher matcher = projectPattern.matcher(trimmedLine);
-                    if (matcher.find()) {
-                        String projectName = matcher.group(2);
-                        if (!dependencies.contains(projectName)) {
-                            dependencies.add(projectName);
+                } else {
+                    Matcher includeMatcher = INCLUDE_START_PATTERN.matcher(trimmed);
+                    if (includeMatcher.matches()) {
+                        String rest = includeMatcher.group(1).trim();
+                        currentStatement.append(rest);
+                        // If the rest already has a closing paren or does not continue with
+                        // a comma, the statement is complete on this line.
+                        if (rest.contains(")") || (!rest.isEmpty() && !rest.endsWith(","))) {
+                            parseIncludeContent(currentStatement.toString(), result);
+                            currentStatement.setLength(0);
+                        } else {
+                            // Multi-line include: keep collecting (rest may be empty when
+                            // the opening paren is alone on the line, e.g. "include(").
+                            collectingInclude = true;
                         }
                     }
                 }
             }
-        } catch (Exception e) {
+
+            // Flush any remaining collected content.
+            if (collectingInclude && currentStatement.length() > 0) {
+                parseIncludeContent(currentStatement.toString(), result);
+            }
+
+        } catch (IOException e) {
             if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_TOOLS, "Error extracting project dependencies from build.gradle", e);
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, "Error reading settings file for subprojects", e);
             }
         }
 
-        return dependencies;
+        // Apply projectDir remappings: replace the Gradle project-path label with the
+        // actual filesystem directory name where they differ.
+        for (int i = 0; i < result.size(); i++) {
+            String name = result.get(i);
+            if (projectDirRemappings.containsKey(name)) {
+                result.set(i, projectDirRemappings.get(name));
+            }
+        }
+
+        return result;
     }
 
     /**
-     * Counts occurrences of a character in a string.
+     * Parses the content portion of an include statement (everything after the
+     * include keyword and optional opening paren) and adds bare module names to
+     * result.
      *
-     * @param str The string to search.
-     * @param ch  The character to count.
-     * 
-     * @return The number of occurrences.
+     * Input examples (the raw string passed to this method after stripping
+     * the include keyword):
+     *
+     * 'web', 'ejb')
+     * "web", "ejb"
+     * ':web', ':ejb')
+     * ":web"
+     *
+     * These correspond to the full include statements:
+     *
+     * include('web', 'ejb')
+     * include("web", "ejb")
+     * include(':web', ':ejb')
+     * include(":web")
      */
-    private int countChar(String str, char ch) {
+    private void parseIncludeContent(String content, List<String> result) {
+        // Strip trailing closing paren if present.
+        String cleaned = content.replaceAll("\\)\\s*$", "");
+
+        // Split on commas, then clean each token.
+        String[] parts = cleaned.split(",");
+        for (String part : parts) {
+            // Remove quotes, colons, parens, and whitespace.
+            String name = part.replaceAll("[\"'()\\s]", "").replaceAll("^:+", "").trim();
+            if (!name.isEmpty()) {
+                result.add(name);
+            }
+        }
+    }
+
+    /**
+     * Determines the parent project name by checking whether the parent directory contains
+     * a settings file that includes the current directory as a submodule.
+     *
+     * @return the parent project name, or null if not in a multi-module build
+     */
+    private String resolveParentProjectName(Path projectDir) {
+        if (projectDir == null) {
+            return null;
+        }
+
+        String currentDirName = projectDir.getFileName().toString();
+        Path parentDir = projectDir.getParent();
+        if (parentDir == null) {
+            return null;
+        }
+
+        // The parent must have a settings file.
+        if (findSettingsFile(parentDir) == null) {
+            return null;
+        }
+
+        // Check whether the parent's settings file includes the current directory.
+        List<String> parentSubprojects = resolveSubprojects(parentDir);
+        if (!parentSubprojects.contains(currentDirName)) {
+            return null;
+        }
+
+        // Get the parent project name.
+        return resolveProjectName(parentDir);
+    }
+
+    /**
+     * Returns true if the given build file directly declares the Liberty Gradle
+     * plugin in any of the recognised forms (both Groovy and Kotlin DSL).
+     */
+    private boolean isLibertyPluginInBuildFile(String buildFilePathStr) {
+        if (buildFilePathStr == null) {
+            return false;
+        }
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(buildFilePathStr))) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                for (Pattern p : LIBERTY_PLUGIN_PATTERNS) {
+                    if (p.matcher(line).find()) {
+                        return true;
+                    }
+                }
+            }
+        } catch (IOException e) {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, "Error reading build file for Liberty plugin detection", e);
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Returns true if the Liberty plugin is applied to this module indirectly via
+     * an allprojects or subprojects block in the parent root build file.
+     *
+     * This covers the very common pattern where the root build.gradle contains:
+     *
+     * allprojects {
+     * apply plugin: 'liberty'
+     * }
+     *
+     * In that case each child module does not redeclare the plugin, but it is still active.
+     */
+    private boolean isLibertyPluginInheritedFromParent(Path projectDir) {
+        if (projectDir == null) {
+            return false;
+        }
+
+        Path parentDir = projectDir.getParent();
+        if (parentDir == null) {
+            return false;
+        }
+
+        // Parent must have a settings file.
+        if (findSettingsFile(parentDir) == null) {
+            return false;
+        }
+
+        // Current directory must be listed in the parent's subprojects.
+        String currentDirName = projectDir.getFileName().toString();
+        List<String> parentSubprojects = resolveSubprojects(parentDir);
+        if (!parentSubprojects.contains(currentDirName)) {
+            return false;
+        }
+
+        // Scan the parent build file for allprojects/subprojects blocks that apply Liberty.
+        Path parentBuildFile = findBuildFile(parentDir);
+        if (parentBuildFile == null) {
+            return false;
+        }
+
+        return isLibertyPluginInAllOrSubprojectsBlock(parentBuildFile.toString());
+    }
+
+    /**
+     * Scans a build file for an allprojects or subprojects block that
+     * contains a Liberty plugin application pattern.
+     *
+     * Uses simple brace-depth tracking rather than full AST parsing; tolerant of the
+     * common formatting styles used in real-world projects.
+     */
+    private boolean isLibertyPluginInAllOrSubprojectsBlock(String buildFilePathStr) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(buildFilePathStr))) {
+            String line;
+            boolean inTargetBlock = false;
+            int braceDepth = 0;
+
+            while ((line = reader.readLine()) != null) {
+                String trimmed = line.trim();
+
+                if (!inTargetBlock) {
+                    Matcher m = ALL_OR_SUB_PROJECTS_BLOCK_PATTERN.matcher(trimmed);
+                    if (m.find()) {
+                        inTargetBlock = true;
+                        braceDepth = countChar(trimmed, '{') - countChar(trimmed, '}');
+                        // braceDepth == 0 means the block opened and closed on the same line
+                        // (unlikely but defensive).
+                        if (braceDepth <= 0) {
+                            inTargetBlock = false;
+                        }
+                    }
+                } else {
+                    braceDepth += countChar(trimmed, '{') - countChar(trimmed, '}');
+                    if (braceDepth <= 0) {
+                        inTargetBlock = false;
+                        braceDepth = 0;
+                        continue;
+                    }
+                    // Check for any Liberty plugin pattern inside the block.
+                    for (Pattern p : LIBERTY_PLUGIN_PATTERNS) {
+                        if (p.matcher(trimmed).find()) {
+                            return true;
+                        }
+                    }
+                }
+            }
+        } catch (IOException e) {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, "Error reading parent build file for inherited Liberty plugin detection", e);
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Extracts inter-module project dependencies from the build file.
+     *
+     * Only dependencies declared inside a dependencies block are considered.
+     * The following forms are recognised:
+     *
+     * dependencies {
+     * implementation project(':web')
+     * implementation(project(":web"))
+     * api project(':group:name')
+     * implementation project(path: ':web', configuration: 'default')
+     * }
+     *
+     * The returned names are the last segment of the colon-delimited Gradle project
+     * path (e.g. web from :web or name from :group:name), matched against
+     * projectsByName in WorkspaceModel.
+     */
+    private List<String> resolveProjectDependencies(String buildFilePathStr) {
+        List<String> result = new ArrayList<>();
+
+        try (BufferedReader reader = new BufferedReader(new FileReader(buildFilePathStr))) {
+            String line;
+            boolean inDependenciesBlock = false;
+            int braceDepth = 0;
+
+            while ((line = reader.readLine()) != null) {
+                String trimmed = line.trim();
+
+                if (!inDependenciesBlock) {
+                    // Detect start of a dependencies { } block.
+                    // The '{' may be on the same line as 'dependencies' or on the next line.
+                    if (trimmed.startsWith("dependencies")) {
+                        if (trimmed.contains("{")) {
+                            inDependenciesBlock = true;
+                            braceDepth = countChar(trimmed, '{') - countChar(trimmed, '}');
+                        } else {
+                            // '{' is on the next line — peek ahead by setting a flag handled
+                            // by the check below. Use a simple state: treat the next '{' as
+                            // the block opener.
+                            inDependenciesBlock = true;
+                            braceDepth = 0; // will be incremented when '{' is seen
+                        }
+                    }
+                } else {
+                    if (braceDepth == 0 && trimmed.equals("{")) {
+                        // Opening brace was on its own line after 'dependencies'.
+                        braceDepth = 1;
+                        continue;
+                    }
+
+                    braceDepth += countChar(trimmed, '{') - countChar(trimmed, '}');
+
+                    if (braceDepth <= 0) {
+                        inDependenciesBlock = false;
+                        braceDepth = 0;
+                        continue;
+                    }
+
+                    // Look for project(...) dependency references.
+                    Matcher m = PROJECT_DEP_PATTERN.matcher(trimmed);
+                    while (m.find()) {
+                        String path = m.group(1); // e.g. ":web" or ":group:name"
+                        String bare = lastSegment(path);
+                        if (!bare.isEmpty() && !result.contains(bare)) {
+                            result.add(bare);
+                        }
+                    }
+                }
+            }
+        } catch (IOException e) {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, "Error reading build file for project dependencies", e);
+            }
+        }
+
+        return result;
+    }
+
+    /**
+     * Returns the settings file settings.gradle preferred over settings.gradle.kts
+     * if both files exist in the given directory. Null if neither exists.
+     */
+    public static Path findSettingsFile(Path dir) {
+        if (dir == null) {
+            return null;
+        }
+        Path groovy = dir.resolve("settings.gradle");
+        if (Files.exists(groovy)) {
+            return groovy;
+        }
+        Path kotlin = dir.resolve("settings.gradle.kts");
+        if (Files.exists(kotlin)) {
+            return kotlin;
+        }
+        return null;
+    }
+
+    /**
+     * Returns the build file build.gradle preferred over build.gradle.kts
+     * if both files exist in the given directory. Null, if neither exists.
+     */
+    public static Path findBuildFile(Path dir) {
+        if (dir == null) {
+            return null;
+        }
+        Path groovy = dir.resolve("build.gradle");
+        if (Files.exists(groovy)) {
+            return groovy;
+        }
+        Path kotlin = dir.resolve("build.gradle.kts");
+        if (Files.exists(kotlin)) {
+            return kotlin;
+        }
+        return null;
+    }
+
+    /**
+     * Returns the last colon-delimited segment of a Gradle project path.
+     * For example :group:name -> name, :web -> web.
+     */
+    private static String lastSegment(String gradlePath) {
+        // Strip leading colons then split by colon.
+        String stripped = gradlePath.replaceAll("^:+", "");
+        int lastColon = stripped.lastIndexOf(':');
+        return lastColon >= 0 ? stripped.substring(lastColon + 1) : stripped;
+    }
+
+    /**
+     * Returns the number of occurrences of the input character in input string.
+     * 
+     * @return The number of occurrences of the input character in input string.
+     */
+    private static int countChar(String str, char ch) {
         int count = 0;
         for (int i = 0; i < str.length(); i++) {
             if (str.charAt(i) == ch) {
@@ -390,14 +662,16 @@ public class GradleMetadata implements Metadata {
         return count;
     }
 
-    /**
-     * Checks if a file is a valid Gradle build file.
-     *
-     * @param filePath The ath to the file.
-     * @return true if it's a valid build.gradle.
-     */
-    public boolean isValidBuildFile(String filePath) {
-        File file = new File(filePath);
-        return file.exists() && file.getName().equals("build.gradle");
+    /** {@inheritDoc} */
+    @Override
+    public String toString() {
+        return "GradleMetadata{name=" + projectName
+               + ", parent=" + parentProjectName
+               + ", subprojects=" + subprojects
+               + ", aggregator=" + isAggregator
+               + ", libertyPlugin=" + hasLibertyPlugin
+               + ", dependencies=" + projectDependencies
+               + ", buildFile=" + buildFilePath
+               + ", settingsFile=" + settingsFilePath + "}";
     }
 }

@@ -35,7 +35,6 @@ import org.eclipse.core.runtime.Status;
 import org.eclipse.core.runtime.jobs.IJobChangeEvent;
 import org.eclipse.core.runtime.jobs.Job;
 import org.eclipse.core.runtime.jobs.JobChangeAdapter;
-import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
 import org.eclipse.debug.core.ILaunchManager;
 import org.eclipse.jdt.launching.JavaRuntime;
@@ -285,6 +284,11 @@ public class DevModeOperations {
                 targetProjectExecPath = commandData.getExecutionPath();
             } else if (buildType == ProjectModel.BuildType.Gradle) {
 
+                CommandData commandData = CommandBuilder.constructGradleCommand(targetProjectModel,
+                                                                                (runProjectClean == true ? " clean " : "") + "libertyDev " + startParms, pathEnv);
+                cmd = commandData.getCommand();
+                targetProjectExecPath = commandData.getExecutionPath();
+
                 if (runProjectClean == true) {
                     try {
                         CommandData stopGradleDaemonCmdData = CommandBuilder.constructGradleCommand(targetProjectModel, " --stop", pathEnv);
@@ -292,12 +296,7 @@ public class DevModeOperations {
                     } catch (IOException | InterruptedException e) {
                         Logger.logError(Messages.getMessage("gradle_daemon_stop_failed"));
                     }
-
                 }
-                CommandData commandData = CommandBuilder.constructGradleCommand(targetProjectModel,
-                                                                                (runProjectClean == true ? " clean " : "") + "libertyDev " + startParms, pathEnv);
-                cmd = commandData.getCommand();
-                targetProjectExecPath = commandData.getExecutionPath();
             } else {
                 throw new Exception(Messages.getMessage("unexpected_build_type", buildType, targetProjectName));
             }
@@ -387,20 +386,20 @@ public class DevModeOperations {
                 cmd = commandData.getCommand();
                 targetProjectExecPath = commandData.getExecutionPath();
             } else if (buildType == ProjectModel.BuildType.Gradle) {
+
+                CommandData commandData = CommandBuilder.constructGradleCommand(targetProjectModel,
+                                                                                (runProjectClean == true ? " clean " : "") + "libertyDevc " + startParms, pathEnv);
+                cmd = commandData.getCommand();
+                targetProjectExecPath = commandData.getExecutionPath();
+
                 if (runProjectClean == true) {
                     try {
-
-                        CommandData stopGradleDaemonCmdData = CommandBuilder.constructGradleCommand(targetProjectModel, " --stop",
-                                                                                                    pathEnv);
+                        CommandData stopGradleDaemonCmdData = CommandBuilder.constructGradleCommand(targetProjectModel, " --stop", pathEnv);
                         executeCommand(stopGradleDaemonCmdData.getCommand(), targetProjectExecPath);
                     } catch (IOException | InterruptedException e) {
                         Logger.logError("An attempt to stop the Gradle daemon failed....");
                     }
                 }
-                CommandData commandData = CommandBuilder.constructGradleCommand(targetProjectModel,
-                                                                                (runProjectClean == true ? " clean " : "") + "libertyDevc " + startParms, pathEnv);
-                cmd = commandData.getCommand();
-                targetProjectExecPath = commandData.getExecutionPath();
             } else {
                 throw new Exception("Unexpected project build type: " + buildType + ". Project " + targetProjectName
                                     + " does not appear to be a Maven or Gradle built project.");
@@ -742,9 +741,7 @@ public class DevModeOperations {
             envs.add("MAVEN_CONFIG=--log-file " + logFileName);
         }
 
-        Process process = processController.runProcess(projectName, projectPath, cmd, envs, true);
-
-        DebugPlugin.newProcess(launch, process, projectName);
+        processController.runProcess(projectName, projectPath, cmd, envs, true, launch);
     }
 
     /**

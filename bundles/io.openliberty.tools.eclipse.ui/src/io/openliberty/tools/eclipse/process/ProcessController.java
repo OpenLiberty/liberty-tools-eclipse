@@ -21,6 +21,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.eclipse.debug.core.DebugPlugin;
+import org.eclipse.debug.core.ILaunch;
 
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.messages.Messages;
@@ -63,10 +64,11 @@ public class ProcessController {
      * @param projectPath The application project path.
      * @param command     The command to execute.
      * @param envs        The environment properties to be set for the process.
-     * 
+     * @param launch      The Eclipse launch object used to register the process in the debug framework.
+     *
      * @throws IOException
      */
-    public Process runProcess(String projectName, String projectPath, String command, List<String> envs, boolean printCmd) throws IOException {
+    public void runProcess(String projectName, String projectPath, String command, List<String> envs, boolean printCmd, ILaunch launch) throws IOException {
 
         List<String> commandList = new ArrayList<String>();
 
@@ -112,9 +114,13 @@ public class ProcessController {
 
         projectProcessMap.put(projectName, process);
 
+        // Register a termination listener with the Debug plugin framework.
         addTerminateListener(projectName);
 
-        return process;
+        // Launch the Java process as part of the Debug plugin framework, which wraps
+        // the raw Java process and monitors it.
+        // Cleanup for the initiated process is done by the registered listener.
+        DebugPlugin.newProcess(launch, process, projectName);
     }
 
     private void addTerminateListener(String projectName) {
