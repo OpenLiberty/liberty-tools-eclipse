@@ -359,13 +359,11 @@ public class ProjectModel {
                 ProjectModel.addNature(iProject, LibertyNature.NATURE_ID);
             }
 
-            if (type.equals(BuildType.Maven)) {
-                for (ProjectModel child : childDirProjects) {
-                    if (child.isLibertyServerModule()) {
-                        ProjectModel.addNature(iProject, LibertyNature.NATURE_ID);
-                        isParentOfServerModule = true;
-                        break;
-                    }
+            for (ProjectModel child : childDirProjects) {
+                if (child.isLibertyServerModule()) {
+                    ProjectModel.addNature(iProject, LibertyNature.NATURE_ID);
+                    isParentOfServerModule = true;
+                    break;
                 }
             }
         } catch (Exception e) {
