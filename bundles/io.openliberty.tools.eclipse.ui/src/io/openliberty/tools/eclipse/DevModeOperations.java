@@ -1326,7 +1326,8 @@ public class DevModeOperations {
         // Get dependent projects (declared in build config) with test source files
         List<ProjectModel> dependentsWithTests = getDependentProjectsWithTestReports(projectModel, action);
 
-        // If no dependents have tests reports, check if the parent itself has it.
+        // If no dependents have test reports, check whether the selected project itself has one.
+        // If neither the project nor any of its dependents have test reports, report the error.
         if (dependentsWithTests.isEmpty()) {
             if (action == DashboardAction.OPEN_MVN_IT_TEST_REPORT) {
                 if (getMavenITReportPath(projectModel.getPath(), projectModel.getName(), false) != null) {
@@ -1336,13 +1337,18 @@ public class DevModeOperations {
                 if (getMavenUTReportPath(projectModel.getPath(), projectModel.getName(), false) != null) {
                     targetProject[0] = projectModel;
                 }
-            } else {
+            } else if (action == DashboardAction.OPEN_GRADLE_TEST_REPORT) {
+                if (getGradleTestReportPath(projectModel.getPath()).toFile().exists()) {
+                    targetProject[0] = projectModel;
+                }
+            }
+
+            if (targetProject[0] == null) {
                 String msg = Messages.getMessage("no_test_reports_found", projectModel.getName());
                 throw new Exception(msg);
             }
         } else {
-            // If we are here, the selected liberty project has at least one dependent.
-            // Add the liberty project to the list if it has any tests.
+            // At least one dependent has a test report. Also add the selected project itself if applicable.
             List<ProjectModel> projectsToDisplay = new ArrayList<ProjectModel>(dependentsWithTests);
 
             if (action == DashboardAction.OPEN_MVN_IT_TEST_REPORT) {
@@ -1353,59 +1359,68 @@ public class DevModeOperations {
                 if (getMavenUTReportPath(projectModel.getPath(), projectModel.getName(), false) != null) {
                     projectsToDisplay.add(projectModel);
                 }
+            } else if (action == DashboardAction.OPEN_GRADLE_TEST_REPORT) {
+                if (getGradleTestReportPath(projectModel.getPath()).toFile().exists()) {
+                    projectsToDisplay.add(projectModel);
+                }
             }
 
-            Display.getDefault().syncExec(new Runnable() {
-                @Override
-                public void run() {
-                    Shell shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
-                    Display display = PlatformUI.getWorkbench().getDisplay();
+            // If only one module has a test report, use it directly without prompting the user.
+            if (projectsToDisplay.size() == 1) {
+                targetProject[0] = projectsToDisplay.get(0);
+            } else {
+                Display.getDefault().syncExec(new Runnable() {
+                    @Override
+                    public void run() {
+                        Shell shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
+                        Display display = PlatformUI.getWorkbench().getDisplay();
 
-                    final Image mavenImg = Utils.getImage(display, DashboardView.MAVEN_IMG_TAG_PATH);
-                    final Image gradleImg = Utils.getImage(display, DashboardView.GRADLE_IMG_TAG_PATH);
+                        final Image mavenImg = Utils.getImage(display, DashboardView.MAVEN_IMG_TAG_PATH);
+                        final Image gradleImg = Utils.getImage(display, DashboardView.GRADLE_IMG_TAG_PATH);
 
-                    try {
-                        ElementListSelectionDialog dialog = new ElementListSelectionDialogWrapper(shell, new LabelProvider() {
-                            @Override
-                            public String getText(Object element) {
-                                ProjectModel pm = (ProjectModel) element;
-                                return pm.getName();
+                        try {
+                            ElementListSelectionDialog dialog = new ElementListSelectionDialogWrapper(shell, new LabelProvider() {
+                                @Override
+                                public String getText(Object element) {
+                                    ProjectModel pm = (ProjectModel) element;
+                                    return pm.getName();
+                                }
+
+                                @Override
+                                public Image getImage(Object element) {
+                                    ProjectModel pm = (ProjectModel) element;
+                                    return pm.getBuildType() == BuildType.Maven ? mavenImg : gradleImg;
+                                }
+                            });
+
+                            // Set size to show up to 10 items, then scrollbar appears
+                            dialog.setSize(60, 10);
+
+                            String actionCmdName = getTranslatedActionCommand(action);
+                            dialog.setTitle(Messages.getMessage("select_module_for_test_report_title"));
+                            dialog.setMessage(Messages.getMessage("select_module_for_test_report_description", actionCmdName));
+                            dialog.setElements(projectsToDisplay.toArray());
+                            dialog.setInitialSelections(new Object[] { projectsToDisplay.get(0) });
+                            dialog.setHelpAvailable(false);
+
+                            if (dialog.open() == Window.OK) {
+                                targetProject[0] = (ProjectModel) dialog.getFirstResult();
                             }
-
-                            @Override
-                            public Image getImage(Object element) {
-                                ProjectModel pm = (ProjectModel) element;
-                                return pm.getBuildType() == BuildType.Maven ? mavenImg : gradleImg;
+                        } finally {
+                            if (mavenImg != null && !mavenImg.isDisposed()) {
+                                mavenImg.dispose();
                             }
-                        });
-
-                        // Set size to show up to 10 items, then scrollbar appears
-                        dialog.setSize(60, 10);
-
-                        String actionCmdName = getTranslatedActionCommand(action);
-                        dialog.setTitle(Messages.getMessage("select_module_for_test_report_title"));
-                        dialog.setMessage(Messages.getMessage("select_module_for_test_report_description", actionCmdName));
-                        dialog.setElements(projectsToDisplay.toArray());
-                        dialog.setInitialSelections(new Object[] { projectsToDisplay.get(0) });
-                        dialog.setHelpAvailable(false);
-
-                        if (dialog.open() == Window.OK) {
-                            targetProject[0] = (ProjectModel) dialog.getFirstResult();
-                        }
-                    } finally {
-                        if (mavenImg != null && !mavenImg.isDisposed()) {
-                            mavenImg.dispose();
-                        }
-                        if (gradleImg != null && !gradleImg.isDisposed()) {
-                            gradleImg.dispose();
+                            if (gradleImg != null && !gradleImg.isDisposed()) {
+                                gradleImg.dispose();
+                            }
                         }
                     }
-                }
-            });
+                });
 
-            // If the user exited the dialog or there are no projects with tests reports.
-            if (targetProject[0] == null) {
-                return null;
+                // If the user exited the dialog, return null to signal cancellation.
+                if (targetProject[0] == null) {
+                    return null;
+                }
             }
         }
 
@@ -1445,23 +1460,28 @@ public class DevModeOperations {
 
     /**
      * Returns the list of direct and transitive dependent modules (within the same
-     * multi-module build) that have test source files.
+     * multi-module build) that have test reports present on disk.
      *
-     * @return The list of dependent modules that have test source files.
+     * @param projectModel The project whose transitive dependents are inspected.
+     * @param action The dashboard action identifying the type of test report.
+     *
+     * @return The list of dependent modules that have test reports on disk.
      */
     public List<ProjectModel> getDependentProjectsWithTestReports(ProjectModel projectModel, DashboardAction action) {
         List<ProjectModel> projectsWithTests = new ArrayList<>();
 
-        if (projectModel.getBuildType() == BuildType.Maven) {
-            for (ProjectModel dependency : projectModel.getTransitiveDependentModules()) {
-                if (action == DashboardAction.OPEN_MVN_IT_TEST_REPORT) {
-                    if (getMavenITReportPath(dependency.getPath(), dependency.getName(), false) != null) {
-                        projectsWithTests.add(dependency);
-                    }
-                } else if (action == DashboardAction.OPEN_MVN_UT_TEST_REPORT) {
-                    if (getMavenUTReportPath(dependency.getPath(), dependency.getName(), false) != null) {
-                        projectsWithTests.add(dependency);
-                    }
+        for (ProjectModel dependency : projectModel.getTransitiveDependentModules()) {
+            if (action == DashboardAction.OPEN_MVN_IT_TEST_REPORT) {
+                if (getMavenITReportPath(dependency.getPath(), dependency.getName(), false) != null) {
+                    projectsWithTests.add(dependency);
+                }
+            } else if (action == DashboardAction.OPEN_MVN_UT_TEST_REPORT) {
+                if (getMavenUTReportPath(dependency.getPath(), dependency.getName(), false) != null) {
+                    projectsWithTests.add(dependency);
+                }
+            } else if (action == DashboardAction.OPEN_GRADLE_TEST_REPORT) {
+                if (getGradleTestReportPath(dependency.getPath()).toFile().exists()) {
+                    projectsWithTests.add(dependency);
                 }
             }
         }
