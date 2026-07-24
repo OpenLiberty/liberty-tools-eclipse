@@ -11,7 +11,7 @@ jobs:
       fail-fast: false
       matrix:
         runtime: [ linux, mac, windows ]
-        targetPlatform: [ 4Q2025 ]
+        targetPlatform: [ 1Q2026 ]
         include:
         - runtime: linux
           os: ubuntu-latest
