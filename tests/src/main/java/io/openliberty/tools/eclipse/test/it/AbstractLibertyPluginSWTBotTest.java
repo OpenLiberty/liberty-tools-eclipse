@@ -116,6 +116,8 @@ public abstract class AbstractLibertyPluginSWTBotTest {
     }
 
     protected static void commonSetup() {
+        
+        System.setProperty("org.eclipse.swtbot.keyboard.layout","EN_US");
         bot = new SWTWorkbenchBot();
         closeWelcomePage(bot);
         // Update browser preferences.
