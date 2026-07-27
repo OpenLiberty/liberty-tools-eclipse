@@ -1446,16 +1446,298 @@ public class SWTBotPluginOperations {
     }
 
     /**
-     * Presses the Proceed button if it exists on the error in workspace dialog.
-     * 
+     * Presses the Proceed button if the workspace error dialog is currently visible.
+     * The check is done without any SWTBot polling timeout so there is no delay in the
+     * common case where no error dialog is present.
+     *
      * @param bot The SWTWorkbenchBot instance.
      */
     public static void pressWorkspaceErrorDialogProceedButton(SWTWorkbenchBot bot) {
-        try {
-            bot.button("Proceed").click();
-        } catch (Exception e) {
-            // Not a problem if error wasn't generated. Continue...
+        if (isShellVisible("Problems Occurred")) {
+            try {
+                bot.button("Proceed").click();
+            } catch (Exception e) {
+                // Dialog may have closed between the check and the click.
+            }
         }
+    }
+
+    /**
+     * Clicks the Collapse All toolbar button in the Liberty dashboard, collapsing all
+     * tree items to their root level.
+     *
+     * @param bot The SWTWorkbenchBot instance.
+     */
+    public static void collapseDashboard(SWTWorkbenchBot bot) {
+        openDashboardUsingToolbar();
+        bot.viewByTitle(DASHBOARD_VIEW_TITLE).toolbarButton(DashboardView.DASHBOARD_TOOLBAR_COLLAPSE_ALL).click();
+    }
+
+    /**
+     * Clicks the Expand All toolbar button in the Liberty dashboard, expanding all
+     * tree items to show their children.
+     *
+     * @param bot The SWTWorkbenchBot instance.
+     */
+    public static void expandDashboard(SWTWorkbenchBot bot) {
+        openDashboardUsingToolbar();
+        bot.viewByTitle(DASHBOARD_VIEW_TITLE).toolbarButton(DashboardView.DASHBOARD_TOOLBAR_EXPAND_ALL).click();
+    }
+
+    /**
+     * Clicks the Filter toolbar button in the Liberty dashboard to toggle the search bar,
+     * then types the given text into the search field. The button is looked up within the
+     * Liberty Dashboard view toolbar to avoid matching filter buttons in other views.
+     *
+     * @param bot        The SWTWorkbenchBot instance.
+     * @param filterText The text to enter into the dashboard search field.
+     */
+    public static void filterDashboardByText(SWTWorkbenchBot bot, String filterText) {
+        openDashboardUsingToolbar();
+        bot.viewByTitle(DASHBOARD_VIEW_TITLE).toolbarButton(DashboardView.DASHBOARD_TOOLBAR_FILTER).click();
+
+        // Wait for the search field to appear and type into it.
+        SWTBotTestCondition.waitFor(() -> {
+            try {
+                bot.textWithMessage("Filter projects...");
+                return true;
+            } catch (Exception ignored) {
+                return false;
+            }
+        }, SWTBotTestCondition.MIN_WAIT_MS);
+
+        bot.textWithMessage("Filter projects...").setText(filterText);
+    }
+
+    /**
+     * Clears the dashboard search field and hides the search bar by clicking the Filter
+     * toolbar button again within the Liberty Dashboard view toolbar.
+     *
+     * @param bot The SWTWorkbenchBot instance.
+     */
+    public static void clearDashboardFilter(SWTWorkbenchBot bot) {
+        openDashboardUsingToolbar();
+        
+        try {
+            bot.textWithMessage("Filter projects...").setText("");
+        } catch (Exception ignored) {
+            // Search bar may already be hidden.
+        }
+        // Toggle the filter button off to hide the search bar.
+        bot.viewByTitle(DASHBOARD_VIEW_TITLE).toolbarButton(DashboardView.DASHBOARD_TOOLBAR_FILTER).click();
+    }
+
+    /**
+     * Types the given text into the filter text field of the module selection dialog.
+     * The filter text field is the search box at the top of the ElementListSelectionDialog.
+     *
+     * @param dialogShell The shell of the module selection dialog.
+     * @param filterText  The text to type into the filter field.
+     */
+    public static void typeInModuleSelectionDialogFilter(Shell dialogShell, String filterText) {
+        Display.getDefault().syncExec(() -> {
+            org.eclipse.swt.widgets.Text filterField = findTextInShell(dialogShell);
+            if (filterField != null) {
+                filterField.setFocus();
+                filterField.setText(filterText);
+                // Fire Modify event so the dialog's filter listener updates the list.
+                org.eclipse.swt.widgets.Event event = new org.eclipse.swt.widgets.Event();
+                event.widget = filterField;
+                filterField.notifyListeners(SWT.Modify, event);
+            }
+        });
+    }
+
+    /**
+     * Finds the first Text widget within the given shell, searching recursively through
+     * child composites. Used to locate the filter field in a selection dialog.
+     *
+     * @param shell The shell to search.
+     *
+     * @return The first Text widget found, or null if none is present.
+     */
+    private static org.eclipse.swt.widgets.Text findTextInShell(Shell shell) {
+        final org.eclipse.swt.widgets.Text[] result = { null };
+        Display.getDefault().syncExec(() -> {
+            result[0] = findTextInComposite(shell);
+        });
+        return result[0];
+    }
+
+    /**
+     * Recursively searches a composite hierarchy for a Text widget.
+     *
+     * @param composite The composite to search.
+     *
+     * @return The first Text widget found, or null if none is present.
+     */
+    private static org.eclipse.swt.widgets.Text findTextInComposite(org.eclipse.swt.widgets.Composite composite) {
+        for (org.eclipse.swt.widgets.Control child : composite.getChildren()) {
+            if (child instanceof org.eclipse.swt.widgets.Text) {
+                return (org.eclipse.swt.widgets.Text) child;
+            }
+            if (child instanceof org.eclipse.swt.widgets.Composite) {
+                org.eclipse.swt.widgets.Text found = findTextInComposite((org.eclipse.swt.widgets.Composite) child);
+                if (found != null) {
+                    return found;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Waits for the module selection dialog to appear, then returns its shell.
+     * The dialog is identified by the title "Select a Liberty Module".
+     *
+     * @param maxWaitMs Maximum number of milliseconds to wait for the dialog.
+     *
+     * @return The dialog shell, or null if the dialog did not appear within the given timeout.
+     */
+    public static Shell waitForModuleSelectionDialog(int maxWaitMs) {
+        String dialogTitle = "Select a Liberty Module";
+        boolean appeared = SWTBotTestCondition.waitFor(() -> isShellVisible(dialogTitle), maxWaitMs);
+        if (!appeared) {
+            return null;
+        }
+        final Shell[] result = { null };
+        Display.getDefault().syncExec(() -> {
+            for (org.eclipse.swt.widgets.Shell s : Display.getDefault().getShells()) {
+                if (!s.isDisposed() && s.isVisible() && dialogTitle.equals(s.getText())) {
+                    result[0] = s;
+                    return;
+                }
+            }
+        });
+        return result[0];
+    }
+
+    /**
+     * Waits for the test report module selection dialog to appear, then returns its shell.
+     * The dialog is identified by the title "Select a Module".
+     *
+     * @param maxWaitMs Maximum number of milliseconds to wait for the dialog.
+     *
+     * @return The dialog shell, or null if the dialog did not appear within the given timeout.
+     */
+    public static Shell waitForTestReportModuleSelectionDialog(int maxWaitMs) {
+        String dialogTitle = "Select a Module";
+        boolean appeared = SWTBotTestCondition.waitFor(() -> isShellVisible(dialogTitle), maxWaitMs);
+        if (!appeared) {
+            return null;
+        }
+        final Shell[] result = { null };
+        Display.getDefault().syncExec(() -> {
+            for (org.eclipse.swt.widgets.Shell s : Display.getDefault().getShells()) {
+                if (!s.isDisposed() && s.isVisible() && dialogTitle.equals(s.getText())) {
+                    result[0] = s;
+                    return;
+                }
+            }
+        });
+        return result[0];
+    }
+
+    /**
+     * Returns the number of items shown in the list portion of the module selection dialog.
+     *
+     * @param dialogShell The shell of the module selection dialog.
+     *
+     * @return The number of list items displayed in the dialog.
+     */
+    public static int getModuleSelectionDialogItemCount(Shell dialogShell) {
+        final int[] count = { 0 };
+        Display.getDefault().syncExec(() -> {
+            org.eclipse.swt.widgets.Table table = findTableInShell(dialogShell);
+            if (table != null) {
+                count[0] = table.getItemCount();
+            }
+        });
+        return count[0];
+    }
+
+    /**
+     * Returns the list of item text values shown in the module selection dialog.
+     *
+     * @param dialogShell The shell of the module selection dialog.
+     *
+     * @return A list containing the text of every item in the dialog list.
+     */
+    public static List<String> getModuleSelectionDialogItems(Shell dialogShell) {
+        final List<String> items = new ArrayList<>();
+        Display.getDefault().syncExec(() -> {
+            org.eclipse.swt.widgets.Table table = findTableInShell(dialogShell);
+            if (table != null) {
+                for (org.eclipse.swt.widgets.TableItem ti : table.getItems()) {
+                    items.add(ti.getText());
+                }
+            }
+        });
+        return items;
+    }
+
+    /**
+     * Cancels the module selection dialog by pressing the Cancel button.
+     *
+     * @param dialogShell The shell of the module selection dialog.
+     */
+    public static void cancelModuleSelectionDialog(Shell dialogShell) {
+        go("Cancel", dialogShell);
+    }
+
+    /**
+     * Selects the specified module name in the module selection dialog and presses OK.
+     *
+     * @param dialogShell The shell of the module selection dialog.
+     * @param moduleName  The module name to select.
+     */
+    public static void selectModuleInDialog(Shell dialogShell, String moduleName) {
+        Display.getDefault().syncExec(() -> {
+            org.eclipse.swt.widgets.Table table = findTableInShell(dialogShell);
+            if (table != null) {
+                for (org.eclipse.swt.widgets.TableItem ti : table.getItems()) {
+                    if (moduleName.equals(ti.getText())) {
+                        table.setSelection(ti);
+                        return;
+                    }
+                }
+            }
+        });
+        go("OK", dialogShell);
+    }
+
+    /**
+     * Finds a Table widget within the given shell, searching recursively through child composites.
+     * Must be called from the SWT display thread.
+     *
+     * @param shell The shell to search.
+     *
+     * @return The first Table widget found, or null if none is present.
+     */
+    private static org.eclipse.swt.widgets.Table findTableInShell(Shell shell) {
+        return findTableInComposite(shell);
+    }
+
+    /**
+     * Recursively searches a composite hierarchy for a Table widget.
+     *
+     * @param composite The composite to search.
+     *
+     * @return The first Table found, or null if none is present.
+     */
+    private static org.eclipse.swt.widgets.Table findTableInComposite(org.eclipse.swt.widgets.Composite composite) {
+        for (org.eclipse.swt.widgets.Control child : composite.getChildren()) {
+            if (child instanceof org.eclipse.swt.widgets.Table) {
+                return (org.eclipse.swt.widgets.Table) child;
+            }
+            if (child instanceof org.eclipse.swt.widgets.Composite) {
+                org.eclipse.swt.widgets.Table found = findTableInComposite((org.eclipse.swt.widgets.Composite) child);
+                if (found != null) {
+                    return found;
+                }
+            }
+        }
+        return null;
     }
 
     /**
