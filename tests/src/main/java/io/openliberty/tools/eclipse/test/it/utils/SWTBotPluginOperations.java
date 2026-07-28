@@ -1446,19 +1446,15 @@ public class SWTBotPluginOperations {
     }
 
     /**
-     * Presses the Proceed button if the workspace error dialog is currently visible.
-     * The check is done without any SWTBot polling timeout so there is no delay in the
-     * common case where no error dialog is present.
-     *
+     * Presses the Proceed button if it exists on the error in workspace dialog.
+     * 
      * @param bot The SWTWorkbenchBot instance.
      */
     public static void pressWorkspaceErrorDialogProceedButton(SWTWorkbenchBot bot) {
-        if (isShellVisible("Problems Occurred")) {
-            try {
-                bot.button("Proceed").click();
-            } catch (Exception e) {
-                // Dialog may have closed between the check and the click.
-            }
+        try {
+            bot.button("Proceed").click();
+        } catch (Exception e) {
+            // Not a problem if error wasn't generated. Continue...
         }
     }
 
