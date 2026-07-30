@@ -880,6 +880,8 @@ public class DashboardView extends ViewPart {
                     emptyComposite = null;
                 }
                 createTreeComposite();
+                createContextMenu();
+                getSite().setSelectionProvider(viewer);
                 parentComposite.layout(true, true);
             }
 
