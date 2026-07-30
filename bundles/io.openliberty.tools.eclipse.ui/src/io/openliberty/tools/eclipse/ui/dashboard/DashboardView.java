@@ -40,7 +40,10 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
+import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.ui.IWorkbenchCommandConstants;
+import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.contexts.IContextService;
 import org.eclipse.ui.forms.events.HyperlinkAdapter;
 import org.eclipse.ui.forms.events.HyperlinkEvent;
@@ -279,35 +282,69 @@ public class DashboardView extends ViewPart {
         textData.grabExcessHorizontalSpace = true;
         formText.setLayoutData(textData);
 
-        // Set the message with an embedded hyperlink.
-        String preImportMsg = Messages.getMessage("dashboard_empty_message_part1");
-        String importMsg = Messages.getMessage("dashboard_empty_message_part2");
-        String postImportMsg = Messages.getMessage("dashboard_empty_message_part3");
-        String message = "<form><p>" + preImportMsg +
-                         "<a href=\"import\"> " + importMsg + "</a> " + postImportMsg + "</p></form>";
+        // Set the message with two embedded hyperlinks: one for the Liberty starter
+        // wizard and one for the standard Eclipse import dialog.
+        String part1 = Messages.getMessage("dashboard_empty_message_part1");
+        String part2 = Messages.getMessage("dashboard_empty_message_part2");
+        String part3 = Messages.getMessage("dashboard_empty_message_part3");
+        String part4 = Messages.getMessage("dashboard_empty_message_part4");
+        String part5 = Messages.getMessage("dashboard_empty_message_part5");
+        String message = "<form><p>" + part1
+                + " <a href=\"create\">" + part2 + "</a> " + part3
+                + " <a href=\"import\">" + part4 + "</a> " + part5 + "</p></form>";
         formText.setText(message, true, false);
 
-        // Add hyperlink listener to handle clicks.
+        // Add hyperlink listener to handle both link clicks.
         formText.addHyperlinkListener(new HyperlinkAdapter() {
             @Override
             public void linkActivated(HyperlinkEvent e) {
-                try {
-                    IHandlerService handlerService = getSite().getService(IHandlerService.class);
-                    if (handlerService != null) {
-                        handlerService.executeCommand(IWorkbenchCommandConstants.FILE_IMPORT, null);
-                    } else {
-                        if (Trace.isEnabled()) {
-                            Trace.getTracer().trace(Trace.TRACE_UI, "Handler service is null");
-                        }
-                    }
-                } catch (Exception ex) {
-                    if (Trace.isEnabled()) {
-                        Trace.getTracer().trace(Trace.TRACE_UI, "Error opening import wizard", ex);
-                    }
-                    ErrorHandler.processErrorMessage("Failed to open import wizard: " + ex.getMessage(), ex, true);
+                if ("create".equals(e.getHref())) {
+                    openLibertyStarterWizard();
+                } else if ("import".equals(e.getHref())) {
+                    openImportWizard();
                 }
             }
         });
+    }
+
+    /**
+     * Opens the Liberty Starter wizard.
+     */
+    private void openLibertyStarterWizard() {
+        try {
+            IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+            io.openliberty.tools.eclipse.ui.wizards.LibertyStarterWizard wizard =
+                    new io.openliberty.tools.eclipse.ui.wizards.LibertyStarterWizard();
+            wizard.init(PlatformUI.getWorkbench(), null);
+            WizardDialog dialog = new WizardDialog(window.getShell(), wizard);
+            dialog.open();
+        } catch (Exception ex) {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UI, "Error opening Liberty starter wizard", ex);
+            }
+            ErrorHandler.processErrorMessage(Messages.getMessage("starter_wizard_failed_to_open", ex.getMessage()), ex, true);
+        }
+    }
+
+    /**
+     * Opens the Eclipse import wizard.
+     */
+    private void openImportWizard() {
+        try {
+            IHandlerService handlerService = getSite().getService(IHandlerService.class);
+            if (handlerService != null) {
+                handlerService.executeCommand(IWorkbenchCommandConstants.FILE_IMPORT, null);
+            } else {
+                if (Trace.isEnabled()) {
+                    Trace.getTracer().trace(Trace.TRACE_UI, "Handler service is null.");
+                }
+            }
+        } catch (Exception ex) {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UI, "Error opening import wizard", ex);
+            }
+            ErrorHandler.processErrorMessage(Messages.getMessage("import_wizard_failed_to_open", ex.getMessage()), ex, true);
+        }
     }
 
     /**
