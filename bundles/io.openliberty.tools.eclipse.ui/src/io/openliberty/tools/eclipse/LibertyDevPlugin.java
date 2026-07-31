@@ -12,22 +12,30 @@
 *******************************************************************************/
 package io.openliberty.tools.eclipse;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Hashtable;
 
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.Platform;
 import org.eclipse.osgi.service.debug.DebugOptions;
 import org.eclipse.osgi.service.debug.DebugOptionsListener;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
+import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 
 import io.openliberty.tools.eclipse.logging.Trace;
+import io.openliberty.tools.eclipse.messages.Messages;
 
 /**
- * The activator class controls the plug-in life cycle
+ * The activator class controls the plug-in life cycle.
  */
 public class LibertyDevPlugin extends AbstractUIPlugin {
 
@@ -39,6 +47,9 @@ public class LibertyDevPlugin extends AbstractUIPlugin {
 
     /** Shared instance of this plugin. */
     private static LibertyDevPlugin plugin;
+
+    /** Bundle reference. */
+    private static Bundle bundle;
 
     /** Resource Change listener instance. */
     private IResourceChangeListener resourceChangeListener;
@@ -56,6 +67,7 @@ public class LibertyDevPlugin extends AbstractUIPlugin {
     public void start(BundleContext context) throws Exception {
         super.start(context);
         plugin = this;
+        bundle = context.getBundle();
 
         // Register the trace listener.
         Hashtable<String, String> props = new Hashtable<String, String>();
@@ -82,9 +94,9 @@ public class LibertyDevPlugin extends AbstractUIPlugin {
     }
 
     /**
-     * Returns the shared instance
+     * Returns the shared instance.
      *
-     * @return the shared instance
+     * @return The shared instance.
      */
     public static LibertyDevPlugin getDefault() {
         return plugin;
@@ -137,5 +149,32 @@ public class LibertyDevPlugin extends AbstractUIPlugin {
         if (Trace.isEnabled()) {
             Trace.getTracer().traceExit(Trace.TRACE_TOOLS, iWorkspace);
         }
+    }
+
+    /**
+     * Returns the path to the input directory within this plugin's workarea.
+     * The workarea is located in the user's currently active workspace:
+     * workspaces/my_workspace/.metadata/.plugins/io.openliberty.tools.eclipse.ui/subDirPath
+     *
+     * @param subDirPath The well formed sub-directory path.
+     *
+     * @return The path to the input directory within this plugin's workarea.
+     *
+     * @throws IOException If an error occurs while creating the directory.
+     */
+    public static String getWorkareaDir(String subDirPath) throws IOException {
+        IPath pluginStateDirPath = Platform.getStateLocation(bundle);
+        String stateDirPath = pluginStateDirPath.toOSString();
+        Path fullPath = pluginStateDirPath.toPath();
+        if (subDirPath != null && !subDirPath.isEmpty()) {
+            fullPath = Paths.get(stateDirPath, subDirPath);
+        }
+
+        File outputDir = fullPath.toFile();
+        if (!outputDir.exists() && !outputDir.mkdirs()) {
+            throw new IOException(Messages.getMessage("starter_workarea_dir_error", fullPath));
+        }
+
+        return fullPath.toString();
     }
 }

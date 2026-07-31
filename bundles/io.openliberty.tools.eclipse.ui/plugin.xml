@@ -751,12 +751,27 @@
 			</command>
 	  </menuContribution>
   </extension>
-  <extension
-        point="org.eclipse.ui.handlers">
+  <extension point="org.eclipse.ui.handlers">
      <handler
            class="io.openliberty.tools.eclipse.debug.LibertyDebugReconnectHandler"
            commandId="io.openliberty.tools.eclipse.debug.LibertyDebugReconnect">
      </handler>
   </extension>
 
+  <!-- Wizards-->
+  <extension point="org.eclipse.ui.newWizards">
+     <category
+           id="io.openliberty.tools.eclipse.wizard.category"
+           name="Liberty">
+     </category>
+     <wizard
+           id="io.openliberty.tools.eclipse.ui.wizard.LibertyStarter"
+           name="Liberty Starter Project"
+           category="io.openliberty.tools.eclipse.wizard.category"
+           class="io.openliberty.tools.eclipse.ui.wizards.LibertyStarterWizard"
+           icon="icons/openLibertyLogo.png"
+           project="true">
+           <description>Create new Liberty starter project</description>
+     </wizard>
+  </extension>
 </plugin>
