@@ -30,6 +30,7 @@ import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchCustomDebugFromDashboard;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchCustomRunFromDashboard;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchDashboardAction;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.waitForAndClickButton;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchDebugConfigurationsDialogFromAppRunAs;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchRunConfigurationsDialogFromAppRunAs;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchRunTestsWithRunAsShortcut;
@@ -412,47 +413,94 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
     }
 
     /**
-     * Tests stop of a server started outside of the current Liberty Tools Eclipse session
+     * Tests the restart of an externally started dev mode process when
+     * the user selects a start action using Liberty Tools.
      * 
      * @throws CommandNotFoundException
      * @throws IOException
      * @throws InterruptedException
      */
     @Test
-    @Disabled("Until the option to stop an externally start module is added. The stop action is no longer enabled if LT did not start dev mode.")
-    public void testDashboardStopExternalServer() throws CommandNotFoundException, IOException, InterruptedException {
+    public void testRestartOfExternallyStartedDevMode() throws CommandNotFoundException, IOException, InterruptedException {
 
         Path projAbsolutePath = wrapperProjectPath.toAbsolutePath();
         IProject iProject = LibertyPluginTestUtils.getProject(MVN_WRAPPER_APP_NAME);
         ProjectModel projectModel = new ProjectModel(iProject);
+        String libertyBasePath = projAbsolutePath.toString() + "/target/liberty";
 
         // Doing a 'clean' first in case server was started previously and terminated abruptly. App tests may fail,
         // making it look like an "outer", actual test is failing, so we skip the tests.
-        String cmd = CommandBuilder.constructMavenCommand(projectModel,
-                                                          "clean io.openliberty.tools:liberty-maven-plugin:dev -DskipITs=true", null).getCommand();
+        String startDevModeCmd = CommandBuilder.constructMavenCommand(projectModel,
+                                                                      "clean io.openliberty.tools:liberty-maven-plugin:dev -DskipITs=true", null).getCommand();
 
         if (LibertyPluginTestUtils.onWindows()) {
-            cmd = "cmd.exe /c" + cmd;
+            startDevModeCmd = "cmd.exe /c" + startDevModeCmd;
         }
 
-        String[] cmdParts = cmd.split(" ");
-        ProcessBuilder pb = new ProcessBuilder(cmdParts).inheritIO().directory(projAbsolutePath.toFile()).redirectErrorStream(true);
-        pb.environment().put("JAVA_HOME", JavaRuntime.getDefaultVMInstall().getInstallLocation().getAbsolutePath());
+        String[] startDevModeCmdParts = startDevModeCmd.split(" ");
+        ProcessBuilder startDMPB = new ProcessBuilder(startDevModeCmdParts).inheritIO().directory(projAbsolutePath.toFile()).redirectErrorStream(true);
+        startDMPB.environment().put("JAVA_HOME", JavaRuntime.getDefaultVMInstall().getInstallLocation().getAbsolutePath());
 
-        Process p = pb.start();
-        p.waitFor(3, TimeUnit.SECONDS);
+        Process startDMProcess = startDMPB.start();
+        startDMProcess.waitFor(3, TimeUnit.SECONDS);
 
-        // Validate application is up and running.
-        LibertyPluginTestUtils.validateApplicationOutcome(MVN_WRAPPER_APP_NAME, true,
-                                                          wrapperProjectPath.toAbsolutePath().toString() + "/target/liberty");
+        // Validate application is up and running outside of Liberty Tools.
+        LibertyPluginTestUtils.validateApplicationOutcome(MVN_WRAPPER_APP_NAME, true, libertyBasePath);
 
-        // Stop dev mode.
-        launchDashboardAction(MVN_WRAPPER_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
+        boolean devModeStopped = false;
+        try {
+            // Record the messages.log timestamp before triggering the restart. This is used
+            // after the restart to prove that the server genuinely restarted and was not
+            // simply left running from the original external process.
+            long timestampBeforeRestart = new File(libertyBasePath
+                                                   + "/wlp/usr/servers/defaultServer/logs/messages.log").lastModified();
 
-        bot.button("Yes").click();
+            // Trigger the start action. Liberty Tools detects the externally running server
+            // and opens a Yes/No dialog.
+            launchDashboardAction(MVN_WRAPPER_APP_NAME, DashboardView.APP_MENU_ACTION_START);
 
-        // Validate application stopped.
-        LibertyPluginTestUtils.validateLibertyServerStopped(wrapperProjectPath.toAbsolutePath().toString() + "/target/liberty");
+            // Wait for the dialog and confirm the restart.
+            try {
+                waitForAndClickButton(bot, "Liberty Tools", "Yes", SWTBotTestCondition.SERVER_WAIT_MS);
+            } catch (org.eclipse.swtbot.swt.finder.exceptions.WidgetNotFoundException e) {
+                System.out.println("[testRestartOfExternallyStartedDevMode] Eclipse console output before dialog failure:\n"
+                                   + LibertyPluginTestUtils.getConsoleOutput());
+                throw e;
+            }
+
+            // Validate that the server came back up under Liberty Tools.
+            LibertyPluginTestUtils.validateApplicationOutcome(MVN_WRAPPER_APP_NAME, true, libertyBasePath);
+
+            // Validate that messages.log is newer than before the restart was triggered.
+            // A newer timestamp proves the server process was genuinely restarted and is not
+            // the original externally started instance still running.
+            LibertyPluginTestUtils.validateMessagesLogIsNewer(libertyBasePath, timestampBeforeRestart);
+
+            // Stop dev mode via Liberty Tools.
+            launchDashboardAction(MVN_WRAPPER_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
+            LibertyPluginTestUtils.validateLibertyServerStopped(libertyBasePath);
+            devModeStopped = true;
+        } finally {
+            if (!devModeStopped) {
+                // Doing a 'clean' first in case server was started previously and terminated abruptly. App tests may fail,
+                // making it look like an "outer", actual test is failing, so we skip the tests.
+                String stopDevModeCmd = CommandBuilder.constructMavenCommand(projectModel,
+                                                                             "io.openliberty.tools:liberty-maven-plugin:stop", null).getCommand();
+
+                if (LibertyPluginTestUtils.onWindows()) {
+                    stopDevModeCmd = "cmd.exe /c" + stopDevModeCmd;
+                }
+
+                String[] stopDevModeCmdParts = stopDevModeCmd.split(" ");
+                ProcessBuilder stopDMPB = new ProcessBuilder(stopDevModeCmdParts).inheritIO().directory(projAbsolutePath.toFile()).redirectErrorStream(true);
+                stopDMPB.environment().put("JAVA_HOME", JavaRuntime.getDefaultVMInstall().getInstallLocation().getAbsolutePath());
+
+                Process stopDMProcess = stopDMPB.start();
+                stopDMProcess.waitFor(3, TimeUnit.SECONDS);
+
+                LibertyPluginTestUtils.validateLibertyServerStopped(libertyBasePath);
+            }
+        }
     }
 
     /**
