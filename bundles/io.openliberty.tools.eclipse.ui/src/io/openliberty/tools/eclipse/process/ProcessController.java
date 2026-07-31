@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2022, 2025 IBM Corporation and others.
+* Copyright (c) 2022, 2026 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -22,6 +22,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import org.eclipse.debug.core.DebugPlugin;
 import org.eclipse.debug.core.ILaunch;
+import org.eclipse.debug.core.model.IProcess;
+import org.eclipse.debug.core.model.IStreamMonitor;
 
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.messages.Messages;
@@ -34,6 +36,9 @@ public class ProcessController {
 
     /** The set of processes associated with different application projects. */
     private static final ConcurrentHashMap<String, Process> projectProcessMap = new ConcurrentHashMap<String, Process>();
+
+    /** The set of console output interceptors keyed by project path. */
+    private static final ConcurrentHashMap<String, ConsoleOutputInterceptor> interceptorMap = new ConcurrentHashMap<String, ConsoleOutputInterceptor>();
 
     /** Instance of this class */
     private static ProcessController instance;
@@ -64,9 +69,10 @@ public class ProcessController {
      * @param projectPath The application project path.
      * @param command     The command to execute.
      * @param envs        The environment properties to be set for the process.
+     * @param printCmd    Whether to echo the command to the console before running it.
      * @param launch      The Eclipse launch object used to register the process in the debug framework.
      *
-     * @throws IOException
+     * @throws IOException If an error occurs while starting the process.
      */
     public void runProcess(String projectName, String projectPath, String command, List<String> envs, boolean printCmd, ILaunch launch) throws IOException {
 
@@ -120,7 +126,27 @@ public class ProcessController {
         // Launch the Java process as part of the Debug plugin framework, which wraps
         // the raw Java process and monitors it.
         // Cleanup for the initiated process is done by the registered listener.
-        DebugPlugin.newProcess(launch, process, projectName);
+        IProcess iProcess = DebugPlugin.newProcess(launch, process, projectName);
+
+        // Create a console output interceptor and register it on both the stdout and
+        // stderr monitors so that handlers can react to messages on either stream.
+        ConsoleOutputInterceptor interceptor = new ConsoleOutputInterceptor(projectName);
+        IStreamMonitor outMonitor = iProcess.getStreamsProxy().getOutputStreamMonitor();
+        IStreamMonitor errMonitor = iProcess.getStreamsProxy().getErrorStreamMonitor();
+        outMonitor.addListener(interceptor);
+        errMonitor.addListener(interceptor);
+        interceptorMap.put(projectPath, interceptor);
+    }
+
+    /**
+     * Returns the ConsoleOutputInterceptor registered for the specified project path, or null
+     * if no process is currently running for that project.
+     *
+     * @param projectPath The file system path of the project.
+     * @return The ConsoleOutputInterceptor for the project, or null if none exists.
+     */
+    public ConsoleOutputInterceptor getInterceptor(String projectPath) {
+        return interceptorMap.get(projectPath);
     }
 
     private void addTerminateListener(String projectName) {
@@ -170,11 +196,18 @@ public class ProcessController {
 
     /**
      * Cleans up any objects associated with this project.
-     * 
-     * @param projectName - The name of the project to clean up.
+     *
+     * @param projectName The name of the project to clean up.
+     * @param projectPath The file system path of the project.
      */
-    public void cleanup(String projectName) {
+    public void cleanup(String projectName, String projectPath) {
         projectProcessMap.remove(projectName);
+        if (projectPath != null) {
+            ConsoleOutputInterceptor interceptor = interceptorMap.remove(projectPath);
+            if (interceptor != null) {
+                interceptor.flush();
+            }
+        }
     }
 
     /**
@@ -185,7 +218,9 @@ public class ProcessController {
         StringBuffer sb = new StringBuffer();
         sb.append("Class: ").append(instance.getClass().getName()).append(": ");
         sb.append("projectProcessMap size: ").append(projectProcessMap.size()).append(", ");
-        sb.append("projectProcessMap: ").append(projectProcessMap);
+        sb.append("projectProcessMap: ").append(projectProcessMap).append(", ");
+        sb.append("interceptorMap size: ").append(interceptorMap.size()).append(", ");
+        sb.append("interceptorMap: ").append(interceptorMap);
         return sb.toString();
     }
 }

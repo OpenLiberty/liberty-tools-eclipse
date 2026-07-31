@@ -61,6 +61,8 @@ import io.openliberty.tools.eclipse.messages.Messages;
 import io.openliberty.tools.eclipse.model.ProjectModel;
 import io.openliberty.tools.eclipse.model.ProjectModel.BuildType;
 import io.openliberty.tools.eclipse.model.WorkspaceModel;
+import io.openliberty.tools.eclipse.process.ConsoleOutputInterceptor;
+import io.openliberty.tools.eclipse.process.DevModeStateHandler;
 import io.openliberty.tools.eclipse.process.ProcessController;
 import io.openliberty.tools.eclipse.ui.ElementListSelectionDialogWrapper;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
@@ -302,7 +304,7 @@ public class DevModeOperations {
             }
 
             // Run the application in dev mode.
-            startDevMode(cmd, targetProjectName, targetProjectExecPath, javaHomePath, launch);
+            startDevMode(cmd, targetProjectModel, targetProjectExecPath, javaHomePath, launch, mode);
 
             // If there is a debugPort, start the job to attach the debugger to the Liberty server JVM.
             if (debugPort != null) {
@@ -406,7 +408,7 @@ public class DevModeOperations {
             }
 
             // Run the application in dev mode.
-            startDevMode(cmd, targetProjectName, targetProjectExecPath, javaHomePath, launch);
+            startDevMode(cmd, targetProjectModel, targetProjectExecPath, javaHomePath, launch, mode);
 
             // If there is a debugPort, start the job to attach the debugger to the Liberty server JVM.
             if (debugPort != null) {
@@ -443,22 +445,19 @@ public class DevModeOperations {
             // Check if the stop action has already been issued or if a start action was never issued before.
             if (!isProjectStarted(targetProjectModel)) {
                 String msg = Messages.getMessage("stop_already_issued", targetProjectName);
-                handleStopActionError(targetProjectName, msg);
-
+                ErrorHandler.processErrorMessage(msg, true);
                 return;
             }
-
+            
             // Issue the command to the process.
             processController.writeToProcessStream(targetProjectName, DEVMODE_COMMAND_EXIT);
 
             // Cleanup internal objects.
             cleanupProcess(targetProjectName);
-
         } catch (Exception e) {
             String projectName = (targetProjectName == null) ? targetProjectModel.getName() : targetProjectName;
             String msg = Messages.getMessage("stop_general_error", projectName);
-            handleStopActionError(projectName, msg);
-
+            ErrorHandler.processErrorMessage(msg, true);
             return;
         }
 
@@ -473,7 +472,9 @@ public class DevModeOperations {
      * @param projectName The name of the project whose process should be cleaned up.
      */
     public void cleanupProcess(String projectName) {
-        processController.cleanup(projectName);
+        ProjectModel projectModel = workspaceModel.getProjectByName(projectName);
+        String projectPath = (projectModel != null) ? projectModel.getPath() : null;
+        processController.cleanup(projectName, projectPath);
     }
 
     /**
@@ -717,13 +718,16 @@ public class DevModeOperations {
     /**
      * Runs the specified command.
      *
-     * @param cmd         The command to run.
-     * @param projectName The name of the project currently being processed.
-     * @param projectPath The project's path.
+     * @param cmd          The command to run.
+     * @param projectModel The model of the project currently being processed.
+     * @param projectPath  The project's path.
+     * @param mode         The Eclipse launch mode used to start dev mode.
      *
      * @throws Exception If an error occurs while running the specified command.
      */
-    public void startDevMode(String cmd, String projectName, String projectPath, String javaInstallPath, ILaunch launch) throws Exception {
+    public void startDevMode(String cmd, ProjectModel projectModel, String projectPath, String javaInstallPath, ILaunch launch, String mode) throws Exception {
+        String projectName = projectModel.getName();
+
         // Determine the environment properties to be set in the process running dev mode.
         List<String> envs = new ArrayList<String>(1);
 
@@ -742,30 +746,23 @@ public class DevModeOperations {
         }
 
         processController.runProcess(projectName, projectPath, cmd, envs, true, launch);
-    }
 
-    /**
-     * Informs the user of the error and prompts them to choose whether or not to allow the Liberty plugin stop command to be issued
-     * for the specified project.
-     *
-     * @param projectName The name of the project for which the Liberty plugin stop command is issued.
-     * @param baseMsg     The base message to display.
-     */
-    private void handleStopActionError(String projectName, String baseMsg) {
-        String stopPromptMsg = Messages.getMessage("issue_stop_prompt");
-        String msg = baseMsg + "\n\n" + stopPromptMsg;
-        Integer response = ErrorHandler.processWarningMessage(msg, true, new String[] { "Yes", "No" }, 0);
-        if (response != null && response == 0) {
-            issueStopCommand(projectName);
+        // Register the dev mode state handler so that Liberty console messages trigger
+        // the appropriate in-plugin reactions.
+        ConsoleOutputInterceptor interceptor = processController.getInterceptor(projectPath);
+        if (interceptor != null) {
+            interceptor.addHandler(new DevModeStateHandler(projectModel, mode));
         }
     }
 
     /**
      * Issues the Liberty plugin stop command to stop the Liberty server associated with the specified project.
-     * 
+     * If the stop command completes successfully, the optional onSuccess runnable is invoked on the UI thread.
+     *
      * @param projectName The name of the project for which the Liberty plugin stop command is issued.
+     * @param onSuccess A runnable to invoke on the UI thread after a successful stop, or null if no action is needed.
      */
-    private void issueStopCommand(String projectName) {
+    public void issueStopCommand(String projectName, Runnable onSuccess) {
         if (Trace.isEnabled()) {
             Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, projectName);
         }
@@ -796,17 +793,15 @@ public class DevModeOperations {
                 throw new Exception(Messages.getMessage("unexpected_build_type", targetProjectModel.getBuildType().toString(), projectName));
             }
 
-            // Issue the command.
             String[] cmdParts = cmd.split(" ");
             ProcessBuilder pb = new ProcessBuilder(cmdParts);
             pb.directory(new File(targetProjectExecPath));
             pb.redirectErrorStream(true);
             pb.environment().put("JAVA_HOME", JavaRuntime.getDefaultVMInstall().getInstallLocation().getAbsolutePath());
 
-            /*
-             * Per: https://stackoverflow.com/questions/29793071/rcp-no-progress-dialog-when-starting-a-job it seems that job.setUser(true)
-             * is no longer enough to result in the creation of a progress dialog.
-             */
+            // Create a job to stop the dev mode process currently running the target project.
+            // Per: https://stackoverflow.com/questions/29793071/rcp-no-progress-dialog-when-starting-a-job it seems that job.setUser(true)
+            // is no longer enough to result in the creation of a progress dialog.
             Job job = new Job(Messages.getMessage("stopping_server_job", targetProjectModel.getBuildType().toString())) {
 
                 @Override
@@ -852,6 +847,7 @@ public class DevModeOperations {
 
             };
 
+            // Add the listener that will restart dev mode for the target project when stop is complete.
             job.addJobChangeListener(new JobChangeAdapter() {
                 @Override
                 public void done(IJobChangeEvent event) {
@@ -862,7 +858,7 @@ public class DevModeOperations {
                     }
 
                     /*
-                     * Check for timeout
+                     * Check for timeout.
                      */
                     Object timeoutOnCompletion = event.getJob().getProperty(STOP_JOB_COMPLETION_TIMEOUT);
                     if (Boolean.TRUE.equals(timeoutOnCompletion)) {
@@ -884,7 +880,7 @@ public class DevModeOperations {
                     }
 
                     /*
-                     * Check for bad exit value
+                     * Check for bad exit value.
                      */
                     Object rc = event.getJob().getProperty(STOP_JOB_COMPLETION_EXIT_CODE);
                     if (rc != Integer.valueOf(0)) {
@@ -897,6 +893,11 @@ public class DevModeOperations {
                             }
                         });
                         return;
+                    }
+
+                    // Invoke the post-stop action if one was provided.
+                    if (onSuccess != null) {
+                        Display.getDefault().asyncExec(onSuccess);
                     }
                 }
             });
