@@ -127,7 +127,7 @@ public class StartAction implements ILaunchShortcut {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, "The start request was already issued on project " + targetProjectName);
             }
-            throw new Exception(Messages.getMessage("start_already_issued"));
+            throw new Exception(Messages.getMessage("start_already_issued", targetProjectName));
         }
 
         

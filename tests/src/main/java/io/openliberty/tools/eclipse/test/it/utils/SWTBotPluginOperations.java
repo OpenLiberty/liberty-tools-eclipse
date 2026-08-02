@@ -606,19 +606,97 @@ public class SWTBotPluginOperations {
 
     /**
      * Launches a dashboard action for the specified application name.
-     * 
+     * Retries the action if the dashboard loses focus or the action fails.
+     *
      * @param appName The application name to select.
      * @param action  The action to select
      */
     public static void launchDashboardAction(String appName, String action) {
-        SWTBotTree dashboardTree = getDashboardTree();
-        SWTBotTreeItem treeItem = findTreeItem(dashboardTree, appName);
-        if (treeItem == null) {
-            throw new org.eclipse.swtbot.swt.finder.exceptions.WidgetNotFoundException("Tree item not found: " + appName);
+        boolean success = SWTBotTestCondition.waitFor(() -> {
+            try {
+                SWTBotTree dashboardTree = getDashboardTree();
+                SWTBotTreeItem treeItem = findTreeItem(dashboardTree, appName);
+                if (treeItem == null) {
+                    System.out.println("[launchDashboardAction] Retrying: tree item not found");
+                    return false;
+                }
+                treeItem.select();
+                SWTBotRootMenu appCtxMenu = treeItem.contextMenu();
+                appCtxMenu.menu(action).click();
+                return true;
+            } catch (Exception e) {
+                System.out.println("[launchDashboardAction] Retrying: " + e.getClass().getSimpleName());
+                return false;
+            }
+        }, SWTBotTestCondition.SHORT_WAIT_MS);
+
+        if (!success) {
+            throw new org.eclipse.swtbot.swt.finder.exceptions.WidgetNotFoundException("Failed to execute dashboard action '" + action + "' for " + appName);
         }
-        treeItem.select();
-        SWTBotRootMenu appCtxMenu = treeItem.contextMenu();
-        appCtxMenu.menu(action).click();
+    }
+
+    /**
+     * Waits for and clicks a button with retry logic.
+     * Finds a dialog with the specified title, brings it into focus, and clicks the button.
+     * Useful for dialogs that may take time to appear and may lose focus.
+     *
+     * @param bot The SWTWorkbenchBot instance.
+     * @param dialogTitle The title of the dialog to find (substring match).
+     * @param buttonText The text of the button to find and click.
+     * @param timeoutMs The maximum time to wait in milliseconds.
+     */
+    public static void waitForAndClickButton(SWTBot bot, String dialogTitle, String buttonText, int timeoutMs) {
+        boolean success = SWTBotTestCondition.waitFor(() -> {
+            try {
+                // Find the shell with the specified title that has the button
+                // Condition 1: Shell title should contain dialogTitle
+                // Condition 2: Shell must have the button
+                SWTBotShell dialogShell = null;
+                for (SWTBotShell shell : bot.shells()) {
+                    try {
+                        String shellTitle = shell.getText();
+                        if (shellTitle != null && shellTitle.contains(dialogTitle)) {
+                            // Check if this shell has the button
+                            shell.bot().button(buttonText);
+                            dialogShell = shell;
+                            break;
+                        }
+                    } catch (Exception e) {
+                        // Continue searching
+                    }
+                }
+                
+                if (dialogShell == null) {
+                    System.out.println("[waitForAndClickButton] Retrying: dialog with title '" + dialogTitle + "' and button '" + buttonText + "' not found");
+                    return false;
+                }
+                
+                // Bring the dialog into focus before clicking
+                final SWTBotShell shellToFocus = dialogShell;
+                Display.getDefault().syncExec(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            shellToFocus.setFocus();
+                        } catch (Exception e) {
+                            System.out.println("[waitForAndClickButton] Failed to set shell focus: " + e.getClass().getSimpleName());
+                        }
+                    }
+                });
+                
+                // Click the button
+                dialogShell.bot().button(buttonText).click();
+                return true;
+            } catch (Exception e) {
+                System.out.println("[waitForAndClickButton] Retrying: " + e.getClass().getSimpleName());
+                return false;
+            }
+        }, timeoutMs);
+        
+        if (!success) {
+            throw new org.eclipse.swtbot.swt.finder.exceptions.WidgetNotFoundException(
+                "Failed to find and click button '" + buttonText + "' in dialog with title '" + dialogTitle + "'");
+        }
     }
 
     /**
@@ -1513,7 +1591,7 @@ public class SWTBotPluginOperations {
      */
     public static void clearDashboardFilter(SWTWorkbenchBot bot) {
         openDashboardUsingToolbar();
-        
+
         try {
             bot.textWithMessage("Filter projects...").setText("");
         } catch (Exception ignored) {

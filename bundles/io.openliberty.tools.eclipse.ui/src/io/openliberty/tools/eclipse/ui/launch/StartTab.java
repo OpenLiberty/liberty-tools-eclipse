@@ -245,7 +245,7 @@ public class StartTab extends AbstractLaunchConfigurationTab {
                     Trace.getTracer().trace(Trace.TRACE_TOOLS, "The start request was already issued on project " + configProjectName);
                 }
 
-                super.setErrorMessage(Messages.getMessage("start_already_issued", configProjectName));
+                super.setErrorMessage(Messages.getMessage("start_already_issued", selectedProjectModel.getName()));
                 return false;
             }
         } catch (CoreException ce) {
