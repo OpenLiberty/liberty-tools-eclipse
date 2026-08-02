@@ -12,7 +12,6 @@
  *******************************************************************************/
 package io.openliberty.tools.eclipse.test.it;
 
-import static io.openliberty.tools.eclipse.DevModeOperations.MVN_RUN_APP_LOG_FILE;
 import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.isInternalBrowserSupportAvailable;
 import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.go;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.closeWelcomePage;
@@ -83,10 +82,6 @@ public abstract class AbstractLibertyPluginSWTBotTest {
         return mvnCmdPath + File.separator + "bin" + File.separator + getMvnCmdFilename();
     }
 
-    public static boolean isMvnLogFile() {
-        return Boolean.getBoolean("io.liberty.tools.eclipse.tests.mvn.logfile");
-    }
-
     public static String getMvnCmdPath() {
         String pathVal = System.getProperty("io.liberty.tools.eclipse.tests.mvnexecutable.path");
         // Tycho "helpfully" converts empty/absent props to 'null' but we'd rather have an empty so we can use /
@@ -134,11 +129,6 @@ public abstract class AbstractLibertyPluginSWTBotTest {
     public void beforeEach(TestInfo info) {
         System.out.println(
                            "INFO: Test " + this.getClass().getSimpleName() + "#" + info.getDisplayName() + " entry: " + java.time.LocalDateTime.now());
-
-        if (isMvnLogFile()) {
-            // Turn on config to log dev mode output to file
-            System.setProperty(MVN_RUN_APP_LOG_FILE, "lte-dev-mode-output-" + getTimestamp() + ".log");
-        }
     }
 
     @AfterEach
@@ -250,11 +240,5 @@ public abstract class AbstractLibertyPluginSWTBotTest {
         }
 
         Assertions.fail("The debug configuration: " + configName + " was not found.");
-    }
-
-    private String getTimestamp() {
-        long currentTime = System.currentTimeMillis();
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd.HH-mm-ss.SSS");
-        return formatter.format(currentTime);
     }
 }

@@ -146,7 +146,6 @@ public class DevModeOperations {
     public static final String BROWSER_MVN_IT_REPORT_NAME_SUFFIX = "failsafe report";
     public static final String BROWSER_MVN_UT_REPORT_NAME_SUFFIX = "surefire report";
     public static final String BROWSER_GRADLE_TEST_REPORT_NAME_SUFFIX = "test report";
-    public static final String MVN_RUN_APP_LOG_FILE = "io.openliberty.tools.eclipse.mvnlogfilename";
 
     private static final String ANSI_SUPPORT_QUALIFIER = "org.eclipse.ui.console";
     private static final String ANSI_SUPPORT_KEY = "ANSI_support_enabled";
@@ -734,16 +733,6 @@ public class DevModeOperations {
         // The value for JAVA_HOME comes from the underlying configuration. The configuration allows
         // the java installation to be custom defined, execution environment defined, or workspace defined.
         envs.add("JAVA_HOME=" + javaInstallPath);
-        String logFileName = System.getProperty(MVN_RUN_APP_LOG_FILE);
-        if (logFileName != null && !logFileName.isEmpty()) {
-            // TODO - could abort if either of these env variables is already set but by guarding with sysprop no risk
-            // of accidental usage.
-
-            // mvn
-            envs.add("MAVEN_ARGS=--log-file " + logFileName);
-            // mvnw
-            envs.add("MAVEN_CONFIG=--log-file " + logFileName);
-        }
 
         processController.runProcess(projectName, projectPath, cmd, envs, true, launch);
 
