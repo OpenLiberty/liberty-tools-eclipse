@@ -28,6 +28,7 @@ import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.commands.ActionHandler;
 import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
@@ -250,7 +251,8 @@ public class DashboardView extends ViewPart {
         };
 
         viewer.setContentProvider(contentProvider);
-        viewer.setLabelProvider(new DashboardEntryLabelProvider(devModeOps, this));
+        viewer.setLabelProvider(new DashboardEntryLabelProvider(this));
+        ColumnViewerToolTipSupport.enableFor(viewer);
     }
 
     /**
@@ -1025,6 +1027,26 @@ public class DashboardView extends ViewPart {
             }
             ErrorHandler.processErrorMessage(Messages.getMessage("dashboard_refresh_error"), e, reportError);
             return;
+        }
+    }
+
+    /**
+     * Refreshes the label for a single project node.
+     * It must be called on the SWT UI thread.
+     *
+     * @param projectModel The project whose row should be repainted.
+     */
+    public void updateLabel(ProjectModel projectModel) {
+        if (viewer == null || viewer.getTree().isDisposed()) {
+            return;
+        }
+        
+        // Update the node and its parent if it exists.
+        viewer.update(projectModel, null);
+
+        ProjectModel parent = projectModel.getParentProjectModel();
+        if (parent != null) {
+            viewer.update(parent, null);
         }
     }
 

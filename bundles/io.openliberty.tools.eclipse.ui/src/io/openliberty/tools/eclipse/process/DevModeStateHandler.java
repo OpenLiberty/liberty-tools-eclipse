@@ -108,6 +108,12 @@ public class DevModeStateHandler implements IConsoleLineHandler {
         }
     }
 
+    /** Message ID emitted by Liberty when the application starts successfully. */
+    private static final String LIBERTY_APP_STARTED_MSGID = "CWWKZ0001I:";
+
+    /** Message ID emitted by Liberty when the server stops. */
+    private static final String LIBERTY_SERVER_STOPPED_MSGID = "CWWKE0036I:";
+
     /** The project model for the project whose process output this handler is observing. */
     private final ProjectModel projectModel;
 
@@ -141,7 +147,11 @@ public class DevModeStateHandler implements IConsoleLineHandler {
                              // Gradle and Maven both emit a message of the form
                              // "The server <name> is already running." when dev mode tries to start
                              // against an already-running server instance.
-                             new PatternAction(new RegexMatcher("The server .+ is already running\\."), line -> handleAlreadyRunning()));
+                             new PatternAction(new RegexMatcher("The server .+ is already running\\."), line -> handleAlreadyRunning()),
+                             // Liberty server application started successfully.
+                             new PatternAction(new ContainsMatcher(LIBERTY_APP_STARTED_MSGID), line -> handleAppStarted()),
+                             // Liberty server stopped (clean stop or startup failure).
+                             new PatternAction(new ContainsMatcher(LIBERTY_SERVER_STOPPED_MSGID), line -> handleServerStopped()));
     }
 
     /**
@@ -180,6 +190,24 @@ public class DevModeStateHandler implements IConsoleLineHandler {
                 });
             }
         });
+    }
+
+    /**
+     * Called when {@code CWWKZ0001I:} is detected — the Liberty application has started.
+     * Transitions the module to {@code RUNNING} and refreshes the dashboard label.
+     */
+    private void handleAppStarted() {
+        projectModel.setAppState(ProjectModel.AppState.RUNNING);
+        DevModeOperations.getInstance().refreshDashboardLabel(projectModel);
+    }
+
+    /**
+     * Called when {@code CWWKE0036I:} is detected — the Liberty server has stopped.
+     * Transitions the module to {@code STOPPED} and refreshes the dashboard label.
+     */
+    private void handleServerStopped() {
+        projectModel.setAppState(ProjectModel.AppState.STOPPED);
+        DevModeOperations.getInstance().refreshDashboardLabel(projectModel);
     }
 
     /**
