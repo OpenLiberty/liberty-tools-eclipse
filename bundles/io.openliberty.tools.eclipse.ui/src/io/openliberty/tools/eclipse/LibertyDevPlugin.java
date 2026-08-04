@@ -14,6 +14,7 @@ package io.openliberty.tools.eclipse;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Hashtable;
@@ -28,6 +29,8 @@ import org.eclipse.osgi.service.debug.DebugOptions;
 import org.eclipse.osgi.service.debug.DebugOptionsListener;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
+import org.eclipse.jface.resource.ImageDescriptor;
+import org.eclipse.swt.graphics.Image;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 
@@ -51,7 +54,10 @@ public class LibertyDevPlugin extends AbstractUIPlugin {
     /** Bundle reference. */
     private static Bundle bundle;
 
-    /** Resource Change listener instance. */
+    /** Cached SVG-support check result; null means not yet evaluated. */
+    private static volatile Boolean isSvgSupported;
+
+    /** Resource change listener instance. */
     private IResourceChangeListener resourceChangeListener;
 
     /**
@@ -61,7 +67,7 @@ public class LibertyDevPlugin extends AbstractUIPlugin {
     }
 
     /**
-     * {@inheritDoc}
+     * Starts the plugin, initialises the workspace model, and registers listeners.
      */
     @Override
     public void start(BundleContext context) throws Exception {
@@ -82,7 +88,7 @@ public class LibertyDevPlugin extends AbstractUIPlugin {
     }
 
     /**
-     * {@inheritDoc}
+     * Stops the plugin, cancels running jobs, and unregisters listeners.
      */
     @Override
     public void stop(BundleContext context) throws Exception {
@@ -90,7 +96,6 @@ public class LibertyDevPlugin extends AbstractUIPlugin {
         unregisterListeners();
         plugin = null;
         super.stop(context);
-
     }
 
     /**
@@ -103,7 +108,7 @@ public class LibertyDevPlugin extends AbstractUIPlugin {
     }
 
     /**
-     * Register listeners.
+     * Registers listeners.
      */
     private void registerListeners() {
         PlatformUI.getWorkbench().getDisplay().asyncExec(() -> {
@@ -148,6 +153,65 @@ public class LibertyDevPlugin extends AbstractUIPlugin {
 
         if (Trace.isEnabled()) {
             Trace.getTracer().traceExit(Trace.TRACE_TOOLS, iWorkspace);
+        }
+    }
+
+    /**
+     * Returns true if the runtime platform supports native SVG rendering.
+     *
+     * @return True if SVG rendering is available; false otherwise.
+     */
+    public static synchronized boolean isSvgSupported() {
+        if (isSvgSupported == null) {
+            Bundle svgBundle = Platform.getBundle("org.eclipse.swt.svg");
+            isSvgSupported = (svgBundle != null
+                              && (svgBundle.getState() & (Bundle.RESOLVED | Bundle.ACTIVE)) != 0);
+        }
+
+        return isSvgSupported;
+    }
+
+    /**
+     * Loads the best available icon for the given base name from the plugin bundle.
+     *
+     * Background:
+     * SVG icon formats are supported starting in Eclipse 2025-06. The use of PNG icon
+     * formats has been deprecated. In order to support older IDEs, we need to handle
+     * both type of icons since SVG icon formats are the standard now.
+     *
+     * Resolution order:
+     * SVG -> PNG.
+     *
+     * @param baseName The icon base name without extension, e.g. "mavenTag".
+     *
+     * @return The loaded Image, or null if the icon could not be found.
+     */
+    public static Image loadIcon(String baseName) {
+        try {
+            Bundle b = getDefault().getBundle();
+
+            // Check if there is SVG support. If so use SVG icon.
+            if (isSvgSupported()) {
+                URL url = b.getEntry("icons/" + baseName + ".svg");
+                if (url != null) {
+                    ImageDescriptor desc = AbstractUIPlugin.imageDescriptorFromPlugin(PLUGIN_ID, url.getPath());
+                    if (desc != null) {
+                        return desc.createImage();
+                    }
+                }
+            }
+
+            // If there is not SVG support or the SVG icon was not found, check
+            // for png icons.
+            URL url = b.getEntry("icons/" + baseName + ".png");
+            if (url == null) {
+                return null;
+            }
+            ImageDescriptor desc = AbstractUIPlugin.imageDescriptorFromPlugin(PLUGIN_ID, url.getPath());
+            
+            return (desc != null) ? desc.createImage() : null;
+        } catch (Exception e) {
+            return null;
         }
     }
 

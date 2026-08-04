@@ -59,6 +59,19 @@ public class ProjectModel {
         Maven
     };
 
+    /**
+     * Enumeration of the lifecycle states that a Liberty module (leaf) can be in.
+     * The parent's visual state is derived dynamically from its children.
+     */
+    public enum AppState {
+        /** Dev mode process is not running (initial state). */
+        STOPPED,
+        /** Dev mode process has started but the Liberty server has not yet reported ready. */
+        STARTING,
+        /** Liberty server has reported {@code CWWKZ0001I:} — the application is fully started. */
+        RUNNING
+    }
+
     /** The Eclipse project reference. */
     private IProject iProject;
 
@@ -83,6 +96,9 @@ public class ProjectModel {
 
     /** The metadata associated with the project's build configuration. */
     private Metadata buildConfigMetadata;
+
+    /** Current dev mode / application lifecycle state for this module. */
+    private volatile AppState appState = AppState.STOPPED;
 
     /**
      * The child projects associated with this project in a multi-module structure.
@@ -687,5 +703,23 @@ public class ProjectModel {
             }
         }
         return visited;
+    }
+
+    /**
+     * Returns the current lifecycle state of this module.
+     *
+     * @return The current {@link AppState}.
+     */
+    public AppState getAppState() {
+        return appState;
+    }
+
+    /**
+     * Sets the lifecycle state of this module.
+     *
+     * @param appState The new {@link AppState} to apply.
+     */
+    public void setAppState(AppState appState) {
+        this.appState = appState;
     }
 }

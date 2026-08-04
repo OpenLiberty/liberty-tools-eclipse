@@ -474,6 +474,12 @@ public class DevModeOperations {
         ProjectModel projectModel = workspaceModel.getProjectByName(projectName);
         String projectPath = (projectModel != null) ? projectModel.getPath() : null;
         processController.cleanup(projectName, projectPath);
+        // Safety-net: ensure the module is STOPPED if it didn't receive CWWKE0036I:
+        // (e.g. process was killed or crashed).
+        if (projectModel != null && projectModel.getAppState() != ProjectModel.AppState.STOPPED) {
+            projectModel.setAppState(ProjectModel.AppState.STOPPED);
+            refreshDashboardLabel(projectModel);
+        }
     }
 
     /**
@@ -733,6 +739,11 @@ public class DevModeOperations {
         // The value for JAVA_HOME comes from the underlying configuration. The configuration allows
         // the java installation to be custom defined, execution environment defined, or workspace defined.
         envs.add("JAVA_HOME=" + javaInstallPath);
+
+        // Transition to STARTING state immediately so the dashboard shows the spinner
+        // before any console output arrives.
+        projectModel.setAppState(ProjectModel.AppState.STARTING);
+        refreshDashboardLabel(projectModel);
 
         processController.runProcess(projectName, projectPath, cmd, envs, true, launch);
 
@@ -1129,6 +1140,23 @@ public class DevModeOperations {
         if (dashboardView != null) {
             dashboardView.refreshDashboardView(workspaceModel, reportError);
         }
+    }
+
+    /**
+     * Refreshes only the label (icon + text) for the specified project node in the dashboard
+     * tree, without rebuilding the entire workspace model. Also refreshes the parent node if
+     * the project is a child module, so that the aggregate icon stays up to date.
+     *
+     * <p>This method may be called from any thread; the UI update is dispatched via
+     * {@code Display.getDefault().asyncExec}.</p>
+     *
+     * @param projectModel The project whose dashboard label should be repainted.
+     */
+    public void refreshDashboardLabel(ProjectModel projectModel) {
+        if (dashboardView == null) {
+            return;
+        }
+        Display.getDefault().asyncExec(() -> dashboardView.updateLabel(projectModel));
     }
 
     /**
