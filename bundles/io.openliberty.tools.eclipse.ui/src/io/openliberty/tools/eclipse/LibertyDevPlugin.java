@@ -172,44 +172,35 @@ public class LibertyDevPlugin extends AbstractUIPlugin {
     }
 
     /**
-     * Loads the best available icon for the given base name from the plugin bundle.
+     * Returns an ImageDescriptor for the best available icon for the given base name.
      *
-     * Background:
-     * SVG icon formats are supported starting in Eclipse 2025-06. The use of PNG icon
-     * formats has been deprecated. In order to support older IDEs, we need to handle
-     * both type of icons since SVG icon formats are the standard now.
-     *
-     * Resolution order:
-     * SVG -> PNG.
+     * Resolution order: SVG (when supported) then PNG. Returns null if no icon is found.
      *
      * @param baseName The icon base name without extension, e.g. "mavenTag".
      *
-     * @return The loaded Image, or null if the icon could not be found.
+     * @return The ImageDescriptor, or null if the icon could not be found.
      */
-    public static Image loadIcon(String baseName) {
+    public static ImageDescriptor loadIconDescriptor(String baseName) {
         try {
             Bundle b = getDefault().getBundle();
 
-            // Check if there is SVG support. If so use SVG icon.
+            // SVG is preferred when the platform supports it.
             if (isSvgSupported()) {
                 URL url = b.getEntry("icons/" + baseName + ".svg");
                 if (url != null) {
                     ImageDescriptor desc = AbstractUIPlugin.imageDescriptorFromPlugin(PLUGIN_ID, url.getPath());
                     if (desc != null) {
-                        return desc.createImage();
+                        return desc;
                     }
                 }
             }
 
-            // If there is not SVG support or the SVG icon was not found, check
-            // for png icons.
+            // Fall back to PNG.
             URL url = b.getEntry("icons/" + baseName + ".png");
             if (url == null) {
                 return null;
             }
-            ImageDescriptor desc = AbstractUIPlugin.imageDescriptorFromPlugin(PLUGIN_ID, url.getPath());
-            
-            return (desc != null) ? desc.createImage() : null;
+            return AbstractUIPlugin.imageDescriptorFromPlugin(PLUGIN_ID, url.getPath());
         } catch (Exception e) {
             return null;
         }
