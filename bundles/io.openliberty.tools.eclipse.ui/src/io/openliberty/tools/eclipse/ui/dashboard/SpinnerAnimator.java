@@ -16,6 +16,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.UnaryOperator;
 
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.widgets.Display;
 
@@ -62,23 +63,29 @@ class SpinnerAnimator {
      * @param dashboardView    The dashboard view to refresh on each animation tick.
      * @param canvasTransform  Transform applied to produce the child-row canvas frame.
      * @param overlayTransform Transform applied to produce the parent-row overlay frame.
-     *                         Pass img -> img to keep the raw image as-is.
+     *                             Pass img -> img to keep the raw image as-is.
      */
     SpinnerAnimator(DashboardView dashboardView,
                     UnaryOperator<Image> canvasTransform,
                     UnaryOperator<Image> overlayTransform) {
         this.dashboardView = dashboardView;
-        this.frames        = new Image[FRAME_COUNT];
+        this.frames = new Image[FRAME_COUNT];
         this.framesOverlay = new Image[FRAME_COUNT];
         for (int i = 0; i < FRAME_COUNT; i++) {
-            Image raw = LibertyDevPlugin.loadIcon("spinners/state/state_in_progress_" + (i + 1) + "_8");
-            if (raw != null) {
-                frames[i]        = (canvasTransform  != null) ? canvasTransform.apply(raw)  : raw;
-                framesOverlay[i] = (overlayTransform != null) ? overlayTransform.apply(raw) : raw;
-                // Dispose raw only if neither transform returned it as-is.
-                if (raw != frames[i] && raw != framesOverlay[i] && !raw.isDisposed()) {
-                    raw.dispose();
-                }
+            ImageDescriptor desc = LibertyDevPlugin.loadIconDescriptor("spinners/state/state_in_progress_" + (i + 1) + "_8");
+            if (desc == null) {
+                continue;
+            }
+            Image raw = desc.createImage();
+            if (raw == null) {
+                continue;
+            }
+            frames[i] = (canvasTransform != null) ? canvasTransform.apply(raw) : raw;
+            framesOverlay[i] = (overlayTransform != null) ? overlayTransform.apply(raw) : raw;
+
+            // Dispose raw only if neither transform returned it as-is.
+            if (raw != frames[i] && raw != framesOverlay[i] && !raw.isDisposed()) {
+                raw.dispose();
             }
         }
     }

@@ -1373,15 +1373,27 @@ public class SWTBotPluginOperations {
     }
 
     /**
-     * Returns the Open Liberty dashboard view obtained by pressing on the Open Liberty icon located on the main tool bar.
-     *
-     * @param bot The SWTWorkbenchBot instance.
-     *
-     * @return The Open Liberty dashboard view obtained by pressing on the Open Liberty icon located on the main tool bar.
+     * Clicks the toolbar button to open the Liberty Dashboard view, then retries until
+     * the dashboard view is active.
      */
     public static void openDashboardUsingToolbar() {
-        goGlobal(TOOLBAR_OPEN_DASHBOARD_TIP, Option.factory().widgetClass(ToolItem.class).useContains(true).build());
+        SWTBotTestCondition.waitFor(() -> {
+            goGlobal(TOOLBAR_OPEN_DASHBOARD_TIP, Option.factory().widgetClass(ToolItem.class).useContains(true).build());
+            final boolean[] active = { false };
+            Display.getDefault().syncExec(() -> {
+                try {
+                    IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+                    if (window != null && window.getActivePage() != null) {
+                        active[0] = window.getActivePage().getActivePart() instanceof DashboardView;
+                    }
+                } catch (Exception ignored) {
+                    // Not ready yet; waitFor will retry.
+                }
+            });
+            return active[0];
+        }, SWTBotTestCondition.VALIDATION_WAIT_MS);
     }
+
 
     /**
      * Closes the Open Liberty dashboard view.
@@ -1543,8 +1555,15 @@ public class SWTBotPluginOperations {
      * @param bot The SWTWorkbenchBot instance.
      */
     public static void collapseDashboard(SWTWorkbenchBot bot) {
-        openDashboardUsingToolbar();
-        bot.viewByTitle(DASHBOARD_VIEW_TITLE).toolbarButton(DashboardView.DASHBOARD_TOOLBAR_COLLAPSE_ALL).click();
+        SWTBotTestCondition.waitFor(() -> {
+            openDashboardUsingToolbar();
+            try {
+                bot.viewByTitle(DASHBOARD_VIEW_TITLE).toolbarButton(DashboardView.DASHBOARD_TOOLBAR_COLLAPSE_ALL).click();
+                return true;
+            } catch (Exception ignored) {
+                return false;
+            }
+        }, SWTBotTestCondition.MIN_WAIT_MS);
     }
 
     /**
@@ -1554,31 +1573,43 @@ public class SWTBotPluginOperations {
      * @param bot The SWTWorkbenchBot instance.
      */
     public static void expandDashboard(SWTWorkbenchBot bot) {
-        openDashboardUsingToolbar();
-        bot.viewByTitle(DASHBOARD_VIEW_TITLE).toolbarButton(DashboardView.DASHBOARD_TOOLBAR_EXPAND_ALL).click();
-    }
-
-    /**
-     * Clicks the Filter toolbar button in the Liberty dashboard to toggle the search bar,
-     * then types the given text into the search field. The button is looked up within the
-     * Liberty Dashboard view toolbar to avoid matching filter buttons in other views.
-     *
-     * @param bot        The SWTWorkbenchBot instance.
-     * @param filterText The text to enter into the dashboard search field.
-     */
-    public static void filterDashboardByText(SWTWorkbenchBot bot, String filterText) {
-        openDashboardUsingToolbar();
-        bot.viewByTitle(DASHBOARD_VIEW_TITLE).toolbarButton(DashboardView.DASHBOARD_TOOLBAR_FILTER).click();
-
-        // Wait for the search field to appear and type into it.
         SWTBotTestCondition.waitFor(() -> {
+            openDashboardUsingToolbar();
             try {
-                bot.textWithMessage("Filter projects...");
+                bot.viewByTitle(DASHBOARD_VIEW_TITLE).toolbarButton(DashboardView.DASHBOARD_TOOLBAR_EXPAND_ALL).click();
                 return true;
             } catch (Exception ignored) {
                 return false;
             }
         }, SWTBotTestCondition.MIN_WAIT_MS);
+    }
+
+    /**
+     * Clicks the Filter toolbar button in the Liberty dashboard to toggle the search bar,
+     * and then types the given text into the search field.
+     *
+     * @param bot        The SWTWorkbenchBot instance.
+     * @param filterText The text to enter into the dashboard search field.
+     */
+    public static void filterDashboardByText(SWTWorkbenchBot bot, String filterText) {
+        boolean searchFieldVisible = SWTBotTestCondition.waitFor(() -> {
+            openDashboardUsingToolbar();
+            bot.viewByTitle(DASHBOARD_VIEW_TITLE).toolbarButton(DashboardView.DASHBOARD_TOOLBAR_FILTER).click();
+            try {
+                bot.textWithMessage("Filter projects...");
+                return true;
+            } catch (Exception ignored) {
+                // Search field not yet visible. Retry.
+            }
+
+            return false;
+        }, SWTBotTestCondition.MIN_WAIT_MS);
+
+        if (!searchFieldVisible) {
+            // Final attempt after the timeout.
+            bot.textWithMessage("Filter projects...").setText(filterText);
+            return;
+        }
 
         bot.textWithMessage("Filter projects...").setText(filterText);
     }
