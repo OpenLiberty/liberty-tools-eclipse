@@ -16,11 +16,13 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.ServerSocket;
 import java.net.URL;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -50,7 +52,6 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.browser.IWebBrowser;
 import org.eclipse.ui.browser.IWorkbenchBrowserSupport;
-import org.eclipse.ui.dialogs.ElementListSelectionDialog;
 
 import io.openliberty.tools.eclipse.CommandBuilder.CommandData;
 import io.openliberty.tools.eclipse.CommandBuilder.CommandNotFoundException;
@@ -64,7 +65,7 @@ import io.openliberty.tools.eclipse.model.WorkspaceModel;
 import io.openliberty.tools.eclipse.process.ConsoleOutputInterceptor;
 import io.openliberty.tools.eclipse.process.DevModeStateHandler;
 import io.openliberty.tools.eclipse.process.ProcessController;
-import io.openliberty.tools.eclipse.ui.ElementListSelectionDialogWrapper;
+import io.openliberty.tools.eclipse.ui.ModuleSelectionDialog;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
 import io.openliberty.tools.eclipse.utils.Utils;
@@ -155,6 +156,23 @@ public class DevModeOperations {
     protected static final QualifiedName STOP_JOB_COMPLETION_EXIT_CODE = new QualifiedName("io.openliberty.tools.eclipse.ui", "stopJobCompletionExitCode");
     protected static final QualifiedName STOP_JOB_COMPLETION_OUTPUT = new QualifiedName("io.openliberty.tools.eclipse.ui", "stopJobCompletionOutput");
     private Map<Job, Boolean> runningJobs = new ConcurrentHashMap<Job, Boolean>();
+
+    /**
+     * Remembers the last confirmed module selections per aggregator project.
+     * The key is the aggregator project name. The value is the list of module names
+     * that were last confirmed by the user in the multi-select dialog. Used to restore
+     * pre-checked items the next time the dialog opens for the same aggregator.
+     */
+    private final Map<String, List<String>> lastSelections = new ConcurrentHashMap<String, List<String>>();
+
+    /**
+     * Holds pre-allocated ServerSocket instances used to reserve Liberty debug ports for
+     * multi-module parallel starts. Each socket is opened on port 0 (OS-assigned) and kept
+     * open until DevModeOperations.start() or startInContainer() consumes it for that module.
+     * Keeping the socket open prevents other OS processes from binding the same port in the
+     * window between allocation and Liberty server startup.
+     */
+    private final Map<String, ServerSocket> libertyDebugPortReservations = new ConcurrentHashMap<String, ServerSocket>();
 
     /**
      * Process controller instance.
@@ -254,7 +272,9 @@ public class DevModeOperations {
                 startParms = userParms;
             }
 
-            // Append color styling to start parms
+            // Append color styling to start parms. When running in non-debug mode, also
+            // append any pre-reserved Liberty debug port so that parallel module starts
+            // each bind a distinct port and do not race to claim the plugin default (7777).
             BuildType buildType = targetProjectModel.getBuildType();
             if (buildType == ProjectModel.BuildType.Maven) {
 
@@ -269,7 +289,23 @@ public class DevModeOperations {
                     updateStartParms.append("-Dstyle.color=never");
                 }
 
+                // Consume any pre-reserved debug port. Only present for multi-module starts.
+                if (!ILaunchManager.DEBUG_MODE.equals(mode) && targetProjectModel.isBatchStarted()) {
+                    String reservedPort = consumeLibertyDebugPortReservation(targetProjectName);
+                    if (reservedPort != null) {
+                        updateStartParms.append(" ").append(DebugModeHandler.MAVEN_DEVMODE_DEBUG_PORT_PARM).append("=").append(reservedPort);
+                    }
+                }
+
                 startParms = updateStartParms.toString();
+            } else if (buildType == ProjectModel.BuildType.Gradle && targetProjectModel.isBatchStarted()) {
+                // Consume any pre-reserved debug port. Only present for multi-module starts.
+                if (!ILaunchManager.DEBUG_MODE.equals(mode)) {
+                    String reservedPort = consumeLibertyDebugPortReservation(targetProjectName);
+                    if (reservedPort != null) {
+                        startParms = startParms + " " + DebugModeHandler.GRADLE_DEVMODE_DEBUG_PORT_PARM + "=" + reservedPort;
+                    }
+                }
             }
 
             // Prepare the Liberty plugin container dev mode command.
@@ -358,7 +394,9 @@ public class DevModeOperations {
                 startParms = userParms;
             }
 
-            // Append color styling to start parms
+            // Append color styling to start parms. When running in non-debug mode, also
+            // append any pre-reserved Liberty debug port so that parallel module starts
+            // each bind a distinct port and do not race to claim the plugin default (7777).
             BuildType buildType = targetProjectModel.getBuildType();
             if (buildType == ProjectModel.BuildType.Maven) {
 
@@ -373,7 +411,23 @@ public class DevModeOperations {
                     updateStartParms.append("-Dstyle.color=never");
                 }
 
+                // Consume any pre-reserved debug port. Only present for multi-module starts.
+                if (!ILaunchManager.DEBUG_MODE.equals(mode) && targetProjectModel.isBatchStarted()) {
+                    String reservedPort = consumeLibertyDebugPortReservation(targetProjectName);
+                    if (reservedPort != null) {
+                        updateStartParms.append(" ").append(DebugModeHandler.MAVEN_DEVMODE_DEBUG_PORT_PARM).append("=").append(reservedPort);
+                    }
+                }
+
                 startParms = updateStartParms.toString();
+            } else if (buildType == ProjectModel.BuildType.Gradle) {
+                // Consume any pre-reserved debug port. Only present for multi-module starts.
+                if (!ILaunchManager.DEBUG_MODE.equals(mode) && targetProjectModel.isBatchStarted()) {
+                    String reservedPort = consumeLibertyDebugPortReservation(targetProjectName);
+                    if (reservedPort != null) {
+                        startParms = startParms + " " + DebugModeHandler.GRADLE_DEVMODE_DEBUG_PORT_PARM + "=" + reservedPort;
+                    }
+                }
             }
 
             // Prepare the Liberty plugin container dev mode command.
@@ -447,15 +501,14 @@ public class DevModeOperations {
                 ErrorHandler.processErrorMessage(msg, true);
                 return;
             }
-            
+
             // Issue the command to the process.
             processController.writeToProcessStream(targetProjectName, DEVMODE_COMMAND_EXIT);
 
             // Cleanup internal objects.
             cleanupProcess(targetProjectName);
         } catch (Exception e) {
-            String projectName = (targetProjectName == null) ? targetProjectModel.getName() : targetProjectName;
-            String msg = Messages.getMessage("stop_general_error", projectName);
+            String msg = Messages.getMessage("stop_general_error", targetProjectName);
             ErrorHandler.processErrorMessage(msg, true);
             return;
         }
@@ -589,9 +642,7 @@ public class DevModeOperations {
      */
     public void openMavenUnitTestReport(ProjectModel targetProjectModel) {
         if (Trace.isEnabled()) {
-            if (Trace.isEnabled()) {
-                Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, targetProjectModel);
-            }
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, targetProjectModel);
         }
 
         if (targetProjectModel == null) {
@@ -760,7 +811,7 @@ public class DevModeOperations {
      * If the stop command completes successfully, the optional onSuccess runnable is invoked on the UI thread.
      *
      * @param projectName The name of the project for which the Liberty plugin stop command is issued.
-     * @param onSuccess A runnable to invoke on the UI thread after a successful stop, or null if no action is needed.
+     * @param onSuccess   A runnable to invoke on the UI thread after a successful stop, or null if no action is needed.
      */
     public void issueStopCommand(String projectName, Runnable onSuccess) {
         if (Trace.isEnabled()) {
@@ -883,7 +934,7 @@ public class DevModeOperations {
                      * Check for bad exit value.
                      */
                     Object rc = event.getJob().getProperty(STOP_JOB_COMPLETION_EXIT_CODE);
-                    if (rc != Integer.valueOf(0)) {
+                    if (!Integer.valueOf(0).equals(rc)) {
                         String outputTxt = (String) event.getJob().getProperty(STOP_JOB_COMPLETION_OUTPUT);
                         Logger.logError("stop command failed, process output: " + outputTxt);
                         Display.getDefault().syncExec(new Runnable() {
@@ -905,9 +956,7 @@ public class DevModeOperations {
             job.setUser(true);
             runningJobs.put(job, Boolean.TRUE);
             job.schedule();
-        } catch (
-
-        Exception e) {
+        } catch (Exception e) {
             String msg = "An error was detected while processing the Liberty Maven or Gradle stop command on project " + projectName;
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
@@ -1118,6 +1167,51 @@ public class DevModeOperations {
     }
 
     /**
+     * Reserves a unique OS-assigned port for the Liberty debug listener of the named module.
+     * Opens a ServerSocket on port 0 and keeps it open until the module's start() or
+     * startInContainer() method consumes the reservation. Keeping the socket open prevents
+     * any other process from binding the same port in the gap between allocation and Liberty
+     * server startup.
+     *
+     * Call this once per module before calling DebugUITools.launch, so that all port
+     * reservations are made sequentially and no two modules receive the same port.
+     *
+     * @param projectName The name of the module for which the port is reserved.
+     *
+     * @throws IOException If no free port can be obtained from the OS.
+     */
+    public void reserveLibertyDebugPort(String projectName) throws IOException {
+        ServerSocket socket = new ServerSocket(0);
+        libertyDebugPortReservations.put(projectName, socket);
+    }
+
+    /**
+     * Consumes and returns the Liberty debug port reserved for the named module, closing
+     * the hold socket so that the OS port becomes available for Liberty to bind. If no
+     * reservation exists for the module, returns null.
+     *
+     * @param projectName The name of the module whose reserved port is to be consumed.
+     *
+     * @return The reserved port as a string, or null if no reservation exists.
+     */
+    private String consumeLibertyDebugPortReservation(String projectName) {
+        ServerSocket socket = libertyDebugPortReservations.remove(projectName);
+        if (socket == null) {
+            return null;
+        }
+        int port = socket.getLocalPort();
+        try {
+            socket.close();
+        } catch (IOException e) {
+            // Port was already closed or never bound; the port value is still valid.
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, "Failed to close Liberty debug port reservation socket for project " + projectName + ".", e);
+            }
+        }
+        return String.valueOf(port);
+    }
+
+    /**
      * Restarts the Liberty server for the specified project.
      *
      * @param projectName The name of the project whose server should be restarted.
@@ -1168,30 +1262,49 @@ public class DevModeOperations {
     }
 
     /**
-     * Resolve the target project for a given action command.
+     * Resolves the target module or modules for a given action.
      *
-     * @param projectModel        The project to resolve.
-     * @param commandName         The command name for display purposes.
-     * @param expectedModuleState The expected module state to filter on.
+     * For non-aggregator projects the project itself is returned as a single-element list
+     * without showing any dialog, provided it is a Liberty server module.
      *
-     * @return The target project to execute or null if the user did not select one from a list options.
+     * For aggregator projects with exactly one eligible child, that child is returned
+     * directly as a single-element list without showing any dialog.
      *
-     * @throws Exception if the input project is not Liberty configured, or it does not have a liberty configured module.
+     * For aggregator projects with multiple eligible children, a selection dialog is shown.
+     * When multiSelect is true a checkbox dialog with Select All and Deselect All buttons
+     * is shown, allowing the user to pick one or more modules. When multiSelect is false a
+     * plain single-selection list is shown. The last confirmed multi-select choices for
+     * each aggregator are remembered and pre-checked the next time the dialog opens.
+     *
+     * An empty return list means the user cancelled the dialog.
+     *
+     * @param projectModel        The project to resolve. May be an aggregator or a leaf module.
+     * @param action              The action being performed, used for the dialog title and message.
+     * @param expectedModuleState The state filter applied to candidate child modules.
+     * @param multiSelect         True to allow selecting multiple modules. False to restrict
+     *                                selection to one module.
+     *
+     * @return The list of resolved target projects. Empty if the user cancelled.
+     *
+     * @throws Exception If the project is not Liberty-configured or has no matching child modules.
      */
-    public ProjectModel resolveCommandTarget(ProjectModel projectModel, DashboardAction action, ModuleStateFilter expectedModuleState) throws Exception {
+    public List<ProjectModel> resolveCommandTargets(ProjectModel projectModel, DashboardAction action,
+                                                    ModuleStateFilter expectedModuleState, boolean multiSelect) throws Exception {
+
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { projectModel, action.toString() });
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { projectModel, action.toString(), multiSelect });
         }
 
-        final ProjectModel[] targetProject = new ProjectModel[1];
+        @SuppressWarnings("unchecked")
+        final List<ProjectModel>[] result = new List[1];
+        result[0] = Collections.emptyList();
 
-        // If the module is an aggregator, gather the list of child modules associated with it.
         if (projectModel.getBuildConfigMetadata().isAggregator()) {
             List<ProjectModel> allLibertyChildren = workspaceModel.findLibertyDescendants(projectModel);
 
-            // Filter the list by the current module state based on expected module state.
-            // For example, if the action is "Start", the expected module state is INACTIVE. That is
-            // because only modules that are not active can be started.
+            // Filter the candidate list by the expected module state.
+            // Start and Run Tests require INACTIVE or ACTIVE modules respectively.
+            // Stop requires ACTIVE modules. Some actions pass ALL.
             final List<ProjectModel> childModules;
             if (expectedModuleState == ModuleStateFilter.ACTIVE) {
                 List<ProjectModel> activeChildren = new ArrayList<>();
@@ -1199,6 +1312,9 @@ public class DevModeOperations {
                     if (isProjectStarted(child)) {
                         activeChildren.add(child);
                     }
+                }
+                if (!allLibertyChildren.isEmpty() && activeChildren.isEmpty()) {
+                    throw new Exception(Messages.getMessage("no_active_liberty_modules_found"));
                 }
                 childModules = activeChildren;
             } else if (expectedModuleState == ModuleStateFilter.INACTIVE) {
@@ -1208,131 +1324,125 @@ public class DevModeOperations {
                         inactiveChildren.add(child);
                     }
                 }
-
                 if (!allLibertyChildren.isEmpty() && inactiveChildren.isEmpty()) {
                     throw new Exception(Messages.getMessage("no_inactive_liberty_modules_found"));
                 }
-
                 childModules = inactiveChildren;
             } else {
                 childModules = allLibertyChildren;
             }
 
-            // There should never be the case that there are no children found because a parent without
-            // child Liberty modules should not be shown in the dashboard, and the user should not be given
-            // the option to select an action through the explorers. If this case is encountered, it is
-            // an internal error and it should be reported as such.
+            // A parent with no Liberty children is an internal error: such a project should
+            // not appear in the dashboard and the user should not be able to trigger actions on it.
             if (childModules.isEmpty()) {
-                String msg = Messages.getMessage("no_liberty_modules_found", projectModel.getName());
-                throw new Exception(msg);
+                throw new Exception(Messages.getMessage("no_liberty_modules_found", projectModel.getName()));
             }
 
-            // If this parent project has a single child module, return it as the target.
+            // Sort candidates alphabetically by name to match the dashboard ordering.
+            childModules.sort((p1, p2) -> p1.getName().compareTo(p2.getName()));
+
+            // A single eligible child is used directly without showing any dialog.
             if (childModules.size() == 1) {
+                result[0] = childModules;
                 if (Trace.isEnabled()) {
-                    Trace.getTracer().traceExit(Trace.TRACE_TOOLS, childModules.get(0));
+                    Trace.getTracer().traceExit(Trace.TRACE_TOOLS, result[0]);
                 }
-                targetProject[0] = childModules.get(0);
-            } else {
-                // If this parent project has multiple child modules, ask the user to pick one,
-                // and return it as the target.
-                Display.getDefault().syncExec(new Runnable() {
-                    @Override
-                    public void run() {
-                        Shell shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
-                        Display display = PlatformUI.getWorkbench().getDisplay();
+                return result[0];
+            }
 
-                        // Load images once to avoid resource leaks
-                        final Image mavenImg = Utils.getImage(display, DashboardView.MAVEN_IMG_TAG_PATH);
-                        final Image gradleImg = Utils.getImage(display, DashboardView.GRADLE_IMG_TAG_PATH);
+            // Multiple eligible children: show the appropriate selection dialog.
+            final String aggregatorName = projectModel.getName();
+            Display.getDefault().syncExec(new Runnable() {
+                @Override
+                public void run() {
+                    Shell shell = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getShell();
+                    Display display = PlatformUI.getWorkbench().getDisplay();
 
-                        try {
-                            // Create a professional selection dialog using Eclipse standard pattern
-                            ElementListSelectionDialog dialog = new ElementListSelectionDialogWrapper(shell, new LabelProvider() {
-                                @Override
-                                public String getText(Object element) {
-                                    ProjectModel pm = (ProjectModel) element;
-                                    return pm.getName();
+                    final Image mavenImg = Utils.getImage(display, DashboardView.MAVEN_IMG_TAG_PATH);
+                    final Image gradleImg = Utils.getImage(display, DashboardView.GRADLE_IMG_TAG_PATH);
+
+                    try {
+                        LabelProvider lp = new LabelProvider() {
+                            @Override
+                            public String getText(Object element) {
+                                ProjectModel pm = (ProjectModel) element;
+                                return pm.getName();
+                            }
+
+                            @Override
+                            public Image getImage(Object element) {
+                                ProjectModel pm = (ProjectModel) element;
+                                return pm.getBuildType() == BuildType.Maven ? mavenImg : gradleImg;
+                            }
+                        };
+
+                        String actionName = getTranslatedActionCommand(action);
+                        String dialogTitle;
+                        String dialogMessage;
+
+                        if (multiSelect) {
+                            dialogTitle = Messages.getMessage("select_modules_title", actionName);
+                            dialogMessage = Messages.getMessage("select_modules_description");
+                        } else {
+                            dialogTitle = Messages.getMessage("select_module_title", actionName);
+                            dialogMessage = Messages.getMessage("select_module_description");
+                        }
+
+                        // Retrieve the saved selections for this aggregator so that previously
+                        // chosen modules are pre-checked when the multi-select dialog reopens.
+                        List<String> savedNames = multiSelect ? lastSelections.getOrDefault(aggregatorName, Collections.emptyList()) : Collections.emptyList();
+
+                        ModuleSelectionDialog dialog = new ModuleSelectionDialog(shell, dialogTitle, dialogMessage, childModules, lp, multiSelect, savedNames);
+
+                        if (dialog.open() == Window.OK) {
+                            result[0] = dialog.getResult();
+                            // Save confirmed names so they can be pre-checked next time.
+                            if (multiSelect && !result[0].isEmpty()) {
+                                List<String> confirmedNames = new ArrayList<>();
+                                for (ProjectModel pm : result[0]) {
+                                    confirmedNames.add(pm.getName());
                                 }
-
-                                @Override
-                                public Image getImage(Object element) {
-                                    ProjectModel pm = (ProjectModel) element;
-                                    return pm.getBuildType() == BuildType.Maven ? mavenImg : gradleImg;
-                                }
-                            });
-
-                            // Set size to show up to 10 items, then scrollbar appears
-                            dialog.setSize(60, 10);
-
-                            // Customize dialog message based on the expected module state filter.
-                            String actionName = getTranslatedActionCommand(action);
-                            String dialogMessage;
-                            if (expectedModuleState == ModuleStateFilter.ACTIVE) {
-                                dialogMessage = Messages.getMessage("select_active_module_for_command_description", actionName);
-                            } else if (expectedModuleState == ModuleStateFilter.INACTIVE) {
-                                dialogMessage = Messages.getMessage("select_inactive_module_for_command_description", actionName);
-                            } else {
-                                dialogMessage = Messages.getMessage("select_module_for_command_description", actionName);
-                            }
-                            String dialogTitle = Messages.getMessage("select_module_title");
-
-                            dialog.setTitle(dialogTitle);
-                            dialog.setMessage(dialogMessage);
-                            dialog.setElements(childModules.toArray());
-                            dialog.setInitialSelections(new Object[] { childModules.get(0) });
-                            dialog.setHelpAvailable(false);
-
-                            if (dialog.open() == Window.OK) {
-                                targetProject[0] = (ProjectModel) dialog.getFirstResult();
-                            }
-                        } finally {
-                            // Dispose images to prevent resource leak
-                            if (mavenImg != null && !mavenImg.isDisposed()) {
-                                mavenImg.dispose();
-                            }
-                            if (gradleImg != null && !gradleImg.isDisposed()) {
-                                gradleImg.dispose();
+                                lastSelections.put(aggregatorName, confirmedNames);
                             }
                         }
+                    } finally {
+                        if (mavenImg != null && !mavenImg.isDisposed()) {
+                            mavenImg.dispose();
+                        }
+                        if (gradleImg != null && !gradleImg.isDisposed()) {
+                            gradleImg.dispose();
+                        }
                     }
-                });
-
-                // If user cancelled the dialog, throw an exception
-                if (targetProject[0] == null) {
-                    return null;
                 }
-            }
+            });
+
         } else {
-            // This project is a child or non-multi-module project, check if
-            // it is a liberty configured project. If so, return it as the target.
+            // Non-aggregator: the project itself is the target if it is Liberty-enabled.
             if (projectModel.isLibertyServerModule()) {
-                targetProject[0] = projectModel;
+                result[0] = Collections.singletonList(projectModel);
             } else {
-                // This project is a child or non-multi-module project without any Liberty configuration.
-                String msg = Messages.getMessage("project_not_liberty_enabled", projectModel.getName());
-                throw new Exception(msg);
+                throw new Exception(Messages.getMessage("project_not_liberty_enabled", projectModel.getName()));
             }
         }
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, targetProject[0]);
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, result[0]);
         }
 
-        return targetProject[0];
+        return result[0];
     }
 
     /**
-     * Resolve the target project for viewing test reports.
+     * Resolves the target project for viewing test reports.
      * Filters by project dependencies (declared in build config) that have tests,
      * rather than all descendants in the directory hierarchy.
      *
      * @param projectModel The project to resolve.
-     * @param commandName  The command name for display purposes.
+     * @param action       The dashboard action identifying the type of test report.
      *
      * @return The target project to view test reports for, or null if user cancelled.
      *
-     * @throws Exception if no projects with test reports are found.
+     * @throws Exception If no projects with test reports are found.
      */
     public ProjectModel resolveTestReportTarget(ProjectModel projectModel, DashboardAction action) throws Exception {
         if (Trace.isEnabled()) {
@@ -1341,7 +1451,7 @@ public class DevModeOperations {
 
         final ProjectModel[] targetProject = new ProjectModel[1];
 
-        // Get dependent projects (declared in build config) with test source files
+        // Get dependent projects (declared in build config) with test source files.
         List<ProjectModel> dependentsWithTests = getDependentProjectsWithTestReports(projectModel, action);
 
         // If no dependents have test reports, check whether the selected project itself has one.
@@ -1383,6 +1493,9 @@ public class DevModeOperations {
                 }
             }
 
+            // Sort candidates alphabetically by name to match the dashboard ordering.
+            projectsToDisplay.sort((p1, p2) -> p1.getName().compareTo(p2.getName()));
+
             // If only one module has a test report, use it directly without prompting the user.
             if (projectsToDisplay.size() == 1) {
                 targetProject[0] = projectsToDisplay.get(0);
@@ -1397,7 +1510,11 @@ public class DevModeOperations {
                         final Image gradleImg = Utils.getImage(display, DashboardView.GRADLE_IMG_TAG_PATH);
 
                         try {
-                            ElementListSelectionDialog dialog = new ElementListSelectionDialogWrapper(shell, new LabelProvider() {
+                            String actionCmdName = getTranslatedActionCommand(action);
+                            String dialogTitle = Messages.getMessage("select_module_for_test_report_title", actionCmdName);
+                            String dialogMessage = Messages.getMessage("select_module_for_test_report_description");
+
+                            ModuleSelectionDialog dialog = new ModuleSelectionDialog(shell, dialogTitle, dialogMessage, projectsToDisplay, new LabelProvider() {
                                 @Override
                                 public String getText(Object element) {
                                     ProjectModel pm = (ProjectModel) element;
@@ -1409,20 +1526,10 @@ public class DevModeOperations {
                                     ProjectModel pm = (ProjectModel) element;
                                     return pm.getBuildType() == BuildType.Maven ? mavenImg : gradleImg;
                                 }
-                            });
-
-                            // Set size to show up to 10 items, then scrollbar appears
-                            dialog.setSize(60, 10);
-
-                            String actionCmdName = getTranslatedActionCommand(action);
-                            dialog.setTitle(Messages.getMessage("select_module_for_test_report_title"));
-                            dialog.setMessage(Messages.getMessage("select_module_for_test_report_description", actionCmdName));
-                            dialog.setElements(projectsToDisplay.toArray());
-                            dialog.setInitialSelections(new Object[] { projectsToDisplay.get(0) });
-                            dialog.setHelpAvailable(false);
+                            }, false);
 
                             if (dialog.open() == Window.OK) {
-                                targetProject[0] = (ProjectModel) dialog.getFirstResult();
+                                targetProject[0] = dialog.getFirstResult();
                             }
                         } finally {
                             if (mavenImg != null && !mavenImg.isDisposed()) {
@@ -1450,27 +1557,25 @@ public class DevModeOperations {
     }
 
     /**
-     * Returns the translated test report dashboard action command.
-     * 
-     * @param projectModel The project model associated with the test report.
-     * @param testType     The test type (UT/IT);
-     * 
-     * @return the translated test report dashboard action command.
+     * Returns the display name string for the given dashboard action.
+     *
+     * @param action The dashboard action whose display name is needed.
+     *
+     * @return The display name string for the given dashboard action.
      */
     private String getTranslatedActionCommand(DashboardAction action) {
         String msg = switch (action) {
-            case DashboardAction.START -> Messages.getMessage("dashboard_action_start");
-            case DashboardAction.START_CFG -> Messages.getMessage("dashboard_action_start_config");
-            case DashboardAction.START_CTR -> Messages.getMessage("dashboard_action_start_in_container");
-            case DashboardAction.DEBUG -> Messages.getMessage("dashboard_action_debug");
-            case DashboardAction.DEBUG_CFG -> Messages.getMessage("dashboard_action_debug_config");
-            case DashboardAction.DEBUG_CTR -> Messages.getMessage("dashboard_action_debug_in_container");
-            case DashboardAction.STOP -> Messages.getMessage("dashboard_action_stop");
-            case DashboardAction.RUNTESTS -> Messages.getMessage("dashboard_action_run_tests");
-            case DashboardAction.OPEN_MVN_IT_TEST_REPORT -> Messages.getMessage("dashboard_action_view_mvn_it_report");
-            case DashboardAction.OPEN_MVN_UT_TEST_REPORT -> Messages.getMessage("dashboard_action_view_mvn_ut_report");
-            case DashboardAction.OPEN_GRADLE_TEST_REPORT -> Messages.getMessage("dashboard_action_view_gradle_test_report");
-            default -> "";
+            case START -> Messages.getMessage("dashboard_action_start");
+            case START_CFG -> Messages.getMessage("dashboard_action_start_config");
+            case START_CTR -> Messages.getMessage("dashboard_action_start_in_container");
+            case DEBUG -> Messages.getMessage("dashboard_action_debug");
+            case DEBUG_CFG -> Messages.getMessage("dashboard_action_debug_config");
+            case DEBUG_CTR -> Messages.getMessage("dashboard_action_debug_in_container");
+            case STOP -> Messages.getMessage("dashboard_action_stop");
+            case RUNTESTS -> Messages.getMessage("dashboard_action_run_tests");
+            case OPEN_MVN_IT_TEST_REPORT -> Messages.getMessage("dashboard_action_view_mvn_it_report");
+            case OPEN_MVN_UT_TEST_REPORT -> Messages.getMessage("dashboard_action_view_mvn_ut_report");
+            case OPEN_GRADLE_TEST_REPORT -> Messages.getMessage("dashboard_action_view_gradle_test_report");
         };
 
         return msg;
@@ -1481,7 +1586,7 @@ public class DevModeOperations {
      * multi-module build) that have test reports present on disk.
      *
      * @param projectModel The project whose transitive dependents are inspected.
-     * @param action The dashboard action identifying the type of test report.
+     * @param action       The dashboard action identifying the type of test report.
      *
      * @return The list of dependent modules that have test reports on disk.
      */
@@ -1517,11 +1622,11 @@ public class DevModeOperations {
      * @throws InterruptedException If the process is interrupted.
      */
     public void executeCommand(String fullCommand, String projectPath) throws IOException, InterruptedException {
-        // Split the full command into individual arguments
+        // Split the full command into individual arguments.
         List<String> command = Arrays.asList(fullCommand.trim().split("\\s+"));
 
         ProcessBuilder builder = new ProcessBuilder(command);
-        builder.directory(new File(projectPath)); // Set working directory
+        builder.directory(new File(projectPath)); // Set working directory.
 
         Process process = builder.start();
         process.waitFor();

@@ -82,9 +82,8 @@ public class ProjectModel {
     private ProjectModel parentProjectModel;
 
     /**
-     * Indicates whether this module has Liberty server configuration files.
-     * Set to {@code true} if server.xml, bootstrap.properties, server.env, or
-     * the Liberty plugin configuration exists.
+     * Indicates whether this module has Liberty server configuration files such as 
+     * server.xml, bootstrap.properties, server.env, or the Liberty plugin configuration.
      */
     private boolean libertyServerModule;
 
@@ -100,6 +99,9 @@ public class ProjectModel {
     /** Current dev mode / application lifecycle state for this module. */
     private volatile AppState appState = AppState.STOPPED;
 
+    /** Indicates whether or not this project was started as part of a batch start. */
+    private boolean batchStarted = false;
+    
     /**
      * The child projects associated with this project in a multi-module structure.
      * Thread-safe set to support concurrent access during workspace model building.
@@ -108,7 +110,6 @@ public class ProjectModel {
 
     /**
      * The set of peer projects (siblings in the same parent directory).
-     * Thread-safe set to support concurrent access during workspace model building.
      */
     private Set<ProjectModel> peerDirProjects = ConcurrentHashMap.newKeySet();
 
@@ -116,7 +117,6 @@ public class ProjectModel {
      * The set of dependent projects explicitly declared in the build configuration
      * (Maven modules or Gradle subprojects). This is a subset of childDirProjects
      * that represents actual build dependencies.
-     * Thread-safe set to support concurrent access during workspace model building.
      */
     private Set<ProjectModel> dependentProjects = ConcurrentHashMap.newKeySet();
 
@@ -721,5 +721,23 @@ public class ProjectModel {
      */
     public void setAppState(AppState appState) {
         this.appState = appState;
+    }
+    
+    /**
+     * Returns true if this project was started as part of a multi-module batch start.
+     *
+     * @return True if this project was started as part of a multi-module batch start.
+     */
+    public boolean isBatchStarted() {
+        return batchStarted;
+    }
+
+    /**
+     * Sets the batch started indicator for this project.
+     *
+     * @param batchStarted The batch started indicator.
+     */
+    public void setBachStarted(boolean batchStarted) {
+        this.batchStarted = batchStarted;
     }
 }
