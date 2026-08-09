@@ -12,6 +12,8 @@
 *******************************************************************************/
 package io.openliberty.tools.eclipse.ui.launch.shortcuts;
 
+import java.util.List;
+
 import org.eclipse.core.resources.IProject;
 import org.eclipse.debug.ui.ILaunchShortcut;
 import org.eclipse.jface.viewers.ISelection;
@@ -45,13 +47,11 @@ public class RunTestsAction implements ILaunchShortcut {
         try {
             run(iProject);
         } catch (Exception e) {
-            String msg = "An error was detected when the \"" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_RUN_TESTS
-                         + "\" launch shortcut was processed.";
+            String msg = "An error was detected when the \"" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_RUN_TESTS + "\" launch shortcut was processed.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }
-            ErrorHandler.processErrorMessage(
-                                             Messages.getMessage("launch_shortcut_error", LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_RUN_TESTS), e, true);
+            ErrorHandler.processErrorMessage(Messages.getMessage("launch_shortcut_error", LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_RUN_TESTS), e, true);
             return;
         }
 
@@ -74,13 +74,11 @@ public class RunTestsAction implements ILaunchShortcut {
         try {
             run(iProject);
         } catch (Exception e) {
-            String msg = "An error was detected when the \"" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_RUN_TESTS
-                         + "\" launch shortcut was processed.";
+            String msg = "An error was detected when the \"" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_RUN_TESTS + "\" launch shortcut was processed.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }
-            ErrorHandler.processErrorMessage(
-                                             Messages.getMessage("launch_shortcut_error", LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_RUN_TESTS), e, true);
+            ErrorHandler.processErrorMessage(Messages.getMessage("launch_shortcut_error", LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_RUN_TESTS), e, true);
             return;
         }
 
@@ -91,10 +89,10 @@ public class RunTestsAction implements ILaunchShortcut {
 
     /**
      * Processes the run tests shortcut action.
-     * 
+     *
      * @param iProject The project to process.
-     * 
-     * @throws Exception
+     *
+     * @throws Exception If an error occurs while processing the run tests request.
      */
     public static void run(IProject iProject) throws Exception {
         // Make sure the project is valid.
@@ -112,20 +110,25 @@ public class RunTestsAction implements ILaunchShortcut {
         if (selectedProjectModel == null) {
             throw new Exception(Messages.getMessage("internal_project_not_found", selectedProjectName));
         }
-        
-        // Resolve the target project taking into account only those that are actively running.
-        ProjectModel targetProjectModel = devModeOps.resolveCommandTarget(selectedProjectModel, DashboardAction.RUNTESTS, DevModeOperations.ModuleStateFilter.ACTIVE);
-        if (targetProjectModel == null) {
+
+        // Resolve the target projects taking into account only those that are actively running.
+        // This action accepts batch project execution.
+        List<ProjectModel> targetProjects = devModeOps.resolveCommandTargets(selectedProjectModel, DashboardAction.RUNTESTS, DevModeOperations.ModuleStateFilter.ACTIVE, true);
+        if (targetProjects.isEmpty()) {
             return;
         }
 
-        // Update the active selection to the selected target project if the original selection does not match the target.
-        String targetProjectName = targetProjectModel.getName();
-        if (!selectedProjectName.equals(targetProjectName)) {
-            Utils.updateActiveSelection(targetProjectModel);
-        }
+        // Run tests found in  all target projects/modules. 
+        for (ProjectModel targetProjectModel : targetProjects) {
+            String targetProjectName = targetProjectModel.getName();
 
-        // Process the actions.
-        devModeOps.runTests(targetProjectModel);
+            // Update the active selection to the target project if it differs from the original.
+            if (!selectedProjectName.equals(targetProjectName)) {
+                Utils.updateActiveSelection(targetProjectModel);
+            }
+
+            // Trigger tests for this module.
+            devModeOps.runTests(targetProjectModel);
+        }
     }
 }

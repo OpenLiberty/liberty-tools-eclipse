@@ -12,6 +12,8 @@
 *******************************************************************************/
 package io.openliberty.tools.eclipse.ui.launch.shortcuts;
 
+import java.util.List;
+
 import org.eclipse.core.resources.IProject;
 import org.eclipse.debug.ui.ILaunchShortcut;
 import org.eclipse.jface.viewers.ISelection;
@@ -45,14 +47,11 @@ public class OpenMavenUTestReportAction implements ILaunchShortcut {
         try {
             run(iProject);
         } catch (Exception e) {
-            String msg = "An error was detected when the \""
-                         + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_MVN_VIEW_UT_REPORT + "\" launch shortcut was processed.";
+            String msg = "An error was detected when the \"" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_MVN_VIEW_UT_REPORT + "\" launch shortcut was processed.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }
-            ErrorHandler.processErrorMessage(
-                                             Messages.getMessage("launch_shortcut_error", LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_MVN_VIEW_UT_REPORT), e,
-                                             true);
+            ErrorHandler.processErrorMessage(Messages.getMessage("launch_shortcut_error", LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_MVN_VIEW_UT_REPORT), e, true);
             return;
         }
 
@@ -75,14 +74,11 @@ public class OpenMavenUTestReportAction implements ILaunchShortcut {
         try {
             run(iProject);
         } catch (Exception e) {
-            String msg = "An error was detected when the \""
-                         + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_MVN_VIEW_UT_REPORT + "\" launch shortcut was processed.";
+            String msg = "An error was detected when the \"" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_MVN_VIEW_UT_REPORT + "\" launch shortcut was processed.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }
-            ErrorHandler.processErrorMessage(
-                                             Messages.getMessage("launch_shortcut_error", LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_MVN_VIEW_UT_REPORT), e,
-                                             true);
+            ErrorHandler.processErrorMessage(Messages.getMessage("launch_shortcut_error", LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_MVN_VIEW_UT_REPORT), e, true);
             return;
         }
 
@@ -93,10 +89,10 @@ public class OpenMavenUTestReportAction implements ILaunchShortcut {
 
     /**
      * Processes the view unit test report shortcut action.
-     * 
+     *
      * @param iProject The project to process.
-     * 
-     * @throws Exception
+     *
+     * @throws Exception If an error occurs while processing the view unit test report request.
      */
     public static void run(IProject iProject) throws Exception {
         // Make sure the project is valid.
@@ -115,27 +111,29 @@ public class OpenMavenUTestReportAction implements ILaunchShortcut {
             throw new Exception(Messages.getMessage("internal_project_not_found", selectedProjectName));
         }
 
-        // Resolve the target project taking into account only those that are actively running.
-        ProjectModel targetProjectModel = devModeOps.resolveCommandTarget(selectedProjectModel, DashboardAction.OPEN_MVN_UT_TEST_REPORT,
-                                                                          DevModeOperations.ModuleStateFilter.ALL);
-        if (targetProjectModel == null) {
+        // Resolve the target module. This action accepts on a single project executions.
+        List<ProjectModel> targetProjects = devModeOps.resolveCommandTargets(
+                                                                             selectedProjectModel, DashboardAction.OPEN_MVN_UT_TEST_REPORT, DevModeOperations.ModuleStateFilter.ALL,
+                                                                             false);
+        if (targetProjects.isEmpty()) {
             return;
         }
+        ProjectModel targetProjectModel = targetProjects.get(0);
 
-        // Update the active selection to the selected target project if the original selection does not match the target.
+        // Update the active selection to the target project if it differs from the original.
         String targetProjectName = targetProjectModel.getName();
         if (!selectedProjectName.equals(targetProjectName)) {
             Utils.updateActiveSelection(targetProjectModel);
         }
 
-        // Resolve the target project containing the test report to view.
+        // Resolve the test report to view.
         targetProjectModel = devModeOps.resolveTestReportTarget(targetProjectModel, DashboardAction.OPEN_MVN_UT_TEST_REPORT);
         if (targetProjectModel == null) {
-            // User cancelled the selection dialog
+            // User cancelled the selection dialog.
             return;
         }
 
-        // Process the actions.
+        // Process the action.
         devModeOps.openMavenUnitTestReport(targetProjectModel);
     }
 }
