@@ -91,6 +91,7 @@ public class SWTBotPluginOperations {
     public static final String LAUNCH_CONFIG_LIBERTY_MENU_NAME = "Liberty";
     public static final String EXPLORER_CONFIGURE_MENU_ENABLE_LIBERTY_TOOLS = "Enable Liberty";
     public static final String NEW_CONFIGURATION = "New_configuration";
+    public static final String SEARCH_BOX_FILTER_HINT = "Type filter text...";
 
     /**
      * Close the welcome page if active.
@@ -1596,7 +1597,7 @@ public class SWTBotPluginOperations {
             openDashboardUsingToolbar();
             bot.viewByTitle(DASHBOARD_VIEW_TITLE).toolbarButton(DashboardView.DASHBOARD_TOOLBAR_FILTER).click();
             try {
-                bot.textWithMessage("Filter projects...");
+                bot.textWithMessage(SEARCH_BOX_FILTER_HINT);
                 return true;
             } catch (Exception ignored) {
                 // Search field not yet visible. Retry.
@@ -1607,11 +1608,11 @@ public class SWTBotPluginOperations {
 
         if (!searchFieldVisible) {
             // Final attempt after the timeout.
-            bot.textWithMessage("Filter projects...").setText(filterText);
+            bot.textWithMessage(SEARCH_BOX_FILTER_HINT).setText(filterText);
             return;
         }
 
-        bot.textWithMessage("Filter projects...").setText(filterText);
+        bot.textWithMessage(SEARCH_BOX_FILTER_HINT).setText(filterText);
     }
 
     /**
@@ -1624,7 +1625,7 @@ public class SWTBotPluginOperations {
         openDashboardUsingToolbar();
 
         try {
-            bot.textWithMessage("Filter projects...").setText("");
+            bot.textWithMessage(SEARCH_BOX_FILTER_HINT).setText("");
         } catch (Exception ignored) {
             // Search bar may already be hidden.
         }
@@ -1693,22 +1694,61 @@ public class SWTBotPluginOperations {
 
     /**
      * Waits for the module selection dialog to appear, then returns its shell.
-     * The dialog is identified by the title "Select a Liberty Module".
+     * The dialog is identified by the presence of the description label
+     * "Select a module." or "Select one or more modules." since the dialog title
+     * is now the action name and therefore not a stable identifier.
      *
      * @param maxWaitMs Maximum number of milliseconds to wait for the dialog.
      *
      * @return The dialog shell, or null if the dialog did not appear within the given timeout.
      */
     public static Shell waitForModuleSelectionDialog(int maxWaitMs) {
-        String dialogTitle = "Select a Liberty Module";
-        boolean appeared = SWTBotTestCondition.waitFor(() -> isShellVisible(dialogTitle), maxWaitMs);
+        boolean appeared = SWTBotTestCondition.waitFor(
+                () -> findShellWithLabel("Select a module.") != null
+                        || findShellWithLabel("Select one or more modules.") != null,
+                maxWaitMs);
         if (!appeared) {
             return null;
         }
+        Shell s = findShellWithLabel("Select a module.");
+        return s != null ? s : findShellWithLabel("Select one or more modules.");
+    }
+
+    /**
+     * Waits for the test report module selection dialog to appear, then returns its shell.
+     * The dialog is identified by the presence of the description label
+     * "Test reports are available for multiple modules. Select a module." since the
+     * dialog title is now the action name and therefore not a stable identifier.
+     *
+     * @param maxWaitMs Maximum number of milliseconds to wait for the dialog.
+     *
+     * @return The dialog shell, or null if the dialog did not appear within the given timeout.
+     */
+    public static Shell waitForTestReportModuleSelectionDialog(int maxWaitMs) {
+        String labelText = "Test reports are available for multiple modules. Select a module.";
+        boolean appeared = SWTBotTestCondition.waitFor(() -> findShellWithLabel(labelText) != null, maxWaitMs);
+        if (!appeared) {
+            return null;
+        }
+        return findShellWithLabel(labelText);
+    }
+
+    /**
+     * Returns the first visible shell that contains a Label widget whose text
+     * exactly matches the given string. Must not be called from the SWT display thread.
+     *
+     * @param labelText The exact label text to search for.
+     *
+     * @return The matching shell, or null if none is found.
+     */
+    private static Shell findShellWithLabel(String labelText) {
         final Shell[] result = { null };
         Display.getDefault().syncExec(() -> {
             for (org.eclipse.swt.widgets.Shell s : Display.getDefault().getShells()) {
-                if (!s.isDisposed() && s.isVisible() && dialogTitle.equals(s.getText())) {
+                if (s.isDisposed() || !s.isVisible()) {
+                    continue;
+                }
+                if (shellContainsLabel(s, labelText)) {
                     result[0] = s;
                     return;
                 }
@@ -1718,29 +1758,29 @@ public class SWTBotPluginOperations {
     }
 
     /**
-     * Waits for the test report module selection dialog to appear, then returns its shell.
-     * The dialog is identified by the title "Select a Module".
+     * Returns true if the given composite (or any of its descendants) contains a
+     * Label widget whose text exactly matches the given string.
+     * Must be called from the SWT display thread.
      *
-     * @param maxWaitMs Maximum number of milliseconds to wait for the dialog.
+     * @param composite The composite to search.
+     * @param labelText The exact label text to match.
      *
-     * @return The dialog shell, or null if the dialog did not appear within the given timeout.
+     * @return True if a matching Label is found.
      */
-    public static Shell waitForTestReportModuleSelectionDialog(int maxWaitMs) {
-        String dialogTitle = "Select a Module";
-        boolean appeared = SWTBotTestCondition.waitFor(() -> isShellVisible(dialogTitle), maxWaitMs);
-        if (!appeared) {
-            return null;
-        }
-        final Shell[] result = { null };
-        Display.getDefault().syncExec(() -> {
-            for (org.eclipse.swt.widgets.Shell s : Display.getDefault().getShells()) {
-                if (!s.isDisposed() && s.isVisible() && dialogTitle.equals(s.getText())) {
-                    result[0] = s;
-                    return;
+    private static boolean shellContainsLabel(org.eclipse.swt.widgets.Composite composite, String labelText) {
+        for (org.eclipse.swt.widgets.Control child : composite.getChildren()) {
+            if (child instanceof org.eclipse.swt.widgets.Label) {
+                if (labelText.equals(((org.eclipse.swt.widgets.Label) child).getText())) {
+                    return true;
                 }
             }
-        });
-        return result[0];
+            if (child instanceof org.eclipse.swt.widgets.Composite) {
+                if (shellContainsLabel((org.eclipse.swt.widgets.Composite) child, labelText)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**
@@ -1793,6 +1833,10 @@ public class SWTBotPluginOperations {
     /**
      * Selects the specified module name in the module selection dialog and presses OK.
      *
+     * When the table has {@code SWT.CHECK} style (multi-select checkbox dialog) the item's
+     * checkbox is checked. When the table is a plain single-select list the row is highlighted
+     * via {@code table.setSelection()}.
+     *
      * @param dialogShell The shell of the module selection dialog.
      * @param moduleName  The module name to select.
      */
@@ -1800,9 +1844,22 @@ public class SWTBotPluginOperations {
         Display.getDefault().syncExec(() -> {
             org.eclipse.swt.widgets.Table table = findTableInShell(dialogShell);
             if (table != null) {
+                boolean isCheckTable = (table.getStyle() & SWT.CHECK) != 0;
                 for (org.eclipse.swt.widgets.TableItem ti : table.getItems()) {
                     if (moduleName.equals(ti.getText())) {
-                        table.setSelection(ti);
+                        if (isCheckTable) {
+                            ti.setChecked(true);
+                            // Fire SWT.Selection with detail=SWT.CHECK so the
+                            // CheckboxTableViewer's CheckStateListener picks up the
+                            // change and enables the OK button via updateOkButton().
+                            org.eclipse.swt.widgets.Event e = new org.eclipse.swt.widgets.Event();
+                            e.widget = table;
+                            e.item = ti;
+                            e.detail = SWT.CHECK;
+                            table.notifyListeners(SWT.Selection, e);
+                        } else {
+                            table.setSelection(ti);
+                        }
                         return;
                     }
                 }
