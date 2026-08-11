@@ -48,48 +48,63 @@ public class CommandBuilder {
     /**
      * Constructs a Maven command using the given input parameters.
      *
-     * @param targetProjectModel The project model.
-     * @param cmdArgs            The Maven command args.
+     * @param targetProjectModel The project model of the module to target.
+     * @param goal               The Maven goal to run.
+     * @param runClean           The run clean indicator.
+     * @param userParms          The user-supplied parameters or null.
      * @param pathEnv            The PATH env var.
      *
-     * @return A CommandData object containing the maven command and the required execution path.
+     * @return A CommandData object containing the Maven command and the required execution path.
      *
      * @throws CommandNotFoundException
      */
-    public static CommandData constructMavenCommand(ProjectModel targetProjectModel, String cmdArgs, String pathEnv) throws CommandNotFoundException {
+    public static CommandData constructMavenCommand(ProjectModel targetProjectModel, String goal, boolean runClean, String userParms,
+                                                    String pathEnv) throws CommandNotFoundException {
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { targetProjectModel, cmdArgs });
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { targetProjectModel, goal, runClean, userParms });
         }
 
         String targetProjectPath = targetProjectModel.getPath();
         ProjectModel targetParentModel = targetProjectModel.getParentProjectModel();
         String parentProjectPath = (targetParentModel != null) ? targetParentModel.getPath() : null;
 
-        // Add module selector when this is a child module of a multi-module project.
+        StringBuilder args = new StringBuilder();
+        if (runClean) {
+            args.append("clean").append(" ");
+        }
+        args.append(goal);
+
+        // Add module selector (-pl :moduleName -am) when this is a child module of a 
+        // This is done so Maven targets only the selected module and its upstream 
+        // dependencies. The command is executed from the parent project directory.
         if (parentProjectPath != null) {
-            cmdArgs += " -pl :" + targetProjectModel.getName() + " -am";
+            args.append(" -pl :").append(targetProjectModel.getName()).append(" -am");
+        }
+
+        if (userParms != null && !userParms.isBlank()) {
+            args.append(" ").append(userParms.trim());
         }
 
         CommandBuilder builder = new CommandBuilder(targetProjectPath, pathEnv, true);
         String cmd = builder.getBuildToolExecPath();
 
-        // On Windows, mvnw.cmd locates the maven project base directory (.mvn) by walking up from 
+        // On Windows, mvnw.cmd locates the maven project base directory (.mvn) by walking up from
         // the process working directory rather than from the script's own directory. When in a multi-module
-        // project, if the child has its own wrapper,and the command is executed from the parent
+        // project, if the child has its own wrapper and the command is executed from the parent
         // directory, the walk fails to find the child's .mvn directory.
-        // To go around this issue on Windows, we do the following:
-        // - Set the process working directory to the child's directory so that the mvnw.cmd walk can find
-        //   the .mvn directory.
-        // - Append "-f <parent-pom>" to the command to process the parent/aggregator pom so that the reactor 
-        //   sees all of the modules.
+        // To work around this on Windows, the following is done:
+        // - Set the process working directory to the child's directory so that the mvnw.cmd walk
+        //   can find the .mvn directory.
+        // - Append "-f <parent-pom>" to the command to process the parent/aggregator pom so that
+        //   the reactor sees all of the modules.
         String executionPath = (targetParentModel != null) ? targetParentModel.getPath() : targetProjectPath;
         if ((cmd.endsWith("mvnw") || cmd.endsWith("mvnw.cmd")) && Utils.isWindows() && parentProjectPath != null && !targetProjectPath.equals(parentProjectPath)) {
             String parentPom = Paths.get(parentProjectPath, "pom.xml").toAbsolutePath().toString();
-            cmdArgs += " -f " + encloseCmdInQuotesIfNeeded(parentPom);
+            args.append(" -f ").append(encloseCmdInQuotesIfNeeded(parentPom));
             executionPath = targetProjectPath;
         }
 
-        String cmdLine = builder.appendArgsToCommand(cmd, cmdArgs);
+        String cmdLine = builder.appendArgsToCommand(cmd, args.toString());
 
         CommandData result = new CommandData(cmdLine, executionPath);
 
@@ -103,28 +118,82 @@ public class CommandBuilder {
     /**
      * Constructs a Gradle command using the given input parameters.
      *
-     * @param targetProjectModel The project model.
-     * @param cmdArgs            The Gradle command args.
+     * @param targetProjectModel The project model of the module to target.
+     * @param taskName           The Gradle task to run.
+     * @param runClean           The run clean indicator.
+     * @param userParms          The user-supplied parameters or null.
      * @param pathEnv            The PATH env var.
      *
      * @return A CommandData object containing the Gradle command and the required execution path.
      *
      * @throws CommandNotFoundException
      */
-    public static CommandData constructGradleCommand(ProjectModel targetProjectModel, String cmdArgs, String pathEnv) throws CommandNotFoundException {
+    public static CommandData constructGradleCommand(ProjectModel targetProjectModel, String taskName, boolean runClean, String userParms,
+                                                     String pathEnv) throws CommandNotFoundException {
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { targetProjectModel, cmdArgs });
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { targetProjectModel, taskName, runClean, userParms });
         }
+
         String targetProjectPath = targetProjectModel.getPath();
         ProjectModel targetParentModel = targetProjectModel.getParentProjectModel();
         String targetParentPath = (targetParentModel != null) ? targetParentModel.getPath() : null;
 
+        // When this is a child module, qualify each task name with the subproject path
+        // so Gradle routes the task to the correct subproject when run from the root directory.
+        String qualifiedTask;
+        String qualifiedClean;
+        if (targetParentPath != null) {
+            String subprojectName = Paths.get(targetProjectPath).getFileName().toString();
+            String subprojectPrefix = ":" + subprojectName + ":";
+            qualifiedTask = subprojectPrefix + taskName;
+            qualifiedClean = subprojectPrefix + "clean";
+        } else {
+            qualifiedTask = taskName;
+            qualifiedClean = "clean";
+        }
+
+        StringBuilder args = new StringBuilder();
+        if (runClean) {
+            args.append(qualifiedClean).append(" ");
+        }
+        args.append(qualifiedTask);
+        if (userParms != null && !userParms.isBlank()) {
+            args.append(" ").append(userParms.trim());
+        }
+
         CommandBuilder builder = new CommandBuilder(targetProjectPath, pathEnv, false);
         String cmd = builder.getBuildToolExecPath();
-        String cmdLine = builder.appendArgsToCommand(cmd, cmdArgs);
+        String cmdLine = builder.appendArgsToCommand(cmd, args.toString());
 
         String executionPath = (targetParentPath != null) ? targetParentPath : targetProjectPath;
         CommandData result = new CommandData(cmdLine, executionPath);
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, cmdLine);
+        }
+        return result;
+    }
+
+    /**
+     * Constructs a Gradle daemon stop command (gradle --stop).
+     *
+     * @param targetProjectModel The project model.
+     * @param pathEnv            The PATH env var.
+     *
+     * @return A CommandData object containing the daemon stop command and execution path.
+     *
+     * @throws CommandNotFoundException
+     */
+    public static CommandData constructGradleStopDaemonCommand(ProjectModel targetProjectModel, String pathEnv) throws CommandNotFoundException {
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { targetProjectModel });
+        }
+
+        String targetProjectPath = targetProjectModel.getPath();
+        CommandBuilder builder = new CommandBuilder(targetProjectPath, pathEnv, false);
+        String cmd = builder.getBuildToolExecPath();
+        String cmdLine = builder.appendArgsToCommand(cmd, "--stop");
+
+        CommandData result = new CommandData(cmdLine, targetProjectPath);
         if (Trace.isEnabled()) {
             Trace.getTracer().traceExit(Trace.TRACE_TOOLS, cmdLine);
         }

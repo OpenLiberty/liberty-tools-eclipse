@@ -314,24 +314,24 @@ public class DevModeOperations {
 
             if (buildType == ProjectModel.BuildType.Maven) {
                 CommandData commandData = CommandBuilder.constructMavenCommand(targetProjectModel,
-                                                                               (runProjectClean == true ? " clean " : "")
-                                                                                                   + "io.openliberty.tools:liberty-maven-plugin:dev " + startParms,
+                                                                               "io.openliberty.tools:liberty-maven-plugin:dev",
+                                                                               runProjectClean,
+                                                                               startParms,
                                                                                pathEnv);
                 cmd = commandData.getCommand();
                 targetProjectExecPath = commandData.getExecutionPath();
             } else if (buildType == ProjectModel.BuildType.Gradle) {
 
-                CommandData commandData = CommandBuilder.constructGradleCommand(targetProjectModel,
-                                                                                (runProjectClean == true ? " clean " : "") + "libertyDev " + startParms, pathEnv);
+                CommandData commandData = CommandBuilder.constructGradleCommand(targetProjectModel, "libertyDev", runProjectClean, startParms, pathEnv);
                 cmd = commandData.getCommand();
                 targetProjectExecPath = commandData.getExecutionPath();
 
                 if (runProjectClean == true) {
                     try {
-                        CommandData stopGradleDaemonCmdData = CommandBuilder.constructGradleCommand(targetProjectModel, " --stop", pathEnv);
-                        executeCommand(stopGradleDaemonCmdData.getCommand(), targetProjectExecPath);
+                        CommandData stopGradleDaemonCmdData = CommandBuilder.constructGradleStopDaemonCommand(targetProjectModel, pathEnv);
+                        executeCommand(stopGradleDaemonCmdData.getCommand(), stopGradleDaemonCmdData.getExecutionPath());
                     } catch (IOException | InterruptedException e) {
-                        Logger.logError(Messages.getMessage("gradle_daemon_stop_failed"));
+                        Logger.logError("An attempt to stop the Gradle daemon failed....");
                     }
                 }
             } else {
@@ -435,22 +435,22 @@ public class DevModeOperations {
             String targetProjectExecPath = null;
             if (buildType == ProjectModel.BuildType.Maven) {
                 CommandData commandData = CommandBuilder.constructMavenCommand(targetProjectModel,
-                                                                               (runProjectClean == true ? " clean " : "")
-                                                                                                   + "io.openliberty.tools:liberty-maven-plugin:devc " + startParms,
+                                                                               "io.openliberty.tools:liberty-maven-plugin:devc",
+                                                                               runProjectClean,
+                                                                               startParms,
                                                                                pathEnv);
                 cmd = commandData.getCommand();
                 targetProjectExecPath = commandData.getExecutionPath();
             } else if (buildType == ProjectModel.BuildType.Gradle) {
 
-                CommandData commandData = CommandBuilder.constructGradleCommand(targetProjectModel,
-                                                                                (runProjectClean == true ? " clean " : "") + "libertyDevc " + startParms, pathEnv);
+                CommandData commandData = CommandBuilder.constructGradleCommand(targetProjectModel, "libertyDevc", runProjectClean, startParms, pathEnv);
                 cmd = commandData.getCommand();
                 targetProjectExecPath = commandData.getExecutionPath();
 
                 if (runProjectClean == true) {
                     try {
-                        CommandData stopGradleDaemonCmdData = CommandBuilder.constructGradleCommand(targetProjectModel, " --stop", pathEnv);
-                        executeCommand(stopGradleDaemonCmdData.getCommand(), targetProjectExecPath);
+                        CommandData stopGradleDaemonCmdData = CommandBuilder.constructGradleStopDaemonCommand(targetProjectModel, pathEnv);
+                        executeCommand(stopGradleDaemonCmdData.getCommand(), stopGradleDaemonCmdData.getExecutionPath());
                     } catch (IOException | InterruptedException e) {
                         Logger.logError("An attempt to stop the Gradle daemon failed....");
                     }
@@ -832,11 +832,15 @@ public class DevModeOperations {
             String targetProjectExecPath = null;
             BuildType buildType = targetProjectModel.getBuildType();
             if (buildType == ProjectModel.BuildType.Maven) {
-                CommandData commandData = CommandBuilder.constructMavenCommand(targetProjectModel, "io.openliberty.tools:liberty-maven-plugin:stop", pathEnv);
+                CommandData commandData = CommandBuilder.constructMavenCommand(targetProjectModel,
+                                                                               "io.openliberty.tools:liberty-maven-plugin:stop",
+                                                                               false,
+                                                                               null,
+                                                                               pathEnv);
                 cmd = commandData.getCommand();
                 targetProjectExecPath = commandData.getExecutionPath();
             } else if (buildType == ProjectModel.BuildType.Gradle) {
-                CommandData commandData = CommandBuilder.constructGradleCommand(targetProjectModel, "libertyStop", pathEnv);
+                CommandData commandData = CommandBuilder.constructGradleCommand(targetProjectModel, "libertyStop", false, null, pathEnv);
                 cmd = commandData.getCommand();
                 targetProjectExecPath = commandData.getExecutionPath();
 
