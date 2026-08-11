@@ -30,7 +30,6 @@ import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchCustomDebugFromDashboard;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchCustomRunFromDashboard;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchDashboardAction;
-import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.waitForAndClickButton;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchDebugConfigurationsDialogFromAppRunAs;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchRunConfigurationsDialogFromAppRunAs;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchRunTestsWithRunAsShortcut;
@@ -50,6 +49,7 @@ import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.setBuildCmdPathInPreferences;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.terminateLaunch;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.unsetBuildCmdPathInPreferences;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.waitForAndClickButton;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.BufferedReader;
@@ -349,9 +349,8 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
 
         IProject iProject = LibertyPluginTestUtils.getProject(MVN_APP_NAME);
         ProjectModel projectModel = new ProjectModel(iProject);
-        String projPath = iProject.getLocation().toOSString();
 
-        String opaqueMvnCmd = CommandBuilder.constructMavenCommand(projectModel, "io.openliberty.tools:liberty-maven-plugin:dev -f " + projPath,
+        String opaqueMvnCmd = CommandBuilder.constructMavenCommand(projectModel, "io.openliberty.tools:liberty-maven-plugin:dev", false, null,
                                                                    System.getenv("PATH")).getCommand();
         Assertions.assertTrue(opaqueMvnCmd.contains(getMvnCmdFilename() + " io.openliberty.tools:liberty-maven-plugin:dev"),
                               "Expected cmd to contain 'mvn io.openliberty.tools...' but cmd = " + opaqueMvnCmd);
@@ -361,9 +360,8 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
     public void testMavenWrapperCommandAssembly() throws IOException, InterruptedException, CommandNotFoundException {
         IProject iProject = LibertyPluginTestUtils.getProject(MVN_WRAPPER_APP_NAME);
         ProjectModel projectModel = new ProjectModel(iProject);
-        String projPath = iProject.getLocation().toOSString();
 
-        String opaqueMvnwCmd = CommandBuilder.constructMavenCommand(projectModel, "io.openliberty.tools:liberty-maven-plugin:dev -f " + projPath,
+        String opaqueMvnwCmd = CommandBuilder.constructMavenCommand(projectModel, "io.openliberty.tools:liberty-maven-plugin:dev", false, null,
                                                                     System.getenv("PATH")).getCommand();
         Assertions.assertTrue(opaqueMvnwCmd.contains("mvnw"), "Expected cmd to contain 'mvnw' but cmd = " + opaqueMvnwCmd);
     }
@@ -431,7 +429,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         // Doing a 'clean' first in case server was started previously and terminated abruptly. App tests may fail,
         // making it look like an "outer", actual test is failing, so we skip the tests.
         String startDevModeCmd = CommandBuilder.constructMavenCommand(projectModel,
-                                                                      "clean io.openliberty.tools:liberty-maven-plugin:dev -DskipITs=true", null).getCommand();
+                                                                      "io.openliberty.tools:liberty-maven-plugin:dev", true, "-DskipITs=true", null).getCommand();
 
         if (LibertyPluginTestUtils.onWindows()) {
             startDevModeCmd = "cmd.exe /c" + startDevModeCmd;
@@ -485,7 +483,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
                 // Doing a 'clean' first in case server was started previously and terminated abruptly. App tests may fail,
                 // making it look like an "outer", actual test is failing, so we skip the tests.
                 String stopDevModeCmd = CommandBuilder.constructMavenCommand(projectModel,
-                                                                             "io.openliberty.tools:liberty-maven-plugin:stop", null).getCommand();
+                                                                             "io.openliberty.tools:liberty-maven-plugin:stop", false, null, null).getCommand();
 
                 if (LibertyPluginTestUtils.onWindows()) {
                     stopDevModeCmd = "cmd.exe /c" + stopDevModeCmd;
