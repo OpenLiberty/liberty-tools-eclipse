@@ -64,7 +64,7 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
 
         // Processing paths:
         // - Explorer-> Run As-> Run Configurations
-        // - Dashboard-> project -> Start...
+        // - Dashboard-> project -> Start*
         IWorkbench workbench = PlatformUI.getWorkbench();
         Display display = workbench.getDisplay();
 
@@ -73,14 +73,19 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
             public void run() {
                 try {
                     String configProjectName = configuration.getAttribute(StartTab.PROJECT_NAME, (String) null);
-                    validateProjectsMatch(configuration, configProjectName);
-
                     DevModeOperations devModeOps = DevModeOperations.getInstance();
                     ProjectModel targetProjectModel = devModeOps.getWorkspaceModel().getProjectByName(configProjectName);
 
                     // Validate that we know about the selected project.
                     if (targetProjectModel == null) {
                         throw new IllegalStateException(Messages.getMessage("internal_project_not_found", configProjectName));
+                    }
+
+                    // Only validate project configuration and selection when this action is run on a 
+                    // single project launch attempt. This is to prevent a manual selection of an invalid run 
+                    // configuration to run dev mode.
+                    if (!targetProjectModel.isBatchStarted()) {
+                        validateProjectsMatch(configuration, configProjectName);
                     }
 
                     launchDevMode(targetProjectModel, configuration, launch, mode);
@@ -97,28 +102,24 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
             private void validateProjectsMatch(ILaunchConfiguration configuration, String configProjectName) throws CoreException {
                 IProject activeProject = Utils.getActiveProject();
                 if (activeProject != null) {
-                    assertProjectsMatch(configuration, configProjectName, activeProject);
+                    DevModeOperations devModeOps = DevModeOperations.getInstance();
+
+                    String selectedProjectLocation = activeProject.getLocation().toOSString();
+                    ProjectModel selectedProjectModel = devModeOps.getWorkspaceModel().getProjectByLocation(selectedProjectLocation);
+
+                    // Validate that we know about the selected project.
+                    if (selectedProjectModel == null) {
+                        throw new IllegalStateException(Messages.getMessage("internal_project_not_found", activeProject.getName()));
+                    }
+
+                    if (!configProjectName.equals(selectedProjectModel.getName())) {
+                        String configurationName = configuration.getName();
+                        String msg = Messages.getMessage("config_project_mismatch", configurationName, selectedProjectModel.getName(),
+                                                         configProjectName);
+                        throw new IllegalStateException(msg);
+                    }
                 }
             }
-
-            private void assertProjectsMatch(ILaunchConfiguration configuration, String configProjectName, IProject selectedProject) throws CoreException {
-                DevModeOperations devModeOps = DevModeOperations.getInstance();
-                String selectedProjectLocation = selectedProject.getLocation().toOSString();
-                ProjectModel selectedProjectModel = devModeOps.getWorkspaceModel().getProjectByLocation(selectedProjectLocation);
-
-                // Validate that we know about the selected project.
-                if (selectedProjectModel == null) {
-                    throw new IllegalStateException(Messages.getMessage("internal_project_not_found", selectedProject.getName()));
-                }
-
-                if (!configProjectName.equals(selectedProjectModel.getName())) {
-                    String configurationName = configuration.getName();
-                    String msg = Messages.getMessage("config_project_mismatch", configurationName, selectedProjectModel.getName(),
-                                                     configProjectName);
-                    throw new IllegalStateException(msg);
-                }
-            }
-
         });
 
         if (Trace.isEnabled()) {
@@ -127,14 +128,14 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
     }
 
     /**
-     * Starts dev mode
-     * 
-     * @param iProject       The project to process.
-     * @param iConfiguration The configuration for this start.
-     * @param launch         The launch associated with this start
-     * @param mode           The operation mode type. Run or debug.
-     * 
-     * @throws Exception
+     * Starts dev mode for the given project using the provided launch configuration.
+     *
+     * @param targetProjectModel The project to start dev mode for.
+     * @param iConfiguration     The configuration for this start.
+     * @param launch             The launch associated with this start.
+     * @param mode               The operation mode type. Run or debug.
+     *
+     * @throws Exception If an error occurs while starting dev mode.
      */
     private void launchDevMode(ProjectModel targetProjectModel, ILaunchConfiguration iConfiguration, ILaunch launch, String mode) throws Exception {
 
@@ -154,7 +155,7 @@ public class LaunchConfigurationDelegateLauncher extends LaunchConfigurationDele
         boolean runProjectClean = configuration.getAttribute(StartTab.PROJECT_CLEAN, false);
         String configParms = configuration.getAttribute(StartTab.PROJECT_START_PARM, (String) null);
         String javaHomePath = JRETab.resolveJavaHome(configuration);
-        
+
         // Process the action.
         DevModeOperations devModeOps = DevModeOperations.getInstance();
         if (runInContainer) {

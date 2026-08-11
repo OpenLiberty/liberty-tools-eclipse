@@ -157,9 +157,9 @@ public class ProcessController {
      * Writes the input data to the running process associated with the input project name.
      *
      * @param projectName The application project name.
-     * @param content     The data to write.
+     * @param data        The data to write.
      *
-     * @throws Exception
+     * @throws Exception If no process is found for the given project name.
      */
     public void writeToProcessStream(String projectName, String data) throws Exception {
         Process process = projectProcessMap.get(projectName);

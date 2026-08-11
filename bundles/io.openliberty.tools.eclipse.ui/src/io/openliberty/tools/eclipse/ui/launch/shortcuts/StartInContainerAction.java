@@ -12,6 +12,8 @@
 *******************************************************************************/
 package io.openliberty.tools.eclipse.ui.launch.shortcuts;
 
+import java.util.List;
+
 import org.eclipse.core.resources.IProject;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchManager;
@@ -50,13 +52,11 @@ public class StartInContainerAction implements ILaunchShortcut {
         try {
             run(iProject, mode);
         } catch (Exception e) {
-            String msg = "An error was detected when the \""
-                         + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONTAINER + "\" launch shortcut was processed.";
+            String msg = "An error was detected when the \"" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONTAINER + "\" launch shortcut was processed.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }
-            ErrorHandler.processErrorMessage(
-                                             Messages.getMessage("launch_shortcut_error", LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONTAINER), e, true);
+            ErrorHandler.processErrorMessage(Messages.getMessage("launch_shortcut_error", LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONTAINER), e, true);
             return;
         }
 
@@ -79,13 +79,11 @@ public class StartInContainerAction implements ILaunchShortcut {
         try {
             run(iProject, mode);
         } catch (Exception e) {
-            String msg = "An error was detected when the \""
-                         + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONTAINER + "\" launch shortcut was processed.";
+            String msg = "An error was detected when the \"" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONTAINER + "\" launch shortcut was processed.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }
-            ErrorHandler.processErrorMessage(
-                                             Messages.getMessage("launch_shortcut_error", LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONTAINER), e, true);
+            ErrorHandler.processErrorMessage(Messages.getMessage("launch_shortcut_error", LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONTAINER), e, true);
             return;
         }
 
@@ -96,11 +94,14 @@ public class StartInContainerAction implements ILaunchShortcut {
 
     /**
      * Processes the start in container shortcut action.
-     * 
-     * @param iProject       The project to process.
-     * @param mode           The configuration mode.
-     * 
-     * @throws Exception
+     *
+     * In run mode, multiple target projects could be selected.
+     * In debug mode, only a single project can be selected.
+     *
+     * @param iProject The project to process.
+     * @param mode     The configuration mode.
+     *
+     * @throws Exception If an error occurs while processing the start in container request.
      */
     public static void run(IProject iProject, String mode) throws Exception {
         // Make sure the project is valid.
@@ -119,31 +120,57 @@ public class StartInContainerAction implements ILaunchShortcut {
             throw new IllegalStateException(Messages.getMessage("internal_project_not_found", selectedProjectName));
         }
 
-        // Resolve the target project taking into account only those that are not actively running.
-        ProjectModel targetProjectModel = devModeOps.resolveCommandTarget(selectedProjectModel, DashboardAction.START_CTR, DevModeOperations.ModuleStateFilter.INACTIVE);
-        if (targetProjectModel == null) {
+        // Resolve the target projects taking into account only those that are inactive.
+        // This action accepts batch project execution.
+        boolean multiSelect = !ILaunchManager.DEBUG_MODE.equals(mode);
+        List<ProjectModel> targetProjects = devModeOps.resolveCommandTargets(
+                                                                             selectedProjectModel, DashboardAction.START_CTR, DevModeOperations.ModuleStateFilter.INACTIVE,
+                                                                             multiSelect);
+        if (targetProjects.isEmpty()) {
             return;
         }
 
-        // Update the active selection to the selected target project if the original selection does not match the target.
-        String targetProjectName = targetProjectModel.getName();
-        if (!selectedProjectName.equals(targetProjectName)) {
-            Utils.updateActiveSelection(targetProjectModel);
-        }
+        // If the user selected more than one child module to start, gather/reserve some data before
+        // processing the launch.
+        if (targetProjects.size() > 1) {
+            for (ProjectModel targetProjectModel : targetProjects) {
+                String targetProjectName = targetProjectModel.getName();
 
-        // Check if the target project is already started.
-        if (devModeOps.isProjectStarted(targetProjectModel)) {
-            if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_TOOLS, "The start in container request was already issued on project " + targetProjectName);
+                // Mark the module as being part of a batch launch before calling DebugUITools.launch()
+                // to start dev mode. DebugUITools.launch is an asynchronous process and the
+                // configuration delegate launcher processing the launch request needs to know
+                // if the request had multiple targets.
+                targetProjectModel.setBachStarted(true);
+
+                // In run mode with multiple targets, pre-reserve a unique OS-assigned Liberty
+                // debug port for each module. Liberty Maven/Gradle plugin defaults libertyDebug=true
+                // and binds a debug port (default 7777) on every start. Without pre-reservation,
+                // parallel launches race to bind the same port. The reservation socket is kept
+                // open until start() consumes it, so no two modules can receive the same port.
+                if (!ILaunchManager.DEBUG_MODE.equals(mode)) {
+                    try {
+                        devModeOps.reserveLibertyDebugPort(targetProjectName);
+                    } catch (Exception e) {
+                        if (Trace.isEnabled()) {
+                            Trace.getTracer().trace(Trace.TRACE_TOOLS, "Failed to reserve Liberty debug port for project " + targetProjectName + ". Using plugin default.", e);
+                        }
+                    }
+                }
             }
-            ErrorHandler.processErrorMessage(Messages.getMessage("start_container_already_issued", targetProjectName), true);
-            return;
         }
 
-        // Determine what configuration to use.
+        // Launch all target projects/modules. 
         LaunchConfigurationHelper launchConfigHelper = LaunchConfigurationHelper.getInstance();
-        ILaunchConfiguration configuration = launchConfigHelper.getLaunchConfiguration(targetProjectModel, mode, RuntimeEnv.CONTAINER);
+        for (ProjectModel targetProjectModel : targetProjects) {
+            String targetProjectName = targetProjectModel.getName();
 
-        DebugUITools.launch(configuration, mode);
+            // Update the active selection to the selected target project if the original selection does not match the target.
+            if (!selectedProjectName.equals(targetProjectName)) {
+                Utils.updateActiveSelection(targetProjectModel);
+            }
+
+            ILaunchConfiguration configuration = launchConfigHelper.getLaunchConfiguration(targetProjectModel, mode, RuntimeEnv.CONTAINER);
+            DebugUITools.launch(configuration, mode);
+        }
     }
 }

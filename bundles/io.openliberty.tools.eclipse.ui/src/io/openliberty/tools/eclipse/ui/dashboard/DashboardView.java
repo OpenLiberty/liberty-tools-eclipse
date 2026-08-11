@@ -32,6 +32,7 @@ import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
+import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
@@ -41,7 +42,6 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
-import org.eclipse.jface.wizard.WizardDialog;
 import org.eclipse.ui.IWorkbenchCommandConstants;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
@@ -206,11 +206,11 @@ public class DashboardView extends ViewPart {
         treeComposite = new Composite(parentComposite, SWT.NONE);
         treeComposite.setLayout(new GridLayout(1, false));
 
-        // Create search text box (initially hidden) - with cancel icon only
+        // Create search text.
         searchText = new Text(treeComposite, SWT.SEARCH | SWT.ICON_CANCEL);
-        searchText.setMessage("Filter projects...");
+        searchText.setMessage(Messages.getMessage("search_filter_hint"));
         GridData searchData = new GridData(SWT.FILL, SWT.CENTER, true, false);
-        searchData.exclude = true; // Initially hidden
+        searchData.exclude = true;
         searchText.setLayoutData(searchData);
         searchText.setVisible(false);
 
@@ -292,8 +292,8 @@ public class DashboardView extends ViewPart {
         String part4 = Messages.getMessage("dashboard_empty_message_part4");
         String part5 = Messages.getMessage("dashboard_empty_message_part5");
         String message = "<form><p>" + part1
-                + " <a href=\"create\">" + part2 + "</a> " + part3
-                + " <a href=\"import\">" + part4 + "</a> " + part5 + "</p></form>";
+                         + " <a href=\"create\">" + part2 + "</a> " + part3
+                         + " <a href=\"import\">" + part4 + "</a> " + part5 + "</p></form>";
         formText.setText(message, true, false);
 
         // Add hyperlink listener to handle both link clicks.
@@ -315,8 +315,7 @@ public class DashboardView extends ViewPart {
     private void openLibertyStarterWizard() {
         try {
             IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-            io.openliberty.tools.eclipse.ui.wizards.LibertyStarterWizard wizard =
-                    new io.openliberty.tools.eclipse.ui.wizards.LibertyStarterWizard();
+            io.openliberty.tools.eclipse.ui.wizards.LibertyStarterWizard wizard = new io.openliberty.tools.eclipse.ui.wizards.LibertyStarterWizard();
             wizard.init(PlatformUI.getWorkbench(), null);
             WizardDialog dialog = new WizardDialog(window.getShell(), wizard);
             dialog.open();
@@ -419,17 +418,15 @@ public class DashboardView extends ViewPart {
         String projectLocation = iProject.getLocation().toOSString();
         ProjectModel projectModel = devModeOps.getWorkspaceModel().getProjectByLocation(projectLocation);
 
-
         // Only show the context menu if the project has been configured to run in Liberty.
         if (projectModel != null && projectModel.hasLibertyNature()) {
             String projectName = projectModel.getName();
-            
+
             // Determine which actions should be enabled or disabled based on the aggregated
             // project state.
             boolean isChildModule = (projectModel.getParentProjectModel() != null);
             ProjectAggregatedState aggregatedState = devModeOps.computeProjectAggregateState(projectModel);
 
-            
             // Enable action group: Start* and Debug* if the project aggregate state is inactive.
             // Enable action group: Stop and Run Tests if the project's aggregate state is active.
             // All groups are enabled if the state is mixed.
@@ -438,23 +435,23 @@ public class DashboardView extends ViewPart {
             if (isChildModule) {
                 // Child module: enable start group when inactive, stop group when active.
                 enableProjInactiveGroup = (aggregatedState == ProjectAggregatedState.INACTIVE);
-                enableProjActiveGroup  = (aggregatedState == ProjectAggregatedState.ACTIVE);
+                enableProjActiveGroup = (aggregatedState == ProjectAggregatedState.ACTIVE);
             } else {
                 // Parent or standalone project.
                 switch (aggregatedState) {
                     case INACTIVE:
                         enableProjInactiveGroup = true;
-                        enableProjActiveGroup  = false;
+                        enableProjActiveGroup = false;
                         break;
                     case ACTIVE:
                         enableProjInactiveGroup = false;
-                        enableProjActiveGroup  = true;
+                        enableProjActiveGroup = true;
                         break;
                     case MIXED:
                     default:
                         // Some modules running – expose the full set of actions.
                         enableProjInactiveGroup = true;
-                        enableProjActiveGroup  = true;
+                        enableProjActiveGroup = true;
                         break;
                 }
             }
@@ -465,7 +462,7 @@ public class DashboardView extends ViewPart {
             debugAction.setEnabled(enableProjInactiveGroup);
             debugConfigDialogAction.setEnabled(enableProjInactiveGroup);
             debugInContainerAction.setEnabled(enableProjInactiveGroup);
-            
+
             stopAction.setEnabled(enableProjActiveGroup);
             runTestAction.setEnabled(enableProjActiveGroup);
 
@@ -1040,7 +1037,7 @@ public class DashboardView extends ViewPart {
         if (viewer == null || viewer.getTree().isDisposed()) {
             return;
         }
-        
+
         // Update the node and its parent if it exists.
         viewer.update(projectModel, null);
 

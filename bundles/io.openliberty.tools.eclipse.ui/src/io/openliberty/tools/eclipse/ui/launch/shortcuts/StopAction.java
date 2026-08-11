@@ -12,6 +12,8 @@
 *******************************************************************************/
 package io.openliberty.tools.eclipse.ui.launch.shortcuts;
 
+import java.util.List;
+
 import org.eclipse.core.resources.IProject;
 import org.eclipse.debug.ui.ILaunchShortcut;
 import org.eclipse.jface.viewers.ISelection;
@@ -45,13 +47,11 @@ public class StopAction implements ILaunchShortcut {
         try {
             run(iProject);
         } catch (Exception e) {
-            String msg = "An error was detected when the \"" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_STOP
-                         + "\" launch shortcut was processed.";
+            String msg = "An error was detected when the \"" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_STOP + "\" launch shortcut was processed.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }
-            ErrorHandler.processErrorMessage(
-                                             Messages.getMessage("launch_shortcut_error", LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_STOP), e, true);
+            ErrorHandler.processErrorMessage(Messages.getMessage("launch_shortcut_error", LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_STOP), e, true);
             return;
         }
 
@@ -74,13 +74,11 @@ public class StopAction implements ILaunchShortcut {
         try {
             run(iProject);
         } catch (Exception e) {
-            String msg = "An error was detected when the \"" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_STOP
-                         + "\" launch shortcut was processed.";
+            String msg = "An error was detected when the \"" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_STOP + "\" launch shortcut was processed.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }
-            ErrorHandler.processErrorMessage(
-                                             Messages.getMessage("launch_shortcut_error", LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_STOP), e, true);
+            ErrorHandler.processErrorMessage(Messages.getMessage("launch_shortcut_error", LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_STOP), e, true);
             return;
         }
 
@@ -91,10 +89,10 @@ public class StopAction implements ILaunchShortcut {
 
     /**
      * Processes the stop shortcut action.
-     * 
+     *
      * @param iProject The project to process.
-     * 
-     * @throws Exception
+     *
+     * @throws Exception If an error occurs while processing the stop request.
      */
     public static void run(IProject iProject) throws Exception {
         // Make sure the project is valid.
@@ -109,26 +107,32 @@ public class StopAction implements ILaunchShortcut {
         ProjectModel selectedProjectModel = devModeOps.getWorkspaceModel().getProjectByLocation(selectedProjectLocation);
 
         if (selectedProjectModel == null) {
-            String msg = "Project " + selectedProjectName + " is not a supported project. Verify that the project is configured to run on a Liberty server.";
-            if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_TOOLS, msg);
-            }
-            throw new Exception(Messages.getMessage("internal_project_not_found"));
+            throw new Exception(Messages.getMessage("internal_project_not_found", selectedProjectName));
         }
 
-        // Resolve the target project taking into account only those that are actively running.
-        ProjectModel targetProjectModel = devModeOps.resolveCommandTarget(selectedProjectModel, DashboardAction.STOP, DevModeOperations.ModuleStateFilter.ACTIVE);
-        if (targetProjectModel == null) {
+        // Resolve the target projects taking into account only those that are actively running.
+        // This action accepts batch project execution.
+        List<ProjectModel> targetProjects = devModeOps.resolveCommandTargets(selectedProjectModel, DashboardAction.STOP, DevModeOperations.ModuleStateFilter.ACTIVE, true);
+        if (targetProjects.isEmpty()) {
             return;
         }
 
-        // Update the active selection to the selected target project if the original selection does not match the target.
-        String targetProjectName = targetProjectModel.getName();
-        if (!selectedProjectName.equals(targetProjectName)) {
-            Utils.updateActiveSelection(targetProjectModel);
-        }
+        // Stop all targeted projects.
+        for (ProjectModel targetProjectModel : targetProjects) {
+            String targetProjectName = targetProjectModel.getName();
 
-        // Process the actions.
-        devModeOps.stop(targetProjectModel);
+            // Reset batch started indicator.
+            if (targetProjectModel.isBatchStarted()) {
+                targetProjectModel.setBachStarted(false);
+            }
+
+            // Update the active selection to the target project if it differs from the original.
+            if (!selectedProjectName.equals(targetProjectName)) {
+                Utils.updateActiveSelection(targetProjectModel);
+            }
+
+            // Process the stop action.
+            devModeOps.stop(targetProjectModel);
+        }
     }
 }

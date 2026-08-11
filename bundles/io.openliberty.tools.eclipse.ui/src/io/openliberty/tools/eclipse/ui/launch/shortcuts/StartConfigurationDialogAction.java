@@ -12,6 +12,8 @@
 *******************************************************************************/
 package io.openliberty.tools.eclipse.ui.launch.shortcuts;
 
+import java.util.List;
+
 import org.eclipse.core.resources.IProject;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.eclipse.debug.core.ILaunchManager;
@@ -59,13 +61,11 @@ public class StartConfigurationDialogAction implements ILaunchShortcut {
         try {
             run(iProject, mode);
         } catch (Exception e) {
-            String msg = "An error was detected when the \"" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONFIG
-                         + "\" launch shortcut was processed.";
+            String msg = "An error was detected when the \"" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONFIG + "\" launch shortcut was processed.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }
-            ErrorHandler.processErrorMessage(
-                                             Messages.getMessage("launch_shortcut_error", LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONFIG), e, true);
+            ErrorHandler.processErrorMessage(Messages.getMessage("launch_shortcut_error", LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONFIG), e, true);
             return;
         }
 
@@ -88,13 +88,11 @@ public class StartConfigurationDialogAction implements ILaunchShortcut {
         try {
             run(iProject, mode);
         } catch (Exception e) {
-            String msg = "An error was detected when the \"" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONFIG
-                         + "\" launch shortcut was processed.";
+            String msg = "An error was detected when the \"" + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONFIG + "\" launch shortcut was processed.";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
             }
-            ErrorHandler.processErrorMessage(
-                                             Messages.getMessage("launch_shortcut_error", LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONFIG), e, true);
+            ErrorHandler.processErrorMessage(Messages.getMessage("launch_shortcut_error", LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONFIG), e, true);
             return;
         }
 
@@ -105,11 +103,11 @@ public class StartConfigurationDialogAction implements ILaunchShortcut {
 
     /**
      * Processes the start... shortcut action.
-     * 
+     *
      * @param iProject The project to process.
      * @param mode     The operation mode type. Run or debug.
-     * 
-     * @throws Exception
+     *
+     * @throws Exception If an error occurs while processing the start... request.
      */
     public static void run(IProject iProject, String mode) throws Exception {
         // Make sure the project is valid.
@@ -118,7 +116,6 @@ public class StartConfigurationDialogAction implements ILaunchShortcut {
             throw new Exception(msg);
         }
 
-        //ProjectModel selectedProjectModel = null;
         String selectedProjectName = null;
         ProjectModel targetProjectModel = null;
         String targetProjectName = null;
@@ -134,12 +131,15 @@ public class StartConfigurationDialogAction implements ILaunchShortcut {
             }
 
             // Resolve the target project taking into account only those that are not actively running.
-            targetProjectModel = devModeOps.resolveCommandTarget(selectedProjectModel, DashboardAction.START_CFG, DevModeOperations.ModuleStateFilter.INACTIVE);
-            if (targetProjectModel == null) {
+            // This action accepts on a single project executions.
+            List<ProjectModel> targetProjects = devModeOps.resolveCommandTargets(selectedProjectModel, DashboardAction.START_CFG, DevModeOperations.ModuleStateFilter.INACTIVE,
+                                                                                 false);
+            if (targetProjects.isEmpty()) {
                 return;
             }
+            targetProjectModel = targetProjects.get(0);
 
-            // Update the active selection to the selected target project if the original selection does not match the target.
+            // Update the active selection to the target project if it differs from the original.
             targetProjectName = targetProjectModel.getName();
             if (!selectedProjectName.equals(targetProjectName)) {
                 Utils.updateActiveSelection(targetProjectModel);
@@ -147,9 +147,8 @@ public class StartConfigurationDialogAction implements ILaunchShortcut {
 
             // Check if the target project is already started.
             if (devModeOps.isProjectStarted(targetProjectModel)) {
-
                 if (Trace.isEnabled()) {
-                    Trace.getTracer().trace(Trace.TRACE_TOOLS, "The start... request was already issued on project " + targetProjectName);
+                    Trace.getTracer().trace(Trace.TRACE_TOOLS, "The start... request was already issued on project " + targetProjectName + ".");
                 }
                 ErrorHandler.processErrorMessage(Messages.getMessage("start_with_config_already_issued", targetProjectName), true);
                 return;
