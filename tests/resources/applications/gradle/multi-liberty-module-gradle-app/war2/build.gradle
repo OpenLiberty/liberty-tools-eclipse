@@ -1,0 +1,15 @@
+apply plugin: 'war'
+
+description = 'WAR2 Module'
+
+war {
+    archiveBaseName = 'guide-gradle-multimodules-custmm-war2'
+}
+
+dependencies {
+    implementation project(':jar')
+    runtimeOnly 'commons-io:commons-io:2.14.0'
+    compileOnly 'javax:javaee-api:7.0'
+}
+
+war.dependsOn ':jar:jar'

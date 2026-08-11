@@ -1,0 +1,11 @@
+apply plugin: 'java-library'
+
+description = 'EJB Module'
+
+jar {
+    archiveBaseName = 'guide-gradle-multimodules-custmm-ejb'
+}
+
+dependencies {
+    compileOnly 'javax.ejb:javax.ejb-api:3.2.2'
+}

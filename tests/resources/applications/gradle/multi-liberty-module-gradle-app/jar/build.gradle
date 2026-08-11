@@ -1,0 +1,5 @@
+description = 'JAR Module'
+
+jar {
+    archiveBaseName = 'guide-gradle-multimodules-custmm-jar'
+}

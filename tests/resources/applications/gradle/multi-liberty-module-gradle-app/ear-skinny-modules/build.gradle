@@ -1,0 +1,60 @@
+apply plugin: 'ear'
+
+buildscript {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'io.openliberty.tools:liberty-gradle-plugin:3.9.5'
+    }
+}
+
+apply plugin: 'liberty'
+
+description = 'EAR Skinny Modules'
+
+dependencies {
+    deploy project(':jar')
+    deploy project(path: ':ejb',  configuration: 'archives')
+    deploy project(path: ':war',  configuration: 'archives')
+    deploy project(path: ':war2', configuration: 'archives')
+    deploy project(path: ':rar',  configuration: 'rarArchive')
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.6.2'
+}
+
+ear {
+    archiveBaseName = 'guide-gradle-multimodules-custmm-ear-skinny-modules'
+    libDirName      = 'lib'
+    deploymentDescriptor {
+        module('guide-gradle-multimodules-custmm-ejb-1.0-SNAPSHOT.jar', 'ejb')
+        webModule('guide-gradle-multimodules-custmm-war-1.0-SNAPSHOT.war',  '/converter')
+        webModule('guide-gradle-multimodules-custmm-war2-1.0-SNAPSHOT.war', '/servlet')
+    }
+}
+
+liberty {
+    server {
+        name = 'defaultServer'
+        var.'default.http.port'  = '9093'
+        var.'default.https.port' = '9456'
+        verifyAppStartTimeout    = 30
+        looseApplication         = true
+        deploy {
+            apps = [ear]
+            copyLibsDirectory = file(
+                "${project.getLayout().getBuildDirectory().getAsFile().get()}/libs"
+            )
+        }
+    }
+}
+
+test {
+    useJUnitPlatform()
+    systemProperty 'default.http.port',  liberty.server.var.'default.http.port'
+    systemProperty 'default.https.port', liberty.server.var.'default.https.port'
+    systemProperty 'cf.context.root', '/converter'
+}
+
+deploy.dependsOn 'ear'
+ear.dependsOn ':jar:jar', ':ejb:jar', ':war:war', ':war2:war', ':rar:rar'

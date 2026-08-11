@@ -1,0 +1,17 @@
+<server description="Sample Liberty server">
+
+    <featureManager>
+        <feature>jsp-2.3</feature>
+    </featureManager>
+
+    <variable name="default.http.port"  defaultValue="9090" />
+    <variable name="default.https.port" defaultValue="9453" />
+
+    <httpEndpoint host="*" httpPort="${default.http.port}"
+        httpsPort="${default.https.port}" id="defaultHttpEndpoint" />
+
+    <enterpriseApplication id="guide-gradle-multimodules-ear1"
+        location="guide-gradle-multimodules-custmm-ear1-1.0-SNAPSHOT.ear"
+        name="guide-gradle-multimodules-ear1" />
+
+</server>

@@ -1,0 +1,17 @@
+apply plugin: 'war'
+
+description = 'WAR Module'
+
+war {
+    archiveBaseName = 'guide-gradle-multimodules-custmm-war'
+}
+
+dependencies {
+    implementation project(':jar')
+    implementation project(':ejb')
+    compileOnly 'javax.servlet:javax.servlet-api:4.0.1'
+    compileOnly 'jakarta.platform:jakarta.jakartaee-api:8.0.0'
+    compileOnly 'org.eclipse.microprofile:microprofile:3.3'
+}
+
+war.dependsOn ':jar:jar', ':ejb:jar'

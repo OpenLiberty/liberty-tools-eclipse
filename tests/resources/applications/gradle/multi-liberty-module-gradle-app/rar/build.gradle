@@ -1,0 +1,34 @@
+description = 'RAR Module'
+
+configurations {
+    rarArchive
+}
+
+dependencies {
+    implementation project(':jar')
+}
+
+task rar(type: Zip) {
+    archiveBaseName  = 'guide-gradle-multimodules-custmm-rar'
+    archiveVersion   = project.version
+    archiveExtension = 'rar'
+    destinationDirectory = layout.buildDirectory.dir('libs')
+
+    // Include ra.xml descriptor
+    from('src/main/rar-source') {
+        include 'META-INF/ra.xml'
+    }
+    // Include compiled classes
+    from(sourceSets.main.output)
+
+    dependsOn compileJava
+}
+
+artifacts {
+    rarArchive(rar.archiveFile) {
+        builtBy    rar
+        name       'guide-gradle-multimodules-custmm-rar'
+        type       'rar'
+        extension  'rar'
+    }
+}
