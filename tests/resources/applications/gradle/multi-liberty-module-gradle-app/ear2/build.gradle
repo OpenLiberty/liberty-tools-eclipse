@@ -1,0 +1,52 @@
+apply plugin: 'ear'
+
+buildscript {
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'io.openliberty.tools:liberty-gradle-plugin:3.9.5'
+    }
+}
+
+apply plugin: 'liberty'
+
+description = 'EAR2 Module'
+
+dependencies {
+    deploy project(':jar')
+    deploy project(path: ':war', configuration: 'archives')
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.6.2'
+}
+
+ear {
+    archiveBaseName = 'guide-gradle-multimodules-custmm-ear2'
+    deploymentDescriptor {
+        module('guide-gradle-multimodules-custmm-ejb-1.0-SNAPSHOT.jar', 'ejb')
+        webModule('guide-gradle-multimodules-custmm-war-1.0-SNAPSHOT.war', '/converter')
+    }
+}
+
+liberty {
+    server {
+        name = 'defaultServer'
+        var.'default.http.port'  = '9091'
+        var.'default.https.port' = '9454'
+        verifyAppStartTimeout    = 30
+        looseApplication         = true
+        deploy {
+            apps = [ear]
+        }
+    }
+}
+
+test {
+    useJUnitPlatform()
+    systemProperty 'default.http.port',  liberty.server.var.'default.http.port'
+    systemProperty 'default.https.port', liberty.server.var.'default.https.port'
+    systemProperty 'cf.context.root', '/converter'
+}
+
+deploy.dependsOn 'ear'
+ear.dependsOn ':jar:jar', ':war:war'

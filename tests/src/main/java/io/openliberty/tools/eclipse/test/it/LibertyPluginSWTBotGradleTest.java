@@ -397,7 +397,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         String libertyBasePath = wrapperProject.toString() + "/build";
 
         // Doing a 'clean' first in case server was started previously and terminated abruptly.
-        String startDevModeCmd = CommandBuilder.constructGradleCommand(projectModel, "clean libertyDev", null).getCommand();
+        String startDevModeCmd = CommandBuilder.constructGradleCommand(projectModel, "libertyDev", true, null, null).getCommand();
 
         if (LibertyPluginTestUtils.onWindows()) {
             startDevModeCmd = "cmd.exe /c" + startDevModeCmd;
@@ -447,7 +447,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
             devModeStopped = true;
         } finally {
             if (!devModeStopped) {
-                String stopDevModeCmd = CommandBuilder.constructGradleCommand(projectModel, "clean libertyStop", null).getCommand();
+                String stopDevModeCmd = CommandBuilder.constructGradleCommand(projectModel, "libertyStop", true, null, null).getCommand();
 
                 if (LibertyPluginTestUtils.onWindows()) {
                     stopDevModeCmd = "cmd.exe /c" + stopDevModeCmd;

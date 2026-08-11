@@ -104,7 +104,7 @@ public class LibertyPluginSWTBotMultiLibertyModMavenTest extends AbstractLiberty
     /**
      * Path to the root project directory imported into the workspace.
      */
-    static final Path rootProjectPath = Paths.get("resources", "applications", "maven", "multi-liberty-module");
+    static final Path rootProjectPath = Paths.get("resources", "applications", "maven", "multi-liberty-module-maven-app");
 
     /**
      * Path to the Liberty server output directory for the ear1 module. Used to
@@ -152,7 +152,7 @@ public class LibertyPluginSWTBotMultiLibertyModMavenTest extends AbstractLiberty
     static List<String> projectPaths = new ArrayList<String>();
 
     /**
-     * Imports the multi-liberty-module application projects and validates that the
+     * Imports the multi-liberty-module-maven-app application projects and validates that the
      * plugin is in a ready state before any test runs.
      *
      * @throws Exception if setup fails.
