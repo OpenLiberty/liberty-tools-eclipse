@@ -53,6 +53,7 @@ This guide provides detailed instructions on how to use Liberty Tools for the Ec
 |  25.0.8       | 2025-06 - Eclipse v4.36 |
 |  25.0.12      | 2025-09 - Eclipse v4.37 |
 |  26.0.2      	| 2025-12 - Eclipse v4.38 |
+|  26.0.8      	| 2026-03 - Eclipse v4.39 |
 
 **NOTE:** Tested with each of the `Eclipse IDE for Enterprise Java and Web Developers` and `Eclipse IDE for Java Developers` packages
 
