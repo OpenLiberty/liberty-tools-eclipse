@@ -173,8 +173,8 @@ public class WorkspaceModel {
                                         // The module path can be:
                                         // - Simple name: "module1" (nested under parent)
                                         // - Relative path: "../ear" (peer or other location)
-                                        java.io.File parentDir = new java.io.File(projectLocation);
-                                        java.io.File childDir = new java.io.File(parentDir, subprojectPath);
+                                        File parentDir = new File(projectLocation);
+                                        File childDir = new File(parentDir, subprojectPath);
                                         String resolvedPath = childDir.getAbsolutePath();
 
                                         childProjectModel = projectsByLocation.get(resolvedPath);
@@ -310,7 +310,7 @@ public class WorkspaceModel {
     /**
      * Returns the Liberty server project associated with the input project location.
      * 
-     * @param String The location of the project.
+     * @param location The location of the project.
      * 
      * @return The project model associated with the input project location or null if none is found in
      *         the list of projects with Liberty server configuration.

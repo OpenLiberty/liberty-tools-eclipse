@@ -28,8 +28,8 @@ import org.eclipse.jface.action.IToolBarManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.commands.ActionHandler;
 import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.jface.viewers.ColumnViewerToolTipSupport;
 import org.eclipse.jface.viewers.TreeViewer;
+import org.eclipse.jface.viewers.TreeViewerColumn;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.jface.wizard.WizardDialog;
@@ -39,9 +39,11 @@ import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.Tree;
+import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.ui.IWorkbenchCommandConstants;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
@@ -79,7 +81,7 @@ public class DashboardView extends ViewPart {
     public static final String ID = "io.openliberty.tools.eclipse.views.liberty.devmode.dashboard";
 
     /** Context menu ID. */
-    private static final String CONTEXT_MENU_ID = "io.openliberty.tools.eclipse.views.liberty.devmode.dashboard";
+    private static final String CONTEXT_MENU_ID = ID;
 
     /** Liberty logo path. */
     public static final String LIBERTY_LOGO_PATH = "icons/openLibertyLogo.png";
@@ -107,7 +109,7 @@ public class DashboardView extends ViewPart {
     public static final String DASHBOARD_TOOLBAR_COLLAPSE_ALL = Messages.getMessage("dashboard_toolbar_collapse_all");
     public static final String DASHBOARD_TOOLBAR_FILTER = Messages.getMessage("dashboard_toolbar_filter");
 
-    /** view actions. */
+    /** View actions. */
     private Action startAction;
     private Action startConfigDialogAction;
     private Action startInContainerAction;
@@ -127,13 +129,13 @@ public class DashboardView extends ViewPart {
     /** Tree viewer that holds the entries in the dashboard. */
     TreeViewer viewer;
 
-    /** Search text widget */
+    /** Search text widget. */
     private Text searchText;
 
-    /** Search filter */
+    /** Search filter. */
     private ViewerFilter searchFilter;
 
-    /** Search bar visibility */
+    /** Search bar visibility. */
     private boolean searchBarVisible = false;
 
     /** DevModeOperations reference. */
@@ -141,16 +143,16 @@ public class DashboardView extends ViewPart {
 
     DashboardContentProvider contentProvider;
 
-    /** Parent composite that holds either tree or empty composite */
+    /** Parent composite that holds either tree or empty composite. */
     private Composite parentComposite;
 
-    /** Composite containing the tree viewer */
+    /** Composite containing the tree viewer. */
     private Composite treeComposite;
 
-    /** Composite containing the empty state message */
+    /** Composite containing the empty state message. */
     private Composite emptyComposite;
 
-    /** FormToolkit for creating form widgets */
+    /** FormToolkit for creating form widgets. */
     private FormToolkit formToolkit;
 
     /**
@@ -170,7 +172,7 @@ public class DashboardView extends ViewPart {
         parentComposite = parent;
 
         // Initialize content provider to check for projects.
-        contentProvider = new DashboardContentProvider(devModeOps.getWorkspaceModel(), this);
+        contentProvider = new DashboardContentProvider(devModeOps.getWorkspaceModel());
 
         // Determine if there are Liberty projects to display.
         List<ProjectModel> rootProjects = contentProvider.getRootDashboardProjects();
@@ -224,6 +226,32 @@ public class DashboardView extends ViewPart {
 
         viewer = new TreeViewer(treeComposite, SWT.SINGLE | SWT.H_SCROLL | SWT.V_SCROLL | SWT.FULL_SELECTION);
         viewer.getControl().setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+        viewer.getTree().setHeaderVisible(false);
+        viewer.getTree().setLinesVisible(false);
+
+        // Column 0: build-type badge (M or G) for parent/standalone rows; empty for child rows.
+        // Width is set programmatically after the tree is realized so it accounts for the
+        // exact chevron width on the current platform and DPI setting.
+        TreeViewerColumn badgeColumn = new TreeViewerColumn(viewer, SWT.NONE);
+        badgeColumn.getColumn().setWidth(40);
+        badgeColumn.getColumn().setResizable(false);
+        badgeColumn.setLabelProvider(new DashboardEntryLabelProvider.BadgeColumnLabelProvider());
+
+        // Column 1: state dot icon and project name for every row.
+        TreeViewerColumn nameColumn = new TreeViewerColumn(viewer, SWT.NONE);
+        nameColumn.getColumn().setWidth(400);
+        nameColumn.getColumn().setResizable(true);
+        nameColumn.setLabelProvider(new DashboardEntryLabelProvider.StateNameColumnLabelProvider(this));
+
+        // Adjust column 0 width once the tree is painted so the badge fits exactly
+        // after the chevron regardless of platform or DPI. The listener removes itself
+        // after the first paint so it runs exactly once.
+        Listener[] badgeAdjustHolder = new Listener[1];
+        badgeAdjustHolder[0] = e -> {
+            adjustBadgeColumnWidth(viewer, badgeColumn);
+            viewer.getTree().removeListener(SWT.Paint, badgeAdjustHolder[0]);
+        };
+        viewer.getTree().addListener(SWT.Paint, badgeAdjustHolder[0]);
 
         // Create search filter
         searchFilter = new ViewerFilter() {
@@ -251,8 +279,38 @@ public class DashboardView extends ViewPart {
         };
 
         viewer.setContentProvider(contentProvider);
-        viewer.setLabelProvider(new DashboardEntryLabelProvider(this));
-        ColumnViewerToolTipSupport.enableFor(viewer);
+        addStateIconTooltip(viewer);
+    }
+
+    /**
+     * Attaches a hover listener to the tree that shows a native tooltip only when the
+     * cursor is within the state icon area of column 1.
+     *
+     * @param treeViewer The tree viewer to attach the listener to.
+     */
+    private static void addStateIconTooltip(TreeViewer treeViewer) {
+        Tree tree = treeViewer.getTree();
+
+        // Suppress the OS default tooltip on the tree entirely. We manage it ourselves.
+        tree.setToolTipText("");
+
+        // Update the tooltip text as the mouse moves. Setting "" hides it.
+        tree.addListener(SWT.MouseMove, e -> {
+            TreeItem item = tree.getItem(new org.eclipse.swt.graphics.Point(e.x, e.y));
+            if (item == null || !(item.getData() instanceof ProjectModel)) {
+                tree.setToolTipText("");
+                return;
+            }
+            
+            // Show the tooltip only when the cursor is within that bounds of the image.
+            org.eclipse.swt.graphics.Rectangle iconBounds = item.getImageBounds(1);
+            if (iconBounds.contains(e.x, e.y)) {
+                String text = DashboardEntryLabelProvider.stateTooltipText((ProjectModel) item.getData());
+                tree.setToolTipText(text != null && !text.isEmpty() ? text : "");
+            } else {
+                tree.setToolTipText("");
+            }
+        });
     }
 
     /**
@@ -1054,5 +1112,30 @@ public class DashboardView extends ViewPart {
      */
     public Tree getTree() {
         return viewer.getTree();
+    }
+
+    /**
+     * Adjusts the badge column (column 0) width to fit the badge image exactly after
+     * the tree expand chevron on the current platform and DPI setting.
+     *
+     * @param treeViewer  The tree viewer.
+     * @param badgeColumn The badge tree viewer column.
+     */
+    private static void adjustBadgeColumnWidth(TreeViewer treeViewer, TreeViewerColumn badgeColumn) {
+        Tree tree = treeViewer.getTree();
+        if (tree.isDisposed() || badgeColumn.getColumn().isDisposed()) {
+            return;
+        }
+        TreeItem[] items = tree.getItems();
+        if (items == null || items.length == 0) {
+            return;
+        }
+        // imageX is the pixel offset where the image starts inside column 0.
+        // It equals the chevron width plus any indent on this platform.
+        int imageX = items[0].getImageBounds(0).x;
+        int needed = imageX + DashboardEntryLabelProvider.BADGE_W + 2;
+        if (badgeColumn.getColumn().getWidth() != needed) {
+            badgeColumn.getColumn().setWidth(needed);
+        }
     }
 }

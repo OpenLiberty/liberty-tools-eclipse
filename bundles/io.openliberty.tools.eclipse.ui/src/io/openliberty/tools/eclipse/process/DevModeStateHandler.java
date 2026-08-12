@@ -203,11 +203,13 @@ public class DevModeStateHandler implements IConsoleLineHandler {
 
     /**
      * Called when {@code CWWKE0036I:} is detected — the Liberty server has stopped.
-     * Transitions the module to {@code STOPPED} and refreshes the dashboard label.
+     * Transitions the module to {@code STOPPED}, refreshes the dashboard label, and
+     * tears down the console interceptor and process map entry for this project.
      */
     private void handleServerStopped() {
         projectModel.setAppState(ProjectModel.AppState.STOPPED);
-        DevModeOperations.getInstance().refreshDashboardLabel(projectModel);
+        DevModeOperations devModeOps = DevModeOperations.getInstance();
+        devModeOps.cleanupProcess(projectModel.getName());
     }
 
     /**
@@ -215,7 +217,7 @@ public class DevModeStateHandler implements IConsoleLineHandler {
      */
     @Override
     public void handleLine(String projectName, String line) {
-        //Evaluates each known pattern against the given line and invokes the associated
+        // Evaluates each known pattern against the given line and invokes the associated
         // action for any that match.
         for (PatternAction pa : patternActions) {
             if (pa.matcher.matches(line)) {
