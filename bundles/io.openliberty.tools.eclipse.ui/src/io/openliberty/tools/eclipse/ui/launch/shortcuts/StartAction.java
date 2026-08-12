@@ -139,7 +139,7 @@ public class StartAction implements ILaunchShortcut {
                 // to start dev mode. DebugUITools.launch is an asynchronous process and the
                 // configuration delegate launcher processing the launch request needs to know
                 // if the request had multiple targets.
-                targetProjectModel.setBachStarted(true);
+                targetProjectModel.setBatchStarted(true);
 
                 // In run mode with multiple targets, pre-reserve a unique OS-assigned Liberty
                 // debug port for each module. Liberty Maven/Gradle plugin defaults libertyDebug=true
