@@ -1,7 +1,7 @@
 # Liberty Tools Eclipse Changelog
 
 
-## 26.0.7 [changes](https://github.com/OpenLiberty/liberty-tools-eclipse/milestone/15) / [release](https://github.com/OpenLiberty/liberty-tools-eclipse/releases/tag/) (July , 2026)
+## 26.0.8 [changes](https://github.com/OpenLiberty/liberty-tools-eclipse/milestone/15) / [release](https://github.com/OpenLiberty/liberty-tools-eclipse/releases/tag/) (August , 2026)
 
 ### Eclipse Platform target release upgrade
  * 4.39 (2026-03)
