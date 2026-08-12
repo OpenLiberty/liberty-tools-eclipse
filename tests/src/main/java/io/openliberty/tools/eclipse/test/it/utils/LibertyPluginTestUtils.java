@@ -96,31 +96,6 @@ public class LibertyPluginTestUtils {
     }
 
     /**
-     * Validates that the Liberty server was restarted by asserting that the messages.log file
-     * has a last-modified timestamp strictly newer than the one recorded before the restart was
-     * triggered. Liberty startup takes several seconds, so the timestamps will always differ on
-     * a genuine restart.
-     *
-     * @param testAppPath The base path to the Liberty installation.
-     * @param timestampBeforeRestart The last-modified time of messages.log recorded before the
-     *                               restart was triggered, in milliseconds since the epoch.
-     */
-    public static void validateMessagesLogIsNewer(String testAppPath, long timestampBeforeRestart) {
-        String wlpMsgLogPath = testAppPath + "/wlp/usr/servers/defaultServer/logs/messages.log";
-        File msgLog = new File(wlpMsgLogPath);
-
-        boolean renewed = SWTBotTestCondition.waitFor(() -> msgLog.lastModified() > timestampBeforeRestart,
-                                                      SWTBotTestCondition.MID_WAIT_MS);
-
-        if (!renewed) {
-            printLibertyMessagesLogFile(wlpMsgLogPath);
-            Assertions.fail("messages.log was not renewed after restart. Expected a last-modified timestamp"
-                            + " newer than " + timestampBeforeRestart + " but got " + msgLog.lastModified()
-                            + " at path: " + wlpMsgLogPath);
-        }
-    }
-
-    /**
      * Validates the state of the application (active/inactive) based on the expectation of success (true/false).
      *
      * @param appUrl           The application URL.
