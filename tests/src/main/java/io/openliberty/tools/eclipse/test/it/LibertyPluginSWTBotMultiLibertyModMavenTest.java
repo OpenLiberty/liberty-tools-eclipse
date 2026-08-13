@@ -78,6 +78,11 @@ import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLaunche
  * selection dialog opens correctly for every supported action, that the dialog
  * lists the expected Liberty modules, and that start and stop operations
  * complete successfully when a module is chosen.
+ * 
+ * NOTE: The multi-module selection support for actions such as Start,
+ * Start in container, Run tests, and Stop, will remember a prior selection.
+ * This means that tests that require specific modules to be selected must 
+ * deselect all modules first.
  */
 public class LibertyPluginSWTBotMultiLibertyModMavenTest extends AbstractLibertyPluginSWTBotTest {
 
@@ -385,6 +390,12 @@ public class LibertyPluginSWTBotMultiLibertyModMavenTest extends AbstractLiberty
         Assertions.assertEquals(EXPECTED_LIBERTY_MODULE_COUNT_ALL, count,
                                 "Expected " + EXPECTED_LIBERTY_MODULE_COUNT_ALL + " Liberty modules in the selection dialog, but found " + count + ".");
 
+        clickDeselectAllInModuleSelectionDialog(startDialog);
+        int startAfterDeselectAll = getModuleSelectionDialogCheckedItemCount(startDialog);
+        Assertions.assertEquals(0, startAfterDeselectAll,
+                                "After clicking Deselect All in the Start dialog 0 items should be checked, but "
+                                                          + startAfterDeselectAll + " were still checked.");
+
         selectModuleInDialog(startDialog, MVN_EAR1_MODULE_NAME);
 
         LibertyPluginTestUtils.validateApplicationOutcomeCustom(
@@ -482,15 +493,21 @@ public class LibertyPluginSWTBotMultiLibertyModMavenTest extends AbstractLiberty
 
         launchStartWithRunAsShortcut(MVN_APP_NAME);
 
-        Shell dialog = waitForModuleSelectionDialog(SWTBotTestCondition.SHORT_WAIT_MS);
-        Assertions.assertNotNull(dialog,
+        Shell startDialog = waitForModuleSelectionDialog(SWTBotTestCondition.SHORT_WAIT_MS);
+        Assertions.assertNotNull(startDialog,
                                  "Module selection dialog did not open for the Run As Start shortcut.");
 
-        int count = getModuleSelectionDialogItemCount(dialog);
+        int count = getModuleSelectionDialogItemCount(startDialog);
         Assertions.assertEquals(EXPECTED_LIBERTY_MODULE_COUNT_ALL, count,
                                 "Expected " + EXPECTED_LIBERTY_MODULE_COUNT_ALL + " Liberty modules in the selection dialog, but found " + count + ".");
 
-        selectModuleInDialog(dialog, MVN_EAR1_MODULE_NAME);
+        clickDeselectAllInModuleSelectionDialog(startDialog);
+        int startAfterDeselectAll = getModuleSelectionDialogCheckedItemCount(startDialog);
+        Assertions.assertEquals(0, startAfterDeselectAll,
+                                "After clicking Deselect All in the Start dialog 0 items should be checked, but "
+                                                          + startAfterDeselectAll + " were still checked.");
+
+        selectModuleInDialog(startDialog, MVN_EAR1_MODULE_NAME);
 
         LibertyPluginTestUtils.validateApplicationOutcomeCustom(
                                                                 "http://localhost:9080/converter/heights.jsp?heightCm=10", true,
@@ -562,6 +579,13 @@ public class LibertyPluginSWTBotMultiLibertyModMavenTest extends AbstractLiberty
         Assertions.assertEquals(EXPECTED_LIBERTY_MODULE_COUNT_ALL, countBeforeFirstStart,
                                 "Before any module is started, the dialog should show " + EXPECTED_LIBERTY_MODULE_COUNT_ALL
                                                                                           + " inactive modules, but found " + countBeforeFirstStart + ".");
+
+        clickDeselectAllInModuleSelectionDialog(startDialog1);
+        int startAfterDeselectAll1 = getModuleSelectionDialogCheckedItemCount(startDialog1);
+        Assertions.assertEquals(0, startAfterDeselectAll1,
+                                "After clicking Deselect All in the Start dialog 0 items should be checked, but "
+                                                           + startAfterDeselectAll1 + " were still checked.");
+
         selectModuleInDialog(startDialog1, MVN_EAR1_MODULE_NAME);
 
         LibertyPluginTestUtils.validateApplicationOutcomeCustom(
@@ -576,6 +600,13 @@ public class LibertyPluginSWTBotMultiLibertyModMavenTest extends AbstractLiberty
         int countAfterFirstStart = getModuleSelectionDialogItemCount(startDialog2);
         Assertions.assertEquals(2, countAfterFirstStart,
                                 "After ear1 is running, the dialog should show 2 inactive modules, but found " + countAfterFirstStart + ".");
+
+        clickDeselectAllInModuleSelectionDialog(startDialog2);
+        int startAfterDeselectAll2 = getModuleSelectionDialogCheckedItemCount(startDialog2);
+        Assertions.assertEquals(0, startAfterDeselectAll1,
+                                "After clicking Deselect All in the Start dialog 0 items should be checked, but "
+                                                           + startAfterDeselectAll2 + " were still checked.");
+
         selectModuleInDialog(startDialog2, MVN_EAR2_MODULE_NAME);
 
         LibertyPluginTestUtils.validateApplicationOutcomeCustom(
@@ -598,6 +629,13 @@ public class LibertyPluginSWTBotMultiLibertyModMavenTest extends AbstractLiberty
                               "Stop dialog should list " + MVN_EAR1_MODULE_NAME + " as active.");
         Assertions.assertTrue(activeItems.contains(MVN_EAR2_MODULE_NAME),
                               "Stop dialog should list " + MVN_EAR2_MODULE_NAME + " as active.");
+
+        clickDeselectAllInModuleSelectionDialog(stopDialog1);
+        int stopAfterDeselectAll1 = getModuleSelectionDialogCheckedItemCount(stopDialog1);
+        Assertions.assertEquals(0, stopAfterDeselectAll1,
+                                "After clicking Deselect All in the Start dialog 0 items should be checked, but "
+                                                          + stopAfterDeselectAll1 + " were still checked.");
+
         selectModuleInDialog(stopDialog1, MVN_EAR2_MODULE_NAME);
 
         LibertyPluginTestUtils.validateLibertyServerStopped(ear2ServerPath.toString());
@@ -816,10 +854,17 @@ public class LibertyPluginSWTBotMultiLibertyModMavenTest extends AbstractLiberty
             // appears showing all inactive modules. Select ear1.
             launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_START);
 
-            Shell moduleDialog = waitForModuleSelectionDialog(SWTBotTestCondition.SHORT_WAIT_MS);
-            Assertions.assertNotNull(moduleDialog,
+            Shell startDialog = waitForModuleSelectionDialog(SWTBotTestCondition.SHORT_WAIT_MS);
+            Assertions.assertNotNull(startDialog,
                                      "Module selection dialog did not open when triggering Start with ear1 running externally.");
-            selectModuleInDialog(moduleDialog, MVN_EAR1_MODULE_NAME);
+
+            clickDeselectAllInModuleSelectionDialog(startDialog);
+            int startAfterDeselectAll = getModuleSelectionDialogCheckedItemCount(startDialog);
+            Assertions.assertEquals(0, startAfterDeselectAll,
+                                    "After clicking Deselect All in the Start dialog 0 items should be checked, but "
+                                                              + startAfterDeselectAll + " were still checked.");
+
+            selectModuleInDialog(startDialog, MVN_EAR1_MODULE_NAME);
 
             // Liberty Tools detects that ear1 is already running. Wait for the Yes/No dialog
             // and confirm the restart.
@@ -884,24 +929,26 @@ public class LibertyPluginSWTBotMultiLibertyModMavenTest extends AbstractLiberty
         Assertions.assertNotNull(startDialog,
                                  "Module selection dialog did not open for the Start dashboard action.");
 
-        int startTotal = getModuleSelectionDialogItemCount(startDialog);
-        Assertions.assertEquals(EXPECTED_LIBERTY_MODULE_COUNT_ALL, startTotal,
-                                "Start dialog should list " + EXPECTED_LIBERTY_MODULE_COUNT_ALL
-                                                                               + " modules, but found " + startTotal + ".");
+        try {
+            int startTotal = getModuleSelectionDialogItemCount(startDialog);
+            Assertions.assertEquals(EXPECTED_LIBERTY_MODULE_COUNT_ALL, startTotal,
+                                    "Start dialog should list " + EXPECTED_LIBERTY_MODULE_COUNT_ALL
+                                                                                   + " modules, but found " + startTotal + ".");
 
-        clickSelectAllInModuleSelectionDialog(startDialog);
-        int startAfterSelectAll = getModuleSelectionDialogCheckedItemCount(startDialog);
-        Assertions.assertEquals(EXPECTED_LIBERTY_MODULE_COUNT_ALL, startAfterSelectAll,
-                                "After clicking Select All in the Start dialog all " + EXPECTED_LIBERTY_MODULE_COUNT_ALL
-                                                                                        + " items should be checked, but " + startAfterSelectAll + " were checked.");
+            clickSelectAllInModuleSelectionDialog(startDialog);
+            int startAfterSelectAll = getModuleSelectionDialogCheckedItemCount(startDialog);
+            Assertions.assertEquals(EXPECTED_LIBERTY_MODULE_COUNT_ALL, startAfterSelectAll,
+                                    "After clicking Select All in the Start dialog all " + EXPECTED_LIBERTY_MODULE_COUNT_ALL
+                                                                                            + " items should be checked, but " + startAfterSelectAll + " were checked.");
 
-        clickDeselectAllInModuleSelectionDialog(startDialog);
-        int startAfterDeselectAll = getModuleSelectionDialogCheckedItemCount(startDialog);
-        Assertions.assertEquals(0, startAfterDeselectAll,
-                                "After clicking Deselect All in the Start dialog 0 items should be checked, but "
-                                                          + startAfterDeselectAll + " were still checked.");
-
-        cancelModuleSelectionDialog(startDialog);
+            clickDeselectAllInModuleSelectionDialog(startDialog);
+            int startAfterDeselectAll = getModuleSelectionDialogCheckedItemCount(startDialog);
+            Assertions.assertEquals(0, startAfterDeselectAll,
+                                    "After clicking Deselect All in the Start dialog 0 items should be checked, but "
+                                                              + startAfterDeselectAll + " were still checked.");
+        } finally {
+            cancelModuleSelectionDialog(startDialog);
+        }
 
         // Start in Container action.
         launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_START_IN_CONTAINER);
@@ -910,18 +957,27 @@ public class LibertyPluginSWTBotMultiLibertyModMavenTest extends AbstractLiberty
         Assertions.assertNotNull(startCtrDialog,
                                  "Module selection dialog did not open for the Start in Container dashboard action.");
 
-        int startCtrTotal = getModuleSelectionDialogItemCount(startCtrDialog);
-        Assertions.assertEquals(EXPECTED_LIBERTY_MODULE_COUNT_ALL, startCtrTotal,
-                                "Start in Container dialog should list " + EXPECTED_LIBERTY_MODULE_COUNT_ALL
-                                                                                  + " modules, but found " + startCtrTotal + ".");
+        try {
+            int startCtrTotal = getModuleSelectionDialogItemCount(startCtrDialog);
+            Assertions.assertEquals(EXPECTED_LIBERTY_MODULE_COUNT_ALL, startCtrTotal,
+                                    "Start in Container dialog should list " + EXPECTED_LIBERTY_MODULE_COUNT_ALL
+                                                                                      + " modules, but found " + startCtrTotal + ".");
 
-        clickSelectAllInModuleSelectionDialog(startCtrDialog);
-        int startCtrAfterSelectAll = getModuleSelectionDialogCheckedItemCount(startCtrDialog);
-        Assertions.assertEquals(EXPECTED_LIBERTY_MODULE_COUNT_ALL, startCtrAfterSelectAll,
-                                "After clicking Select All in the Start in Container dialog all " + EXPECTED_LIBERTY_MODULE_COUNT_ALL
-                                                                                           + " items should be checked, but " + startCtrAfterSelectAll + " were checked.");
+            clickSelectAllInModuleSelectionDialog(startCtrDialog);
+            int startCtrAfterSelectAll = getModuleSelectionDialogCheckedItemCount(startCtrDialog);
+            Assertions.assertEquals(EXPECTED_LIBERTY_MODULE_COUNT_ALL, startCtrAfterSelectAll,
+                                    "After clicking Select All in the Start in Container dialog all " + EXPECTED_LIBERTY_MODULE_COUNT_ALL
+                                                                                               + " items should be checked, but " + startCtrAfterSelectAll + " were checked.");
 
-        cancelModuleSelectionDialog(startCtrDialog);
+            clickDeselectAllInModuleSelectionDialog(startCtrDialog);
+            int startCtrAfterDeselectAll = getModuleSelectionDialogCheckedItemCount(startCtrDialog);
+            Assertions.assertEquals(0, startCtrAfterDeselectAll,
+                                    "After clicking Deselect All in the Start dialog 0 items should be checked, but "
+                                                                 + startCtrAfterDeselectAll + " were still checked.");
+
+        } finally {
+            cancelModuleSelectionDialog(startCtrDialog);
+        }
     }
 
     /**
@@ -967,17 +1023,19 @@ public class LibertyPluginSWTBotMultiLibertyModMavenTest extends AbstractLiberty
         Assertions.assertNotNull(runTestsDialog,
                                  "Module selection dialog did not open for the Run Tests shortcut.");
 
-        int runTestsTotal = getModuleSelectionDialogItemCount(runTestsDialog);
-        Assertions.assertEquals(EXPECTED_LIBERTY_MODULE_COUNT_ALL, runTestsTotal,
-                                "Run Tests dialog should list " + EXPECTED_LIBERTY_MODULE_COUNT_ALL + " active modules, but found " + runTestsTotal + ".");
+        try {
+            int runTestsTotal = getModuleSelectionDialogItemCount(runTestsDialog);
+            Assertions.assertEquals(EXPECTED_LIBERTY_MODULE_COUNT_ALL, runTestsTotal,
+                                    "Run Tests dialog should list " + EXPECTED_LIBERTY_MODULE_COUNT_ALL + " active modules, but found " + runTestsTotal + ".");
 
-        clickDeselectAllInModuleSelectionDialog(runTestsDialog);
-        int runTestsAfterDeselectAll = getModuleSelectionDialogCheckedItemCount(runTestsDialog);
-        Assertions.assertEquals(0, runTestsAfterDeselectAll,
-                                "After clicking Deselect All in the Run Tests dialog 0 modules should be checked, but "
-                                                             + runTestsAfterDeselectAll + " were still checked.");
-
-        cancelModuleSelectionDialog(runTestsDialog);
+            clickDeselectAllInModuleSelectionDialog(runTestsDialog);
+            int runTestsAfterDeselectAll = getModuleSelectionDialogCheckedItemCount(runTestsDialog);
+            Assertions.assertEquals(0, runTestsAfterDeselectAll,
+                                    "After clicking Deselect All in the Run Tests dialog 0 modules should be checked, but "
+                                                                 + runTestsAfterDeselectAll + " were still checked.");
+        } finally {
+            cancelModuleSelectionDialog(runTestsDialog);
+        }
 
         // Trigger the Stop action.
         launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
