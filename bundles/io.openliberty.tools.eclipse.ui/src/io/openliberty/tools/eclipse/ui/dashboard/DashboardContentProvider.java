@@ -27,9 +27,15 @@ import io.openliberty.tools.eclipse.model.WorkspaceModel;
  */
 public class DashboardContentProvider implements ITreeContentProvider {
 
+    /** The workspace model used to resolve project relationships. */
     private WorkspaceModel workspaceModel;
 
-    public DashboardContentProvider(WorkspaceModel workspaceModel, DashboardView dashboardView) {
+    /**
+     * Constructor.
+     *
+     * @param workspaceModel The workspace model used to resolve project relationships.
+     */
+    public DashboardContentProvider(WorkspaceModel workspaceModel) {
         this.workspaceModel = workspaceModel;
     }
 

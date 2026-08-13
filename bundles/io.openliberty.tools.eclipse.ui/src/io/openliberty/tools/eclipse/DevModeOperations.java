@@ -106,7 +106,7 @@ public class DevModeOperations {
         DEBUG_CFG("Debug..."),
         DEBUG_CTR("Debug in container"),
         STOP("Stop"),
-        RUNTESTS("Run tests"),
+        RUN_TESTS("Run tests"),
         OPEN_MVN_IT_TEST_REPORT("View integration test report"),
         OPEN_MVN_UT_TEST_REPORT("View unit test report"),
         OPEN_GRADLE_TEST_REPORT("View test report");
@@ -331,7 +331,7 @@ public class DevModeOperations {
                         CommandData stopGradleDaemonCmdData = CommandBuilder.constructGradleStopDaemonCommand(targetProjectModel, pathEnv);
                         executeCommand(stopGradleDaemonCmdData.getCommand(), stopGradleDaemonCmdData.getExecutionPath());
                     } catch (IOException | InterruptedException e) {
-                        Logger.logError("An attempt to stop the Gradle daemon failed....");
+                        Logger.logError("An attempt to stop the Gradle daemon failed.");
                     }
                 }
             } else {
@@ -452,7 +452,7 @@ public class DevModeOperations {
                         CommandData stopGradleDaemonCmdData = CommandBuilder.constructGradleStopDaemonCommand(targetProjectModel, pathEnv);
                         executeCommand(stopGradleDaemonCmdData.getCommand(), stopGradleDaemonCmdData.getExecutionPath());
                     } catch (IOException | InterruptedException e) {
-                        Logger.logError("An attempt to stop the Gradle daemon failed....");
+                        Logger.logError("An attempt to stop the Gradle daemon failed.");
                     }
                 }
             } else {
@@ -502,11 +502,14 @@ public class DevModeOperations {
                 return;
             }
 
-            // Issue the command to the process.
-            processController.writeToProcessStream(targetProjectName, DEVMODE_COMMAND_EXIT);
+            // Transition to STOPPING so the dashboard shows the stopping icon.
+            targetProjectModel.setAppState(ProjectModel.AppState.STOPPING);
+            refreshDashboardLabel(targetProjectModel);
 
-            // Cleanup internal objects.
-            cleanupProcess(targetProjectName);
+            // Issue the command to the process.
+            // Note that process cleanup is deferred until the dev mode has stopped.
+            // This is done by the state handler. and the debug event listener.
+            processController.writeToProcessStream(targetProjectName, DEVMODE_COMMAND_EXIT);
         } catch (Exception e) {
             String msg = Messages.getMessage("stop_general_error", targetProjectName);
             ErrorHandler.processErrorMessage(msg, true);
@@ -527,12 +530,8 @@ public class DevModeOperations {
         ProjectModel projectModel = workspaceModel.getProjectByName(projectName);
         String projectPath = (projectModel != null) ? projectModel.getPath() : null;
         processController.cleanup(projectName, projectPath);
-        // Safety-net: ensure the module is STOPPED if it didn't receive CWWKE0036I:
-        // (e.g. process was killed or crashed).
-        if (projectModel != null && projectModel.getAppState() != ProjectModel.AppState.STOPPED) {
-            projectModel.setAppState(ProjectModel.AppState.STOPPED);
-            refreshDashboardLabel(projectModel);
-        }
+        projectModel.setAppState(ProjectModel.AppState.STOPPED);
+        refreshDashboardLabel(projectModel);
     }
 
     /**
@@ -1576,7 +1575,7 @@ public class DevModeOperations {
             case DEBUG_CFG -> Messages.getMessage("dashboard_action_debug_config");
             case DEBUG_CTR -> Messages.getMessage("dashboard_action_debug_in_container");
             case STOP -> Messages.getMessage("dashboard_action_stop");
-            case RUNTESTS -> Messages.getMessage("dashboard_action_run_tests");
+            case RUN_TESTS -> Messages.getMessage("dashboard_action_run_tests");
             case OPEN_MVN_IT_TEST_REPORT -> Messages.getMessage("dashboard_action_view_mvn_it_report");
             case OPEN_MVN_UT_TEST_REPORT -> Messages.getMessage("dashboard_action_view_mvn_ut_report");
             case OPEN_GRADLE_TEST_REPORT -> Messages.getMessage("dashboard_action_view_gradle_test_report");

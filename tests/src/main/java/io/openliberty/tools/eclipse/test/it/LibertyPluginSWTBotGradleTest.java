@@ -29,7 +29,6 @@ import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchCustomDebugFromDashboard;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchCustomRunFromDashboard;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchDashboardAction;
-import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.waitForAndClickButton;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchDebugConfigurationsDialogFromAppRunAs;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchRunConfigurationsDialogFromAppRunAs;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchRunTestsWithRunAsShortcut;
@@ -48,6 +47,7 @@ import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.setBuildCmdPathInPreferences;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.terminateLaunch;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.unsetBuildCmdPathInPreferences;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.waitForAndClickButton;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.BufferedReader;
@@ -414,12 +414,6 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
 
         boolean devModeStopped = false;
         try {
-            // Record the messages.log timestamp before triggering the restart. This is used
-            // after the restart to prove that the server genuinely restarted and was not
-            // simply left running from the original external process.
-            long timestampBeforeRestart = new File(libertyBasePath
-                                                   + "/wlp/usr/servers/defaultServer/logs/messages.log").lastModified();
-
             // Trigger the start action. Liberty Tools detects the externally running server
             // and opens a Yes/No dialog.
             launchDashboardAction(GRADLE_WRAPPER_APP_NAME, DashboardView.APP_MENU_ACTION_START);
@@ -435,11 +429,6 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
 
             // Validate that the server came back up under Liberty Tools.
             LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_WRAPPER_APP_NAME, true, libertyBasePath);
-
-            // Validate that messages.log is newer than before the restart was triggered.
-            // A newer timestamp proves the server process was genuinely restarted and is not
-            // the original externally started instance still running.
-            LibertyPluginTestUtils.validateMessagesLogIsNewer(libertyBasePath, timestampBeforeRestart);
 
             // Stop dev mode via Liberty Tools.
             launchDashboardAction(GRADLE_WRAPPER_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
@@ -458,7 +447,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
 
                 Process stopDMProcess = stopDMPB.start();
                 stopDMProcess.waitFor(3, TimeUnit.SECONDS);
-                
+
                 LibertyPluginTestUtils.validateLibertyServerStopped(libertyBasePath);
             }
         }

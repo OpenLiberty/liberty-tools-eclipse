@@ -25,25 +25,17 @@ import io.openliberty.tools.eclipse.model.ProjectModel;
 
 /**
  * Drives the STARTING in-progress spinner animation for the Liberty Dashboard.
- *
- * Loads FRAME_COUNT spinner frame images, applies a caller-supplied frame
- * transform (e.g. centre-in-canvas), and advances them at ~10 fps via a
- * Display.timerExec loop, triggering a label refresh for each project currently
- * in the STARTING state.
  */
 class SpinnerAnimator {
 
     /** Number of frames in the spinner animation. */
     static final int FRAME_COUNT = 12;
 
-    /** Delay between frames in milliseconds (~10 fps). */
+    /** Delay between frames in milliseconds (approximately 10 fps). */
     private static final int FRAME_DELAY_MS = 100;
 
-    /** Spinner frames transformed for child-row display (centred in canvas). */
+    /** Spinner frame images after the caller-supplied transform has been applied. */
     private final Image[] frames;
-
-    /** Spinner frames transformed for parent-row overlay (raw 8x8). */
-    private final Image[] framesOverlay;
 
     /** Index of the current animation frame. */
     private volatile int currentFrame = 0;
@@ -60,17 +52,13 @@ class SpinnerAnimator {
     /**
      * Creates and initializes a new SpinnerAnimator.
      *
-     * @param dashboardView    The dashboard view to refresh on each animation tick.
-     * @param canvasTransform  Transform applied to produce the child-row canvas frame.
-     * @param overlayTransform Transform applied to produce the parent-row overlay frame.
-     *                             Pass img -> img to keep the raw image as-is.
+     * @param dashboardView The dashboard view to refresh on each animation tick.
+     * @param frameTransform Transform applied to each raw frame before storage.
+     *                       Pass null to store the raw frame as-is.
      */
-    SpinnerAnimator(DashboardView dashboardView,
-                    UnaryOperator<Image> canvasTransform,
-                    UnaryOperator<Image> overlayTransform) {
+    SpinnerAnimator(DashboardView dashboardView, UnaryOperator<Image> frameTransform) {
         this.dashboardView = dashboardView;
         this.frames = new Image[FRAME_COUNT];
-        this.framesOverlay = new Image[FRAME_COUNT];
         for (int i = 0; i < FRAME_COUNT; i++) {
             ImageDescriptor desc = LibertyDevPlugin.loadIconDescriptor("spinners/state/state_in_progress_" + (i + 1) + "_8");
             if (desc == null) {
@@ -80,32 +68,25 @@ class SpinnerAnimator {
             if (raw == null) {
                 continue;
             }
-            frames[i] = (canvasTransform != null) ? canvasTransform.apply(raw) : raw;
-            framesOverlay[i] = (overlayTransform != null) ? overlayTransform.apply(raw) : raw;
-
-            // Dispose raw only if neither transform returned it as-is.
-            if (raw != frames[i] && raw != framesOverlay[i] && !raw.isDisposed()) {
-                raw.dispose();
+            if (frameTransform != null) {
+                frames[i] = frameTransform.apply(raw);
+                // Dispose the raw frame only when the transform produced a new image.
+                if (frames[i] != raw && !raw.isDisposed()) {
+                    raw.dispose();
+                }
+            } else {
+                frames[i] = raw;
             }
         }
     }
 
     /**
-     * Returns the current spinner frame centred in the child-row canvas.
+     * Returns the current spinner frame image.
      *
-     * @return The current canvas frame, or null if not loaded.
+     * @return The current frame, or null if not loaded.
      */
     Image getCurrentFrame() {
         return frames[currentFrame];
-    }
-
-    /**
-     * Returns the current spinner frame for use as a parent-row badge overlay.
-     *
-     * @return The current overlay frame, or null if not loaded.
-     */
-    Image getCurrentFrameOverlay() {
-        return framesOverlay[currentFrame];
     }
 
     /**
@@ -157,11 +138,6 @@ class SpinnerAnimator {
             if (frames[i] != null && !frames[i].isDisposed()) {
                 frames[i].dispose();
                 frames[i] = null;
-            }
-            // framesOverlay[i] may be the same object as frames[i] (identity transform).
-            if (framesOverlay[i] != null && !framesOverlay[i].isDisposed()) {
-                framesOverlay[i].dispose();
-                framesOverlay[i] = null;
             }
         }
     }

@@ -12,6 +12,8 @@
 *******************************************************************************/
 package io.openliberty.tools.eclipse.model;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -19,6 +21,7 @@ import java.util.Deque;
 import java.util.List;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Stream;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
@@ -27,7 +30,6 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.core.runtime.Path;
 
 import io.openliberty.tools.eclipse.LibertyNature;
 import io.openliberty.tools.eclipse.logging.Trace;
@@ -64,12 +66,14 @@ public class ProjectModel {
      * The parent's visual state is derived dynamically from its children.
      */
     public enum AppState {
-        /** Dev mode process is not running (initial state). */
-        STOPPED,
         /** Dev mode process has started but the Liberty server has not yet reported ready. */
         STARTING,
         /** Liberty server has reported {@code CWWKZ0001I:} — the application is fully started. */
-        RUNNING
+        RUNNING,
+        /** A stop has been requested but the Liberty server has not yet confirmed shutdown. */
+        STOPPING,
+        /** Dev mode process is not running (initial state). */
+        STOPPED
     }
 
     /** The Eclipse project reference. */
@@ -82,7 +86,7 @@ public class ProjectModel {
     private ProjectModel parentProjectModel;
 
     /**
-     * Indicates whether this module has Liberty server configuration files such as 
+     * Indicates whether this module has Liberty server configuration files such as
      * server.xml, bootstrap.properties, server.env, or the Liberty plugin configuration.
      */
     private boolean libertyServerModule;
@@ -101,7 +105,7 @@ public class ProjectModel {
 
     /** Indicates whether or not this project was started as part of a batch start. */
     private boolean batchStarted = false;
-    
+
     /**
      * The child projects associated with this project in a multi-module structure.
      * Thread-safe set to support concurrent access during workspace model building.
@@ -137,15 +141,11 @@ public class ProjectModel {
      * or are parents of modules with Liberty configuration. This nature enables
      * Liberty-specific UI elements and commands in Eclipse.
      *
-     * @return true if the project has the Liberty nature, false otherwise.
+     * @return True if the project has the Liberty nature. False otherwise.
      */
     public boolean hasLibertyNature() {
         try {
-            if (iProject.getDescription().hasNature(LibertyNature.NATURE_ID)) {
-                return true;
-            } else {
-                return false;
-            }
+            return iProject.getDescription().hasNature(LibertyNature.NATURE_ID);
         } catch (Exception e) {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS,
@@ -350,9 +350,9 @@ public class ProjectModel {
      */
     public void classifyAsLibertyServerModule() {
         try {
-            IFile serverxml = iProject.getFile(new Path("src/main/liberty/config/server.xml"));
-            IFile bootstrapProps = iProject.getFile(new Path("src/main/liberty/config/bootstrap.properties"));
-            IFile serverenv = iProject.getFile(new Path("src/main/liberty/config/server.env"));
+            IFile serverxml = iProject.getFile(new org.eclipse.core.runtime.Path("src/main/liberty/config/server.xml"));
+            IFile bootstrapProps = iProject.getFile(new org.eclipse.core.runtime.Path("src/main/liberty/config/bootstrap.properties"));
+            IFile serverenv = iProject.getFile(new org.eclipse.core.runtime.Path("src/main/liberty/config/server.env"));
             boolean isLibertyPluginConfigured = (buildConfigMetadata != null) ? buildConfigMetadata.isLibertyPluginConfigured() : false;
             boolean isModuleDisabled = (buildConfigMetadata != null) ? buildConfigMetadata.isModuleDisabled() : false;
 
@@ -521,7 +521,7 @@ public class ProjectModel {
      * A project is a Liberty server module if it contains Liberty configuration files
      * such as server.xml, bootstrap.properties, or server.env in the standard location.
      *
-     * @return True If this is a Liberty server module. False, otherwise
+     * @return True if this is a Liberty server module. False otherwise.
      */
     public boolean isLibertyServerModule() {
         return libertyServerModule;
@@ -566,7 +566,7 @@ public class ProjectModel {
     /**
      * Checks whether this project is part of a multi-module structure (has a parent).
      *
-     * @return True if this project has a parent project. False, otherwise.
+     * @return True if this project has a parent project. False otherwise.
      */
     public boolean isAggregated() {
         return parentProjectModel != null;
@@ -587,7 +587,7 @@ public class ProjectModel {
     /**
      * Returns whether this project has test source files.
      *
-     * @return True if test source directories exist. False, otherwise.
+     * @return True if test source directories exist. False otherwise.
      */
     public boolean hasTests() {
         return hasTests;
@@ -609,7 +609,7 @@ public class ProjectModel {
         }
 
         // Check for standard test directory (Maven and Gradle convention)
-        java.nio.file.Path testDir = Paths.get(projectPath, "src", "test");
+        Path testDir = Paths.get(projectPath, "src", "test");
         this.hasTests = hasTestFiles(testDir);
     }
 
@@ -619,15 +619,15 @@ public class ProjectModel {
      * @param dir The directory to check
      * @return true if the directory contains files (indicating tests exist), false otherwise
      */
-    private boolean hasTestFiles(java.nio.file.Path dir) {
-        if (!java.nio.file.Files.exists(dir) || !java.nio.file.Files.isDirectory(dir)) {
+    private boolean hasTestFiles(Path dir) {
+        if (!Files.exists(dir) || !Files.isDirectory(dir)) {
             return false;
         }
 
-        try (java.util.stream.Stream<java.nio.file.Path> paths = java.nio.file.Files.walk(dir, 20)) {
-            // Check if there are any regular files in the directory tree
-            // This indicates the directory is not empty and likely contains test source files
-            return paths.anyMatch(path -> java.nio.file.Files.isRegularFile(path));
+        try (Stream<Path> paths = Files.walk(dir, 20)) {
+            // Check if there are any regular files in the directory tree.
+            // This indicates the directory is not empty and likely contains test source files.
+            return paths.anyMatch(path -> Files.isRegularFile(path));
         } catch (Exception e) {
             // If we can't read the directory, assume no tests
             if (Trace.isEnabled()) {
@@ -722,7 +722,7 @@ public class ProjectModel {
     public void setAppState(AppState appState) {
         this.appState = appState;
     }
-    
+
     /**
      * Returns true if this project was started as part of a multi-module batch start.
      *
@@ -737,7 +737,7 @@ public class ProjectModel {
      *
      * @param batchStarted The batch started indicator.
      */
-    public void setBachStarted(boolean batchStarted) {
+    public void setBatchStarted(boolean batchStarted) {
         this.batchStarted = batchStarted;
     }
 }

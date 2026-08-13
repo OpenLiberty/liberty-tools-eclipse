@@ -113,7 +113,7 @@ public class RunTestsAction implements ILaunchShortcut {
 
         // Resolve the target projects taking into account only those that are actively running.
         // This action accepts batch project execution.
-        List<ProjectModel> targetProjects = devModeOps.resolveCommandTargets(selectedProjectModel, DashboardAction.RUNTESTS, DevModeOperations.ModuleStateFilter.ACTIVE, true);
+        List<ProjectModel> targetProjects = devModeOps.resolveCommandTargets(selectedProjectModel, DashboardAction.RUN_TESTS, DevModeOperations.ModuleStateFilter.ACTIVE, true);
         if (targetProjects.isEmpty()) {
             return;
         }

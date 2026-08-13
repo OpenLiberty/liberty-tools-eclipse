@@ -122,9 +122,7 @@ public class StopAction implements ILaunchShortcut {
             String targetProjectName = targetProjectModel.getName();
 
             // Reset batch started indicator.
-            if (targetProjectModel.isBatchStarted()) {
-                targetProjectModel.setBachStarted(false);
-            }
+            targetProjectModel.setBatchStarted(false);
 
             // Update the active selection to the target project if it differs from the original.
             if (!selectedProjectName.equals(targetProjectName)) {

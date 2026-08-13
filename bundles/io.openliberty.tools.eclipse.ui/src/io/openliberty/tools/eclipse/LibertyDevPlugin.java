@@ -25,12 +25,13 @@ import org.eclipse.core.resources.IWorkspace;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Platform;
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.osgi.service.debug.DebugOptions;
 import org.eclipse.osgi.service.debug.DebugOptionsListener;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
-import org.eclipse.jface.resource.ImageDescriptor;
-import org.eclipse.swt.graphics.Image;
+import org.eclipse.ui.themes.ITheme;
+import org.eclipse.ui.themes.IThemeManager;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 
@@ -169,6 +170,30 @@ public class LibertyDevPlugin extends AbstractUIPlugin {
         }
 
         return isSvgSupported;
+    }
+
+    /**
+     * Returns true when Eclipse is currently using a dark color theme.
+     *
+     * @return True if the current theme is dark; false otherwise.
+     */
+    public static boolean isDarkTheme() {
+        try {
+            if (!PlatformUI.isWorkbenchRunning()) {
+                return false;
+            }
+            IThemeManager themeManager = PlatformUI.getWorkbench().getThemeManager();
+            if (themeManager == null) {
+                return false;
+            }
+            ITheme currentTheme = themeManager.getCurrentTheme();
+            if (currentTheme == null) {
+                return false;
+            }
+            return currentTheme.getId().toLowerCase().contains("dark");
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     /**

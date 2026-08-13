@@ -485,10 +485,11 @@ public class SWTBotPluginOperations {
         SWTBotTree dashboardTree = getDashboardTree();
 
         ArrayList<String> contentList = new ArrayList<String>();
-        // Get all tree items (root level projects)
+        // Get all tree items (root level projects).
         SWTBotTreeItem[] items = dashboardTree.getAllItems();
         for (SWTBotTreeItem item : items) {
-            contentList.add(item.getText());
+            // Column 1 holds the project name; column 0 holds the build-type badge.
+            contentList.add(getTreeItemNameText(item));
             // Expand the item to make children visible.
             item.expand();
             // Recursively add child items.
@@ -502,18 +503,46 @@ public class SWTBotPluginOperations {
      * Recursively adds child tree items to the content list.
      * Expands each item before processing its children.
      *
-     * @param parent      The parent tree item
-     * @param contentList The list to add items to
+     * @param parent      The parent tree item.
+     * @param contentList The list to add items to.
      */
     private static void addChildItems(SWTBotTreeItem parent, ArrayList<String> contentList) {
         SWTBotTreeItem[] children = parent.getItems();
         for (SWTBotTreeItem child : children) {
-            contentList.add(child.getText());
-            // Expand child to make grandchildren visible
+            // Column 1 holds the project name; column 0 holds the build-type badge.
+            contentList.add(getTreeItemNameText(child));
+            // Expand child to make grandchildren visible.
             child.expand();
-            // Recursively process grandchildren
+            // Recursively process grandchildren.
             addChildItems(child, contentList);
         }
+    }
+
+    /**
+     * Returns the project name text from column 1 of the given dashboard tree item.
+     *
+     * The dashboard tree has two columns: column 0 is the build-type badge (image only,
+     * empty text) and column 1 is the state icon plus project name. SWTBotTreeItem.getText()
+     * reads only column 0, so the underlying SWT TreeItem must be accessed directly via
+     * syncExec to retrieve column 1 text.
+     *
+     * @param item The tree item whose column 1 text to read.
+     *
+     * @return The project name from column 1, or an empty string if unavailable.
+     */
+    public static String getTreeItemNameText(SWTBotTreeItem item) {
+        final String[] result = { "" };
+        Display.getDefault().syncExec(() -> {
+            try {
+                TreeItem treeItem = item.widget;
+                if (treeItem != null && !treeItem.isDisposed()) {
+                    result[0] = treeItem.getText(1);
+                }
+            } catch (Exception e) {
+                // Return empty string on any error.
+            }
+        });
+        return result[0];
     }
 
     /**
@@ -546,13 +575,14 @@ public class SWTBotPluginOperations {
      * @return The tree item if found, null otherwise
      */
     private static SWTBotTreeItem findTreeItem(SWTBotTree tree, String itemName) {
-        // First try root level items
+        // First try root level items.
         SWTBotTreeItem[] rootItems = tree.getAllItems();
         for (SWTBotTreeItem rootItem : rootItems) {
-            if (rootItem.getText().equals(itemName)) {
+            // Column 1 holds the project name; column 0 holds the build-type badge.
+            if (getTreeItemNameText(rootItem).equals(itemName)) {
                 return rootItem;
             }
-            // Expand and search children recursively
+            // Expand and search children recursively.
             rootItem.expand();
             SWTBotTreeItem found = findTreeItemInChildren(rootItem, itemName);
             if (found != null) {
@@ -565,17 +595,19 @@ public class SWTBotPluginOperations {
     /**
      * Recursively searches for a tree item by name within the children of a parent item.
      *
-     * @param parent   The parent tree item
-     * @param itemName The name of the item to find
-     * @return The tree item if found, null otherwise
+     * @param parent   The parent tree item.
+     * @param itemName The name of the item to find.
+     *
+     * @return The tree item if found, null otherwise.
      */
     private static SWTBotTreeItem findTreeItemInChildren(SWTBotTreeItem parent, String itemName) {
         SWTBotTreeItem[] children = parent.getItems();
         for (SWTBotTreeItem child : children) {
-            if (child.getText().equals(itemName)) {
+            // Column 1 holds the project name; column 0 holds the build-type badge.
+            if (getTreeItemNameText(child).equals(itemName)) {
                 return child;
             }
-            // Expand and search grandchildren recursively
+            // Expand and search grandchildren recursively.
             child.expand();
             SWTBotTreeItem found = findTreeItemInChildren(child, itemName);
             if (found != null) {
@@ -641,10 +673,10 @@ public class SWTBotPluginOperations {
      * Finds a dialog with the specified title, brings it into focus, and clicks the button.
      * Useful for dialogs that may take time to appear and may lose focus.
      *
-     * @param bot The SWTWorkbenchBot instance.
+     * @param bot         The SWTWorkbenchBot instance.
      * @param dialogTitle The title of the dialog to find (substring match).
-     * @param buttonText The text of the button to find and click.
-     * @param timeoutMs The maximum time to wait in milliseconds.
+     * @param buttonText  The text of the button to find and click.
+     * @param timeoutMs   The maximum time to wait in milliseconds.
      */
     public static void waitForAndClickButton(SWTBot bot, String dialogTitle, String buttonText, int timeoutMs) {
         boolean success = SWTBotTestCondition.waitFor(() -> {
@@ -666,12 +698,12 @@ public class SWTBotPluginOperations {
                         // Continue searching
                     }
                 }
-                
+
                 if (dialogShell == null) {
                     System.out.println("[waitForAndClickButton] Retrying: dialog with title '" + dialogTitle + "' and button '" + buttonText + "' not found");
                     return false;
                 }
-                
+
                 // Bring the dialog into focus before clicking
                 final SWTBotShell shellToFocus = dialogShell;
                 Display.getDefault().syncExec(new Runnable() {
@@ -684,7 +716,7 @@ public class SWTBotPluginOperations {
                         }
                     }
                 });
-                
+
                 // Click the button
                 dialogShell.bot().button(buttonText).click();
                 return true;
@@ -693,10 +725,10 @@ public class SWTBotPluginOperations {
                 return false;
             }
         }, timeoutMs);
-        
+
         if (!success) {
-            throw new org.eclipse.swtbot.swt.finder.exceptions.WidgetNotFoundException(
-                "Failed to find and click button '" + buttonText + "' in dialog with title '" + dialogTitle + "'");
+            throw new org.eclipse.swtbot.swt.finder.exceptions.WidgetNotFoundException("Failed to find and click button '" + buttonText + "' in dialog with title '" + dialogTitle
+                                                                                       + "'");
         }
     }
 
@@ -1368,7 +1400,12 @@ public class SWTBotPluginOperations {
     public static SWTBotRootMenu getAppContextMenu(String item) {
 
         SWTBotTree dashboardTree = getDashboardTree();
-        SWTBotTreeItem treeItem = dashboardTree.getTreeItem(item);
+        // Use findTreeItem instead of getTreeItem because getTreeItem matches on column-0
+        // text, which is the badge column. The project name lives in column 1.
+        SWTBotTreeItem treeItem = findTreeItem(dashboardTree, item);
+        if (treeItem == null) {
+            throw new org.eclipse.swtbot.swt.finder.exceptions.WidgetNotFoundException("Dashboard tree item not found: " + item);
+        }
         treeItem.select();
         return treeItem.contextMenu();
     }
@@ -1394,7 +1431,6 @@ public class SWTBotPluginOperations {
             return active[0];
         }, SWTBotTestCondition.VALIDATION_WAIT_MS);
     }
-
 
     /**
      * Closes the Open Liberty dashboard view.
@@ -1704,9 +1740,9 @@ public class SWTBotPluginOperations {
      */
     public static Shell waitForModuleSelectionDialog(int maxWaitMs) {
         boolean appeared = SWTBotTestCondition.waitFor(
-                () -> findShellWithLabel("Select a module.") != null
-                        || findShellWithLabel("Select one or more modules.") != null,
-                maxWaitMs);
+                                                       () -> findShellWithLabel("Select a module.") != null
+                                                             || findShellWithLabel("Select one or more modules.") != null,
+                                                       maxWaitMs);
         if (!appeared) {
             return null;
         }
@@ -1866,6 +1902,101 @@ public class SWTBotPluginOperations {
             }
         });
         go("OK", dialogShell);
+    }
+
+    /**
+     * Clicks the "Select All" button in the module selection dialog. This button checks every
+     * currently visible item in the checkbox table.
+     *
+     * @param dialogShell The shell of the module selection dialog.
+     */
+    public static void clickSelectAllInModuleSelectionDialog(Shell dialogShell) {
+        clickButtonInShell(dialogShell, "Select All");
+    }
+
+    /**
+     * Clicks the "Deselect All" button in the module selection dialog. This button unchecks every
+     * currently visible item in the checkbox table.
+     *
+     * @param dialogShell The shell of the module selection dialog.
+     */
+    public static void clickDeselectAllInModuleSelectionDialog(Shell dialogShell) {
+        clickButtonInShell(dialogShell, "Deselect All");
+    }
+
+    /**
+     * Returns the number of checked items in the checkbox table of the module selection dialog.
+     *
+     * @param dialogShell The shell of the module selection dialog.
+     *
+     * @return The number of checked items in the dialog's checkbox table.
+     */
+    public static int getModuleSelectionDialogCheckedItemCount(Shell dialogShell) {
+        final int[] count = { 0 };
+        Display.getDefault().syncExec(() -> {
+            org.eclipse.swt.widgets.Table table = findTableInShell(dialogShell);
+            if (table != null && (table.getStyle() & SWT.CHECK) != 0) {
+                for (org.eclipse.swt.widgets.TableItem ti : table.getItems()) {
+                    if (ti.getChecked()) {
+                        count[0]++;
+                    }
+                }
+            }
+        });
+        return count[0];
+    }
+
+    /**
+     * Selects all modules in the dialog by clicking the "Select All" button and then confirms
+     * the selection by pressing OK.
+     *
+     * @param dialogShell The shell of the module selection dialog.
+     */
+    public static void selectAllModulesAndConfirmInDialog(Shell dialogShell) {
+        clickSelectAllInModuleSelectionDialog(dialogShell);
+        go("OK", dialogShell);
+    }
+
+    /**
+     * Clicks the button with the given label inside the given shell. Must not be called from the
+     * SWT display thread.
+     *
+     * @param shell       The shell to search.
+     * @param buttonLabel The exact label text of the button to click.
+     */
+    private static void clickButtonInShell(Shell shell, String buttonLabel) {
+        Display.getDefault().syncExec(() -> {
+            Button btn = findButtonInComposite(shell, buttonLabel);
+            if (btn != null && !btn.isDisposed() && btn.isEnabled()) {
+                btn.notifyListeners(SWT.Selection, new org.eclipse.swt.widgets.Event());
+            }
+        });
+    }
+
+    /**
+     * Recursively searches a composite hierarchy for a Button widget with the given label.
+     * Must be called from the SWT display thread.
+     *
+     * @param composite   The composite to search.
+     * @param buttonLabel The exact label text of the button to locate.
+     *
+     * @return The matching Button widget, or null if none is found.
+     */
+    private static Button findButtonInComposite(org.eclipse.swt.widgets.Composite composite, String buttonLabel) {
+        for (Control child : composite.getChildren()) {
+            if (child instanceof Button) {
+                if (buttonLabel.equals(((Button) child).getText())) {
+                    return (Button) child;
+                }
+            }
+            if (child instanceof org.eclipse.swt.widgets.Composite) {
+                Button found = findButtonInComposite((org.eclipse.swt.widgets.Composite) child, buttonLabel);
+                if (found != null) {
+                    return found;
+                }
+            }
+        }
+        return null;
     }
 
     /**
