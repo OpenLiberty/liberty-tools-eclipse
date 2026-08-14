@@ -118,14 +118,10 @@ public class RunTestsAction implements ILaunchShortcut {
             return;
         }
 
-        // Run tests found in  all target projects/modules. 
+        // Run tests found in all target projects/modules.
         for (ProjectModel targetProjectModel : targetProjects) {
-            String targetProjectName = targetProjectModel.getName();
-
-            // Update the active selection to the target project if it differs from the original.
-            if (!selectedProjectName.equals(targetProjectName)) {
-                Utils.updateActiveSelection(targetProjectModel);
-            }
+            // Update the active selection to the target project.
+            Utils.updateActiveSelection(targetProjectModel);
 
             // Trigger tests for this module.
             devModeOps.runTests(targetProjectModel);

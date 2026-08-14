@@ -19,7 +19,6 @@ import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.swt.widgets.Display;
 
-import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.model.ProjectModel;
 import io.openliberty.tools.eclipse.model.WorkspaceModel;
 
@@ -68,7 +67,7 @@ public class LibertyResourceChangeListener implements IResourceChangeListener {
                         case IResourceDelta.CHANGED:
                             String projectLocation = iProject.getLocation().toOSString();
                             ProjectModel projectModel = workspaceModel.getProjectByLocation(projectLocation);
-                            
+
                             if (projectModel != null && (updateFlag == IResourceDelta.OPEN || updateFlag == 147456)) {
                                 refreshNeeded = true;
                             }

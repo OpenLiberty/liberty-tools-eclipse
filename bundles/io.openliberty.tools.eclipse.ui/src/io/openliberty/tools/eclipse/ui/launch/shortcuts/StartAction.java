@@ -158,15 +158,11 @@ public class StartAction implements ILaunchShortcut {
             }
         }
 
-        // Launch all target projects/modules. 
+        // Launch all target projects/modules.
         LaunchConfigurationHelper launchConfigHelper = LaunchConfigurationHelper.getInstance();
         for (ProjectModel targetProjectModel : targetProjects) {
-            String targetProjectName = targetProjectModel.getName();
-
-            // Update the active selection to the selected target project if the original selection does not match the target.
-            if (!selectedProjectName.equals(targetProjectName)) {
-                Utils.updateActiveSelection(targetProjectModel);
-            }
+            // Update the active selection to the target project.
+            Utils.updateActiveSelection(targetProjectModel);
 
             ILaunchConfiguration configuration = launchConfigHelper.getLaunchConfiguration(targetProjectModel, mode, RuntimeEnv.LOCAL);
             DebugUITools.launch(configuration, mode);

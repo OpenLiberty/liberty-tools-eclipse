@@ -48,7 +48,7 @@ public class DevModeStateHandler implements IConsoleLineHandler {
          * Returns true if the given line matches this pattern.
          *
          * @param line The line of console output to test.
-         * 
+         *
          * @return True if the line matches, false otherwise.
          */
         boolean matches(String line);
@@ -59,6 +59,7 @@ public class DevModeStateHandler implements IConsoleLineHandler {
      */
     private static class RegexMatcher implements PatternMatcher {
 
+        /** The compiled regular expression used to test console lines. */
         private final Pattern pattern;
 
         RegexMatcher(String regex) {
@@ -79,6 +80,7 @@ public class DevModeStateHandler implements IConsoleLineHandler {
      */
     private static class ContainsMatcher implements PatternMatcher {
 
+        /** The fixed substring to search for in each console line. */
         private final String substring;
 
         ContainsMatcher(String substring) {
@@ -99,7 +101,10 @@ public class DevModeStateHandler implements IConsoleLineHandler {
      */
     private static class PatternAction {
 
+        /** The matcher that tests whether a console line triggers this action. */
         final PatternMatcher matcher;
+
+        /** The action to invoke when the matcher returns true. */
         final Consumer<String> action;
 
         PatternAction(PatternMatcher matcher, Consumer<String> action) {
@@ -193,22 +198,25 @@ public class DevModeStateHandler implements IConsoleLineHandler {
     }
 
     /**
-     * Called when {@code CWWKZ0001I:} is detected — the Liberty application has started.
-     * Transitions the module to {@code RUNNING} and refreshes the dashboard label.
+     * Called when CWWKZ0001I is detected. This means that the Liberty application has started.
+     * Transitions the module to RUNNING and refreshes the dashboard label.
      */
     private void handleAppStarted() {
         projectModel.setAppState(ProjectModel.AppState.RUNNING);
-        DevModeOperations.getInstance().refreshDashboardLabel(projectModel);
+        DevModeOperations devModeOps = DevModeOperations.getInstance();
+        devModeOps.cacheAppState(projectModel.getName(), ProjectModel.AppState.RUNNING);
+        devModeOps.refreshDashboardLabel(projectModel);
     }
 
     /**
-     * Called when {@code CWWKE0036I:} is detected — the Liberty server has stopped.
-     * Transitions the module to {@code STOPPED}, refreshes the dashboard label, and
+     * Called when CWWKE0036I is detected. This means that the Liberty server has stopped.
+     * Transitions the module to STOPPED, refreshes the dashboard label, and
      * tears down the console interceptor and process map entry for this project.
      */
     private void handleServerStopped() {
         projectModel.setAppState(ProjectModel.AppState.STOPPED);
         DevModeOperations devModeOps = DevModeOperations.getInstance();
+        devModeOps.cacheAppState(projectModel.getName(), ProjectModel.AppState.STOPPED);
         devModeOps.cleanupProcess(projectModel.getName());
     }
 

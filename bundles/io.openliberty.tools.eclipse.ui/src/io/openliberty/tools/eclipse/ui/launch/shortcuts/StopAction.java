@@ -119,15 +119,11 @@ public class StopAction implements ILaunchShortcut {
 
         // Stop all targeted projects.
         for (ProjectModel targetProjectModel : targetProjects) {
-            String targetProjectName = targetProjectModel.getName();
-
             // Reset batch started indicator.
             targetProjectModel.setBatchStarted(false);
 
-            // Update the active selection to the target project if it differs from the original.
-            if (!selectedProjectName.equals(targetProjectName)) {
-                Utils.updateActiveSelection(targetProjectModel);
-            }
+            // Update the active selection to the target project.
+            Utils.updateActiveSelection(targetProjectModel);
 
             // Process the stop action.
             devModeOps.stop(targetProjectModel);
