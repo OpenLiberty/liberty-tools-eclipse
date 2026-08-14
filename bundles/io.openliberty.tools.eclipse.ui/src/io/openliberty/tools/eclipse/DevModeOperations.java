@@ -175,6 +175,15 @@ public class DevModeOperations {
     private final Map<String, ServerSocket> libertyDebugPortReservations = new ConcurrentHashMap<String, ServerSocket>();
 
     /**
+     * Tracks the last known app state for every project by project name. Updated at every
+     * state transition so that the state can be seeded into the newly created ProjectModel
+     * instances after the workspace model is rebuilt on a dashboard refresh. Entries whose
+     * state is STOPPED are removed because STOPPED is the default initial state of every
+     * new ProjectModel.
+     */
+    private final Map<String, ProjectModel.AppState> projectStateTable = new ConcurrentHashMap<String, ProjectModel.AppState>();
+
+    /**
      * Process controller instance.
      */
     private ProcessController processController;
@@ -504,6 +513,7 @@ public class DevModeOperations {
 
             // Transition to STOPPING so the dashboard shows the stopping icon.
             targetProjectModel.setAppState(ProjectModel.AppState.STOPPING);
+            cacheAppState(targetProjectName, ProjectModel.AppState.STOPPING);
             refreshDashboardLabel(targetProjectModel);
 
             // Issue the command to the process.
@@ -531,6 +541,7 @@ public class DevModeOperations {
         String projectPath = (projectModel != null) ? projectModel.getPath() : null;
         processController.cleanup(projectName, projectPath);
         projectModel.setAppState(ProjectModel.AppState.STOPPED);
+        cacheAppState(projectName, ProjectModel.AppState.STOPPED);
         refreshDashboardLabel(projectModel);
     }
 
@@ -791,8 +802,10 @@ public class DevModeOperations {
         envs.add("JAVA_HOME=" + javaInstallPath);
 
         // Transition to STARTING state immediately so the dashboard shows the spinner
-        // before any console output arrives.
+        // before any console output arrives. Expand the parent first so the child row
+        // is already visible when the label is repainted with the spinner icon.
         projectModel.setAppState(ProjectModel.AppState.STARTING);
+        cacheAppState(projectName, ProjectModel.AppState.STARTING);
         refreshDashboardLabel(projectModel);
 
         processController.runProcess(projectName, projectPath, cmd, envs, true, launch);
@@ -1232,10 +1245,46 @@ public class DevModeOperations {
 
     /**
      * Refreshes the dashboard view.
+     *
+     * @param reportError Whether to surface errors to the user in a dialog.
      */
     public void refreshDashboardView(boolean reportError) {
         if (dashboardView != null) {
             dashboardView.refreshDashboardView(workspaceModel, reportError);
+            populateProjectStatesFromCache();
+        }
+    }
+
+    /**
+     * Records the project state in the state cache map.
+     * When the state is STOPPED the entry is removed because STOPPED is the
+     * default initial state of every newly constructed ProjectModel.
+     *
+     * @param projectName The name of the project whose state changed.
+     * @param state       The new app state.
+     */
+    public void cacheAppState(String projectName, ProjectModel.AppState state) {
+        if (state == ProjectModel.AppState.STOPPED) {
+            projectStateTable.remove(projectName);
+        } else {
+            projectStateTable.put(projectName, state);
+        }
+    }
+
+    /**
+     * Populates the state of every project in the workspace model from the state cache map.
+     * Called after the workspace model is rebuilt so that freshly created ProjectModel
+     * instances start with the correct state rather than the default STOPPED. For each
+     * project whose state is known and not STOPPED, the label is also refreshed so that
+     * the dashboard icon repaints immediately.
+     */
+    private void populateProjectStatesFromCache() {
+        for (Map.Entry<String, ProjectModel.AppState> entry : projectStateTable.entrySet()) {
+            ProjectModel projectModel = workspaceModel.getProjectByName(entry.getKey());
+            if (projectModel != null) {
+                projectModel.setAppState(entry.getValue());
+                refreshDashboardLabel(projectModel);
+            }
         }
     }
 

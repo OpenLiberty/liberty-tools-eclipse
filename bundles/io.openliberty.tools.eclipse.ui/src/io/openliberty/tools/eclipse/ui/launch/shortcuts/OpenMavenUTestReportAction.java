@@ -120,11 +120,8 @@ public class OpenMavenUTestReportAction implements ILaunchShortcut {
         }
         ProjectModel targetProjectModel = targetProjects.get(0);
 
-        // Update the active selection to the target project if it differs from the original.
-        String targetProjectName = targetProjectModel.getName();
-        if (!selectedProjectName.equals(targetProjectName)) {
-            Utils.updateActiveSelection(targetProjectModel);
-        }
+        // Update the active selection to the target project.
+        Utils.updateActiveSelection(targetProjectModel);
 
         // Resolve the test report to view.
         targetProjectModel = devModeOps.resolveTestReportTarget(targetProjectModel, DashboardAction.OPEN_MVN_UT_TEST_REPORT);

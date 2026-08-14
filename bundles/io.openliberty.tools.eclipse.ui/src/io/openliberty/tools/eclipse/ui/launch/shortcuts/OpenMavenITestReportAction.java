@@ -113,17 +113,15 @@ public class OpenMavenITestReportAction implements ILaunchShortcut {
 
         // Resolve the target module. This action accepts on a single project executions.
         List<ProjectModel> targetProjects = devModeOps.resolveCommandTargets(
-                selectedProjectModel, DashboardAction.OPEN_MVN_IT_TEST_REPORT, DevModeOperations.ModuleStateFilter.ALL, false);
+                                                                             selectedProjectModel, DashboardAction.OPEN_MVN_IT_TEST_REPORT, DevModeOperations.ModuleStateFilter.ALL,
+                                                                             false);
         if (targetProjects.isEmpty()) {
             return;
         }
         ProjectModel targetProjectModel = targetProjects.get(0);
 
-        // Update the active project selection on the dashboard.
-        String targetProjectName = targetProjectModel.getName();
-        if (!selectedProjectName.equals(targetProjectName)) {
-            Utils.updateActiveSelection(targetProjectModel);
-        }
+        // Update the active selection to the target project.
+        Utils.updateActiveSelection(targetProjectModel);
 
         // Resolve the test report to view.
         targetProjectModel = devModeOps.resolveTestReportTarget(targetProjectModel, DashboardAction.OPEN_MVN_IT_TEST_REPORT);

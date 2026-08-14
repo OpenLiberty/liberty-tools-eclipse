@@ -139,11 +139,9 @@ public class StartConfigurationDialogAction implements ILaunchShortcut {
             }
             targetProjectModel = targetProjects.get(0);
 
-            // Update the active selection to the target project if it differs from the original.
+            // Update the active selection to the target project.
             targetProjectName = targetProjectModel.getName();
-            if (!selectedProjectName.equals(targetProjectName)) {
-                Utils.updateActiveSelection(targetProjectModel);
-            }
+            Utils.updateActiveSelection(targetProjectModel);
 
             // Check if the target project is already started.
             if (devModeOps.isProjectStarted(targetProjectModel)) {

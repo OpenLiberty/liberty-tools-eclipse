@@ -263,8 +263,10 @@ public class Utils {
      * to ensure that when the launch configuration dialog opens and validates the configuration,
      * the active project context matches the project associated with the configuration.
      * This handles selections from Dashboard, Project Explorer, Package Explorer, and other views.
+     * If the active part is not the dashboard but the dashboard is open, its selection is also updated
+     * so that the dashboard tree reflects the module being operated on regardless of which view is active.
      *
-     * @param targetProjectModel The target project model to select
+     * @param targetProjectModel The target project model to select.
      */
     public static void updateActiveSelection(ProjectModel targetProjectModel) {
         try {
@@ -280,15 +282,27 @@ public class Utils {
                     if (activePart != null) {
                         ISelectionProvider selectionProvider = activePart.getSite().getSelectionProvider();
                         if (selectionProvider != null) {
-                            // For Dashboard, select the ProjectModel; for other views, select the IProject
+                            // For Dashboard, select the ProjectModel; for other views, select the IProject.
                             Object selectionObject = (activePart instanceof DashboardView) ? targetProjectModel : targetProjectModel.getIProject();
                             selectionProvider.setSelection(new StructuredSelection(selectionObject));
+                        }
+
+                        // If the active part is not the dashboard, also update the dashboard selection
+                        // so that the dashboard tree always tracks the module being operated on.
+                        if (!(activePart instanceof DashboardView)) {
+                            DashboardView dashboardView = DevModeOperations.getInstance().getDashboardView();
+                            if (dashboardView != null) {
+                                ISelectionProvider dashboardSelectionProvider = dashboardView.getSite().getSelectionProvider();
+                                if (dashboardSelectionProvider != null) {
+                                    dashboardSelectionProvider.setSelection(new StructuredSelection(targetProjectModel));
+                                }
+                            }
                         }
                     }
                 }
             }
         } catch (Exception e) {
-            // Log the error but don't fail the operation - the configuration dialog will still open
+            // Log the error but do not fail the operation.
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_UI, "Failed to update active selection", e);
             }
