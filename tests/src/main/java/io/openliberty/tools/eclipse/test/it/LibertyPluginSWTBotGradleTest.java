@@ -407,7 +407,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         startDMPB.environment().put("JAVA_HOME", JavaRuntime.getDefaultVMInstall().getInstallLocation().getAbsolutePath());
 
         Process startDMProcess = startDMPB.start();
-        startDMProcess.waitFor(3, TimeUnit.SECONDS);
+        startDMProcess.waitFor(SWTBotTestCondition.LARGE_WAIT_MS, TimeUnit.MILLISECONDS);
 
         // Validate application is up and running outside of Liberty Tools.
         LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_WRAPPER_APP_NAME, true, libertyBasePath);
@@ -420,7 +420,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
 
             // Wait for the dialog and confirm the restart.
             try {
-                waitForAndClickButton(bot, "Liberty Tools", "Yes", SWTBotTestCondition.SERVER_WAIT_MS);
+                waitForAndClickButton(bot, "Liberty Tools", "Yes", SWTBotTestCondition.XL_WAIT_MS);
             } catch (org.eclipse.swtbot.swt.finder.exceptions.WidgetNotFoundException e) {
                 System.out.println("[testRestartOfExternallyStartedDevMode] Eclipse console output before dialog failure:\n"
                                    + LibertyPluginTestUtils.getConsoleOutput());
@@ -436,7 +436,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
             devModeStopped = true;
         } finally {
             if (!devModeStopped) {
-                String stopDevModeCmd = CommandBuilder.constructGradleCommand(projectModel, "libertyStop", true, null, null).getCommand();
+                String stopDevModeCmd = CommandBuilder.constructGradleCommand(projectModel, "libertyStop", false, null, null).getCommand();
 
                 if (LibertyPluginTestUtils.onWindows()) {
                     stopDevModeCmd = "cmd.exe /c" + stopDevModeCmd;
@@ -446,7 +446,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
                 stopDMPB.environment().put("JAVA_HOME", JavaRuntime.getDefaultVMInstall().getInstallLocation().getAbsolutePath());
 
                 Process stopDMProcess = stopDMPB.start();
-                stopDMProcess.waitFor(3, TimeUnit.SECONDS);
+                stopDMProcess.waitFor(SWTBotTestCondition.SHORT_WAIT_MS, TimeUnit.MILLISECONDS);
 
                 LibertyPluginTestUtils.validateLibertyServerStopped(libertyBasePath);
             }

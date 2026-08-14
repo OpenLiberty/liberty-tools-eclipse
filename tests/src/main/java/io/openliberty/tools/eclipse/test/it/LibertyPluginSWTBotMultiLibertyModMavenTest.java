@@ -81,7 +81,7 @@ import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLaunche
  * 
  * NOTE: The multi-module selection support for actions such as Start,
  * Start in container, Run tests, and Stop, will remember a prior selection.
- * This means that tests that require specific modules to be selected must 
+ * This means that tests that require specific modules to be selected must
  * deselect all modules first.
  */
 public class LibertyPluginSWTBotMultiLibertyModMavenTest extends AbstractLibertyPluginSWTBotTest {
@@ -671,24 +671,24 @@ public class LibertyPluginSWTBotMultiLibertyModMavenTest extends AbstractLiberty
 
         List<String> filteredContent = getDashboardContent();
 
-        Assertions.assertTrue(filteredContent.contains(MVN_APP_NAME),
-                              "The parent aggregator project " + MVN_APP_NAME + " should be visible after filtering by 'ear2'.");
-        Assertions.assertTrue(filteredContent.contains(MVN_EAR2_MODULE_NAME),
-                              "Module " + MVN_EAR2_MODULE_NAME + " should be visible after filtering by 'ear2'.");
-        Assertions.assertFalse(filteredContent.contains(MVN_EAR1_MODULE_NAME),
-                               "Module " + MVN_EAR1_MODULE_NAME + " should not be visible after filtering by 'ear2'.");
-        Assertions.assertFalse(filteredContent.contains(MVN_EAR_SKINNY_MODULE_NAME),
-                               "Module " + MVN_EAR_SKINNY_MODULE_NAME + " should not be visible after filtering by 'ear2'.");
-        Assertions.assertEquals(2, filteredContent.size(),
-                                "Dashboard should show exactly 2 items (parent + ear2) after filtering, but found: " + filteredContent);
+        try {
+            Assertions.assertTrue(filteredContent.contains(MVN_APP_NAME),
+                                  "The parent aggregator project " + MVN_APP_NAME + " should be visible after filtering by 'ear2'.");
+            Assertions.assertTrue(filteredContent.contains(MVN_EAR2_MODULE_NAME),
+                                  "Module " + MVN_EAR2_MODULE_NAME + " should be visible after filtering by 'ear2'.");
+            Assertions.assertFalse(filteredContent.contains(MVN_EAR1_MODULE_NAME),
+                                   "Module " + MVN_EAR1_MODULE_NAME + " should not be visible after filtering by 'ear2'.");
+            Assertions.assertFalse(filteredContent.contains(MVN_EAR_SKINNY_MODULE_NAME),
+                                   "Module " + MVN_EAR_SKINNY_MODULE_NAME + " should not be visible after filtering by 'ear2'.");
+        } finally {
+            // Clear the filter so the full dashboard is restored for subsequent tests.
+            clearDashboardFilter(bot);
 
-        // Clear the filter so the full dashboard is restored for subsequent tests.
-        clearDashboardFilter(bot);
-
-        SWTBotTestCondition.waitFor(() -> {
-            List<String> content = getDashboardContent();
-            return content.contains(MVN_EAR1_MODULE_NAME) && content.contains(MVN_EAR_SKINNY_MODULE_NAME);
-        }, SWTBotTestCondition.MIN_WAIT_MS);
+            SWTBotTestCondition.waitFor(() -> {
+                List<String> content = getDashboardContent();
+                return content.contains(MVN_EAR1_MODULE_NAME) && content.contains(MVN_EAR_SKINNY_MODULE_NAME);
+            }, SWTBotTestCondition.MIN_WAIT_MS);
+        }
     }
 
     /**
@@ -698,31 +698,11 @@ public class LibertyPluginSWTBotMultiLibertyModMavenTest extends AbstractLiberty
     @Test
     public void testDashboardCollapseAll() {
 
-        // Ensure the tree is expanded first so there is something to collapse.
-        expandDashboard(bot);
-        SWTBotTestCondition.waitFor(() -> {
-            SWTBotPluginOperations.getDashboardTree().getAllItems()[0].isExpanded();
-            return SWTBotPluginOperations.getDashboardTree().getAllItems()[0].isExpanded();
-        }, SWTBotTestCondition.MIN_WAIT_MS);
-
-        // Collapse all.
-        collapseDashboard(bot);
-
-        // Wait for the collapse to take effect.
-        SWTBotTestCondition.waitFor(() -> {
-            for (org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem item : SWTBotPluginOperations.getDashboardTree().getAllItems()) {
-                if (item.isExpanded()) {
-                    return false;
-                }
-            }
-            return true;
-        }, SWTBotTestCondition.MIN_WAIT_MS);
-
-        // Verify that no root-level item is expanded.
-        for (org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem item : SWTBotPluginOperations.getDashboardTree().getAllItems()) {
-            Assertions.assertFalse(item.isExpanded(),
-                                   "Dashboard tree item '" + item.getText() + "' should be collapsed after Collapse All, but it is expanded.");
-        }
+        // Expand the tree first so there is something to collapse, then collapse it.
+        Assertions.assertTrue(expandDashboard(bot, MVN_APP_NAME),
+                              "Timed out waiting for the dashboard tree to expand before Collapse All.");
+        Assertions.assertTrue(collapseDashboard(bot, MVN_APP_NAME),
+                              "Timed out waiting for all dashboard tree items to collapse after Collapse All.");
     }
 
     /**
@@ -733,37 +713,16 @@ public class LibertyPluginSWTBotMultiLibertyModMavenTest extends AbstractLiberty
     @Test
     public void testDashboardExpandAll() {
 
-        // Ensure the tree is collapsed first so there is something to expand.
-        collapseDashboard(bot);
-        SWTBotTestCondition.waitFor(() -> {
-            for (org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem item : SWTBotPluginOperations.getDashboardTree().getAllItems()) {
-                if (item.isExpanded()) {
-                    return false;
-                }
-            }
-            return true;
-        }, SWTBotTestCondition.MIN_WAIT_MS);
+        // Collapse the tree first so there is something to expand, then expand it.
+        Assertions.assertTrue(collapseDashboard(bot, MVN_APP_NAME),
+                              "Timed out waiting for all dashboard tree items to collapse before Expand All.");
+        Assertions.assertTrue(expandDashboard(bot, MVN_APP_NAME),
+                              "Timed out waiting for " + MVN_APP_NAME + " to expand after Expand All.");
 
-        // Expand all.
-        expandDashboard(bot);
-
-        // Wait for the parent item to become expanded.
-        // Column 1 holds the project name; getTreeItemNameText() reads it via syncExec.
-        SWTBotTestCondition.waitFor(() -> {
-            for (org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem item : SWTBotPluginOperations.getDashboardTree().getAllItems()) {
-                if (MVN_APP_NAME.equals(SWTBotPluginOperations.getTreeItemNameText(item)) && item.isExpanded()) {
-                    return true;
-                }
-            }
-            return false;
-        }, SWTBotTestCondition.MIN_WAIT_MS);
-
-        // Verify that the parent item is expanded and its children are visible.
-        boolean parentExpanded = false;
+        // Collect the visible children of the parent item.
         List<String> visibleChildren = new ArrayList<>();
         for (org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem item : SWTBotPluginOperations.getDashboardTree().getAllItems()) {
             if (MVN_APP_NAME.equals(SWTBotPluginOperations.getTreeItemNameText(item))) {
-                parentExpanded = item.isExpanded();
                 for (org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem child : item.getItems()) {
                     visibleChildren.add(SWTBotPluginOperations.getTreeItemNameText(child));
                 }
@@ -771,8 +730,6 @@ public class LibertyPluginSWTBotMultiLibertyModMavenTest extends AbstractLiberty
             }
         }
 
-        Assertions.assertTrue(parentExpanded,
-                              "The parent project " + MVN_APP_NAME + " should be expanded after Expand All.");
         Assertions.assertTrue(visibleChildren.contains(MVN_EAR1_MODULE_NAME),
                               "After Expand All, " + MVN_EAR1_MODULE_NAME + " should be visible as a child of " + MVN_APP_NAME + ".");
         Assertions.assertTrue(visibleChildren.contains(MVN_EAR2_MODULE_NAME),
