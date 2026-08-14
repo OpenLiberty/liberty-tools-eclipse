@@ -1171,15 +1171,25 @@ public class DevModeOperations {
     }
 
     /**
-     * Returns true if the start process for the project is active. False, otherwise.
-     * 
-     * @param projectName The name of the project.
-     * 
-     * @return true if the start process for the project is active. False, otherwise.
+     * Returns true if the project is considered started. False, otherwise.
+     *
+     * @param projectModel The project model.
+     *
+     * @return True if the project is started. False, otherwise.
      */
     public boolean isProjectStarted(ProjectModel projectModel) {
         String projectName = projectModel.getName();
-        return processController.isProcessStarted(projectName);
+
+        // Check the process first 
+        if (processController.isProcessStarted(projectName)) {
+            return true;
+        }
+
+        // Check the cache state next as this reflects the current behavior in case 
+        // the workspace is re-built/refreshed. The reason for this check is that there
+        // could be a timing condition between the time the starting dev mode process 
+        // completes, and the time the next action is executed.
+        return projectStateTable.get(projectName) == ProjectModel.AppState.RUNNING;
     }
 
     /**
