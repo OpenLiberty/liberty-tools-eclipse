@@ -259,7 +259,7 @@ public class DashboardEntryLabelProvider {
             }
         }
         if (running == children.size()) {
-            return Messages.getMessage("dashboard_tooltip_running");
+            return Messages.getMessage("dashboard_tooltip_modules_running", running, children.size());
         }
         if (starting > 0) {
             return Messages.getMessage("dashboard_tooltip_starting");
@@ -271,7 +271,7 @@ public class DashboardEntryLabelProvider {
             return Messages.getMessage("dashboard_tooltip_stopped");
         }
 
-        return Messages.getMessage("dashboard_tooltip_incomplete", running, children.size());
+        return Messages.getMessage("dashboard_tooltip_modules_running", running, children.size());
     }
 
     /**
