@@ -14,8 +14,10 @@ package io.openliberty.tools.eclipse.ui.wizards;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.HashMap;
 
 import org.eclipse.jface.dialogs.IDialogSettings;
+import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.Wizard;
@@ -38,6 +40,7 @@ import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchWizard;
+import org.json.JSONArray;
 
 import io.openliberty.tools.eclipse.LibertyDevPlugin;
 import io.openliberty.tools.eclipse.logging.Logger;
@@ -162,6 +165,9 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
         private Combo javaSECombo;
         private Combo javaEECombo;
         private Combo microProfileCombo;
+        
+        // Flag to prevent recursive listener calls
+        private boolean isUpdatingVersions = false;
 
         protected LibertyStarterMainPage() {
             super("libertyStarterPage");
@@ -211,6 +217,16 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
             fieldsComposite.setLayout(fieldsLayout);
             fieldsComposite.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
 
+              // Group label and text field.
+            Label groupLabel = new Label(fieldsComposite, SWT.NONE);
+            groupLabel.setText("Group");
+            groupLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
+
+            groupText = new Text(fieldsComposite, SWT.BORDER);
+            groupText.setText(starter.getDefaultGroupName());
+            groupText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
+
+
             // ProjectName/Artifact label and text field.
             Label artifactLabel = new Label(fieldsComposite, SWT.NONE);
             artifactLabel.setText("ProjectName/Artifact");
@@ -220,50 +236,7 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
             artifactText.setText(starter.getDefaultProjectName());
             artifactText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 
-            artifactText.addModifyListener(new ModifyListener() {
-                /**
-                 * {@inheritDoc}
-                 */
-                @Override
-                public void modifyText(ModifyEvent e) {
-                    String artifact = artifactText.getText().trim();
-                    if (artifact.isEmpty()) {
-                        setErrorMessage("ProjectName/Artifact cannot be empty.");
-                        setPageComplete(false);
-                    } else {
-                        setErrorMessage(null);
-                        setMessage(null);
-                        setPageComplete(true);
-                    }
-                }
-            });
 
-            // Group label and text field.
-            Label groupLabel = new Label(fieldsComposite, SWT.NONE);
-            groupLabel.setText("Group");
-            groupLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
-
-            groupText = new Text(fieldsComposite, SWT.BORDER);
-            groupText.setText(starter.getDefaultGroupName());
-            groupText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-
-            groupText.addModifyListener(new ModifyListener() {
-                /**
-                 * {@inheritDoc}
-                 */
-                @Override
-                public void modifyText(ModifyEvent e) {
-                    String group = groupText.getText().trim();
-                    if (group.isEmpty()) {
-                        setErrorMessage("Group cannot be empty.");
-                        setPageComplete(false);
-                    } else {
-                        setErrorMessage(null);
-                        setMessage(null);
-                        setPageComplete(true);
-                    }
-                }
-            });
         }
 
         /**
@@ -348,7 +321,50 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
                  */
                 @Override
                 public void widgetSelected(SelectionEvent e) {
-                    // TODO: Validate EE VS MP code here.
+                    if (isUpdatingVersions) {
+                        return;
+                    }
+
+                    String selectedEE = javaEECombo.getText();
+                    String currentMP = microProfileCombo.getText();
+
+                    if (selectedEE == null || selectedEE.isEmpty() || "None".equals(selectedEE)) {
+                        return;
+                    }
+
+                    if (currentMP != null && !currentMP.isEmpty() && !"None".equals(currentMP)) {
+                        if (isCompatible(selectedEE, currentMP)) {
+                            checkAndUpdateJavaSE(selectedEE, currentMP);
+                            return;
+                        }
+                    }
+
+                    String compatibleMP = getFirstCompatibleMPVersion(selectedEE);
+
+                    if (compatibleMP != null) {
+                        String oldMP = (currentMP != null && !"None".equals(currentMP)) ? currentMP : null;
+
+                        isUpdatingVersions = true;
+                        microProfileCombo.setText(compatibleMP);
+                        isUpdatingVersions = false;
+
+                        if (oldMP != null && !oldMP.equals(compatibleMP)) {
+                            final String message = String.format(
+                                    "MicroProfile Version has been automatically updated from %s to %s for compatibility with Jakarta EE %s.",
+                                    oldMP, compatibleMP, selectedEE);
+                            getControl().getDisplay().asyncExec(new Runnable() {
+                                public void run() {
+                                    setMessage(message, IMessageProvider.INFORMATION);
+                                }
+                            });
+                        }
+
+                        checkAndUpdateJavaSE(selectedEE, compatibleMP);
+                    } else {
+                        String warnMsg = "No compatible MicroProfile version found for Jakarta EE " + selectedEE;
+                        setMessage(warnMsg, IMessageProvider.WARNING);
+                        Logger.logWarning(warnMsg);
+                    }
                 }
             });
 
@@ -374,7 +390,51 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
                  */
                 @Override
                 public void widgetSelected(SelectionEvent e) {
-                    // TODO: Validate MP VS EE code here.
+                    if (isUpdatingVersions) {
+                        return;
+                    }
+
+                    String selectedMP = microProfileCombo.getText();
+                    String currentEE = javaEECombo.getText();
+
+                    if (selectedMP == null || selectedMP.isEmpty() || "None".equals(selectedMP)) {
+                        return;
+                    }
+
+                    if (currentEE != null && !currentEE.isEmpty() && !"None".equals(currentEE)) {
+                        if (isCompatible(currentEE, selectedMP)) {
+                            setMessage(null);
+                            checkAndUpdateJavaSE(currentEE, selectedMP);
+                            return;
+                        }
+                    }
+
+                    String compatibleEE = getFirstCompatibleEEVersion(selectedMP);
+
+                    if (compatibleEE != null) {
+                        String oldEE = (currentEE != null && !"None".equals(currentEE)) ? currentEE : null;
+
+                        isUpdatingVersions = true;
+                        javaEECombo.setText(compatibleEE);
+                        isUpdatingVersions = false;
+
+                        if (oldEE != null && !oldEE.equals(compatibleEE)) {
+                            final String message = String.format(
+                                    "Jakarta EE Version has been automatically updated from %s to %s for compatibility with MicroProfile %s.",
+                                    oldEE, compatibleEE, selectedMP);
+                            getControl().getDisplay().asyncExec(new Runnable() {
+                                public void run() {
+                                    setMessage(message, IMessageProvider.INFORMATION);
+                                }
+                            });
+                        }
+
+                        checkAndUpdateJavaSE(compatibleEE, selectedMP);
+                    } else {
+                        String warnMsg = "No compatible Jakarta EE version found for MicroProfile " + selectedMP;
+                        setMessage(warnMsg, IMessageProvider.WARNING);
+                        Logger.logWarning(warnMsg);
+                    }
                 }
             });
         }
@@ -506,40 +566,379 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
             mavenRadio.addSelectionListener(radioListener);
             gradleRadio.addSelectionListener(radioListener);
 
-            // Add listeners to combo boxes.
-            SelectionListener comboListener = new SelectionAdapter() {
+            // javaSECombo validates page and also checks compatibility with current EE/MP selections.
+            // javaEECombo and microProfileCombo have their own SelectionAdapters that handle everything.
+            javaSECombo.addSelectionListener(new SelectionAdapter() {
                 /**
                  * {@inheritDoc}
                  */
                 @Override
                 public void widgetSelected(SelectionEvent e) {
+                    if (!isUpdatingVersions) {
+                        checkAndUpdateJavaSE(javaEECombo.getText(), microProfileCombo.getText());
+                    }
                     validatePage();
                 }
-            };
-            javaSECombo.addSelectionListener(comboListener);
-            javaEECombo.addSelectionListener(comboListener);
-            microProfileCombo.addSelectionListener(comboListener);
+            });
         }
 
         private boolean validatePage() {
-            String group = groupText.getText().trim();
+            // Validate Group
+            String groupRaw = groupText.getText();
+            String group = groupRaw.trim();
+            String groupErrorMsg = "Valid characters for package names include a-z, A-Z, '_' and 0-9. Packages must be separated by '.'";
+
             if (group.isEmpty()) {
                 setErrorMessage("Group cannot be empty.");
                 setPageComplete(false);
                 return false;
             }
 
-            String artifact = artifactText.getText().trim();
+            // Check for leading/trailing spaces (website doesn't allow them)
+            if (!groupRaw.equals(group)) {
+                setErrorMessage(groupErrorMsg);
+                setPageComplete(false);
+                return false;
+            }
+
+            // Validate Group format (matches website validation)
+            if (!isValidGroupName(group)) {
+                setErrorMessage(groupErrorMsg);
+                setPageComplete(false);
+                return false;
+            }
+
+            // Validate Artifact
+            String artifactRaw = artifactText.getText();
+            String artifact = artifactRaw.trim();
+            String artifactErrorMsg = "Valid characters include a-z separated by '-'";
+
             if (artifact.isEmpty()) {
                 setErrorMessage("Artifact cannot be empty.");
                 setPageComplete(false);
                 return false;
             }
 
+            // Check for leading/trailing spaces (website doesn't allow them)
+            if (!artifactRaw.equals(artifact)) {
+                setErrorMessage(artifactErrorMsg);
+                setPageComplete(false);
+                return false;
+            }
+
+            // Validate Artifact format (matches website validation)
+            if (!isValidArtifactName(artifact)) {
+                setErrorMessage(artifactErrorMsg);
+                setPageComplete(false);
+                return false;
+            }
+
             setErrorMessage(null);
-            setMessage(null);
             setPageComplete(true);
             return true;
+        }
+        
+        /**
+         * Validates artifact name according to Liberty Starter website rules.
+         *
+         * Rules (from https://start.openliberty.io/):
+         * - Only lowercase letters (a-z)
+         * - Hyphens (-) as separators
+         * - NO numbers, uppercase, underscores, or spaces
+         *
+         * @param artifact The artifact name to validate
+         * @return true if valid, false otherwise
+         */
+        private boolean isValidArtifactName(String artifact) {
+            if (artifact == null || artifact.isEmpty()) {
+                return false;
+            }
+            
+            // Check each character: must be lowercase letter or hyphen
+            for (int i = 0; i < artifact.length(); i++) {
+                char c = artifact.charAt(i);
+                if (!(c >= 'a' && c <= 'z') && c != '-') {
+                    return false;
+                }
+            }
+            
+            // Should not start or end with hyphen
+            if (artifact.startsWith("-") || artifact.endsWith("-")) {
+                return false;
+            }
+            
+            // Should not have consecutive hyphens
+            if (artifact.contains("--")) {
+                return false;
+            }
+            
+            return true;
+        }
+        
+        /**
+         * Validates group name according to Liberty Starter website rules.
+         *
+         * Rules (from https://start.openliberty.io/):
+         * - Lowercase letters (a-z)
+         * - Uppercase letters (A-Z)
+         * - Numbers (0-9)
+         * - Underscores (_)
+         * - Dots (.) as package separators
+         *
+         * @param group The group name to validate
+         * @return true if valid, false otherwise
+         */
+        private boolean isValidGroupName(String group) {
+            if (group == null || group.isEmpty()) {
+                return false;
+            }
+            
+            // Check for leading/trailing dots or consecutive dots
+            if (group.startsWith(".") || group.endsWith(".") || group.contains("..")) {
+                return false;
+            }
+            
+            // Split by dots and validate each segment
+            String[] segments = group.split("\\.");
+            if (segments.length == 0) {
+                return false;
+            }
+            
+            for (String segment : segments) {
+                if (!isValidPackageSegment(segment)) {
+                    return false;
+                }
+            }
+            
+            return true;
+        }
+        
+        /**
+         * Validates a single segment of a package name.
+         * Must contain only: a-z, A-Z, 0-9, _
+         *
+         * @param segment The package segment to validate
+         * @return true if valid, false otherwise
+         */
+        private boolean isValidPackageSegment(String segment) {
+            if (segment == null || segment.isEmpty()) {
+                return false;
+            }
+            
+            // Check each character: must be letter, digit, or underscore
+            for (int i = 0; i < segment.length(); i++) {
+                char c = segment.charAt(i);
+                if (!Character.isLetterOrDigit(c) && c != '_') {
+                    return false;
+                }
+            }
+            
+            return true;
+        }
+
+        /**
+         * Checks if the selected Jakarta EE and MicroProfile versions are compatible.
+         *
+         * @param eeVersion The Jakarta EE version
+         * @param mpVersion The MicroProfile version
+         * @return true if compatible, false otherwise
+         */
+        private boolean isCompatible(String eeVersion, String mpVersion) {
+            if (eeVersion == null || mpVersion == null || eeVersion.isEmpty() || mpVersion.isEmpty()) {
+                return true; // No validation if either is empty
+            }
+
+            try {
+                LibertyProjectStarter starter = LibertyProjectStarter.getInstance();
+                HashMap<String, JSONArray> ee2mp = starter.getDependenciesEE2MP();
+                
+                // Check if compatibility data is loaded
+                if (ee2mp == null || ee2mp.isEmpty()) {
+                    Logger.logWarning("Compatibility data not loaded yet");
+                    return true; // Assume compatible if data not loaded
+                }
+                
+                JSONArray compatibleMP = ee2mp.get(eeVersion);
+
+                if (compatibleMP != null) {
+                    for (int i = 0; i < compatibleMP.length(); i++) {
+                        if (compatibleMP.getString(i).equals(mpVersion)) {
+                            return true;
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                Logger.logError("Error checking compatibility", e);
+                return true; // Assume compatible on error
+            }
+
+            return false;
+        }
+
+        /**
+         * Gets the highest compatible MicroProfile version for the given Jakarta EE version.
+         * This matches the website behavior which selects the highest (most recent) compatible version.
+         *
+         * @param eeVersion The Jakarta EE version
+         * @return The highest compatible MicroProfile version, or null if none found
+         */
+        private String getFirstCompatibleMPVersion(String eeVersion) {
+            try {
+                LibertyProjectStarter starter = LibertyProjectStarter.getInstance();
+                HashMap<String, JSONArray> ee2mp = starter.getDependenciesEE2MP();
+                
+                // Check if compatibility data is loaded
+                if (ee2mp == null || ee2mp.isEmpty()) {
+                    Logger.logWarning("Compatibility data (EE2MP) not loaded - map is empty");
+                    return null;
+                }
+                
+                JSONArray compatibleMP = ee2mp.get(eeVersion);
+                
+                if (compatibleMP == null) {
+                    Logger.logWarning("No compatibility data found for Jakarta EE " + eeVersion);
+                    return null;
+                }
+
+                // Find the HIGHEST (last) non-"None" version to match website behavior
+                // The API returns versions in ascending order (e.g., 2.2, 3.0, 3.3, 4.0, 4.1)
+                // Website selects the highest version (4.1), so we iterate backwards
+                String highestVersion = null;
+                for (int i = compatibleMP.length() - 1; i >= 0; i--) {
+                    String version = compatibleMP.getString(i);
+                    if (!"None".equals(version)) {
+                        highestVersion = version;
+                        break;
+                    }
+                }
+                
+                // If we found a version, return it
+                if (highestVersion != null) {
+                    return highestVersion;
+                }
+                
+                // If all versions are "None", return "None"
+                if (compatibleMP.length() > 0) {
+                    return "None";
+                }
+            } catch (Exception e) {
+                Logger.logError("Error getting compatible MP version for EE " + eeVersion, e);
+            }
+            return null;
+        }
+
+        /**
+         * Gets the highest compatible Jakarta EE version for the given MicroProfile version.
+         * This matches the website behavior which selects the highest (most recent) compatible version.
+         *
+         * @param mpVersion The MicroProfile version
+         * @return The highest compatible Jakarta EE version, or null if none found
+         */
+        private String getFirstCompatibleEEVersion(String mpVersion) {
+            try {
+                LibertyProjectStarter starter = LibertyProjectStarter.getInstance();
+                HashMap<String, JSONArray> mp2ee = starter.getDependenciesMP2EE();
+                
+                // Check if compatibility data is loaded
+                if (mp2ee == null || mp2ee.isEmpty()) {
+                    Logger.logWarning("Compatibility data (MP2EE) not loaded - map is empty");
+                    return null;
+                }
+                
+                JSONArray compatibleEE = mp2ee.get(mpVersion);
+                
+                if (compatibleEE == null) {
+                    Logger.logWarning("No compatibility data found for MicroProfile " + mpVersion);
+                    return null;
+                }
+
+                // Find the HIGHEST (last) non-"None" version to match website behavior
+                // The API returns versions in ascending order (e.g., 8.0, 9.0, 9.1, 10.0, 11.0)
+                // Website selects the highest version, so we iterate backwards
+                String highestVersion = null;
+                for (int i = compatibleEE.length() - 1; i >= 0; i--) {
+                    String version = compatibleEE.getString(i);
+                    if (!"None".equals(version)) {
+                        highestVersion = version;
+                        break;
+                    }
+                }
+                
+                // If we found a version, return it
+                if (highestVersion != null) {
+                    return highestVersion;
+                }
+                
+                // If all versions are "None", return "None"
+                if (compatibleEE.length() > 0) {
+                    return "None";
+                }
+            } catch (Exception e) {
+                Logger.logError("Error getting compatible EE version for MP " + mpVersion, e);
+            }
+            return null;
+        }
+
+        /**
+         * Validates and auto-updates Java SE version based on Jakarta EE and MicroProfile selections.
+         * Implements the same logic as the Liberty Starter website frontend (builds.js).
+         *
+         * Rules:
+         * - Jakarta EE 11.0 requires Java SE 17+
+         * - Jakarta EE 10.0 requires Java SE 11+
+         * - MicroProfile 6.0, 6.1, 7.0, 7.1 require Java SE 11+
+         *
+         * @param eeVersion The Jakarta EE version
+         * @param mpVersion The MicroProfile version
+         */
+        private void checkAndUpdateJavaSE(String eeVersion, String mpVersion) {
+            if (isUpdatingVersions) {
+                return;
+            }
+
+            try {
+                String currentJavaSE = javaSECombo.getText();
+                String requiredJavaSE = null;
+                String reason = "";
+
+                // Jakarta EE 11.0 requires Java SE 17+
+                if ("11.0".equals(eeVersion)) {
+                    if ("8".equals(currentJavaSE) || "11".equals(currentJavaSE)) {
+                        requiredJavaSE = "17";
+                        reason = "Jakarta EE 11.0 requires a minimum of Java SE 17";
+                    }
+                }
+                // Jakarta EE 10.0 or MicroProfile 6.0+ requires Java SE 11+
+                else if ("10.0".equals(eeVersion) ||
+                         "6.0".equals(mpVersion) || "6.1".equals(mpVersion) ||
+                         "7.0".equals(mpVersion) || "7.1".equals(mpVersion)) {
+                    if ("8".equals(currentJavaSE)) {
+                        requiredJavaSE = "11";
+                        if ("10.0".equals(eeVersion)) {
+                            reason = "Jakarta EE 10.0 requires a minimum of Java SE 11";
+                        } else {
+                            reason = "MicroProfile " + mpVersion + " requires a minimum of Java SE 11";
+                        }
+                    }
+                }
+
+                if (requiredJavaSE != null) {
+                    isUpdatingVersions = true;
+                    javaSECombo.setText(requiredJavaSE);
+                    isUpdatingVersions = false;
+
+                    final String message = String.format(
+                            "Java SE Version has been automatically updated from %s to %s. %s.",
+                            currentJavaSE, requiredJavaSE, reason);
+                    getControl().getDisplay().asyncExec(new Runnable() {
+                        public void run() {
+                            setMessage(message, IMessageProvider.INFORMATION);
+                        }
+                    });
+                }
+            } catch (Exception e) {
+                Logger.logError("Error checking Java SE requirements", e);
+            }
         }
 
         // Getters for wizard data.
