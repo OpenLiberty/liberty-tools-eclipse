@@ -38,7 +38,7 @@ pipeline {
             }
         }
         
-        stage('Test on Eclipse 1Q2026') {
+        stage('Test on Eclipse 2Q2026') {
             steps {
                 dir('liberty-tools-eclipse') {
                     script {
@@ -48,13 +48,13 @@ pipeline {
                                 sh '''
                                    MVNPATH="$(dirname $(which mvn))/.."
                                    GRADLEPATH="$(dirname $(which gradle))/.."
-                                   mvn clean verify -DmvnPath=$MVNPATH -DgradlePath=$GRADLEPATH -Dtycho.disableP2Mirrors=true -Declipse.target=1Q2026 -Dosgi.debug=./tests/resources/ci/debug.opts -DtestAppImportWait=120000 -Dtycho.showEclipseLog -e -X
+                                   mvn clean verify -DmvnPath=$MVNPATH -DgradlePath=$GRADLEPATH -Dtycho.disableP2Mirrors=true -Declipse.target=2Q2026 -Dosgi.debug=./tests/resources/ci/debug.opts -DtestAppImportWait=120000 -Dtycho.showEclipseLog -e -X
                                 '''
                             }
                         } finally {
-                            sh "cd tests/target/surefire-reports && zip -r 1Q2026-test-reports.zip ."
+                            sh "cd tests/target/surefire-reports && zip -r 2Q2026-test-reports.zip ."
                             
-                            archiveArtifacts artifacts: 'tests/target/surefire-reports/1Q2026-test-reports.zip', fingerprint: true
+                            archiveArtifacts artifacts: 'tests/target/surefire-reports/2Q2026-test-reports.zip', fingerprint: true
                             archiveArtifacts artifacts: 'tests/target/work/data/.metadata/.log', fingerprint: true
                         }
                     }
