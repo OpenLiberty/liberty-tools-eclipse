@@ -103,7 +103,7 @@ public class LibertyProjectPropertyTester extends PropertyTester {
         result = evaluateResult(result, expectedValue);
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_UI, result);
+            Trace.getTracer().traceExit(Trace.TRACE_UI, new Object[] {state, result});
         }
 
         return result;

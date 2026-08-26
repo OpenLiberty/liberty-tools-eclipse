@@ -1586,69 +1586,137 @@ public class SWTBotPluginOperations {
     }
 
     /**
-     * Clicks the Collapse All toolbar button in the Liberty dashboard, collapsing all
-     * tree items to their root level.
+     * Clicks the Collapse All toolbar button in the Liberty dashboard and waits until the
+     * named root-level tree item is collapsed.
      *
-     * @param bot The SWTWorkbenchBot instance.
+     * @param bot     The SWTWorkbenchBot instance.
+     * @param appName The name of the root-level project whose collapsed state is verified.
+     *
+     * @return True if the named item is collapsed within the timeout. False otherwise.
      */
-    public static void collapseDashboard(SWTWorkbenchBot bot) {
-        SWTBotTestCondition.waitFor(() -> {
-            openDashboardUsingToolbar();
+    public static boolean collapseDashboard(SWTWorkbenchBot bot, String appName) {
+        activateDashboardView();
+
+        return SWTBotTestCondition.waitFor(() -> {
+            activateDashboardView();
             try {
                 bot.viewByTitle(DASHBOARD_VIEW_TITLE).toolbarButton(DashboardView.DASHBOARD_TOOLBAR_COLLAPSE_ALL).click();
-                return true;
             } catch (Exception ignored) {
-                return false;
             }
-        }, SWTBotTestCondition.MIN_WAIT_MS);
+
+            final boolean[] targetCollapsed = { false };
+            Display.getDefault().syncExec(() -> {
+                Object dashboardView = findGlobal(DASHBOARD_VIEW_TITLE, Option.factory().widgetClass(ViewPart.class).build());
+                if (dashboardView instanceof DashboardView) {
+                    Tree tree = ((DashboardView) dashboardView).getTree();
+                    if (tree != null && !tree.isDisposed()) {
+                        for (TreeItem item : tree.getItems()) {
+                            if (appName.equals(item.getText(1)) && !item.getExpanded()) {
+                                targetCollapsed[0] = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            });
+
+            return targetCollapsed[0];
+        }, SWTBotTestCondition.SHORT_WAIT_MS);
     }
 
     /**
-     * Clicks the Expand All toolbar button in the Liberty dashboard, expanding all
-     * tree items to show their children.
+     * Clicks the Expand All toolbar button in the Liberty dashboard and waits until the
+     * root-level tree items are expanded. Re-opens and activates the dashboard on each
+     * polling iteration to recover from focus being stolen by the console or another view.
      *
-     * @param bot The SWTWorkbenchBot instance.
+     * @param bot     The SWTWorkbenchBot instance.
+     * @param appName The name of the root-level project expected to be expanded.
+     *
+     * @return True if the named root-level item is expanded within the timeout. False otherwise.
      */
-    public static void expandDashboard(SWTWorkbenchBot bot) {
-        SWTBotTestCondition.waitFor(() -> {
-            openDashboardUsingToolbar();
+    public static boolean expandDashboard(SWTWorkbenchBot bot, String appName) {
+        activateDashboardView();
+
+        return SWTBotTestCondition.waitFor(() -> {
+            activateDashboardView();
             try {
                 bot.viewByTitle(DASHBOARD_VIEW_TITLE).toolbarButton(DashboardView.DASHBOARD_TOOLBAR_EXPAND_ALL).click();
-                return true;
             } catch (Exception ignored) {
-                return false;
             }
-        }, SWTBotTestCondition.MIN_WAIT_MS);
+
+            final boolean[] targetExpanded = { false };
+            Display.getDefault().syncExec(() -> {
+                Object dashboardView = findGlobal(DASHBOARD_VIEW_TITLE, Option.factory().widgetClass(ViewPart.class).build());
+                if (dashboardView instanceof DashboardView) {
+                    Tree tree = ((DashboardView) dashboardView).getTree();
+                    if (tree != null && !tree.isDisposed()) {
+                        for (TreeItem item : tree.getItems()) {
+                            if (appName.equals(item.getText(1)) && item.getExpanded()) {
+                                targetExpanded[0] = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            });
+
+            return targetExpanded[0];
+        }, SWTBotTestCondition.SHORT_WAIT_MS);
     }
 
     /**
-     * Clicks the Filter toolbar button in the Liberty dashboard to toggle the search bar,
-     * and then types the given text into the search field.
+     * Ensures the Liberty dashboard search bar is open and types the given text into it.
+     * The filter button is a toggle — it is only clicked if the search bar is not already
+     * visible, preventing the toggle from accidentally closing the bar on retry.
      *
      * @param bot        The SWTWorkbenchBot instance.
      * @param filterText The text to enter into the dashboard search field.
      */
     public static void filterDashboardByText(SWTWorkbenchBot bot, String filterText) {
+        openDashboardUsingToolbar();
+        activateDashboardView();
+        bot.viewByTitle(DASHBOARD_VIEW_TITLE).toolbarButton(DashboardView.DASHBOARD_TOOLBAR_FILTER).click();
+
         boolean searchFieldVisible = SWTBotTestCondition.waitFor(() -> {
-            openDashboardUsingToolbar();
-            bot.viewByTitle(DASHBOARD_VIEW_TITLE).toolbarButton(DashboardView.DASHBOARD_TOOLBAR_FILTER).click();
             try {
                 bot.textWithMessage(SEARCH_BOX_FILTER_HINT);
                 return true;
             } catch (Exception ignored) {
-                // Search field not yet visible. Retry.
+                // Search bar is not open yet.
             }
+            // The search bar is not open. Re-open and activate the dashboard in case the
+            // console or another view has taken focus, then click the filter toggle button.
+            openDashboardUsingToolbar();
+            activateDashboardView();
+            bot.viewByTitle(DASHBOARD_VIEW_TITLE).toolbarButton(DashboardView.DASHBOARD_TOOLBAR_FILTER).click();
 
             return false;
-        }, SWTBotTestCondition.MIN_WAIT_MS);
+        }, SWTBotTestCondition.SHORT_WAIT_MS);
 
-        if (!searchFieldVisible) {
-            // Final attempt after the timeout.
-            bot.textWithMessage(SEARCH_BOX_FILTER_HINT).setText(filterText);
-            return;
-        }
+        Assertions.assertTrue(searchFieldVisible,
+                              "Timed out waiting for the dashboard search field to appear.");
 
         bot.textWithMessage(SEARCH_BOX_FILTER_HINT).setText(filterText);
+    }
+
+    /**
+     * Activates the Liberty Dashboard view via the Eclipse workbench API, ensuring its
+     * toolbar is live before any toolbar button interaction. This is the same activation
+     * pattern used by getDashboardTree() and is more reliable than relying solely on
+     * openDashboardUsingToolbar(), which only checks that DashboardView is the active part
+     * but does not force the workbench to bring the view to the foreground.
+     */
+    private static void activateDashboardView() {
+        Display.getDefault().syncExec(() -> {
+            try {
+                IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+                if (window != null && window.getActivePage() != null) {
+                    window.getActivePage().showView(DashboardView.ID);
+                }
+            } catch (Exception e) {
+                System.err.println("Failed to activate dashboard view: " + e.getMessage());
+            }
+        });
     }
 
     /**
@@ -1659,6 +1727,7 @@ public class SWTBotPluginOperations {
      */
     public static void clearDashboardFilter(SWTWorkbenchBot bot) {
         openDashboardUsingToolbar();
+        activateDashboardView();
 
         try {
             bot.textWithMessage(SEARCH_BOX_FILTER_HINT).setText("");

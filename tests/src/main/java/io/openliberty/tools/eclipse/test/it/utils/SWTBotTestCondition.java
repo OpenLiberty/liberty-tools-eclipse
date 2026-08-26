@@ -40,7 +40,9 @@ public class SWTBotTestCondition {
     public static final int SHORT_WAIT_MS = 15000;
     public static final int MID_WAIT_MS = 30000;
     public static final int LARGE_WAIT_MS = 60000;
-    public static final int SERVER_WAIT_MS = 180000;
+    public static final int SERVER_STOP_WAIT_MS = 120000;
+    public static final int SERVER_WAIT_MS =180000;
+    public static final int XL_WAIT_MS =240000;
 
     /**
      * Polls the input condition every {@value #POLL_INTERVAL_MS} ms until it returns

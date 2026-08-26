@@ -72,6 +72,8 @@ public class LibertyPluginTestUtils {
     public static void validateLibertyServerStopped(String testAppPath) {
         String wlpMsgLogPath = testAppPath + "/wlp/usr/servers/defaultServer/logs/messages.log";
 
+        System.out.println("INFO: Waiting for Liberty server stopped message in: " + wlpMsgLogPath);
+
         // Find stop message: CWWKE0036I: The server x stopped after y seconds.
         // Poll at 500 ms intervals until the stop message appears.
         boolean foundStoppedMsg = SWTBotTestCondition.waitFor(() -> {
@@ -82,11 +84,13 @@ public class LibertyPluginTestUtils {
                         return true;
                     }
                 }
+            } catch (java.io.FileNotFoundException e) {
+                System.out.println("INFO: [validateLibertyServerStopped] messages.log not found: " + e.getMessage());
             } catch (Exception ignored) {
-                // Log not written yet; keep polling.
+                // Other I/O errors.
             }
             return false;
-        }, SWTBotTestCondition.SERVER_WAIT_MS);
+        }, SWTBotTestCondition.SERVER_STOP_WAIT_MS);
 
         if (!foundStoppedMsg) {
             // If we are here, the expected outcome was not found. Print the Liberty server's messages.log and fail.
