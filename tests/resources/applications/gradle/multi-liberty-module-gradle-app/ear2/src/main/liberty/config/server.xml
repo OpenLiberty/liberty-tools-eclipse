@@ -10,8 +10,8 @@
     <httpEndpoint host="*" httpPort="${default.http.port}"
         httpsPort="${default.https.port}" id="defaultHttpEndpoint" />
 
-    <enterpriseApplication id="guide-gradle-multimodules-ear2"
+    <enterpriseApplication id="guide-gradle-multimodules-custmm-ear2"
         location="guide-gradle-multimodules-custmm-ear2-1.0-SNAPSHOT.ear"
-        name="guide-gradle-multimodules-ear2" />
+        name="guide-gradle-multimodules-custmm-ear2" />
 
 </server>
