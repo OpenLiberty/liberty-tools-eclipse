@@ -44,6 +44,7 @@ import org.json.JSONArray;
 
 import io.openliberty.tools.eclipse.LibertyDevPlugin;
 import io.openliberty.tools.eclipse.logging.Logger;
+import io.openliberty.tools.eclipse.messages.Messages;
 
 /**
  * Wizard for creating a new Liberty Starter Project.
@@ -349,9 +350,7 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
                         isUpdatingVersions = false;
 
                         if (oldMP != null && !oldMP.equals(compatibleMP)) {
-                            final String message = String.format(
-                                    "MicroProfile Version has been automatically updated from %s to %s for compatibility with Jakarta EE %s.",
-                                    oldMP, compatibleMP, selectedEE);
+                            final String message = Messages.getMessage("starter_wizard_mp_updated", oldMP, compatibleMP, selectedEE);
                             getControl().getDisplay().asyncExec(new Runnable() {
                                 public void run() {
                                     setMessage(message, IMessageProvider.INFORMATION);
@@ -361,7 +360,7 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
 
                         checkAndUpdateJavaSE(selectedEE, compatibleMP);
                     } else {
-                        String warnMsg = "No compatible MicroProfile version found for Jakarta EE " + selectedEE;
+                        String warnMsg = Messages.getMessage("starter_wizard_ee_no_compatible_mp", selectedEE);
                         setMessage(warnMsg, IMessageProvider.WARNING);
                         Logger.logWarning(warnMsg);
                     }
@@ -409,7 +408,7 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
                         }
                     }
 
-                    String compatibleEE = getFirstCompatibleEEVersion(selectedMP);
+                    String compatibleEE = getHighestCompatibleEEVersion(selectedMP);
 
                     if (compatibleEE != null) {
                         String oldEE = (currentEE != null && !"None".equals(currentEE)) ? currentEE : null;
@@ -419,9 +418,7 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
                         isUpdatingVersions = false;
 
                         if (oldEE != null && !oldEE.equals(compatibleEE)) {
-                            final String message = String.format(
-                                    "Jakarta EE Version has been automatically updated from %s to %s for compatibility with MicroProfile %s.",
-                                    oldEE, compatibleEE, selectedMP);
+                            final String message = Messages.getMessage("starter_wizard_ee_updated", oldEE, compatibleEE, selectedMP);
                             getControl().getDisplay().asyncExec(new Runnable() {
                                 public void run() {
                                     setMessage(message, IMessageProvider.INFORMATION);
@@ -431,7 +428,7 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
 
                         checkAndUpdateJavaSE(compatibleEE, selectedMP);
                     } else {
-                        String warnMsg = "No compatible Jakarta EE version found for MicroProfile " + selectedMP;
+                        String warnMsg = Messages.getMessage("starter_wizard_mp_no_compatible_ee", selectedMP);
                         setMessage(warnMsg, IMessageProvider.WARNING);
                         Logger.logWarning(warnMsg);
                     }
@@ -586,7 +583,7 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
             // Validate Group
             String groupRaw = groupText.getText();
             String group = groupRaw.trim();
-            String groupErrorMsg = "Valid characters for package names include a-z, A-Z, '_' and 0-9. Packages must be separated by '.'";
+            String groupErrorMsg = Messages.getMessage("starter_wizard_group_invalid_error");
 
             if (group.isEmpty()) {
                 setErrorMessage("Group cannot be empty.");
@@ -611,7 +608,7 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
             // Validate Artifact
             String artifactRaw = artifactText.getText();
             String artifact = artifactRaw.trim();
-            String artifactErrorMsg = "Valid characters include a-z separated by '-'";
+            String artifactErrorMsg = Messages.getMessage("starter_wizard_artifact_invalid_error");
 
             if (artifact.isEmpty()) {
                 setErrorMessage("Artifact cannot be empty.");
@@ -642,8 +639,9 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
          * Validates artifact name according to Liberty Starter website rules.
          *
          * Rules (from https://start.openliberty.io/):
-         * - Only lowercase letters (a-z)
-         * - Hyphens (-) as separators
+         * - Only lowercase letters (a-z) and single hyphens as separators
+         * - Cannot start or end with a hyphen
+         * - Cannot have consecutive hyphens (e.g. --)
          * - NO numbers, uppercase, underscores, or spaces
          *
          * @param artifact The artifact name to validate
@@ -653,37 +651,17 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
             if (artifact == null || artifact.isEmpty()) {
                 return false;
             }
-            
-            // Check each character: must be lowercase letter or hyphen
-            for (int i = 0; i < artifact.length(); i++) {
-                char c = artifact.charAt(i);
-                if (!(c >= 'a' && c <= 'z') && c != '-') {
-                    return false;
-                }
-            }
-            
-            // Should not start or end with hyphen
-            if (artifact.startsWith("-") || artifact.endsWith("-")) {
-                return false;
-            }
-            
-            // Should not have consecutive hyphens
-            if (artifact.contains("--")) {
-                return false;
-            }
-            
-            return true;
+            // Regex: starts and ends with lowercase letter, allows single hyphens between
+            return artifact.matches("[a-z](-?[a-z])*");
         }
-        
+
         /**
          * Validates group name according to Liberty Starter website rules.
          *
          * Rules (from https://start.openliberty.io/):
-         * - Lowercase letters (a-z)
-         * - Uppercase letters (A-Z)
-         * - Numbers (0-9)
-         * - Underscores (_)
-         * - Dots (.) as package separators
+         * - Dot-separated segments of letters (a-z, A-Z), digits (0-9), or underscores (_)
+         * - Cannot start or end with a dot
+         * - Cannot have consecutive dots (e.g. ..)
          *
          * @param group The group name to validate
          * @return true if valid, false otherwise
@@ -692,48 +670,8 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
             if (group == null || group.isEmpty()) {
                 return false;
             }
-            
-            // Check for leading/trailing dots or consecutive dots
-            if (group.startsWith(".") || group.endsWith(".") || group.contains("..")) {
-                return false;
-            }
-            
-            // Split by dots and validate each segment
-            String[] segments = group.split("\\.");
-            if (segments.length == 0) {
-                return false;
-            }
-            
-            for (String segment : segments) {
-                if (!isValidPackageSegment(segment)) {
-                    return false;
-                }
-            }
-            
-            return true;
-        }
-        
-        /**
-         * Validates a single segment of a package name.
-         * Must contain only: a-z, A-Z, 0-9, _
-         *
-         * @param segment The package segment to validate
-         * @return true if valid, false otherwise
-         */
-        private boolean isValidPackageSegment(String segment) {
-            if (segment == null || segment.isEmpty()) {
-                return false;
-            }
-            
-            // Check each character: must be letter, digit, or underscore
-            for (int i = 0; i < segment.length(); i++) {
-                char c = segment.charAt(i);
-                if (!Character.isLetterOrDigit(c) && c != '_') {
-                    return false;
-                }
-            }
-            
-            return true;
+            // Regex: one or more dot-separated segments, each containing only word characters
+            return group.matches("[a-zA-Z0-9_]+(\\.[a-zA-Z0-9_]+)*");
         }
 
         /**
@@ -834,7 +772,7 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
          * @param mpVersion The MicroProfile version
          * @return The highest compatible Jakarta EE version, or null if none found
          */
-        private String getFirstCompatibleEEVersion(String mpVersion) {
+        private String getHighestCompatibleEEVersion(String mpVersion) {
             try {
                 LibertyProjectStarter starter = LibertyProjectStarter.getInstance();
                 HashMap<String, JSONArray> mp2ee = starter.getDependenciesMP2EE();
@@ -905,7 +843,7 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
                 if ("11.0".equals(eeVersion)) {
                     if ("8".equals(currentJavaSE) || "11".equals(currentJavaSE)) {
                         requiredJavaSE = "17";
-                        reason = "Jakarta EE 11.0 requires a minimum of Java SE 17";
+                        reason = Messages.getMessage("starter_wizard_java_se_ee_requires", eeVersion, requiredJavaSE);
                     }
                 }
                 // Jakarta EE 10.0 or MicroProfile 6.0+ requires Java SE 11+
@@ -915,9 +853,9 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
                     if ("8".equals(currentJavaSE)) {
                         requiredJavaSE = "11";
                         if ("10.0".equals(eeVersion)) {
-                            reason = "Jakarta EE 10.0 requires a minimum of Java SE 11";
+                            reason = Messages.getMessage("starter_wizard_java_se_ee_requires", eeVersion, requiredJavaSE);
                         } else {
-                            reason = "MicroProfile " + mpVersion + " requires a minimum of Java SE 11";
+                            reason = Messages.getMessage("starter_wizard_java_se_mp_requires", mpVersion, requiredJavaSE);
                         }
                     }
                 }
@@ -927,9 +865,7 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
                     javaSECombo.setText(requiredJavaSE);
                     isUpdatingVersions = false;
 
-                    final String message = String.format(
-                            "Java SE Version has been automatically updated from %s to %s. %s.",
-                            currentJavaSE, requiredJavaSE, reason);
+                    final String message = Messages.getMessage("starter_wizard_java_se_updated", currentJavaSE, requiredJavaSE, reason);
                     getControl().getDisplay().asyncExec(new Runnable() {
                         public void run() {
                             setMessage(message, IMessageProvider.INFORMATION);
