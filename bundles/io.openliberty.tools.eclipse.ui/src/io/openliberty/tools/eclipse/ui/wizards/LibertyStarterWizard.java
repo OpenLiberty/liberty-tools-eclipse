@@ -340,7 +340,7 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
                         }
                     }
 
-                    String compatibleMP = getFirstCompatibleMPVersion(selectedEE);
+                    String compatibleMP = getHighestCompatibleMPVersion(selectedEE);
 
                     if (compatibleMP != null) {
                         String oldMP = (currentMP != null && !"None".equals(currentMP)) ? currentMP : null;
@@ -720,7 +720,7 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
          * @param eeVersion The Jakarta EE version
          * @return The highest compatible MicroProfile version, or null if none found
          */
-        private String getFirstCompatibleMPVersion(String eeVersion) {
+        private String getHighestCompatibleMPVersion(String eeVersion) {
             try {
                 LibertyProjectStarter starter = LibertyProjectStarter.getInstance();
                 HashMap<String, JSONArray> ee2mp = starter.getDependenciesEE2MP();
