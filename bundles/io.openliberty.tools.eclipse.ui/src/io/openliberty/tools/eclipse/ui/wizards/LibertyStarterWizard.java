@@ -335,7 +335,8 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
 
                     if (currentMP != null && !currentMP.isEmpty() && !"None".equals(currentMP)) {
                         if (isCompatible(selectedEE, currentMP)) {
-                            checkAndUpdateJavaSE(selectedEE, currentMP);
+                            setMessage(null);
+                            checkAndUpdateJavaSE(selectedEE, currentMP, false);
                             return;
                         }
                     }
@@ -358,7 +359,7 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
                             });
                         }
 
-                        checkAndUpdateJavaSE(selectedEE, compatibleMP);
+                        checkAndUpdateJavaSE(selectedEE, compatibleMP, false);
                     } else {
                         String warnMsg = Messages.getMessage("starter_wizard_ee_no_compatible_mp", selectedEE);
                         setMessage(warnMsg, IMessageProvider.WARNING);
@@ -403,7 +404,7 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
                     if (currentEE != null && !currentEE.isEmpty() && !"None".equals(currentEE)) {
                         if (isCompatible(currentEE, selectedMP)) {
                             setMessage(null);
-                            checkAndUpdateJavaSE(currentEE, selectedMP);
+                            checkAndUpdateJavaSE(currentEE, selectedMP, false);
                             return;
                         }
                     }
@@ -426,7 +427,7 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
                             });
                         }
 
-                        checkAndUpdateJavaSE(compatibleEE, selectedMP);
+                        checkAndUpdateJavaSE(compatibleEE, selectedMP, false);
                     } else {
                         String warnMsg = Messages.getMessage("starter_wizard_mp_no_compatible_ee", selectedMP);
                         setMessage(warnMsg, IMessageProvider.WARNING);
@@ -572,7 +573,7 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
                 @Override
                 public void widgetSelected(SelectionEvent e) {
                     if (!isUpdatingVersions) {
-                        checkAndUpdateJavaSE(javaEECombo.getText(), microProfileCombo.getText());
+                        checkAndUpdateJavaSE(javaEECombo.getText(), microProfileCombo.getText(), true);
                     }
                     validatePage();
                 }
@@ -828,8 +829,11 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
          *
          * @param eeVersion The Jakarta EE version
          * @param mpVersion The MicroProfile version
+         * @param clearMessageIfValid If true, clears any stale banner when no correction is needed.
+         *                            Pass true only from the javaSECombo listener; false from EE/MP listeners
+         *                            which manage their own messages.
          */
-        private void checkAndUpdateJavaSE(String eeVersion, String mpVersion) {
+        private void checkAndUpdateJavaSE(String eeVersion, String mpVersion, boolean clearMessageIfValid) {
             if (isUpdatingVersions) {
                 return;
             }
@@ -869,6 +873,15 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
                     getControl().getDisplay().asyncExec(new Runnable() {
                         public void run() {
                             setMessage(message, IMessageProvider.INFORMATION);
+                        }
+                    });
+                } else if (clearMessageIfValid) {
+                    // Current Java SE is already valid — clear any stale info/warning banner.
+                    // Only done when triggered by the javaSECombo listener, not EE/MP listeners
+                    // (those manage their own messages and must not have them overwritten).
+                    getControl().getDisplay().asyncExec(new Runnable() {
+                        public void run() {
+                            setMessage(null);
                         }
                     });
                 }
