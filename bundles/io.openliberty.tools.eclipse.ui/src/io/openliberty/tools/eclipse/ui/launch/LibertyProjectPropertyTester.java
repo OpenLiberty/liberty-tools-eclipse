@@ -39,9 +39,6 @@ public class LibertyProjectPropertyTester extends PropertyTester {
      */
     @Override
     public boolean test(Object receiver, String property, Object[] args, Object expectedValue) {
-        if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_UI, new Object[] { property, args, expectedValue });
-        }
 
         // Resolve the receiver.
         IProject iProject = null;
@@ -67,9 +64,6 @@ public class LibertyProjectPropertyTester extends PropertyTester {
         }
 
         if (iProject == null) {
-            if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_UI, "Receiver object is not of the expected type. Receiver: " + receiver);
-            }
             return false;
         }
 
@@ -81,7 +75,7 @@ public class LibertyProjectPropertyTester extends PropertyTester {
 
         if (projectModel == null) {
             if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_UI, "Project: " + iProject.getName() + " has libertyNature but is not in the workspace model. This is unexpected.");
+                Trace.getTracer().trace(Trace.TRACE_UI, "Project " + iProject.getName() + " has Liberty nature but is not in the workspace model.");
             }
             return false;
         }
@@ -100,13 +94,7 @@ public class LibertyProjectPropertyTester extends PropertyTester {
             return false;
         }
 
-        result = evaluateResult(result, expectedValue);
-
-        if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_UI, new Object[] {state, result});
-        }
-
-        return result;
+        return evaluateResult(result, expectedValue);
     }
 
     /**

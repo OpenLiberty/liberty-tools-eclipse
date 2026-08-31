@@ -103,9 +103,15 @@ public class GradleMetadata implements Metadata {
      * @throws Exception If required files cannot be read
      */
     public GradleMetadata(String buildFilePath, String settingsFilePath) throws Exception {
-        this.buildFilePath = buildFilePath;
-        this.settingsFilePath = settingsFilePath;
-        extract();
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { buildFilePath, settingsFilePath });
+        }
+
+        extract(buildFilePath, settingsFilePath);
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, this);
+        }
     }
 
     /** {@inheritDoc} */
@@ -172,14 +178,15 @@ public class GradleMetadata implements Metadata {
      * saved by the constructor: the build file parent is preferred; the settings file
      * parent is used when no build file is present.
      *
+     * @param buildGradlePath    The absolute path to the build.gradle file, or null.
+     * @param settingsGradlePath The absolute path to the settings.gradle file, or null.
+     *
      * @throws Exception if required files cannot be read.
      */
-    private void extract() throws Exception {
-        if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, buildFilePath);
-        }
+    private void extract(String buildGradlePath, String settingsGradlePath) throws Exception {
+        buildFilePath = buildGradlePath;
+        settingsFilePath = settingsGradlePath;
 
-        // Derive project directory from whichever path is available.
         Path projectDir = buildFilePath != null ? Paths.get(buildFilePath).getParent() : Paths.get(settingsFilePath).getParent();
 
         projectName = resolveProjectName(projectDir);
@@ -191,10 +198,6 @@ public class GradleMetadata implements Metadata {
                            || isLibertyPluginInheritedFromParent(projectDir);
 
         projectDependencies = buildFilePath != null ? resolveProjectDependencies(buildFilePath) : new ArrayList<>();
-
-        if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, this);
-        }
     }
 
     /**
@@ -665,13 +668,11 @@ public class GradleMetadata implements Metadata {
     /** {@inheritDoc} */
     @Override
     public String toString() {
-        return "GradleMetadata{name=" + projectName
-               + ", parent=" + parentProjectName
-               + ", subprojects=" + subprojects
-               + ", aggregator=" + isAggregator
-               + ", libertyPlugin=" + hasLibertyPlugin
-               + ", dependencies=" + projectDependencies
-               + ", buildFile=" + buildFilePath
-               + ", settingsFile=" + settingsFilePath + "}";
+        return String.format("GradleMetadata{name=%s, isModuleDisabled=%b, parent=%s, subprojects=%s"
+                             + ", aggregator=%b, libertyPlugin=%b, dependencies=%s"
+                             + ", buildFile=%s, settingsFile=%s}",
+                             projectName, isModuleDisabled(), parentProjectName, subprojects,
+                             isAggregator, hasLibertyPlugin, projectDependencies,
+                             buildFilePath, settingsFilePath);
     }
 }

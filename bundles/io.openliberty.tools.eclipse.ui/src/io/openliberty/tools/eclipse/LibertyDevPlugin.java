@@ -72,6 +72,10 @@ public class LibertyDevPlugin extends AbstractUIPlugin {
      */
     @Override
     public void start(BundleContext context) throws Exception {
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { context.getBundle().getSymbolicName() });
+        }
+
         super.start(context);
         plugin = this;
         bundle = context.getBundle();
@@ -86,6 +90,10 @@ public class LibertyDevPlugin extends AbstractUIPlugin {
 
         // Register a workspace listener for cleanup.
         registerListeners();
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, context.getBundle().getSymbolicName());
+        }
     }
 
     /**
@@ -93,10 +101,18 @@ public class LibertyDevPlugin extends AbstractUIPlugin {
      */
     @Override
     public void stop(BundleContext context) throws Exception {
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { context.getBundle().getSymbolicName() });
+        }
+
         DevModeOperations.getInstance().cancelRunningJobs();
         unregisterListeners();
         plugin = null;
         super.stop(context);
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, context.getBundle().getSymbolicName());
+        }
     }
 
     /**

@@ -415,7 +415,7 @@ public class ProjectModel {
         project.setDescription(projectDesc, new NullProgressMonitor());
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, new Object[] { project, newNatures });
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, newNatures);
         }
     }
 
@@ -447,7 +447,7 @@ public class ProjectModel {
         project.setDescription(projectDesc, new NullProgressMonitor());
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, new Object[] { project, newNatures });
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, newNatures);
         }
     }
 
@@ -495,24 +495,6 @@ public class ProjectModel {
             names.add(p.getName());
         }
         return names;
-    }
-
-    /**
-     * Returns a string representation of this project model for debugging.
-     *
-     * @return a detailed string containing project information including build type,
-     *         Liberty configuration status, and parent/child relationships
-     */
-    @Override
-    public String toString() {
-        return "IProject: " + iProject.toString() +
-               ". BuildType: " + type +
-               ". Liberty Server Module: " + libertyServerModule +
-               ". IsParentOfServerModule:" + isParentOfServerModule +
-               ". HasTests: " + hasTests +
-               ". ParentProject: " + (parentProjectModel != null ? parentProjectModel.getName() : "<null> ") +
-               ". childDirProjects: " + toProjectNames(childDirProjects) +
-               ". DependentProjects: " + toProjectNames(dependentProjects);
     }
 
     /**
@@ -717,7 +699,7 @@ public class ProjectModel {
     /**
      * Sets the lifecycle state of this module.
      *
-     * @param appState The new {@link AppState} to apply.
+     * @param appState The new AppState to apply.
      */
     public void setAppState(AppState appState) {
         this.appState = appState;
@@ -739,5 +721,25 @@ public class ProjectModel {
      */
     public void setBatchStarted(boolean batchStarted) {
         this.batchStarted = batchStarted;
+    }
+    
+    /**
+     * Returns a string representation of this project model for debugging.
+     *
+     * @return a detailed string containing project information including build type,
+     *         Liberty configuration status, and parent/child relationships
+     */
+    @Override
+    public String toString() {
+        return String.format("ProjectModel{name=%s, path=%s, buildType=%s, appState=%s"
+                             + ", libertyServerModule=%b, parentOfServerModule=%b, libertyNature=%b"
+                             + ", hasTests=%b, batchStarted=%b, parent=%s"
+                             + ", children=%s, peers=%s, dependents=%s}",
+                             getName(), getPath(), type, appState,
+                             libertyServerModule, isParentOfServerModule, hasLibertyNature(),
+                             hasTests, batchStarted,
+                             (parentProjectModel != null ? parentProjectModel.getName() : null),
+                             toProjectNames(childDirProjects), toProjectNames(peerDirProjects),
+                             toProjectNames(dependentProjects));
     }
 }

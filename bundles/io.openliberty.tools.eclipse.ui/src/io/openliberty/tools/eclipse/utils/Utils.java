@@ -116,11 +116,6 @@ public class Utils {
      * @return An org.eclipse.core.resources.IProject object associated with the input active part.
      */
     public static IProject getProjectFromPart(IWorkbenchPart part) {
-
-        if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { part });
-        }
-
         IProject iProject = null;
         if (part != null && part instanceof IEditorPart) {
             IEditorPart editorPart = (IEditorPart) part;
@@ -129,10 +124,6 @@ public class Utils {
             if (resource != null) {
                 iProject = resource.getProject();
             }
-        }
-
-        if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, iProject);
         }
 
         return iProject;
@@ -146,11 +137,6 @@ public class Utils {
      * @return An org.eclipse.core.resources.IProject object associated with the input selection.
      */
     public static IProject getProjectFromSelection(ISelection selection) {
-
-        if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { "Selection of type: " + selection.getClass() });
-        }
-
         IProject iProject = null;
         if (selection != null && (selection instanceof IStructuredSelection)) {
 
@@ -168,10 +154,6 @@ public class Utils {
             }
         }
 
-        if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, iProject);
-        }
-
         return iProject;
     }
 
@@ -183,11 +165,6 @@ public class Utils {
      * @return An org.eclipse.core.resources.IProject objects associated with the input selection.
      */
     public static List<IProject> getProjectFromSelections(ISelection selection) {
-
-        if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { selection });
-        }
-
         List<IProject> selectedProjects = new ArrayList<IProject>();
         if (selection != null && (selection instanceof IStructuredSelection)) {
 
@@ -208,10 +185,6 @@ public class Utils {
             }
         }
 
-        if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, selectedProjects);
-        }
-
         return selectedProjects;
     }
 
@@ -222,11 +195,6 @@ public class Utils {
      *         returned.
      */
     public static IProject getActiveProject() {
-
-        if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS);
-        }
-
         IProject iProject = null;
         IWorkbench workbench = PlatformUI.getWorkbench();
         IWorkbenchWindow activeWindow = workbench.getActiveWorkbenchWindow();
@@ -249,10 +217,6 @@ public class Utils {
 
         if (iProject == null) {
             iProject = DevModeOperations.getInstance().getSelectedDashboardProject();
-        }
-
-        if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, iProject);
         }
 
         return iProject;

@@ -75,6 +75,9 @@ public class ProcessController {
      * @throws IOException If an error occurs while starting the process.
      */
     public void runProcess(String projectName, String projectPath, String command, List<String> envs, boolean printCmd, ILaunch launch) throws IOException {
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_UI, new Object[] { projectName, projectPath, command, envs, printCmd });
+        }
 
         List<String> commandList = new ArrayList<String>();
 
@@ -136,6 +139,10 @@ public class ProcessController {
         outMonitor.addListener(interceptor);
         errMonitor.addListener(interceptor);
         interceptorMap.put(projectPath, interceptor);
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_UI, process.pid());
+        }
     }
 
     /**
@@ -201,12 +208,20 @@ public class ProcessController {
      * @param projectPath The file system path of the project.
      */
     public void cleanup(String projectName, String projectPath) {
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_UI, new Object[] { projectName, projectPath });
+        }
+
         projectProcessMap.remove(projectName);
         if (projectPath != null) {
             ConsoleOutputInterceptor interceptor = interceptorMap.remove(projectPath);
             if (interceptor != null) {
                 interceptor.flush();
             }
+        }
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_UI, projectProcessMap.size());
         }
     }
 

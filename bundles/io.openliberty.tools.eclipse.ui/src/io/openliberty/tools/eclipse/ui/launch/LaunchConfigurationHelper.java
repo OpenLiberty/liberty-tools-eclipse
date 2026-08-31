@@ -100,7 +100,7 @@ public class LaunchConfigurationHelper {
         }
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, new Object[] { configuration });
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, configuration);
         }
 
         return configuration;

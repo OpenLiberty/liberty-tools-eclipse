@@ -17,7 +17,6 @@ import java.util.List;
 
 import org.eclipse.jface.viewers.ITreeContentProvider;
 
-import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.model.ProjectModel;
 import io.openliberty.tools.eclipse.model.WorkspaceModel;
 
@@ -114,20 +113,7 @@ public class DashboardContentProvider implements ITreeContentProvider {
      * @return List of root projects (projects without parents)
      */
     public List<ProjectModel> getRootDashboardProjects() {
-        if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS);
-        }
-
-        List<ProjectModel> result;
-        List<ProjectModel> rootProjects = workspaceModel.getRootProjects();
-
-        result = filterLibertyEnabledProjects(rootProjects);
-
-        if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, result);
-        }
-
-        return result;
+        return filterLibertyEnabledProjects(workspaceModel.getRootProjects());
     }
 
     /**
@@ -139,22 +125,14 @@ public class DashboardContentProvider implements ITreeContentProvider {
      * @return Filtered list containing only Liberty-enabled projects
      */
     private List<ProjectModel> filterLibertyEnabledProjects(List<ProjectModel> projectModels) {
-        if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, projectModels);
-        }
-
         List<ProjectModel> filtered = new ArrayList<>();
 
         for (ProjectModel projectModel : projectModels) {
-            // Include if it's Liberty-enabled OR has Liberty descendants
+            // Include if it's Liberty-enabled OR has Liberty descendants.
             if (projectModel.getParentProjectModel() == null || projectModel.isLibertyServerModule() ||
                 !workspaceModel.findLibertyDescendants(projectModel).isEmpty()) {
                 filtered.add(projectModel);
             }
-        }
-
-        if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, filtered);
         }
 
         return filtered;
