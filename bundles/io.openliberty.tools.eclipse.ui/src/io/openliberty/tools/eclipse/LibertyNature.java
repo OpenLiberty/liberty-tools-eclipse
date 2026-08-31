@@ -17,6 +17,8 @@ import org.eclipse.core.resources.IProjectNature;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.swt.widgets.Display;
 
+import io.openliberty.tools.eclipse.logging.Trace;
+
 /**
  * Represents a Liberty nature or type.
  */
@@ -30,6 +32,10 @@ public class LibertyNature implements IProjectNature {
      */
     @Override
     public void configure() throws CoreException {
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { project.getName() });
+        }
+
         Display.getDefault().syncExec(new Runnable() {
             /**
              * {@inheritDoc}
@@ -39,6 +45,10 @@ public class LibertyNature implements IProjectNature {
                 DevModeOperations.getInstance().refreshDashboardView(false);
             }
         });
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, project.getName());
+        }
     }
 
     /**
@@ -46,6 +56,10 @@ public class LibertyNature implements IProjectNature {
      */
     @Override
     public void deconfigure() throws CoreException {
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { project.getName() });
+        }
+
         Display.getDefault().syncExec(new Runnable() {
             /**
              * {@inheritDoc}
@@ -55,6 +69,10 @@ public class LibertyNature implements IProjectNature {
                 DevModeOperations.getInstance().refreshDashboardView(false);
             }
         });
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, project.getName());
+        }
     }
 
     /**

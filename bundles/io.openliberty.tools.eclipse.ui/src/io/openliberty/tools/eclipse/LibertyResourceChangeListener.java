@@ -19,6 +19,7 @@ import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.swt.widgets.Display;
 
+import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.model.ProjectModel;
 import io.openliberty.tools.eclipse.model.WorkspaceModel;
 
@@ -36,10 +37,17 @@ public class LibertyResourceChangeListener implements IResourceChangeListener {
              */
             @Override
             public void run() {
+                if (Trace.isEnabled()) {
+                    Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { event.getType(), event.getSource() });
+                }
+
                 DevModeOperations devModeOps = DevModeOperations.getInstance();
                 WorkspaceModel workspaceModel = devModeOps.getWorkspaceModel();
                 IResourceDelta delta = event.getDelta();
                 if (delta == null) {
+                    if (Trace.isEnabled()) {
+                        Trace.getTracer().traceExit(Trace.TRACE_TOOLS, "No delta. No-op.");
+                    }
                     return;
                 }
 
@@ -69,6 +77,10 @@ public class LibertyResourceChangeListener implements IResourceChangeListener {
                             ProjectModel projectModel = workspaceModel.getProjectByLocation(projectLocation);
 
                             if (projectModel != null && (updateFlag == IResourceDelta.OPEN || updateFlag == 147456)) {
+                                if (Trace.isEnabled()) {
+                                    Trace.getTracer().trace(Trace.TRACE_TOOLS,
+                                                            "Project changed. Project: " + iProject.getName() + ". Flag: " + updateFlag);
+                                }
                                 refreshNeeded = true;
                             }
                             break;
@@ -81,6 +93,10 @@ public class LibertyResourceChangeListener implements IResourceChangeListener {
                             projectModel = workspaceModel.getProjectByLocation(projectLocation);
 
                             if (projectModel == null && (updateFlag == IResourceDelta.OPEN || updateFlag == 147456)) {
+                                if (Trace.isEnabled()) {
+                                    Trace.getTracer().trace(Trace.TRACE_TOOLS,
+                                                            "Project added. Project: " + iProject.getName() + ". Flag: " + updateFlag);
+                                }
                                 refreshNeeded = true;
                             }
                             break;
@@ -89,6 +105,10 @@ public class LibertyResourceChangeListener implements IResourceChangeListener {
                         // Flag MARKERS (130172).
                         case IResourceDelta.REMOVED:
                             if ((updateFlag == IResourceDelta.NO_CHANGE || updateFlag == IResourceDelta.MARKERS)) {
+                                if (Trace.isEnabled()) {
+                                    Trace.getTracer().trace(Trace.TRACE_TOOLS,
+                                                            "Project removed. Project: " + iProject.getName() + ". Flag: " + updateFlag);
+                                }
                                 refreshNeeded = true;
                             }
                             break;
@@ -103,6 +123,10 @@ public class LibertyResourceChangeListener implements IResourceChangeListener {
                     // workspaceProjectsModel.buildMultiProjectModel(projectsChanged, true);
                     workspaceModel.createNewCompleteWorkspaceModelWithClassify();
                     devModeOps.refreshDashboardView(false);
+                }
+
+                if (Trace.isEnabled()) {
+                    Trace.getTracer().traceExit(Trace.TRACE_TOOLS, refreshNeeded);
                 }
             }
         });

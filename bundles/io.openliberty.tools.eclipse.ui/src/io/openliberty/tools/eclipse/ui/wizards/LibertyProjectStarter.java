@@ -357,7 +357,7 @@ public class LibertyProjectStarter {
         installStarterApplication(destDir, response.body(), buildType);
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, new Object[] { url, destDir });
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, "URL: " + url + "DestinationDir: " + destDir);
         }
     }
 

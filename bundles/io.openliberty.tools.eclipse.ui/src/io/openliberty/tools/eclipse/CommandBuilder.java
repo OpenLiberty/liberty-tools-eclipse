@@ -61,7 +61,7 @@ public class CommandBuilder {
     public static CommandData constructMavenCommand(ProjectModel targetProjectModel, String goal, boolean runClean, String userParms,
                                                     String pathEnv) throws CommandNotFoundException {
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { targetProjectModel, goal, runClean, userParms });
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { targetProjectModel, goal, runClean, userParms, pathEnv});
         }
 
         String targetProjectPath = targetProjectModel.getPath();
@@ -74,8 +74,8 @@ public class CommandBuilder {
         }
         args.append(goal);
 
-        // Add module selector (-pl :moduleName -am) when this is a child module of a 
-        // This is done so Maven targets only the selected module and its upstream 
+        // Add module selector (-pl :moduleName -am) when this is a child module of a multi-module build.
+        // This is done so Maven targets only the selected module and its upstream
         // dependencies. The command is executed from the parent project directory.
         if (parentProjectPath != null) {
             args.append(" -pl :").append(targetProjectModel.getName()).append(" -am");
@@ -109,7 +109,7 @@ public class CommandBuilder {
         CommandData result = new CommandData(cmdLine, executionPath);
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, result.getCommand());
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, result);
         }
 
         return result;
@@ -131,7 +131,7 @@ public class CommandBuilder {
     public static CommandData constructGradleCommand(ProjectModel targetProjectModel, String taskName, boolean runClean, String userParms,
                                                      String pathEnv) throws CommandNotFoundException {
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { targetProjectModel, taskName, runClean, userParms });
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { targetProjectModel, taskName, runClean, userParms, pathEnv });
         }
 
         String targetProjectPath = targetProjectModel.getPath();
@@ -167,9 +167,11 @@ public class CommandBuilder {
 
         String executionPath = (targetParentPath != null) ? targetParentPath : targetProjectPath;
         CommandData result = new CommandData(cmdLine, executionPath);
+
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, cmdLine);
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, result);
         }
+
         return result;
     }
 
@@ -185,7 +187,7 @@ public class CommandBuilder {
      */
     public static CommandData constructGradleStopDaemonCommand(ProjectModel targetProjectModel, String pathEnv) throws CommandNotFoundException {
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { targetProjectModel });
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { targetProjectModel, pathEnv });
         }
 
         String targetProjectPath = targetProjectModel.getPath();
@@ -194,8 +196,9 @@ public class CommandBuilder {
         String cmdLine = builder.appendArgsToCommand(cmd, "--stop");
 
         CommandData result = new CommandData(cmdLine, targetProjectPath);
+    
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, cmdLine);
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, result);
         }
         return result;
     }
@@ -220,7 +223,7 @@ public class CommandBuilder {
         }
 
         if (cmd == null) {
-            String errorMsg = "Could not find " + (isMaven ? "Maven" : "Gradle") + " executable or wrapper";
+            String errorMsg = "Unable to find " + (isMaven ? "Maven" : "Gradle") + " executable or wrapper";
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, errorMsg);
             }
@@ -238,7 +241,7 @@ public class CommandBuilder {
     /**
      * Detects the wrapper script associated with the supported build tools (Maven and Gradle).
      *
-     * @return A {@link WrapperResult} when a valid wrapper is found, or {@code null} when none exists.
+     * @return The absolute wrapper path when a valid wrapper is found, or null when none is found.
      */
     private String getBuildToolWrapper() {
         String cmd = null;
@@ -261,13 +264,9 @@ public class CommandBuilder {
 
         if (cmd == null) {
             if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_TOOLS, "Did NOT find wrapper for projectPath: " + projectPath);
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, "A build tool wrapper was not found for project " + projectPath);
             }
             return null;
-        }
-
-        if (Trace.isEnabled()) {
-            Trace.getTracer().trace(Trace.TRACE_TOOLS, "Found wrapper: " + cmd);
         }
 
         return cmd;
@@ -295,13 +294,10 @@ public class CommandBuilder {
         String cmdPathStr = tempCmdFile.getPath();
 
         if (tempCmdFile.exists()) {
-            if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_TOOLS, "Found mvn/gradle from preference at path: " + cmdPathStr);
-            }
             return cmdPathStr;
         } else {
             if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_TOOLS, "Did NOT find mvn/gradle from preference at path: " + cmdPathStr);
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, "Unable to find the mvn/gradle installation defined in preferences: " + cmdPathStr);
             }
             return null;
         }
@@ -309,17 +305,13 @@ public class CommandBuilder {
 
     /**
      * Retrieves the build tool executable from the PATH environment variable visible to the Eclipse IDE.
-     * 
+     *
      * @return The build tool executable from the PATH environment variable visible to the Eclipse IDE.
-     * @throws IllegalStateException
+     *
+     * @throws IllegalStateException If the PATH environment variable cannot be accessed.
      */
     private String getCommandFromPathEnvVar() throws IllegalStateException {
-
         String executableBaseName = getExecBaseName();
-        if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { executableBaseName, pathEnv });
-        }
-
         String foundCmd = null;
 
         String[] pathMembers = pathEnv.split(File.pathSeparator);
@@ -333,9 +325,7 @@ public class CommandBuilder {
                 break;
             }
         }
-        if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, foundCmd);
-        }
+
         return foundCmd;
     }
 
@@ -437,11 +427,19 @@ public class CommandBuilder {
 
         /**
          * Returns the directory from which the command must be executed.
-         * 
+         *
          * @return The directory from which the command must be executed.
          */
         public String getExecutionPath() {
             return executionPath;
+        }
+
+        /**
+         * {@inheritDoc}
+         */
+        @Override
+        public String toString() {
+            return String.format("CommandData{executionPath=%s, command=%s}", executionPath, commandLine);
         }
     }
 }

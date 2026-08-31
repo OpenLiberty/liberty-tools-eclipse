@@ -95,6 +95,9 @@ public class WorkspaceModel {
      * @param classify       Whether to classify
      */
     private void buildMultiProjectModel(List<IProject> projectsToScan, boolean classify) {
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { classify, projectsToScan });
+        }
 
         // Step 1: Classify as server module and detect tests
         for (IProject iProject : projectsToScan) {
@@ -280,7 +283,7 @@ public class WorkspaceModel {
         });
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().trace(Trace.TRACE_TOOLS, "Projects: " + projectsByLocation.values());
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, projectsByLocation.values());
         }
     }
 
@@ -293,18 +296,7 @@ public class WorkspaceModel {
      *         not a server project).
      */
     public ProjectModel getProjectByName(String name) {
-
-        if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, name);
-        }
-
-        ProjectModel retVal = projectsByName.get(name);
-
-        if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, retVal);
-        }
-
-        return retVal;
+        return projectsByName.get(name);
     }
 
     /**
@@ -316,17 +308,7 @@ public class WorkspaceModel {
      *         the list of projects with Liberty server configuration.
      */
     public ProjectModel getProjectByLocation(String location) {
-        if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, location);
-        }
-
-        ProjectModel retVal = projectsByLocation.get(location);
-
-        if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, retVal);
-        }
-
-        return retVal;
+        return projectsByLocation.get(location);
     }
 
     /**
@@ -389,11 +371,6 @@ public class WorkspaceModel {
      * @return Liberty server project names sorted and grouped.
      */
     public List<String> getSortedDashboardProjectList() {
-
-        if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS);
-        }
-
         List<String> mavenDashboardProjects = new ArrayList<String>();
         List<String> gradleDashboardProjects = new ArrayList<String>();
         List<String> retVal = new ArrayList<String>();
@@ -404,11 +381,6 @@ public class WorkspaceModel {
                     mavenDashboardProjects.add(p.getName());
                 } else if (p.getBuildType() == ProjectModel.BuildType.Gradle) {
                     gradleDashboardProjects.add(p.getName());
-                } else {
-                    if (Trace.isEnabled()) {
-                        Trace.getTracer().trace(Trace.TRACE_TOOLS,
-                                                "Project " + p.getIProject().getName() + " could not be identified as being a Maven or Gradle project.");
-                    }
                 }
             }
         }
@@ -418,12 +390,7 @@ public class WorkspaceModel {
         retVal.addAll(mavenDashboardProjects);
         retVal.addAll(gradleDashboardProjects);
 
-        if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, retVal);
-        }
-
         return retVal;
-
     }
 
     /**

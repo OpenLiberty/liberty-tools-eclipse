@@ -145,7 +145,7 @@ public class DebugModeHandler {
         }
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, new Object[] { project, startParms });
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, project);
         }
 
         return startParms;
@@ -198,11 +198,10 @@ public class DebugModeHandler {
         }
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { project, debugPort });
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, debugPort);
         }
 
         return debugPort;
-
     }
 
     /**
@@ -215,6 +214,10 @@ public class DebugModeHandler {
      * @throws Exception
      */
     public void startDebugAttacher(ProjectModel project, ILaunch launch, String port) {
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { project, port });
+        }
+
         Job job = new Job(Messages.getMessage("attaching_debugger_job")) {
             @Override
             protected IStatus run(IProgressMonitor monitor) {
@@ -315,6 +318,10 @@ public class DebugModeHandler {
         });
 
         job.schedule();
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, project);
+        }
     }
 
     private AttachingConnector getAttachingConnector() {

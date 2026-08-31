@@ -136,9 +136,17 @@ public class DevModeStateHandler implements IConsoleLineHandler {
      *                         originally used to start dev mode.
      */
     public DevModeStateHandler(ProjectModel projectModel, String mode) {
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { mode, projectModel });
+        }
+
         this.projectModel = projectModel;
         this.mode = mode;
         this.patternActions = buildPatternActions();
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS);
+        }
     }
 
     /**
@@ -166,6 +174,10 @@ public class DevModeStateHandler implements IConsoleLineHandler {
      * Liberty Tools can fully manage the project.
      */
     private void handleAlreadyRunning() {
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { projectModel.getName(), projectModel.getAppState() });
+        }
+
         Display.getDefault().asyncExec(() -> {
             String targetProjectName = projectModel.getName();
             String msg = Messages.getMessage("server_already_running", targetProjectName);
@@ -185,9 +197,7 @@ public class DevModeStateHandler implements IConsoleLineHandler {
                     } catch (Exception e) {
                         if (Trace.isEnabled()) {
                             Trace.getTracer().trace(Trace.TRACE_TOOLS,
-                                                    "DevModeStateHandler: failed to restart dev mode for project "
-                                                                       + projectModel.getName(),
-                                                    e);
+                                                    "Failed to restart dev mode for project " + projectModel.getName(), e);
                         }
                         ErrorHandler.processErrorMessage(
                                                          Messages.getMessage("start_general_error", targetProjectName), e, true);
@@ -195,6 +205,10 @@ public class DevModeStateHandler implements IConsoleLineHandler {
                 });
             }
         });
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, projectModel);
+        }
     }
 
     /**
@@ -202,10 +216,28 @@ public class DevModeStateHandler implements IConsoleLineHandler {
      * Transitions the module to RUNNING and refreshes the dashboard label.
      */
     private void handleAppStarted() {
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { projectModel.getName(), projectModel.getAppState() });
+        }
+
+        // Liberty emits CWWKZ0001I: more than once during a dev mode start (initial install
+        // and again when the server confirms it is ready). Skip redundant state transitions
+        // and dashboard refreshes on the second and subsequent occurrences.
+        if (projectModel.getAppState() == ProjectModel.AppState.RUNNING) {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().traceExit(Trace.TRACE_TOOLS, "Already RUNNING. No-op.");
+            }
+            return;
+        }
+
         projectModel.setAppState(ProjectModel.AppState.RUNNING);
         DevModeOperations devModeOps = DevModeOperations.getInstance();
         devModeOps.cacheAppState(projectModel.getName(), ProjectModel.AppState.RUNNING);
         devModeOps.refreshDashboardLabel(projectModel);
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, projectModel);
+        }
     }
 
     /**
@@ -214,10 +246,15 @@ public class DevModeStateHandler implements IConsoleLineHandler {
      * tears down the console interceptor and process map entry for this project.
      */
     private void handleServerStopped() {
-        projectModel.setAppState(ProjectModel.AppState.STOPPED);
-        DevModeOperations devModeOps = DevModeOperations.getInstance();
-        devModeOps.cacheAppState(projectModel.getName(), ProjectModel.AppState.STOPPED);
-        devModeOps.cleanupProcess(projectModel.getName());
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { projectModel.getName(), projectModel.getAppState() });
+        }
+
+        DevModeOperations.getInstance().cleanupProcess(projectModel.getName());
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, projectModel);
+        }
     }
 
     /**

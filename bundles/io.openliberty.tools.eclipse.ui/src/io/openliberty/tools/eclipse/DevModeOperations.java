@@ -264,7 +264,7 @@ public class DevModeOperations {
     public void start(ProjectModel targetProjectModel, String parms, String javaHomePath, ILaunch launch, String mode, boolean runProjectClean) {
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { targetProjectModel, parms, javaHomePath, mode });
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { targetProjectModel, parms, javaHomePath, mode, runProjectClean });
         }
 
         String targetProjectName = targetProjectModel.getName();
@@ -370,7 +370,7 @@ public class DevModeOperations {
         }
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, new Object[] { targetProjectModel });
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, targetProjectModel);
         }
     }
 
@@ -386,7 +386,7 @@ public class DevModeOperations {
     public void startInContainer(ProjectModel targetProjectModel, String parms, String javaHomePath, ILaunch launch, String mode, boolean runProjectClean) {
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { targetProjectModel, parms, javaHomePath, mode });
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { targetProjectModel, parms, javaHomePath, mode, runProjectClean });
         }
 
         String targetProjectName = targetProjectModel.getName();
@@ -486,7 +486,7 @@ public class DevModeOperations {
         }
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, new Object[] { targetProjectModel });
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, targetProjectModel);
         }
     }
 
@@ -522,27 +522,50 @@ public class DevModeOperations {
             processController.writeToProcessStream(targetProjectName, DEVMODE_COMMAND_EXIT);
         } catch (Exception e) {
             String msg = Messages.getMessage("stop_general_error", targetProjectName);
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
+            }
             ErrorHandler.processErrorMessage(msg, true);
             return;
         }
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, new Object[] { targetProjectModel });
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, targetProjectModel);
         }
     }
 
     /**
      * Cleans up the process resources for the specified project.
+     * Synchronized to prevent duplicate cleanup when both DevModeStateHandler
+     * and LibertyDebugEventListener race to call this method on process termination.
      *
      * @param projectName The name of the project whose process should be cleaned up.
      */
-    public void cleanupProcess(String projectName) {
+    public synchronized void cleanupProcess(String projectName) {
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, projectName);
+        }
+
         ProjectModel projectModel = workspaceModel.getProjectByName(projectName);
-        String projectPath = (projectModel != null) ? projectModel.getPath() : null;
-        processController.cleanup(projectName, projectPath);
+
+        // If the project is already STOPPED, cleanup was already performed by the first
+        // caller. The second caller (whichever of DevModeStateHandler or
+        // LibertyDebugEventListener arrived later) exits here.
+        if (projectModel == null || projectModel.getAppState() == ProjectModel.AppState.STOPPED) {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().traceExit(Trace.TRACE_TOOLS, "Already stopped or not found. No-op.");
+            }
+            return;
+        }
+
+        processController.cleanup(projectName, projectModel.getPath());
         projectModel.setAppState(ProjectModel.AppState.STOPPED);
         cacheAppState(projectName, ProjectModel.AppState.STOPPED);
         refreshDashboardLabel(projectModel);
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, projectModel + " ProcessController: " + processController);
+        }
     }
 
     /**
@@ -590,7 +613,7 @@ public class DevModeOperations {
         }
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, new Object[] { targetProjectModel });
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, targetProjectModel);
         }
     }
 
@@ -641,7 +664,7 @@ public class DevModeOperations {
         }
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, new Object[] { targetProjectModel });
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, targetProjectModel);
         }
     }
 
@@ -691,7 +714,7 @@ public class DevModeOperations {
         }
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, new Object[] { targetProjectModel });
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, targetProjectModel);
         }
     }
 
@@ -752,7 +775,7 @@ public class DevModeOperations {
         }
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, new Object[] { targetProjectModel });
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, targetProjectModel);
         }
     }
 
@@ -792,6 +815,10 @@ public class DevModeOperations {
      * @throws Exception If an error occurs while running the specified command.
      */
     public void startDevMode(String cmd, ProjectModel projectModel, String projectPath, String javaInstallPath, ILaunch launch, String mode) throws Exception {
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { projectModel.getName(), cmd, projectPath, mode });
+        }
+
         String projectName = projectModel.getName();
 
         // Determine the environment properties to be set in the process running dev mode.
@@ -815,6 +842,10 @@ public class DevModeOperations {
         ConsoleOutputInterceptor interceptor = processController.getInterceptor(projectPath);
         if (interceptor != null) {
             interceptor.addHandler(new DevModeStateHandler(projectModel, mode));
+        }
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, projectModel + " ProcessController: " + processController);
         }
     }
 
@@ -1243,6 +1274,10 @@ public class DevModeOperations {
      * @param projectName The name of the project whose server should be restarted.
      */
     public void restartServer(String projectName) {
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, projectName);
+        }
+
         String restartCommand = "r";
         try {
             processController.writeToProcessStream(projectName, restartCommand);
@@ -1250,6 +1285,10 @@ public class DevModeOperations {
             if (Trace.isEnabled()) {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, Messages.getMessage("restart_server_error", projectName), e);
             }
+        }
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, projectName);
         }
     }
 
@@ -1354,7 +1393,7 @@ public class DevModeOperations {
                                                     ModuleStateFilter expectedModuleState, boolean multiSelect) throws Exception {
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { projectModel, action.toString(), multiSelect });
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { projectModel, action, expectedModuleState, multiSelect });
         }
 
         @SuppressWarnings("unchecked")
@@ -1471,6 +1510,7 @@ public class DevModeOperations {
                         if (mavenImg != null && !mavenImg.isDisposed()) {
                             mavenImg.dispose();
                         }
+
                         if (gradleImg != null && !gradleImg.isDisposed()) {
                             gradleImg.dispose();
                         }
@@ -1508,7 +1548,7 @@ public class DevModeOperations {
      */
     public ProjectModel resolveTestReportTarget(ProjectModel projectModel, DashboardAction action) throws Exception {
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { projectModel, action.toString() });
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { projectModel, action });
         }
 
         final ProjectModel[] targetProject = new ProjectModel[1];
@@ -1606,6 +1646,9 @@ public class DevModeOperations {
 
                 // If the user exited the dialog, return null to signal cancellation.
                 if (targetProject[0] == null) {
+                    if (Trace.isEnabled()) {
+                        Trace.getTracer().traceExit(Trace.TRACE_TOOLS, "Null, possible selection exit. No target selected.");
+                    }
                     return null;
                 }
             }

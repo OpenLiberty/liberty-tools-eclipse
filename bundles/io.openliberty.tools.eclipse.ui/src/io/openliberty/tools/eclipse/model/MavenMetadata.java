@@ -50,7 +50,15 @@ public class MavenMetadata implements Metadata {
      * @param buildFilePath The path to the pom.xml build metadata.
      */
     public MavenMetadata(String buildFilePath) throws Exception {
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, buildFilePath);
+        }
+
         extract(buildFilePath);
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, this);
+        }
     }
 
     /**
@@ -128,17 +136,9 @@ public class MavenMetadata implements Metadata {
      * @throws Exception if parsing fails.
      */
     public void extract(String pomXmlPath) throws Exception {
-        if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, pomXmlPath);
-        }
-
         buildFilePath = pomXmlPath;
         String xmlContent = new String(Files.readAllBytes(Paths.get(pomXmlPath)));
         parsePomXml(xmlContent);
-
-        if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, this);
-        }
     }
 
     /**
@@ -407,5 +407,14 @@ public class MavenMetadata implements Metadata {
     public boolean isValidPomFile(String filePath) {
         File file = new File(filePath);
         return file.exists() && file.getName().equals("pom.xml");
+    }
+    
+    /** {@inheritDoc} */
+    @Override
+    public String toString() {
+        return String.format("MavenMetadata{name=%s, isModuleDisabled=%b, parent=%s, subprojects=%s"
+                             + ", aggregator=%b, libertyPlugin=%b, dependencies=%s, buildFile=%s}",
+                             projectName, isLibertyModuleDisabled, parentProjectName, subprojects,
+                             isAggregator, hasLibertyPlugin, projectDependencies, buildFilePath);
     }
 }
