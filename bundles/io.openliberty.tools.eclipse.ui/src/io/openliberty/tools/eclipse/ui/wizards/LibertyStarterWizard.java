@@ -335,8 +335,20 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
 
                     if (currentMP != null && !currentMP.isEmpty() && !"None".equals(currentMP)) {
                         if (isCompatible(selectedEE, currentMP)) {
-                            setMessage(null);
-                            checkAndUpdateJavaSE(selectedEE, currentMP, false);
+                            // EE/MP already compatible — check if Java SE needs updating
+                            final String oldJavaSE = javaSECombo.getText();
+                            String newJavaSE = checkAndUpdateJavaSE(selectedEE, currentMP);
+                            if (newJavaSE != null) {
+                                final String reason = Messages.getMessage("starter_wizard_java_se_ee_requires", selectedEE, newJavaSE);
+                                final String msg = Messages.getMessage("starter_wizard_java_se_updated", oldJavaSE, newJavaSE, reason);
+                                getControl().getDisplay().asyncExec(new Runnable() {
+                                    public void run() {
+                                        setMessage(msg, IMessageProvider.INFORMATION);
+                                    }
+                                });
+                            } else {
+                                setMessage(null);
+                            }
                             return;
                         }
                     }
@@ -350,16 +362,44 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
                         microProfileCombo.setText(compatibleMP);
                         isUpdatingVersions = false;
 
-                        if (oldMP != null && !oldMP.equals(compatibleMP)) {
-                            final String message = Messages.getMessage("starter_wizard_mp_updated", oldMP, compatibleMP, selectedEE);
+                        // Capture old Java SE before checkAndUpdateJavaSE modifies the combo
+                        final String oldJavaSE = javaSECombo.getText();
+                        String newJavaSE = checkAndUpdateJavaSE(selectedEE, compatibleMP);
+
+                        final boolean mpActuallyChanged = oldMP != null && !oldMP.equals(compatibleMP);
+                        final String finalOldMP = oldMP;
+                        final String finalCompatibleMP = compatibleMP;
+
+                        if (mpActuallyChanged && newJavaSE != null) {
+                            // Both MP and Java SE auto-updated — combined message matching website
+                            final String combinedMsg = Messages.getMessage(
+                                    "starter_wizard_mp_updated_java_se_combined",
+                                    finalOldMP, finalCompatibleMP, selectedEE, newJavaSE);
                             getControl().getDisplay().asyncExec(new Runnable() {
                                 public void run() {
-                                    setMessage(message, IMessageProvider.INFORMATION);
+                                    setMessage(combinedMsg, IMessageProvider.INFORMATION);
                                 }
                             });
+                        } else if (mpActuallyChanged) {
+                            // Only MP changed
+                            final String mpMsg = Messages.getMessage("starter_wizard_mp_updated", finalOldMP, finalCompatibleMP, selectedEE);
+                            getControl().getDisplay().asyncExec(new Runnable() {
+                                public void run() {
+                                    setMessage(mpMsg, IMessageProvider.INFORMATION);
+                                }
+                            });
+                        } else if (newJavaSE != null) {
+                            // MP didn't change but Java SE did
+                            final String reason = Messages.getMessage("starter_wizard_java_se_ee_requires", selectedEE, newJavaSE);
+                            final String javaSEMsg = Messages.getMessage("starter_wizard_java_se_updated", oldJavaSE, newJavaSE, reason);
+                            getControl().getDisplay().asyncExec(new Runnable() {
+                                public void run() {
+                                    setMessage(javaSEMsg, IMessageProvider.INFORMATION);
+                                }
+                            });
+                        } else {
+                            setMessage(null);
                         }
-
-                        checkAndUpdateJavaSE(selectedEE, compatibleMP, false);
                     } else {
                         String warnMsg = Messages.getMessage("starter_wizard_ee_no_compatible_mp", selectedEE);
                         setMessage(warnMsg, IMessageProvider.WARNING);
@@ -403,8 +443,20 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
 
                     if (currentEE != null && !currentEE.isEmpty() && !"None".equals(currentEE)) {
                         if (isCompatible(currentEE, selectedMP)) {
-                            setMessage(null);
-                            checkAndUpdateJavaSE(currentEE, selectedMP, false);
+                            // EE/MP already compatible — check if Java SE needs updating
+                            final String oldJavaSE = javaSECombo.getText();
+                            String newJavaSE = checkAndUpdateJavaSE(currentEE, selectedMP);
+                            if (newJavaSE != null) {
+                                final String reason = Messages.getMessage("starter_wizard_java_se_mp_requires", selectedMP, newJavaSE);
+                                final String msg = Messages.getMessage("starter_wizard_java_se_updated", oldJavaSE, newJavaSE, reason);
+                                getControl().getDisplay().asyncExec(new Runnable() {
+                                    public void run() {
+                                        setMessage(msg, IMessageProvider.INFORMATION);
+                                    }
+                                });
+                            } else {
+                                setMessage(null);
+                            }
                             return;
                         }
                     }
@@ -418,16 +470,44 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
                         javaEECombo.setText(compatibleEE);
                         isUpdatingVersions = false;
 
-                        if (oldEE != null && !oldEE.equals(compatibleEE)) {
-                            final String message = Messages.getMessage("starter_wizard_ee_updated", oldEE, compatibleEE, selectedMP);
+                        // Capture old Java SE before checkAndUpdateJavaSE modifies the combo
+                        final String oldJavaSE = javaSECombo.getText();
+                        String newJavaSE = checkAndUpdateJavaSE(compatibleEE, selectedMP);
+
+                        final boolean eeActuallyChanged = oldEE != null && !oldEE.equals(compatibleEE);
+                        final String finalOldEE = oldEE;
+                        final String finalCompatibleEE = compatibleEE;
+
+                        if (eeActuallyChanged && newJavaSE != null) {
+                            // Both EE and Java SE auto-updated — combined message matching website
+                            final String combinedMsg = Messages.getMessage(
+                                    "starter_wizard_ee_updated_java_se_combined",
+                                    finalOldEE, finalCompatibleEE, newJavaSE, selectedMP);
                             getControl().getDisplay().asyncExec(new Runnable() {
                                 public void run() {
-                                    setMessage(message, IMessageProvider.INFORMATION);
+                                    setMessage(combinedMsg, IMessageProvider.INFORMATION);
                                 }
                             });
+                        } else if (eeActuallyChanged) {
+                            // Only EE changed
+                            final String eeMsg = Messages.getMessage("starter_wizard_ee_updated", finalOldEE, finalCompatibleEE, selectedMP);
+                            getControl().getDisplay().asyncExec(new Runnable() {
+                                public void run() {
+                                    setMessage(eeMsg, IMessageProvider.INFORMATION);
+                                }
+                            });
+                        } else if (newJavaSE != null) {
+                            // EE didn't change but Java SE did
+                            final String reason = Messages.getMessage("starter_wizard_java_se_mp_requires", selectedMP, newJavaSE);
+                            final String javaSEMsg = Messages.getMessage("starter_wizard_java_se_updated", oldJavaSE, newJavaSE, reason);
+                            getControl().getDisplay().asyncExec(new Runnable() {
+                                public void run() {
+                                    setMessage(javaSEMsg, IMessageProvider.INFORMATION);
+                                }
+                            });
+                        } else {
+                            setMessage(null);
                         }
-
-                        checkAndUpdateJavaSE(compatibleEE, selectedMP, false);
                     } else {
                         String warnMsg = Messages.getMessage("starter_wizard_mp_no_compatible_ee", selectedMP);
                         setMessage(warnMsg, IMessageProvider.WARNING);
@@ -573,7 +653,30 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
                 @Override
                 public void widgetSelected(SelectionEvent e) {
                     if (!isUpdatingVersions) {
-                        checkAndUpdateJavaSE(javaEECombo.getText(), microProfileCombo.getText(), true);
+                        final String oldJavaSE = javaSECombo.getText();
+                        String eeVersion = javaEECombo.getText();
+                        String mpVersion = microProfileCombo.getText();
+                        String newJavaSE = checkAndUpdateJavaSE(eeVersion, mpVersion);
+                        if (newJavaSE != null) {
+                            final String reason;
+                            if ("11.0".equals(eeVersion) || "10.0".equals(eeVersion)) {
+                                reason = Messages.getMessage("starter_wizard_java_se_ee_requires", eeVersion, newJavaSE);
+                            } else {
+                                reason = Messages.getMessage("starter_wizard_java_se_mp_requires", mpVersion, newJavaSE);
+                            }
+                            final String javaSEMsg = Messages.getMessage("starter_wizard_java_se_updated", oldJavaSE, newJavaSE, reason);
+                            getControl().getDisplay().asyncExec(new Runnable() {
+                                public void run() {
+                                    setMessage(javaSEMsg, IMessageProvider.INFORMATION);
+                                }
+                            });
+                        } else {
+                            getControl().getDisplay().asyncExec(new Runnable() {
+                                public void run() {
+                                    setMessage(null);
+                                }
+                            });
+                        }
                     }
                     validatePage();
                 }
@@ -827,27 +930,27 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
          * - Jakarta EE 10.0 requires Java SE 11+
          * - MicroProfile 6.0, 6.1, 7.0, 7.1 require Java SE 11+
          *
+         * Updates the javaSECombo if a higher version is required.
+         * Does NOT set any banner message — callers are responsible for composing
+         * and displaying the appropriate message.
+         *
          * @param eeVersion The Jakarta EE version
          * @param mpVersion The MicroProfile version
-         * @param clearMessageIfValid If true, clears any stale banner when no correction is needed.
-         *                            Pass true only from the javaSECombo listener; false from EE/MP listeners
-         *                            which manage their own messages.
+         * @return The new Java SE version that was auto-selected, or null if no change was needed.
          */
-        private void checkAndUpdateJavaSE(String eeVersion, String mpVersion, boolean clearMessageIfValid) {
+        private String checkAndUpdateJavaSE(String eeVersion, String mpVersion) {
             if (isUpdatingVersions) {
-                return;
+                return null;
             }
 
             try {
                 String currentJavaSE = javaSECombo.getText();
                 String requiredJavaSE = null;
-                String reason = "";
 
                 // Jakarta EE 11.0 requires Java SE 17+
                 if ("11.0".equals(eeVersion)) {
                     if ("8".equals(currentJavaSE) || "11".equals(currentJavaSE)) {
                         requiredJavaSE = "17";
-                        reason = Messages.getMessage("starter_wizard_java_se_ee_requires", eeVersion, requiredJavaSE);
                     }
                 }
                 // Jakarta EE 10.0 or MicroProfile 6.0+ requires Java SE 11+
@@ -856,11 +959,6 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
                          "7.0".equals(mpVersion) || "7.1".equals(mpVersion)) {
                     if ("8".equals(currentJavaSE)) {
                         requiredJavaSE = "11";
-                        if ("10.0".equals(eeVersion)) {
-                            reason = Messages.getMessage("starter_wizard_java_se_ee_requires", eeVersion, requiredJavaSE);
-                        } else {
-                            reason = Messages.getMessage("starter_wizard_java_se_mp_requires", mpVersion, requiredJavaSE);
-                        }
                     }
                 }
 
@@ -868,26 +966,12 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
                     isUpdatingVersions = true;
                     javaSECombo.setText(requiredJavaSE);
                     isUpdatingVersions = false;
-
-                    final String message = Messages.getMessage("starter_wizard_java_se_updated", currentJavaSE, requiredJavaSE, reason);
-                    getControl().getDisplay().asyncExec(new Runnable() {
-                        public void run() {
-                            setMessage(message, IMessageProvider.INFORMATION);
-                        }
-                    });
-                } else if (clearMessageIfValid) {
-                    // Current Java SE is already valid — clear any stale info/warning banner.
-                    // Only done when triggered by the javaSECombo listener, not EE/MP listeners
-                    // (those manage their own messages and must not have them overwritten).
-                    getControl().getDisplay().asyncExec(new Runnable() {
-                        public void run() {
-                            setMessage(null);
-                        }
-                    });
+                    return requiredJavaSE;
                 }
             } catch (Exception e) {
                 Logger.logError("Error checking Java SE requirements", e);
             }
+            return null;
         }
 
         // Getters for wizard data.
