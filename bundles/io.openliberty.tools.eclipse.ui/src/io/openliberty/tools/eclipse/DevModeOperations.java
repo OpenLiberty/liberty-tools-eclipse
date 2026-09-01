@@ -1555,7 +1555,9 @@ public class DevModeOperations {
 
         final ProjectModel[] targetProject = new ProjectModel[1];
 
-        // Get dependent projects (declared in build config) with test source files.
+        // Get dependent projects within the same multi-module build. This call returns an empty list for
+        // Gradle projects because tests are only run on the started module and not on the started module
+        // and its dependencies as is the case with Maven.
         List<ProjectModel> dependentsWithTests = getDependentProjectsWithTestReports(projectModel, action);
 
         // If no dependents have test reports, check whether the selected project itself has one.
@@ -1591,10 +1593,6 @@ public class DevModeOperations {
                 if (getMavenUTReportPath(projectModel.getPath(), projectModel.getName(), false) != null) {
                     projectsToDisplay.add(projectModel);
                 }
-            } else if (action == DashboardAction.OPEN_GRADLE_TEST_REPORT) {
-                if (getGradleTestReportPath(projectModel.getPath()).toFile().exists()) {
-                    projectsToDisplay.add(projectModel);
-                }
             }
 
             // Sort candidates alphabetically by name to match the dashboard ordering.
@@ -1611,7 +1609,6 @@ public class DevModeOperations {
                         Display display = PlatformUI.getWorkbench().getDisplay();
 
                         final Image mavenImg = Utils.getImage(display, DashboardView.MAVEN_IMG_TAG_PATH);
-                        final Image gradleImg = Utils.getImage(display, DashboardView.GRADLE_IMG_TAG_PATH);
 
                         try {
                             String actionCmdName = getTranslatedActionCommand(action);
@@ -1627,8 +1624,7 @@ public class DevModeOperations {
 
                                 @Override
                                 public Image getImage(Object element) {
-                                    ProjectModel pm = (ProjectModel) element;
-                                    return pm.getBuildType() == BuildType.Maven ? mavenImg : gradleImg;
+                                    return mavenImg;
                                 }
                             }, false);
 
@@ -1638,9 +1634,6 @@ public class DevModeOperations {
                         } finally {
                             if (mavenImg != null && !mavenImg.isDisposed()) {
                                 mavenImg.dispose();
-                            }
-                            if (gradleImg != null && !gradleImg.isDisposed()) {
-                                gradleImg.dispose();
                             }
                         }
                     }
@@ -1689,13 +1682,17 @@ public class DevModeOperations {
     }
 
     /**
-     * Returns the list of direct and transitive dependent modules (within the same
-     * multi-module build) that have test reports present on disk.
+     * Returns the list of direct and transitive dependent modules within the same
+     * multi-module build that have test reports.
+     * This method is currently only applicable to Maven projects. For Gradle, test
+     * reports are only available for the started module under which test reports are
+     * being requested; therefore, this call is a no-op for Gradle projects.
      *
      * @param projectModel The project whose transitive dependents are inspected.
      * @param action       The dashboard action identifying the type of test report.
      *
-     * @return The list of dependent modules that have test reports on disk.
+     * @return The list of dependent modules that have test reports for Maven projects.
+     *         For Gradle projects, this method returns an empty list.
      */
     public List<ProjectModel> getDependentProjectsWithTestReports(ProjectModel projectModel, DashboardAction action) {
         List<ProjectModel> projectsWithTests = new ArrayList<>();
@@ -1707,10 +1704,6 @@ public class DevModeOperations {
                 }
             } else if (action == DashboardAction.OPEN_MVN_UT_TEST_REPORT) {
                 if (getMavenUTReportPath(dependency.getPath(), dependency.getName(), false) != null) {
-                    projectsWithTests.add(dependency);
-                }
-            } else if (action == DashboardAction.OPEN_GRADLE_TEST_REPORT) {
-                if (getGradleTestReportPath(dependency.getPath()).toFile().exists()) {
                     projectsWithTests.add(dependency);
                 }
             }
