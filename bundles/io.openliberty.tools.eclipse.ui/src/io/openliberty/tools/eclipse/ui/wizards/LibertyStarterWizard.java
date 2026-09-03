@@ -44,6 +44,7 @@ import org.json.JSONArray;
 
 import io.openliberty.tools.eclipse.LibertyDevPlugin;
 import io.openliberty.tools.eclipse.logging.Logger;
+import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.messages.Messages;
 
 /**
@@ -94,6 +95,9 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
         try {
             starter.loadData();
         } catch (Exception e) {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, "An error occurred while loading Liberty starter data.", e);
+            }
             Logger.logError("An error occurred while loading Liberty starter data.", e);
         }
     }
@@ -133,6 +137,9 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
             starter.generateStarter(artifact, group, buildTool, javaEEVersion, javaSEVersion, microProfileVersion,
                                     locationText);
         } catch (Exception e) {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, "An error occurred while attempting to generate and install the starter project.", e);
+            }
             Logger.logError("An error occurred while attempting to generate and install the starter project.", e);
             mainPage.setErrorMessage(e.getMessage());
             return false;
@@ -403,6 +410,9 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
                     } else {
                         String warnMsg = Messages.getMessage("starter_wizard_ee_no_compatible_mp", selectedEE);
                         setMessage(warnMsg, IMessageProvider.WARNING);
+                        if (Trace.isEnabled()) {
+                            Trace.getTracer().trace(Trace.TRACE_TOOLS, warnMsg);
+                        }
                         Logger.logWarning(warnMsg);
                     }
                 }
@@ -511,6 +521,9 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
                     } else {
                         String warnMsg = Messages.getMessage("starter_wizard_mp_no_compatible_ee", selectedMP);
                         setMessage(warnMsg, IMessageProvider.WARNING);
+                        if (Trace.isEnabled()) {
+                            Trace.getTracer().trace(Trace.TRACE_TOOLS, warnMsg);
+                        }
                         Logger.logWarning(warnMsg);
                     }
                 }
@@ -796,6 +809,9 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
                 
                 // Check if compatibility data is loaded
                 if (ee2mp == null || ee2mp.isEmpty()) {
+                    if (Trace.isEnabled()) {
+                        Trace.getTracer().trace(Trace.TRACE_TOOLS, "Compatibility data not loaded yet");
+                    }
                     Logger.logWarning("Compatibility data not loaded yet");
                     return true; // Assume compatible if data not loaded
                 }
@@ -810,6 +826,9 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
                     }
                 }
             } catch (Exception e) {
+                if (Trace.isEnabled()) {
+                    Trace.getTracer().trace(Trace.TRACE_TOOLS, "Error checking compatibility", e);
+                }
                 Logger.logError("Error checking compatibility", e);
                 return true; // Assume compatible on error
             }
@@ -831,6 +850,9 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
                 
                 // Check if compatibility data is loaded
                 if (ee2mp == null || ee2mp.isEmpty()) {
+                    if (Trace.isEnabled()) {
+                        Trace.getTracer().trace(Trace.TRACE_TOOLS, "Compatibility data (EE2MP) not loaded - map is empty");
+                    }
                     Logger.logWarning("Compatibility data (EE2MP) not loaded - map is empty");
                     return null;
                 }
@@ -838,6 +860,9 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
                 JSONArray compatibleMP = ee2mp.get(eeVersion);
                 
                 if (compatibleMP == null) {
+                    if (Trace.isEnabled()) {
+                        Trace.getTracer().trace(Trace.TRACE_TOOLS, "No compatibility data found for Jakarta EE " + eeVersion);
+                    }
                     Logger.logWarning("No compatibility data found for Jakarta EE " + eeVersion);
                     return null;
                 }
@@ -864,6 +889,9 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
                     return "None";
                 }
             } catch (Exception e) {
+                if (Trace.isEnabled()) {
+                    Trace.getTracer().trace(Trace.TRACE_TOOLS, "Error getting compatible MP version for EE " + eeVersion, e);
+                }
                 Logger.logError("Error getting compatible MP version for EE " + eeVersion, e);
             }
             return null;
@@ -883,6 +911,9 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
                 
                 // Check if compatibility data is loaded
                 if (mp2ee == null || mp2ee.isEmpty()) {
+                    if (Trace.isEnabled()) {
+                        Trace.getTracer().trace(Trace.TRACE_TOOLS, "Compatibility data (MP2EE) not loaded - map is empty");
+                    }
                     Logger.logWarning("Compatibility data (MP2EE) not loaded - map is empty");
                     return null;
                 }
@@ -890,6 +921,9 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
                 JSONArray compatibleEE = mp2ee.get(mpVersion);
                 
                 if (compatibleEE == null) {
+                    if (Trace.isEnabled()) {
+                        Trace.getTracer().trace(Trace.TRACE_TOOLS, "No compatibility data found for MicroProfile " + mpVersion);
+                    }
                     Logger.logWarning("No compatibility data found for MicroProfile " + mpVersion);
                     return null;
                 }
@@ -916,6 +950,9 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
                     return "None";
                 }
             } catch (Exception e) {
+                if (Trace.isEnabled()) {
+                    Trace.getTracer().trace(Trace.TRACE_TOOLS, "Error getting compatible EE version for MP " + mpVersion, e);
+                }
                 Logger.logError("Error getting compatible EE version for MP " + mpVersion, e);
             }
             return null;
@@ -969,6 +1006,9 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
                     return requiredJavaSE;
                 }
             } catch (Exception e) {
+                if (Trace.isEnabled()) {
+                    Trace.getTracer().trace(Trace.TRACE_TOOLS, "Error checking Java SE requirements", e);
+                }
                 Logger.logError("Error checking Java SE requirements", e);
             }
             return null;

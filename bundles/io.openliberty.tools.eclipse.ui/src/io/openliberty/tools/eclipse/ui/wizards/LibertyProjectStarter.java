@@ -395,6 +395,9 @@ public class LibertyProjectStarter {
                     errorMessage = new String(buffer, 0, bytesRead, StandardCharsets.UTF_8);
                 }
             } catch (Exception e) {
+                if (Trace.isEnabled()) {
+                    Trace.getTracer().trace(Trace.TRACE_TOOLS, "Failed to read error response body: " + e.getMessage(), e);
+                }
                 Logger.logWarning("Failed to read error response body: " + e.getMessage());
             }
             
@@ -484,6 +487,9 @@ public class LibertyProjectStarter {
 
         File file = filePath.toFile();
         if (!file.setExecutable(true, false)) {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, "Unable to set execute permission on wrapper script: " + filePath);
+            }
             Logger.logError("Unable to set execute permission on wrapper script: " + filePath, null);
         }
     }
@@ -549,6 +555,9 @@ public class LibertyProjectStarter {
                     configManager.importProjects(Collections.singletonList(projectInfo), configuration,
                                                  new NullProgressMonitor());
                 } catch (Exception e) {
+                    if (Trace.isEnabled()) {
+                        Trace.getTracer().trace(Trace.TRACE_TOOLS, Messages.getMessage("starter_maven_import_error"), e);
+                    }
                     Logger.logError(Messages.getMessage("starter_maven_import_error"), e);
                     return new Status(IStatus.ERROR, LibertyDevPlugin.PLUGIN_ID, Messages.getMessage("starter_maven_import_failed", e.getMessage()));
                 }
