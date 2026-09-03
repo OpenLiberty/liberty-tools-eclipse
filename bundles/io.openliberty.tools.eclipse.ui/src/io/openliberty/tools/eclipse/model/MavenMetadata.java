@@ -40,7 +40,7 @@ public class MavenMetadata implements Metadata {
     private List<String> subprojects;
     private List<String> projectDependencies;
     private boolean hasLibertyPlugin;
-    private boolean isLibertyModuleDisabled;
+    private boolean isModuleDisabled;
     private boolean isAggregator;
     private String buildFilePath;
 
@@ -114,7 +114,7 @@ public class MavenMetadata implements Metadata {
      */
     @Override
     public boolean isModuleDisabled() {
-        return isLibertyModuleDisabled;
+        return isModuleDisabled;
     }
 
     /**
@@ -233,12 +233,11 @@ public class MavenMetadata implements Metadata {
     }
 
     /**
-     * Checks if POM contains Liberty Maven plugin and detects skip configuration.
-     * Sets both hasLibertyPlugin and libertyPluginSkipped fields.
+     * Checks if the POM contains the Liberty Maven plugin and detects skip configuration.
      *
      * @param doc The parsed POM document.
-     * 
-     * @return true if Liberty plugin is found (regardless of skip setting).
+     *
+     * @return True if the Liberty plugin is found, regardless of any skip setting.
      */
     private boolean isLibertyPluginInConfig(Document doc) {
         // Check in build section
@@ -268,13 +267,13 @@ public class MavenMetadata implements Metadata {
     }
 
     /**
-     * Checks for Liberty plugin in a specific element and detects skip configuration.
-     * Sets libertyPluginSkipped field if <skip>true</skip> is found in any plugin configuration.
+     * Checks for the Liberty plugin in a specific element and detects skip configuration.
+     * Sets isModuleDisabled to true if a skip=true configuration is found.
      *
      * @param element The element to search in.
      * @param tagName The tag name to look for (build or plugins).
-     * 
-     * @return true if Liberty plugin is found (regardless of skip setting).
+     *
+     * @return True if the Liberty plugin is found, regardless of any skip setting.
      */
     private boolean checkLibertyPluginInElement(Element element, String tagName) {
         NodeList buildNodes = element.getElementsByTagName(tagName);
@@ -300,7 +299,7 @@ public class MavenMetadata implements Metadata {
                             Element configElement = (Element) configNodes.item(m);
                             String skipValue = getElementText(configElement, "skip");
                             if ("true".equalsIgnoreCase(skipValue)) {
-                                isLibertyModuleDisabled = true;
+                                isModuleDisabled = true;
                                 break; // Found skip=true, no need to check further
                             }
                         }
@@ -408,13 +407,13 @@ public class MavenMetadata implements Metadata {
         File file = new File(filePath);
         return file.exists() && file.getName().equals("pom.xml");
     }
-    
+
     /** {@inheritDoc} */
     @Override
     public String toString() {
         return String.format("MavenMetadata{name=%s, isModuleDisabled=%b, parent=%s, subprojects=%s"
                              + ", aggregator=%b, libertyPlugin=%b, dependencies=%s, buildFile=%s}",
-                             projectName, isLibertyModuleDisabled, parentProjectName, subprojects,
+                             projectName, isModuleDisabled, parentProjectName, subprojects,
                              isAggregator, hasLibertyPlugin, projectDependencies, buildFilePath);
     }
 }

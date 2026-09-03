@@ -62,17 +62,18 @@ public class ProjectModel {
     };
 
     /**
-     * Enumeration of the lifecycle states that a Liberty module (leaf) can be in.
-     * The parent's visual state is derived dynamically from its children.
+     * Enumeration of the lifecycle states.
      */
     public enum AppState {
         /** Dev mode process has started but the Liberty server has not yet reported ready. */
         STARTING,
-        /** Liberty server has reported {@code CWWKZ0001I:} — the application is fully started. */
-        RUNNING,
+        /** The Liberty server running (CWWKF0011I). The application may or may not be running. */
+        SERVER_RUNNING,
+        /** The application running (CWWKZ0001I) on the Liberty server. */
+        APP_RUNNING,
         /** A stop has been requested but the Liberty server has not yet confirmed shutdown. */
         STOPPING,
-        /** Dev mode process is not running (initial state). */
+        /** Dev mode process is not running. */
         STOPPED
     }
 
@@ -722,7 +723,7 @@ public class ProjectModel {
     public void setBatchStarted(boolean batchStarted) {
         this.batchStarted = batchStarted;
     }
-    
+
     /**
      * Returns a string representation of this project model for debugging.
      *

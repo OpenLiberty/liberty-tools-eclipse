@@ -24,17 +24,17 @@ import io.openliberty.tools.eclipse.LibertyDevPlugin;
 import io.openliberty.tools.eclipse.model.ProjectModel;
 
 /**
- * Drives the STARTING in-progress spinner animation for the Liberty Dashboard.
+ * Drives the STARTING in-progress animation for the Liberty Dashboard.
  */
-class SpinnerAnimator {
+class ProgressIndicatorAnimator {
 
-    /** Number of frames in the spinner animation. */
-    static final int FRAME_COUNT = 12;
+    /** Number of frames in the progress animation. */
+    static final int FRAME_COUNT = 4;
 
-    /** Delay between frames in milliseconds (approximately 10 fps). */
-    private static final int FRAME_DELAY_MS = 100;
+    /** Delay between frames in milliseconds (approximately 8 fps). */
+    private static final int FRAME_DELAY_MS = 200;
 
-    /** Spinner frame images after the caller-supplied transform has been applied. */
+    /** Progress frame images after the caller-supplied transform has been applied. */
     private final Image[] frames;
 
     /** Index of the current animation frame. */
@@ -50,17 +50,19 @@ class SpinnerAnimator {
     private final DashboardView dashboardView;
 
     /**
-     * Creates and initializes a new SpinnerAnimator.
+     * Creates and initializes a new ProgressIndicatorAnimator.
      *
      * @param dashboardView The dashboard view to refresh on each animation tick.
+     * @param progressFolder The icon folder path for the progress frames, relative to icons/.
+     *                       For example: "state/light/progress/" or "state/dark/progress/".
      * @param frameTransform Transform applied to each raw frame before storage.
      *                       Pass null to store the raw frame as-is.
      */
-    SpinnerAnimator(DashboardView dashboardView, UnaryOperator<Image> frameTransform) {
+    ProgressIndicatorAnimator(DashboardView dashboardView, String progressFolder, UnaryOperator<Image> frameTransform) {
         this.dashboardView = dashboardView;
         this.frames = new Image[FRAME_COUNT];
         for (int i = 0; i < FRAME_COUNT; i++) {
-            ImageDescriptor desc = LibertyDevPlugin.loadIconDescriptor("spinners/state/state_in_progress_" + (i + 1) + "_8");
+            ImageDescriptor desc = LibertyDevPlugin.loadIconDescriptor(progressFolder + "frame_12_" + (i + 1));
             if (desc == null) {
                 continue;
             }
@@ -81,7 +83,7 @@ class SpinnerAnimator {
     }
 
     /**
-     * Returns the current spinner frame image.
+     * Returns the current animation frame image.
      *
      * @return The current frame, or null if not loaded.
      */

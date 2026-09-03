@@ -40,8 +40,11 @@ public class DashboardEntryLabelProvider {
     /** Height of the badge images in logical pixels. */
     static final int BADGE_H = 18;
 
-    /** Size of the state SVG icons in logical pixels (all state icons are 16×16). */
+    /** Size of the static state icons in logical pixels (active, stopped, stopping, incomplete). */
     private static final int STATE_ICON_SIZE = 16;
+
+    /** Size of the progress frame icons in logical pixels. */
+    private static final int PROGRESS_ICON_SIZE = 12;
 
     /**
      * Label provider for column 0 — the badge column.
@@ -67,8 +70,6 @@ public class DashboardEntryLabelProvider {
 
         /**
          * {@inheritDoc}
-         *
-         * Returns the build-type badge for parent rows, null for child rows.
          */
         @Override
         public Image getImage(Object element) {
@@ -84,8 +85,6 @@ public class DashboardEntryLabelProvider {
 
         /**
          * {@inheritDoc}
-         *
-         * Returns an empty string so the column shows only the icon.
          */
         @Override
         public String getText(Object element) {
@@ -94,10 +93,6 @@ public class DashboardEntryLabelProvider {
 
         /**
          * {@inheritDoc}
-         *
-         * Returns null to suppress the tooltip for the badge column.
-         * Without this override, ColumnLabelProvider falls back to getText() which
-         * returns "" and causes ColumnViewerToolTipSupport to render an empty tooltip shell.
          */
         @Override
         public String getToolTipText(Object element) {
@@ -122,9 +117,6 @@ public class DashboardEntryLabelProvider {
      */
     public static final class StateNameColumnLabelProvider extends ColumnLabelProvider {
 
-        /** Starting-state icon, padded to badge height. */
-        private Image startingImg;
-
         /** Running-state icon, padded to badge height. */
         private Image runningImg;
 
@@ -137,28 +129,26 @@ public class DashboardEntryLabelProvider {
         /** Stopped-state icon, padded to badge height. */
         private Image stoppedImg;
 
-        /** Image animator for low definition displays and IDEs that do not support SVG images. */
-        private final SpinnerAnimator spinnerAnimator;
+        /** Progress indicator animator for the STARTING state. */
+        private final ProgressIndicatorAnimator progressAnimator;
 
         /**
-         * Constructor. Loads the state icons and initialises the (inactive) spinner animator.
+         * Constructor. Loads the state icons and initialises the (inactive) progress animator.
          *
          * @param dashboardView The dashboard view instance.
          */
         public StateNameColumnLabelProvider(DashboardView dashboardView) {
             String themeFolder = LibertyDevPlugin.isDarkTheme() ? "state/dark/" : "state/light/";
-            runningImg = paddedStateIcon(themeFolder + "running");
+            runningImg = paddedStateIcon(themeFolder + "active");
             stoppedImg = paddedStateIcon(themeFolder + "stopped");
-            startingImg = paddedStateIcon(themeFolder + "starting");
             stoppingImg = paddedStateIcon(themeFolder + "stopping");
             incompleteImg = paddedStateIcon(themeFolder + "incomplete");
-            spinnerAnimator = new SpinnerAnimator(dashboardView, raw -> paddedDotFromImage(raw));
+            String progressFolder = themeFolder + "inProgress/";
+            progressAnimator = new ProgressIndicatorAnimator(dashboardView, progressFolder, raw -> paddedStateIconFromImage(raw, PROGRESS_ICON_SIZE));
         }
 
         /**
          * {@inheritDoc}
-         *
-         * Returns the state icon for the project's current app state.
          */
         @Override
         public Image getImage(Object element) {
@@ -168,25 +158,32 @@ public class DashboardEntryLabelProvider {
             ProjectModel project = (ProjectModel) element;
             AppState effective = resolveEffectiveState(project);
             if (effective == null) {
+                progressAnimator.removeProject(project);
                 return (incompleteImg != null) ? incompleteImg : stoppedImg;
             }
             switch (effective) {
                 case STARTING:
-                    return (startingImg != null) ? startingImg : stoppedImg;
-                case RUNNING:
+                    progressAnimator.addProject(project);
+                    Image frame = progressAnimator.getCurrentFrame();
+                    return (frame != null) ? frame : stoppedImg;
+                case APP_RUNNING:
+                    progressAnimator.removeProject(project);
                     return runningImg;
+                case SERVER_RUNNING:
+                    progressAnimator.removeProject(project);
+                    return (incompleteImg != null) ? incompleteImg : stoppedImg;
                 case STOPPING:
+                    progressAnimator.removeProject(project);
                     return (stoppingImg != null) ? stoppingImg : stoppedImg;
                 case STOPPED:
                 default:
+                    progressAnimator.removeProject(project);
                     return stoppedImg;
             }
         }
 
         /**
          * {@inheritDoc}
-         *
-         * Returns the project name.
          */
         @Override
         public String getText(Object element) {
@@ -201,13 +198,11 @@ public class DashboardEntryLabelProvider {
          */
         @Override
         public void dispose() {
-            spinnerAnimator.dispose();
+            progressAnimator.dispose();
             disposeImage(runningImg);
             runningImg = null;
             disposeImage(stoppedImg);
             stoppedImg = null;
-            disposeImage(startingImg);
-            startingImg = null;
             disposeImage(stoppingImg);
             stoppingImg = null;
             disposeImage(incompleteImg);
@@ -233,8 +228,10 @@ public class DashboardEntryLabelProvider {
                 return null;
             }
             switch (state) {
-                case RUNNING:
-                    return Messages.getMessage("dashboard_tooltip_running");
+                case APP_RUNNING:
+                    return Messages.getMessage("dashboard_tooltip_app_running");
+                case SERVER_RUNNING:
+                    return Messages.getMessage("dashboard_tooltip_server_running_not_app");
                 case STARTING:
                     return Messages.getMessage("dashboard_tooltip_starting");
                 case STOPPING:
@@ -243,13 +240,17 @@ public class DashboardEntryLabelProvider {
                     return Messages.getMessage("dashboard_tooltip_stopped");
             }
         }
-        int running = 0;
+        int appRunning = 0;
+        int serverRunning = 0;
         int starting = 0;
         int stopping = 0;
         for (ProjectModel child : children) {
             AppState s = child.getAppState();
-            if (s == AppState.RUNNING) {
-                running++;
+            if (s == AppState.APP_RUNNING) {
+                appRunning++;
+            }
+            if (s == AppState.SERVER_RUNNING) {
+                serverRunning++;
             }
             if (s == AppState.STARTING) {
                 starting++;
@@ -258,8 +259,8 @@ public class DashboardEntryLabelProvider {
                 stopping++;
             }
         }
-        if (running == children.size()) {
-            return Messages.getMessage("dashboard_tooltip_modules_running", running, children.size());
+        if (appRunning == children.size()) {
+            return Messages.getMessage("dashboard_tooltip_modules_running", appRunning, children.size());
         }
         if (starting > 0) {
             return Messages.getMessage("dashboard_tooltip_starting");
@@ -267,11 +268,11 @@ public class DashboardEntryLabelProvider {
         if (stopping > 0) {
             return Messages.getMessage("dashboard_tooltip_stopping");
         }
-        if (running == 0) {
+        if (appRunning == 0 && serverRunning == 0) {
             return Messages.getMessage("dashboard_tooltip_stopped");
         }
 
-        return Messages.getMessage("dashboard_tooltip_modules_running", running, children.size());
+        return Messages.getMessage("dashboard_tooltip_modules_running", appRunning, children.size());
     }
 
     /**
@@ -287,21 +288,24 @@ public class DashboardEntryLabelProvider {
         if (children == null || children.isEmpty()) {
             return project.getAppState();
         }
-        int running = 0;
+        int appRunning = 0;
+        int serverRunning = 0;
         int starting = 0;
         int stopping = 0;
         int total = children.size();
         for (ProjectModel child : children) {
             AppState s = child.getAppState();
-            if (s == AppState.RUNNING) {
-                running++;
+            if (s == AppState.APP_RUNNING) {
+                appRunning++;
+            } else if (s == AppState.SERVER_RUNNING) {
+                serverRunning++;
             } else if (s == AppState.STARTING) {
                 starting++;
             } else if (s == AppState.STOPPING) {
                 stopping++;
             }
         }
-        if (running + starting + stopping == 0) {
+        if (appRunning + serverRunning + starting + stopping == 0) {
             return AppState.STOPPED;
         }
         if (starting > 0) {
@@ -310,18 +314,18 @@ public class DashboardEntryLabelProvider {
         if (stopping > 0) {
             return AppState.STOPPING;
         }
-        if (running == total) {
-            return AppState.RUNNING;
+        if (appRunning == total) {
+            return AppState.APP_RUNNING;
         }
-        // Some children are running, some stopped — mixed/incomplete state.
+        // At least one child is active but not all applications are running — incomplete state.
         return null;
     }
 
     /**
-     * Creates a padded image for a 16×16 state SVG icon, centering it in a
+     * Creates a padded image for a 16×16 state icon loaded by name, centering it in a
      * BADGE_W × BADGE_H transparent canvas so SWT never stretches it.
      *
-     * @param baseName The icon base name without extension, relative to {@code icons/}.
+     * @param baseName The icon base name without extension, relative to icons/.
      *
      * @return The padded image, or null if the icon could not be loaded.
      */
@@ -331,32 +335,19 @@ public class DashboardEntryLabelProvider {
     }
 
     /**
-     * Creates a padded dot image from the given icon base name.
-     * The dot is centered in a BADGE_W x BADGE_H transparent canvas so that
-     * SWT receives an image at the same size as the badge and never stretches it.
+     * Creates a padded image from an already-loaded raw Image, centering it in a
+     * BADGE_W × BADGE_H transparent canvas so SWT never stretches it.
      *
-     * @param baseName The icon base name without extension.
-     *
-     * @return The padded image, or null if the icon could not be loaded.
-     */
-    protected static Image paddedDot(String baseName) {
-        ImageDescriptor desc = LibertyDevPlugin.loadIconDescriptor(baseName);
-        return (desc != null) ? paddedIconDescriptor(desc, 8).createImage() : null;
-    }
-
-    /**
-     * Creates a padded dot image from an already-loaded raw Image.
-     * The dot is centered in a BADGE_W x BADGE_H transparent canvas.
-     *
-     * @param raw The raw dot image.
+     * @param raw      The raw icon image.
+     * @param iconSize The true logical pixel size of the (square) icon.
      *
      * @return The padded image, or null if raw is null.
      */
-    private static Image paddedDotFromImage(Image raw) {
+    private static Image paddedStateIconFromImage(Image raw, int iconSize) {
         if (raw == null) {
             return null;
         }
-        return paddedIconDescriptor(ImageDescriptor.createFromImage(raw), 8).createImage();
+        return paddedIconDescriptor(ImageDescriptor.createFromImage(raw), iconSize).createImage();
     }
 
     /**

@@ -76,27 +76,6 @@ public class DevModeStateHandler implements IConsoleLineHandler {
     }
 
     /**
-     * A PatternMatcher that checks whether the line contains a fixed substring.
-     */
-    private static class ContainsMatcher implements PatternMatcher {
-
-        /** The fixed substring to search for in each console line. */
-        private final String substring;
-
-        ContainsMatcher(String substring) {
-            this.substring = substring;
-        }
-
-        /**
-         * {@inheritDoc}
-         */
-        @Override
-        public boolean matches(String line) {
-            return line.contains(substring);
-        }
-    }
-
-    /**
      * Associates a PatternMatcher with the action to invoke when the pattern is found.
      */
     private static class PatternAction {
@@ -113,11 +92,17 @@ public class DevModeStateHandler implements IConsoleLineHandler {
         }
     }
 
-    /** Message ID emitted by Liberty when the application starts successfully. */
-    private static final String LIBERTY_APP_STARTED_MSGID = "CWWKZ0001I:";
+    /** Regex matching the Liberty message emitted when dev mode detects an already-running server. */
+    private static final String LIBERTY_SERVER_ALREADY_RUNNING_REGEX = "The server .+ is already running\\.";
 
-    /** Message ID emitted by Liberty when the server stops. */
-    private static final String LIBERTY_SERVER_STOPPED_MSGID = "CWWKE0036I:";
+    /** Regex matching the Liberty message emitted when an application starts successfully. */
+    private static final String LIBERTY_APP_STARTED_REGEX = "CWWKZ0001I: Application .+ started";
+
+    /** Regex matching the Liberty message emitted when the server is ready for requests. */
+    private static final String LIBERTY_SERVER_STARTED_REGEX = "CWWKF0011I: .+ server started";
+
+    /** Regex matching the Liberty message emitted when the server stops. */
+    private static final String LIBERTY_SERVER_STOPPED_REGEX = "CWWKE0036I:";
 
     /** The project model for the project whose process output this handler is observing. */
     private final ProjectModel projectModel;
@@ -160,11 +145,13 @@ public class DevModeStateHandler implements IConsoleLineHandler {
                              // Gradle and Maven both emit a message of the form
                              // "The server <name> is already running." when dev mode tries to start
                              // against an already-running server instance.
-                             new PatternAction(new RegexMatcher("The server .+ is already running\\."), line -> handleAlreadyRunning()),
-                             // Liberty server application started successfully.
-                             new PatternAction(new ContainsMatcher(LIBERTY_APP_STARTED_MSGID), line -> handleAppStarted()),
-                             // Liberty server stopped (clean stop or startup failure).
-                             new PatternAction(new ContainsMatcher(LIBERTY_SERVER_STOPPED_MSGID), line -> handleServerStopped()));
+                             new PatternAction(new RegexMatcher(LIBERTY_SERVER_ALREADY_RUNNING_REGEX), line -> handleAlreadyRunning()),
+                             // Application started successfully.
+                             new PatternAction(new RegexMatcher(LIBERTY_APP_STARTED_REGEX), line -> handleAppStarted()),
+                             // Server ready. Sets SERVER_RUNNING only if the application has not already started.
+                             new PatternAction(new RegexMatcher(LIBERTY_SERVER_STARTED_REGEX), line -> handleServerStarted()),
+                             // Liberty server stopped.
+                             new PatternAction(new RegexMatcher(LIBERTY_SERVER_STOPPED_REGEX), line -> handleServerStopped()));
     }
 
     /**
@@ -175,64 +162,68 @@ public class DevModeStateHandler implements IConsoleLineHandler {
      */
     private void handleAlreadyRunning() {
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { projectModel.getName(), projectModel.getAppState() });
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, projectModel);
         }
 
         Display.getDefault().asyncExec(() -> {
             String targetProjectName = projectModel.getName();
             String msg = Messages.getMessage("server_already_running", targetProjectName);
             Integer response = ErrorHandler.processWarningMessage(msg, true, new String[] { "Yes", "No" }, 0);
-            if (response != null && response == 0) {
-                DevModeOperations.getInstance().issueStopCommand(projectModel.getName(), () -> {
-                    try {
-                        // Update the active selection to the selected target project if the original selection does not match the target.
-                        if (targetProjectName != null) {
-                            Utils.updateActiveSelection(projectModel);
-                        }
-
-                        // Determine what configuration to use.
-                        LaunchConfigurationHelper launchConfigHelper = LaunchConfigurationHelper.getInstance();
-                        ILaunchConfiguration configuration = launchConfigHelper.getLaunchConfiguration(projectModel, mode, RuntimeEnv.LOCAL);
-                        DebugUITools.launch(configuration, mode);
-                    } catch (Exception e) {
-                        if (Trace.isEnabled()) {
-                            Trace.getTracer().trace(Trace.TRACE_TOOLS,
-                                                    "Failed to restart dev mode for project " + projectModel.getName(), e);
-                        }
-                        ErrorHandler.processErrorMessage(
-                                                         Messages.getMessage("start_general_error", targetProjectName), e, true);
+            if (response == null || response != 0) {
+                if (Trace.isEnabled()) {
+                    Trace.getTracer().traceExit(Trace.TRACE_TOOLS, "User declined restart. No-op.");
+                }
+                return;
+            }
+            DevModeOperations.getInstance().issueStopCommand(projectModel.getName(), () -> {
+                try {
+                    // Update the active selection to the selected target project if the original selection does not match the target.
+                    if (targetProjectName != null) {
+                        Utils.updateActiveSelection(projectModel);
                     }
-                });
+
+                    // Determine what configuration to use.
+                    LaunchConfigurationHelper launchConfigHelper = LaunchConfigurationHelper.getInstance();
+                    ILaunchConfiguration configuration = launchConfigHelper.getLaunchConfiguration(projectModel, mode, RuntimeEnv.LOCAL);
+                    DebugUITools.launch(configuration, mode);
+                } catch (Exception e) {
+                    if (Trace.isEnabled()) {
+                        Trace.getTracer().trace(Trace.TRACE_TOOLS,
+                                                "Failed to restart dev mode for project " + projectModel.getName(), e);
+                    }
+                    ErrorHandler.processErrorMessage(
+                                                     Messages.getMessage("start_general_error", targetProjectName), e, true);
+                }
+            });
+
+            if (Trace.isEnabled()) {
+                Trace.getTracer().traceExit(Trace.TRACE_TOOLS, projectModel);
             }
         });
-
-        if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, projectModel);
-        }
     }
 
     /**
-     * Called when CWWKZ0001I is detected. This means that the Liberty application has started.
-     * Transitions the module to RUNNING and refreshes the dashboard label.
+     * Called when CWWKZ0001I is detected. Transitions the module to APP_RUNNING
+     * and refreshes the dashboard label.
      */
     private void handleAppStarted() {
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { projectModel.getName(), projectModel.getAppState() });
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, projectModel);
         }
 
         // Liberty emits CWWKZ0001I: more than once during a dev mode start (initial install
         // and again when the server confirms it is ready). Skip redundant state transitions
         // and dashboard refreshes on the second and subsequent occurrences.
-        if (projectModel.getAppState() == ProjectModel.AppState.RUNNING) {
+        if (projectModel.getAppState() == ProjectModel.AppState.APP_RUNNING) {
             if (Trace.isEnabled()) {
                 Trace.getTracer().traceExit(Trace.TRACE_TOOLS, "Already RUNNING. No-op.");
             }
             return;
         }
 
-        projectModel.setAppState(ProjectModel.AppState.RUNNING);
+        projectModel.setAppState(ProjectModel.AppState.APP_RUNNING);
         DevModeOperations devModeOps = DevModeOperations.getInstance();
-        devModeOps.cacheAppState(projectModel.getName(), ProjectModel.AppState.RUNNING);
+        devModeOps.cacheAppState(projectModel.getName(), ProjectModel.AppState.APP_RUNNING);
         devModeOps.refreshDashboardLabel(projectModel);
 
         if (Trace.isEnabled()) {
@@ -241,13 +232,38 @@ public class DevModeStateHandler implements IConsoleLineHandler {
     }
 
     /**
-     * Called when CWWKE0036I is detected. This means that the Liberty server has stopped.
-     * Transitions the module to STOPPED, refreshes the dashboard label, and
-     * tears down the console interceptor and process map entry for this project.
+     * Called when CWWKF0011I is detected. Transitions the module to SERVER_RUNNING only if
+     * the application has not already started. APP_RUNNING takes precedence and is not overwritten.
+     */
+    private void handleServerStarted() {
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, projectModel);
+        }
+
+        if (projectModel.getAppState() == ProjectModel.AppState.APP_RUNNING) {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().traceExit(Trace.TRACE_TOOLS, "Already APP_RUNNING. No-op.");
+            }
+            return;
+        }
+
+        projectModel.setAppState(ProjectModel.AppState.SERVER_RUNNING);
+        DevModeOperations devModeOps = DevModeOperations.getInstance();
+        devModeOps.cacheAppState(projectModel.getName(), ProjectModel.AppState.SERVER_RUNNING);
+        devModeOps.refreshDashboardLabel(projectModel);
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, projectModel);
+        }
+    }
+
+    /**
+     * Called when CWWKE0036I is detected. Transitions the module to STOPPED and tears down
+     * the console interceptor and process map entry for this project.
      */
     private void handleServerStopped() {
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { projectModel.getName(), projectModel.getAppState() });
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, projectModel);
         }
 
         DevModeOperations.getInstance().cleanupProcess(projectModel.getName());
