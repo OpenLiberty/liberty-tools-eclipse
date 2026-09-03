@@ -26,7 +26,7 @@
     
     <properties>
         <liberty.ls.version>2.4.1</liberty.ls.version>
-        <jakarta.ls.version>0.2.6</jakarta.ls.version>
+        <jakarta.ls.version>0.2.7</jakarta.ls.version>
         <mp.ls.version>0.18.0</mp.ls.version>
     </properties>
 

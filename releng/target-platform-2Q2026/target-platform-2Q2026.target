@@ -30,6 +30,9 @@
             <unit id="org.eclipse.m2e.lemminx.feature.feature.group" version="2.6.101.20250727-0612"/>
             <unit id="org.eclipse.jdt.debug.ui" version="3.15.400.v20260427-1331"/>
             <unit id="org.eclipse.jdt.debug" version="3.26.0.v20260418-1439"/>
+            <unit id="org.eclipse.lsp4e" version="0.19.12.202605060644"/>
+            <unit id="org.eclipse.lsp4e.jdt" version="0.14.2.202512150839"/>
+            <unit id="org.objectweb.asm" version="9.9.1" />
         </location>
         <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
             <repository location="https://download.eclipse.org/tools/orbit/downloads/drops/R20220531185310/repository"/>
@@ -55,29 +58,31 @@
             <unit id="org.eclipse.lsp4mp.jdt.core" version="0.18.0.20260824-1304"/>
         </location>
         <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-            <repository location="https://download.eclipse.org/lsp4j/updates/releases/0.24.0/"/>
-            <unit id="org.eclipse.lsp4j" version="0.24.0.v20250131-1745"/>
-            <unit id="org.eclipse.lsp4j.jsonrpc" version="0.24.0.v20250131-1745"/>
-            <unit id="org.eclipse.lsp4j.debug" version="0.24.0.v20250131-1745"/>
-            <unit id="org.eclipse.lsp4j.jsonrpc.debug" version="0.24.0.v20250131-1745"/>
+            <repository location="https://download.eclipse.org/lsp4j/updates/releases/1.0.0/"/>
+            <unit id="org.eclipse.lsp4j" version="1.0.0.v20260209-1721"/>
+            <unit id="org.eclipse.lsp4j.jsonrpc" version="1.0.0.v20260209-1721"/>
+            <unit id="org.eclipse.lsp4j.debug" version="1.0.0.v20260209-1721"/>
+            <unit id="org.eclipse.lsp4j.jsonrpc.debug" version="1.0.0.v20260209-1721"/>
         </location>
         <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-            <repository location="https://download.eclipse.org/lsp4e/releases/0.29.5/"/>
-            <unit id="org.eclipse.lsp4e" version="0.19.6.202601081324"/>
-            <unit id="org.eclipse.lsp4e.jdt" version="0.14.2.202512150839"/>
-        </location>
-        <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-            <repository location="https://download.eclipse.org/jdtls/milestones/1.58.0/repository/"/>
-            <unit id="org.eclipse.jdt.ls.core" version="1.58.0.202604151538"/>
+            <repository location="https://download.eclipse.org/jdtls/milestones/1.60.0/repository/"/>
+            <unit id="org.eclipse.jdt.ls.core" version="1.60.0.202606262232"/>
         </location>
         <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
             <repository location="https://download.eclipse.org/buildship/updates/e427/releases/3.x/3.1.9.v20240115-1636/"/>
             <unit id="org.eclipse.buildship.ui" version="3.1.9.v20240115-1636"/>
         </location>
 	    <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-	     <repository location="https://download.eclipse.org/lsp4jakarta/releases/0.2.6/repository/"/>
-	     <unit id="org.eclipse.lsp4jakarta.jdt.core" version="0.2.6"/>
+	     <repository location="https://download.eclipse.org/lsp4jakarta/releases/0.2.7/repository/"/>
+	     <unit id="org.eclipse.lsp4jakarta.jdt.core" version="0.2.7"/>
 	    </location>
+	    <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
+	  <repository location="https://download.eclipse.org/eclipse/updates/4.41-I-builds/I20260817-2300" />
+	  <unit id="org.objectweb.asm" version="9.10.1" />
+	  <unit id="org.objectweb.asm.util" version="9.10.1" />
+	  <unit id="org.objectweb.asm.tree" version="9.10.1" />
+	  <unit id="org.objectweb.asm.commons" version="9.10.1" />
+	 </location>
 	    <location includeDependencyDepth="none" includeDependencyScopes="compile" missingManifest="generate" type="Maven">
 		    <dependencies>
 			    <dependency>
