@@ -30,6 +30,7 @@ ear {
         module('guide-gradle-multimodules-custmm-ejb-1.0-SNAPSHOT.jar', 'ejb')
         webModule('guide-gradle-multimodules-custmm-war-1.0-SNAPSHOT.war',  '/converter')
         webModule('guide-gradle-multimodules-custmm-war2-1.0-SNAPSHOT.war', '/servlet')
+        module('guide-gradle-multimodules-custmm-rar-1.0-SNAPSHOT.rar', 'connector')
     }
 }
 

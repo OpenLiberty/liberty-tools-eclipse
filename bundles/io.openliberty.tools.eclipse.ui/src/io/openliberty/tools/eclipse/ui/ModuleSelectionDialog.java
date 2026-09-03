@@ -107,11 +107,11 @@ public class ModuleSelectionDialog extends Dialog {
      * @param candidates    The full list of selectable modules.
      * @param labelProvider The label provider for text and icons.
      * @param multiSelect   True to show a checkbox table with Select All and Deselect All
-     *                      buttons. False to show a plain single-selection list without
-     *                      those buttons.
+     *                          buttons. False to show a plain single-selection list without
+     *                          those buttons.
      */
     public ModuleSelectionDialog(Shell parent, String title, String message,
-            List<ProjectModel> candidates, ILabelProvider labelProvider, boolean multiSelect) {
+                                 List<ProjectModel> candidates, ILabelProvider labelProvider, boolean multiSelect) {
         this(parent, title, message, candidates, labelProvider, multiSelect, Collections.emptyList());
     }
 
@@ -125,15 +125,15 @@ public class ModuleSelectionDialog extends Dialog {
      * @param candidates        The full list of selectable modules.
      * @param labelProvider     The label provider for text and icons.
      * @param multiSelect       True to show a checkbox table with Select All and Deselect All
-     *                          buttons. False to show a plain single-selection list without
-     *                          those buttons.
+     *                              buttons. False to show a plain single-selection list without
+     *                              those buttons.
      * @param initialSelections The list of module names to pre-check on open. Used only
-     *                          in multi-select mode. Items not present in candidates are
-     *                          silently ignored.
+     *                              in multi-select mode. Items not present in candidates are
+     *                              silently ignored.
      */
     public ModuleSelectionDialog(Shell parent, String title, String message,
-            List<ProjectModel> candidates, ILabelProvider labelProvider,
-            boolean multiSelect, List<String> initialSelections) {
+                                 List<ProjectModel> candidates, ILabelProvider labelProvider,
+                                 boolean multiSelect, List<String> initialSelections) {
         super(parent);
         this.title = title;
         this.message = message;
@@ -381,10 +381,7 @@ public class ModuleSelectionDialog extends Dialog {
      * @return An array of the currently visible model elements.
      */
     private Object[] getVisibleItems() {
-        return Arrays.stream(checkViewer.getTable().getItems())
-                .map(item -> item.getData())
-                .filter(data -> data != null)
-                .toArray();
+        return Arrays.stream(checkViewer.getTable().getItems()).map(item -> item.getData()).filter(data -> data != null).toArray();
     }
 
     /**

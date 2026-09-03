@@ -511,19 +511,21 @@ public class DevModeOperations {
                 return;
             }
 
+            // Issue the command to the process. The state is only advanced to STOPPING
+            // after a successful write. That is so that a write failure leaves the state unchanged.
+            // Note that process cleanup is deferred until the dev mode has stopped.
+            // This is done by the state handler, and the debug event listener.
+            processController.writeToProcessStream(targetProjectName, DEVMODE_COMMAND_EXIT);
+
             // Transition to STOPPING so the dashboard shows the stopping icon.
             targetProjectModel.setAppState(ProjectModel.AppState.STOPPING);
             cacheAppState(targetProjectName, ProjectModel.AppState.STOPPING);
             refreshDashboardLabel(targetProjectModel);
-
-            // Issue the command to the process.
-            // Note that process cleanup is deferred until the dev mode has stopped.
-            // This is done by the state handler. and the debug event listener.
-            processController.writeToProcessStream(targetProjectName, DEVMODE_COMMAND_EXIT);
         } catch (Exception e) {
             String msg = Messages.getMessage("stop_general_error", targetProjectName);
             if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_TOOLS, msg, e);
+                Trace.getTracer().trace(Trace.TRACE_TOOLS,
+                                        "An error occurred while processing the stop request on the " + targetProjectName + " project.", e);
             }
             ErrorHandler.processErrorMessage(msg, true);
             return;
@@ -1216,11 +1218,11 @@ public class DevModeOperations {
             return true;
         }
 
-        // Check the cache state next as this reflects the current behavior in case 
-        // the workspace is re-built/refreshed. The reason for this check is that there
-        // could be a timing condition between the time the starting dev mode process 
-        // completes, and the time the next action is executed.
-        return projectStateTable.get(projectName) == ProjectModel.AppState.RUNNING;
+        // Check the cache state next to cover the window after a refresh where
+        // newly created ProjectModel instances start as STOPPED regardless of whether dev
+        // mode is still running. Only APP_RUNNING is checked here because that is the
+        // steady state in which the application is fully up and running.
+        return projectStateTable.get(projectName) == ProjectModel.AppState.APP_RUNNING;
     }
 
     /**

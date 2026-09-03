@@ -79,7 +79,7 @@ public class WorkspaceModel {
         buildMultiProjectModel(openProjects, classify);
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_TOOLS);
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, projectsByName);
         }
     }
 
@@ -133,7 +133,7 @@ public class WorkspaceModel {
             }
         }
 
-        // Step 1b: For Gradle aggregator projects imported via "General → Project from Folder",
+        // Step 1b: For Gradle aggregator projects imported via "General → Project from Folder or Archive",
         // submodule directories are not yet Eclipse projects. Register any missing submodules so
         // that subsequent steps can see and classify them.
         ensureGradleSubmodulesRegistered(classify);

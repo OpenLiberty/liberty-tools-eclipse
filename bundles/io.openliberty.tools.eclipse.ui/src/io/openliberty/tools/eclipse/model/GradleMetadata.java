@@ -97,8 +97,8 @@ public class GradleMetadata implements Metadata {
     /**
      * Constructs Gradle metadata from the paths to the build file and/or the settings file.
      *
-     * @param buildFilePath    The absolute path to the build file, or null.
-     * @param settingsFilePath The absolute path to the settings file, or null.
+     * @param buildGradlePath    The absolute path to the build file, or null.
+     * @param gradleSettingsPath The absolute path to the settings file, or null.
      * 
      * @throws Exception If required files cannot be read
      */
@@ -186,7 +186,6 @@ public class GradleMetadata implements Metadata {
     private void extract(String buildGradlePath, String settingsGradlePath) throws Exception {
         buildFilePath = buildGradlePath;
         settingsFilePath = settingsGradlePath;
-
         Path projectDir = buildFilePath != null ? Paths.get(buildFilePath).getParent() : Paths.get(settingsFilePath).getParent();
 
         projectName = resolveProjectName(projectDir);

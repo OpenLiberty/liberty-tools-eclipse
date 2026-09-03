@@ -23,7 +23,6 @@ dependencies {
 ear {
     archiveBaseName = 'guide-gradle-multimodules-custmm-ear2'
     deploymentDescriptor {
-        module('guide-gradle-multimodules-custmm-ejb-1.0-SNAPSHOT.jar', 'ejb')
         webModule('guide-gradle-multimodules-custmm-war-1.0-SNAPSHOT.war', '/converter')
     }
 }
