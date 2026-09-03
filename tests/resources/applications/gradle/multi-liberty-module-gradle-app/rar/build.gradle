@@ -8,6 +8,13 @@ dependencies {
     implementation project(':jar')
 }
 
+// Override the default jar task archive name so that the Liberty loose application
+// generator (which calls proj.jar.getArchiveFileName()) uses the correct RAR filename.
+jar {
+    archiveBaseName = 'guide-gradle-multimodules-custmm-rar'
+    archiveExtension = 'rar'
+}
+
 task rar(type: Zip) {
     archiveBaseName  = 'guide-gradle-multimodules-custmm-rar'
     archiveVersion   = project.version
