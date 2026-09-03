@@ -18,9 +18,9 @@
 
     <category-def name="io.openliberty.tools.eclipse" label="Liberty Tools" />
 
-    <repository-reference location="https://download.eclipse.org/jdtls/milestones/1.58.0/repository" enabled="true" />
+    <repository-reference location="https://download.eclipse.org/jdtls/milestones/1.60.0/repository" enabled="true" />
     <repository-reference location="https://download.eclipse.org/lsp4mp/releases/0.18.0/repository" enabled="true" />
-    <repository-reference location="https://download.eclipse.org/lsp4j/updates/releases/0.24.0/" enabled="true" />
-    <repository-reference location="https://download.eclipse.org/lsp4e/releases/0.29.5/" enabled="true" />
-    <repository-reference location="https://download.eclipse.org/lsp4jakarta/releases/0.2.6/repository" enabled="true" />
+    <repository-reference location="https://download.eclipse.org/lsp4j/updates/releases/1.0.0/" enabled="true" />
+    <repository-reference location="https://download.eclipse.org/lsp4jakarta/releases/0.2.7/repository" enabled="true" />
+    <repository-reference location="https://download.eclipse.org/eclipse/updates/4.41-I-builds/I20260817-2300" enabled="true" />
 </site>
