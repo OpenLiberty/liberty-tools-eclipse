@@ -120,6 +120,12 @@ public class LibertyProjectStarter {
     /** Mapping of MicroProfile versions to compatible Jakarta EE versions. */
     HashMap<String, JSONArray> dependenciesMP2EE = new HashMap<String, JSONArray>();
 
+    /** Mapping of Jakarta EE versions to minimum required Java SE version. */
+    HashMap<String, String> javaSeRequirementsEE = new HashMap<String, String>();
+
+    /** Mapping of MicroProfile versions to minimum required Java SE version. */
+    HashMap<String, String> javaSeRequirementsMP = new HashMap<String, String>();
+
     /**
      * Returns the LibertyProjectStarter instance.
      *
@@ -127,6 +133,42 @@ public class LibertyProjectStarter {
      */
     public static LibertyProjectStarter getInstance() {
         return INSTANCE;
+    }
+
+    /**
+     * Returns the mapping of Jakarta EE versions to compatible MicroProfile versions.
+     *
+     * @return The dependencies map (EE to MP).
+     */
+    public HashMap<String, JSONArray> getDependenciesEE2MP() {
+        return dependenciesEE2MP;
+    }
+
+    /**
+     * Returns the mapping of MicroProfile versions to compatible Jakarta EE versions.
+     *
+     * @return The dependencies map (MP to EE).
+     */
+    public HashMap<String, JSONArray> getDependenciesMP2EE() {
+        return dependenciesMP2EE;
+    }
+
+    /**
+     * Returns the mapping of Jakarta EE versions to minimum required Java SE version.
+     *
+     * @return The Java SE requirements map for EE versions.
+     */
+    public HashMap<String, String> getJavaSeRequirementsEE() {
+        return javaSeRequirementsEE;
+    }
+
+    /**
+     * Returns the mapping of MicroProfile versions to minimum required Java SE version.
+     *
+     * @return The Java SE requirements map for MP versions.
+     */
+    public HashMap<String, String> getJavaSeRequirementsMP() {
+        return javaSeRequirementsMP;
     }
 
     /**
@@ -282,7 +324,8 @@ public class LibertyProjectStarter {
 
         for (int i = 0; i < jeeOptionsJson.length(); i++) {
             String jeeVersion = jeeOptionsJson.getString(i);
-            JSONArray validMPVersions = constraints.getJSONObject(jeeVersion).getJSONArray("m");
+            JSONObject jeeConstraints = constraints.getJSONObject(jeeVersion);
+            JSONArray validMPVersions = jeeConstraints.getJSONArray("m");
 
             dependenciesEE2MP.put(jeeVersion, validMPVersions);
 
@@ -343,7 +386,27 @@ public class LibertyProjectStarter {
 
         // Validate response status
         if (response.statusCode() != 200) {
-            throw new IOException(Messages.getMessage("starter_generate_error", response.statusCode()));
+            // Read error message from response body
+            String errorMessage = "";
+            try (BufferedInputStream bis = new BufferedInputStream(response.body())) {
+                byte[] buffer = new byte[1024];
+                int bytesRead = bis.read(buffer);
+                if (bytesRead > 0) {
+                    errorMessage = new String(buffer, 0, bytesRead, StandardCharsets.UTF_8);
+                }
+            } catch (Exception e) {
+                if (Trace.isEnabled()) {
+                    Trace.getTracer().trace(Trace.TRACE_TOOLS, "Failed to read error response body: " + e.getMessage(), e);
+                }
+                Logger.logWarning("Failed to read error response body: " + e.getMessage());
+            }
+            
+            // Include both status code and error message from API
+            String fullErrorMessage = Messages.getMessage("starter_generate_error", response.statusCode());
+            if (!errorMessage.isEmpty()) {
+                fullErrorMessage += ": " + errorMessage;
+            }
+            throw new IOException(fullErrorMessage);
         }
 
         // Download and save the ZIP file
@@ -424,6 +487,9 @@ public class LibertyProjectStarter {
 
         File file = filePath.toFile();
         if (!file.setExecutable(true, false)) {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, "Unable to set execute permission on wrapper script: " + filePath);
+            }
             Logger.logError("Unable to set execute permission on wrapper script: " + filePath, null);
         }
     }
@@ -489,6 +555,9 @@ public class LibertyProjectStarter {
                     configManager.importProjects(Collections.singletonList(projectInfo), configuration,
                                                  new NullProgressMonitor());
                 } catch (Exception e) {
+                    if (Trace.isEnabled()) {
+                        Trace.getTracer().trace(Trace.TRACE_TOOLS, Messages.getMessage("starter_maven_import_error"), e);
+                    }
                     Logger.logError(Messages.getMessage("starter_maven_import_error"), e);
                     return new Status(IStatus.ERROR, LibertyDevPlugin.PLUGIN_ID, Messages.getMessage("starter_maven_import_failed", e.getMessage()));
                 }
