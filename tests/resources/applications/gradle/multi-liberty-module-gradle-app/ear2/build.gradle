@@ -4,9 +4,12 @@ buildscript {
     repositories {
         mavenLocal()
         mavenCentral()
+        maven {
+            url = 'https://central.sonatype.com/repository/maven-snapshots/'
+        }
     }
     dependencies {
-        classpath 'io.openliberty.tools:liberty-gradle-plugin:3.9.5'
+        classpath "io.openliberty.tools:liberty-gradle-plugin:4.0.2"
     }
 }
 
@@ -15,8 +18,8 @@ apply plugin: 'liberty'
 description = 'EAR2 Module'
 
 dependencies {
-    deploy project(':jar')
-    deploy project(path: ':war', configuration: 'archives')
+    deploy project(path: ':ejb', configuration: 'default')
+    deploy project(path: ':war', configuration: 'warOnly')
     testImplementation 'org.junit.jupiter:junit-jupiter:5.6.2'
 }
 
@@ -48,4 +51,4 @@ test {
 }
 
 deploy.dependsOn 'ear'
-ear.dependsOn ':jar:jar', ':war:war'
+ear.dependsOn ':ejb:jar', ':war:war'

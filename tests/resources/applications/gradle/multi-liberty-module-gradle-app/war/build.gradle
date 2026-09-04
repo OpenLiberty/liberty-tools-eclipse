@@ -2,8 +2,16 @@ apply plugin: 'war'
 
 description = 'WAR Module'
 
+configurations {
+    warOnly
+}
+
 war {
     archiveBaseName = 'guide-gradle-multimodules-custmm-war'
+}
+
+artifacts {
+    warOnly war
 }
 
 dependencies {

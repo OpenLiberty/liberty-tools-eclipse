@@ -4,20 +4,27 @@ apply plugin: 'war'
 version '0.0.1-SNAPSHOT'
 group 'liberty.gradle.test.app'
 
-sourceCompatibility = 21
-targetCompatibility = 21
+java {
+    sourceCompatibility = JavaVersion.VERSION_21
+    targetCompatibility = JavaVersion.VERSION_21
+}
 tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
 }
 
 buildscript {
     repositories {
+        mavenLocal()
         mavenCentral()
+        maven {
+            url = 'https://central.sonatype.com/repository/maven-snapshots/'
+        }
     }
-        dependencies {
-        classpath 'io.openliberty.tools:liberty-gradle-plugin:3.8.3'
+    dependencies {
+        classpath "io.openliberty.tools:liberty-gradle-plugin:4.0.2"
     }
 }
+
 
 repositories {
     mavenCentral()
@@ -25,8 +32,8 @@ repositories {
 
 dependencies {
      // provided dependencies
-     providedCompile 'javax.servlet:javax.servlet-api:3.1.0' 
-     providedCompile 'org.eclipse.microprofile:microprofile:5.0'
+     compileOnly 'javax.servlet:javax.servlet-api:3.1.0'
+     compileOnly 'org.eclipse.microprofile:microprofile:5.0'
      
      // test dependencies
      testImplementation 'org.junit.jupiter:junit-jupiter:5.8.1' 
@@ -40,4 +47,4 @@ liberty {
     }
 }
 
-clean.dependsOn 'libertyStop'
+tasks.named('clean').configure { dependsOn 'libertyStop' }
