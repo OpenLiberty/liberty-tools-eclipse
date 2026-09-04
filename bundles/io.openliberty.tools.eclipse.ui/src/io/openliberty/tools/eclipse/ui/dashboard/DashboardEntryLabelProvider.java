@@ -144,7 +144,7 @@ public class DashboardEntryLabelProvider {
             stoppingImg = paddedStateIcon(themeFolder + "stopping");
             incompleteImg = paddedStateIcon(themeFolder + "incomplete");
             String progressFolder = themeFolder + "inProgress/";
-            progressAnimator = new ProgressIndicatorAnimator(dashboardView, progressFolder, raw -> paddedStateIconFromImage(raw, PROGRESS_ICON_SIZE));
+            progressAnimator = new ProgressIndicatorAnimator(dashboardView, progressFolder, desc -> paddedIconDescriptor(desc, PROGRESS_ICON_SIZE));
         }
 
         /**
@@ -332,22 +332,6 @@ public class DashboardEntryLabelProvider {
     private static Image paddedStateIcon(String baseName) {
         ImageDescriptor desc = LibertyDevPlugin.loadIconDescriptor(baseName);
         return (desc != null) ? paddedIconDescriptor(desc, STATE_ICON_SIZE).createImage() : null;
-    }
-
-    /**
-     * Creates a padded image from an already-loaded raw Image, centering it in a
-     * BADGE_W × BADGE_H transparent canvas so SWT never stretches it.
-     *
-     * @param raw      The raw icon image.
-     * @param iconSize The true logical pixel size of the (square) icon.
-     *
-     * @return The padded image, or null if raw is null.
-     */
-    private static Image paddedStateIconFromImage(Image raw, int iconSize) {
-        if (raw == null) {
-            return null;
-        }
-        return paddedIconDescriptor(ImageDescriptor.createFromImage(raw), iconSize).createImage();
     }
 
     /**
