@@ -8,8 +8,8 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.source>21</maven.compiler.source>
+        <maven.compiler.target>21</maven.compiler.target>
     </properties>
 
     <dependencies>
@@ -24,7 +24,8 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-rar-plugin</artifactId>
+                    <artifactId>maven-rar-plugin</artifactId>
+                    <version>3.0.0</version>
                 <configuration>
                     <raXmlFile>src/main/rar-source/META-INF/ra.xml</raXmlFile>
                     <rarSourceDirectory>src/main/resources</rarSourceDirectory>
