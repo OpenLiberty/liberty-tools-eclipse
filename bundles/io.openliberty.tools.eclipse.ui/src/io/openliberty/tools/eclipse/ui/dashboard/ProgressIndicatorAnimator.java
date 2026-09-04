@@ -55,10 +55,10 @@ class ProgressIndicatorAnimator {
      * @param dashboardView The dashboard view to refresh on each animation tick.
      * @param progressFolder The icon folder path for the progress frames, relative to icons/.
      *                       For example: "state/light/progress/" or "state/dark/progress/".
-     * @param frameTransform Transform applied to each raw frame before storage.
-     *                       Pass null to store the raw frame as-is.
+     * @param frameTransform Transform applied to each frame descriptor to create the image.
+     *                       Pass null to create the image directly from the descriptor.
      */
-    ProgressIndicatorAnimator(DashboardView dashboardView, String progressFolder, UnaryOperator<Image> frameTransform) {
+    ProgressIndicatorAnimator(DashboardView dashboardView, String progressFolder, UnaryOperator<ImageDescriptor> frameTransform) {
         this.dashboardView = dashboardView;
         this.frames = new Image[FRAME_COUNT];
         for (int i = 0; i < FRAME_COUNT; i++) {
@@ -66,18 +66,9 @@ class ProgressIndicatorAnimator {
             if (desc == null) {
                 continue;
             }
-            Image raw = desc.createImage();
-            if (raw == null) {
-                continue;
-            }
-            if (frameTransform != null) {
-                frames[i] = frameTransform.apply(raw);
-                // Dispose the raw frame only when the transform produced a new image.
-                if (frames[i] != raw && !raw.isDisposed()) {
-                    raw.dispose();
-                }
-            } else {
-                frames[i] = raw;
+            ImageDescriptor targetDesc = (frameTransform != null) ? frameTransform.apply(desc) : desc;
+            if (targetDesc != null) {
+                frames[i] = targetDesc.createImage();
             }
         }
     }
