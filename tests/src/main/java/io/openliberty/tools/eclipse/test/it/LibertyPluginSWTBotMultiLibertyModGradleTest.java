@@ -91,6 +91,11 @@ public class LibertyPluginSWTBotMultiLibertyModGradleTest extends AbstractLibert
     static final String GRADLE_APP_NAME = "guide-gradle-multimodules-custmm";
 
     /**
+     * Eclipse project name of the root aggregator project.
+     */
+    static final String PACKAGE_EXPLORER_PROJECT_NAME = "multi-liberty-module-gradle-app";
+
+    /**
      * Name of the first Liberty ear module.
      */
     static final String GRADLE_EAR1_MODULE_NAME = "ear1";
@@ -241,7 +246,7 @@ public class LibertyPluginSWTBotMultiLibertyModGradleTest extends AbstractLibert
         Assertions.assertTrue(menuItems.containsAll(Arrays.asList(gradleMenuItems)),
                               () -> "Gradle application " + GRADLE_APP_NAME + " does not contain the expected menu items: " + Arrays.toString(gradleMenuItems));
 
-        SWTBotMenu runAsMenu = SWTBotPluginOperations.getAppRunAsMenu(bot, GRADLE_APP_NAME);
+        SWTBotMenu runAsMenu = SWTBotPluginOperations.getAppRunAsMenu(bot, PACKAGE_EXPLORER_PROJECT_NAME);
         Assertions.assertNotNull(runAsMenu, "The Run As menu associated with project " + GRADLE_APP_NAME + " is null.");
         List<String> runAsMenuItems = runAsMenu.menuItems();
         Assertions.assertTrue(runAsMenuItems != null && !runAsMenuItems.isEmpty(),
@@ -261,7 +266,7 @@ public class LibertyPluginSWTBotMultiLibertyModGradleTest extends AbstractLibert
                                                                    + " does not contain one or more expected entries. Expected: " + runAsShortcuts.length
                                                                    + ", found: " + foundItems + ". Items: " + runAsMenuItems);
 
-        Shell configShell = launchRunConfigurationsDialogFromAppRunAs(GRADLE_APP_NAME);
+        Shell configShell = launchRunConfigurationsDialogFromAppRunAs(PACKAGE_EXPLORER_PROJECT_NAME);
         try {
             SWTBotTreeItem runAsLibertyEntry = getLibertyTreeItem(configShell);
             Assertions.assertNotNull(runAsLibertyEntry, "Liberty entry in Run Configurations view was not found.");
@@ -269,7 +274,7 @@ public class LibertyPluginSWTBotMultiLibertyModGradleTest extends AbstractLibert
             go("Close", configShell);
         }
 
-        Shell debugShell = launchDebugConfigurationsDialogFromAppRunAs(GRADLE_APP_NAME);
+        Shell debugShell = launchDebugConfigurationsDialogFromAppRunAs(PACKAGE_EXPLORER_PROJECT_NAME);
         try {
             SWTBotTreeItem debugAsLibertyEntry = getLibertyTreeItem(debugShell);
             Assertions.assertNotNull(debugAsLibertyEntry, "Liberty entry in Debug Configurations view was not found.");
@@ -327,7 +332,7 @@ public class LibertyPluginSWTBotMultiLibertyModGradleTest extends AbstractLibert
     public void testRunAsShortcutActionsOpenModuleSelectionDialogWithCorrectCount() {
 
         // Verify the Start shortcut.
-        launchStartWithRunAsShortcut(GRADLE_APP_NAME);
+        launchStartWithRunAsShortcut(PACKAGE_EXPLORER_PROJECT_NAME);
         Shell startDialog = waitForModuleSelectionDialog(SWTBotTestCondition.SHORT_WAIT_MS);
         Assertions.assertNotNull(startDialog,
                                  "Module selection dialog did not open for the Run As Start shortcut.");
@@ -339,7 +344,7 @@ public class LibertyPluginSWTBotMultiLibertyModGradleTest extends AbstractLibert
         cancelModuleSelectionDialog(startDialog);
 
         // Verify the Start in Container shortcut.
-        SWTBotMenu containerMenu = SWTBotPluginOperations.getAppRunAsMenu(bot, GRADLE_APP_NAME).menu(WidgetMatcherFactory.withRegex(
+        SWTBotMenu containerMenu = SWTBotPluginOperations.getAppRunAsMenu(bot, PACKAGE_EXPLORER_PROJECT_NAME).menu(WidgetMatcherFactory.withRegex(
                                                                                                                                     ".*"
                                                                                                                                     + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONTAINER
                                                                                                                                     + ".*"),
@@ -366,7 +371,7 @@ public class LibertyPluginSWTBotMultiLibertyModGradleTest extends AbstractLibert
     @Test
     public void testDashboardStartActionSelectsModuleAndStops() {
 
-        deleteLibertyToolsRunConfigEntriesFromAppRunAs(GRADLE_APP_NAME);
+        deleteLibertyToolsRunConfigEntriesFromAppRunAs(PACKAGE_EXPLORER_PROJECT_NAME);
 
         launchDashboardAction(GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_START);
 
@@ -404,7 +409,7 @@ public class LibertyPluginSWTBotMultiLibertyModGradleTest extends AbstractLibert
     @Test
     public void testDashboardDebugActionSelectsModuleAndStops() {
 
-        deleteLibertyToolsRunConfigEntriesFromAppRunAs(GRADLE_APP_NAME);
+        deleteLibertyToolsRunConfigEntriesFromAppRunAs(PACKAGE_EXPLORER_PROJECT_NAME);
 
         launchDashboardAction(GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_DEBUG);
 
@@ -437,7 +442,7 @@ public class LibertyPluginSWTBotMultiLibertyModGradleTest extends AbstractLibert
     @Test
     public void testDashboardStartWithConfigActionSelectsModuleAndStops() {
 
-        deleteLibertyToolsRunConfigEntriesFromAppRunAs(GRADLE_APP_NAME);
+        deleteLibertyToolsRunConfigEntriesFromAppRunAs(PACKAGE_EXPLORER_PROJECT_NAME);
 
         launchDashboardAction(GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_START_CONFIG);
 
@@ -476,9 +481,9 @@ public class LibertyPluginSWTBotMultiLibertyModGradleTest extends AbstractLibert
     @Test
     public void testRunAsStartShortcutSelectsModuleAndStops() {
 
-        deleteLibertyToolsRunConfigEntriesFromAppRunAs(GRADLE_APP_NAME);
+        deleteLibertyToolsRunConfigEntriesFromAppRunAs(PACKAGE_EXPLORER_PROJECT_NAME);
 
-        launchStartWithRunAsShortcut(GRADLE_APP_NAME);
+        launchStartWithRunAsShortcut(PACKAGE_EXPLORER_PROJECT_NAME);
 
         Shell startDialog = waitForModuleSelectionDialog(SWTBotTestCondition.SHORT_WAIT_MS);
         Assertions.assertNotNull(startDialog,
@@ -502,7 +507,7 @@ public class LibertyPluginSWTBotMultiLibertyModGradleTest extends AbstractLibert
 
         pressWorkspaceErrorDialogProceedButton(bot);
 
-        launchStopWithRunAsShortcut(GRADLE_APP_NAME);
+        launchStopWithRunAsShortcut(PACKAGE_EXPLORER_PROJECT_NAME);
 
         LibertyPluginTestUtils.validateLibertyServerStopped(ear1ServerPath.toString());
     }
@@ -517,7 +522,7 @@ public class LibertyPluginSWTBotMultiLibertyModGradleTest extends AbstractLibert
     @Test
     public void testModuleSelectionDialogSearchFilter() {
 
-        launchStartWithRunAsShortcut(GRADLE_APP_NAME);
+        launchStartWithRunAsShortcut(PACKAGE_EXPLORER_PROJECT_NAME);
 
         Shell dialog = waitForModuleSelectionDialog(SWTBotTestCondition.SHORT_WAIT_MS);
         Assertions.assertNotNull(dialog,
@@ -556,7 +561,7 @@ public class LibertyPluginSWTBotMultiLibertyModGradleTest extends AbstractLibert
     @Test
     public void testStopDialogCountReducesAsModulesStop() {
 
-        deleteLibertyToolsRunConfigEntriesFromAppRunAs(GRADLE_APP_NAME);
+        deleteLibertyToolsRunConfigEntriesFromAppRunAs(PACKAGE_EXPLORER_PROJECT_NAME);
 
         // Step 1: Start ear1. All 3 modules should be inactive.
         launchDashboardAction(GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_START);
@@ -760,7 +765,7 @@ public class LibertyPluginSWTBotMultiLibertyModGradleTest extends AbstractLibert
     @Test
     public void testRestartOfExternallyStartedDevMode() throws IOException, InterruptedException {
 
-        deleteLibertyToolsRunConfigEntriesFromAppRunAs(GRADLE_APP_NAME);
+        deleteLibertyToolsRunConfigEntriesFromAppRunAs(PACKAGE_EXPLORER_PROJECT_NAME);
 
         Path rootPath = rootProjectPath.toAbsolutePath();
 
@@ -856,7 +861,7 @@ public class LibertyPluginSWTBotMultiLibertyModGradleTest extends AbstractLibert
     @Test
     public void testModuleSelectionDialogSelectAllAndDeselectAllButtons() {
 
-        deleteLibertyToolsRunConfigEntriesFromAppRunAs(GRADLE_APP_NAME);
+        deleteLibertyToolsRunConfigEntriesFromAppRunAs(PACKAGE_EXPLORER_PROJECT_NAME);
 
         // Start action.
         launchDashboardAction(GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_START);
@@ -922,7 +927,7 @@ public class LibertyPluginSWTBotMultiLibertyModGradleTest extends AbstractLibert
     @Test
     public void testStartAllModulesWithSelectAllAndStopAll() {
 
-        deleteLibertyToolsRunConfigEntriesFromAppRunAs(GRADLE_APP_NAME);
+        deleteLibertyToolsRunConfigEntriesFromAppRunAs(PACKAGE_EXPLORER_PROJECT_NAME);
 
         // Trigger the Start action from the parent project.
         launchDashboardAction(GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_START);
@@ -953,7 +958,7 @@ public class LibertyPluginSWTBotMultiLibertyModGradleTest extends AbstractLibert
         pressWorkspaceErrorDialogProceedButton(bot);
 
         // Run Tests action should show the Select All and Deselect All buttons.
-        launchRunTestsWithRunAsShortcut(GRADLE_APP_NAME);
+        launchRunTestsWithRunAsShortcut(PACKAGE_EXPLORER_PROJECT_NAME);
 
         Shell runTestsDialog = waitForModuleSelectionDialog(SWTBotTestCondition.SHORT_WAIT_MS);
         Assertions.assertNotNull(runTestsDialog,

@@ -57,7 +57,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: test-tools/liberty-dev-tools
-          key: ${{ runner.os }}-tools-jdk21.0.3-maven3.9.6-gradle8.8
+          key: ${{ runner.os }}-tools-jdk21.0.3-maven3.9.6-gradle9.7.1
           restore-keys: |
             ${{ runner.os }}-tools-
 
@@ -109,4 +109,4 @@ jobs:
         if: always()
         with:
           path: test-tools/liberty-dev-tools
-          key: ${{ runner.os }}-tools-jdk21.0.3-maven3.9.6-gradle8.8
+          key: ${{ runner.os }}-tools-jdk21.0.3-maven3.9.6-gradle9.7.1

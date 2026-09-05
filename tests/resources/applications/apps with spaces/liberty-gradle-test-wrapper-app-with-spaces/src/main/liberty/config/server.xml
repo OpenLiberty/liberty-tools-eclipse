@@ -17,5 +17,5 @@
     
     <httpEndpoint  host="*" httpPort="9080" httpsPort="9443" id="defaultHttpEndpoint" />
     
-    <webApplication id="liberty.gradle.test.app" location="liberty.gradle.test.app.war" name="liberty.gradle.test.app"/>
+    <webApplication id="liberty-gradle-test-wrapper-app-with-spaces" location="liberty-gradle-test-wrapper-app-with-spaces-0.0.1-SNAPSHOT.war" name="liberty-gradle-test-wrapper-app-with-spaces"/>
 </server>
