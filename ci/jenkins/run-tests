@@ -4,8 +4,8 @@ pipeline {
     tools {
         jdk 'jdk-semeru-21.0.3'
         xvfb 'gui-test'
-        maven 'maven-3.9.6'
-        gradle 'gradle-7.6.1'
+        maven 'maven-3.9.16'
+        gradle 'gradle-9.7.1'
     }
     
     stages {

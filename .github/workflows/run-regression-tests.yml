@@ -69,20 +69,6 @@ jobs:
       - name: 'Build: Build-Package-RunTests'
         run: bash ./tests/resources/ci/scripts/exec.sh ${{ matrix.targetPlatform }}
 
-      # Collect logs
-      - run: |
-          mkdir logs
-          find tests -type f -name "lte-dev-mode-output-*.log" -exec cp {} logs \;
-        if: failure()
-
-      # save logs
-      - name: Upload Logs
-        uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: test-app-logs
-          path: logs
-
       # Save Maven and Tycho dependencies cache (even on failure)
       - name: 'Cache: Maven and Tycho repository (save)'
         uses: actions/cache/save@v4
