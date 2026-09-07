@@ -23,6 +23,10 @@ import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.set;
 import static org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory.allOf;
 import static org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory.widgetOfType;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -44,6 +48,7 @@ import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotEditor;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotView;
 import org.eclipse.swtbot.swt.finder.SWTBot;
+import org.eclipse.swtbot.swt.finder.exceptions.WidgetNotFoundException;
 import org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory;
 import org.eclipse.swtbot.swt.finder.utils.SWTUtils;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotCTabItem;
@@ -242,7 +247,7 @@ public class SWTBotPluginOperations {
 
             boolean stillPresent = !SWTBotTestCondition.waitFor(
                                                                 () -> !isObjectInDebugView(searchObjectName), SWTBotTestCondition.MIN_WAIT_MS);
-            org.junit.jupiter.api.Assertions.assertFalse(stillPresent,
+            Assertions.assertFalse(stillPresent,
                                                          "Liberty launch was not removed from the Debug view after termination.");
         } else {
             System.out.println("No Liberty launch found in Debug view to terminate");
@@ -559,7 +564,7 @@ public class SWTBotPluginOperations {
         SWTBotTree dashboardTree = getDashboardTree();
         SWTBotTreeItem treeItem = findTreeItem(dashboardTree, item);
         if (treeItem == null) {
-            throw new org.eclipse.swtbot.swt.finder.exceptions.WidgetNotFoundException("Tree item not found: " + item);
+            throw new WidgetNotFoundException("Tree item not found: " + item);
         }
         treeItem.select();
         SWTBotRootMenu appCtxMenu = treeItem.contextMenu();
@@ -664,8 +669,83 @@ public class SWTBotPluginOperations {
         }, SWTBotTestCondition.SHORT_WAIT_MS);
 
         if (!success) {
-            throw new org.eclipse.swtbot.swt.finder.exceptions.WidgetNotFoundException("Failed to execute dashboard action '" + action + "' for " + appName);
+            throw new WidgetNotFoundException("Failed to execute dashboard action '" + action + "' for " + appName);
         }
+    }
+
+    /**
+     * Issues a dashboard Stop action for the given application and confirms the server went
+     * down by probing its HTTP endpoint. If the Stop action fires but the endpoint is still
+     * reachable after a short wait, the action is re-issued and the probe is repeated. This
+     * guards against the case where the Stop action fails because the console view
+     * steals focus between treeItem.select() and stopAction.run(), causing the SWT selection
+     * service to return null and the stop to be skipped without any error visible to the caller.
+     *
+     * @param appName    The application name as it appears in the dashboard tree.
+     * @param appUrl     The HTTP URL to probe.
+     * @param maxRetries The maximum number of times to re-issue the Stop action before failing.
+     */
+    public static void launchDashboardStopAndWaitForServerDown(String appName, String appUrl, int maxRetries) {
+        for (int attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                launchDashboardAction(appName, DashboardView.APP_MENU_ACTION_STOP);
+            } catch (Exception e) {
+                // launchDashboardAction failed to click the Stop action. This can happen
+                // for two reasons: the action is grayed out because the stop that was
+                // issued on a previous attempt already succeeded, or something else went
+                // wrong (wrong project name, dashboard not loaded, etc.). Probe the HTTP
+                // endpoint to tell them apart. If the server is already down the stop
+                // succeeded and we return. If it is still up the exception represents a
+                // genuine failure and we re-throw it so the test fails with a clear cause.
+                if (isServerDown(appUrl)) {
+                    System.out.println("[launchDashboardStopAndWaitForServerDown] Stop action failed on attempt "
+                                       + attempt + " but server is already down. Treating as success.");
+                    return;
+                }
+                throw e;
+            }
+
+            // Stop action was issued. Poll the HTTP endpoint to confirm the server went down.
+            if (isServerDown(appUrl)) {
+                return;
+            }
+
+            System.out.println("[launchDashboardStopAndWaitForServerDown] Server still up after attempt "
+                               + attempt + " of " + maxRetries + ". Re-issuing Stop.");
+        }
+
+        Assertions.fail("Server at " + appUrl + " did not stop after " + maxRetries + " Stop action attempt(s).");
+    }
+
+    /**
+     * Returns true if the server at the given URL is no longer reachable.
+     * Polls the endpoint at 500 ms intervals for up to SHORT_WAIT_MS milliseconds.
+     * A connection refused or any non-200 response is treated as the server being down.
+     *
+     * @param appUrl The HTTP URL to probe.
+     *
+     * @return True if the server is down within the wait period. False otherwise.
+     */
+    private static boolean isServerDown(String appUrl) {
+        return SWTBotTestCondition.waitFor(() -> {
+            HttpURLConnection con = null;
+            try {
+                URL url = URI.create(appUrl).toURL();
+                con = (HttpURLConnection) url.openConnection();
+                con.setConnectTimeout(2000);
+                con.setReadTimeout(2000);
+                con.setRequestMethod("GET");
+                con.connect();
+                return con.getResponseCode() != HttpURLConnection.HTTP_OK;
+            } catch (Exception e) {
+                // Connection refused means the server is no longer listening.
+                return true;
+            } finally {
+                if (con != null) {
+                    con.disconnect();
+                }
+            }
+        }, SWTBotTestCondition.SHORT_WAIT_MS);
     }
 
     /**
@@ -727,7 +807,7 @@ public class SWTBotPluginOperations {
         }, timeoutMs);
 
         if (!success) {
-            throw new org.eclipse.swtbot.swt.finder.exceptions.WidgetNotFoundException("Failed to find and click button '" + buttonText + "' in dialog with title '" + dialogTitle
+            throw new WidgetNotFoundException("Failed to find and click button '" + buttonText + "' in dialog with title '" + dialogTitle
                                                                                        + "'");
         }
     }
@@ -828,7 +908,7 @@ public class SWTBotPluginOperations {
         if (prefStore instanceof org.eclipse.ui.preferences.ScopedPreferenceStore) {
             try {
                 ((org.eclipse.ui.preferences.ScopedPreferenceStore) prefStore).save();
-            } catch (java.io.IOException e) {
+            } catch (IOException e) {
                 System.err.println("Failed to save preferences: " + e.getMessage());
                 e.printStackTrace();
             }
@@ -853,7 +933,7 @@ public class SWTBotPluginOperations {
         if (prefStore instanceof org.eclipse.ui.preferences.ScopedPreferenceStore) {
             try {
                 ((org.eclipse.ui.preferences.ScopedPreferenceStore) prefStore).save();
-            } catch (java.io.IOException e) {
+            } catch (IOException e) {
                 System.err.println("Failed to save preferences: " + e.getMessage());
                 e.printStackTrace();
             }
@@ -1404,7 +1484,7 @@ public class SWTBotPluginOperations {
         // text, which is the badge column. The project name lives in column 1.
         SWTBotTreeItem treeItem = findTreeItem(dashboardTree, item);
         if (treeItem == null) {
-            throw new org.eclipse.swtbot.swt.finder.exceptions.WidgetNotFoundException("Dashboard tree item not found: " + item);
+            throw new WidgetNotFoundException("Dashboard tree item not found: " + item);
         }
         treeItem.select();
         return treeItem.contextMenu();
@@ -1679,8 +1759,9 @@ public class SWTBotPluginOperations {
 
         boolean searchFieldVisible = SWTBotTestCondition.waitFor(() -> {
             try {
-                bot.textWithMessage(SEARCH_BOX_FILTER_HINT);
-                return true;
+                if (bot.viewByTitle(DASHBOARD_VIEW_TITLE).bot().text().isVisible()) {
+                    return true;
+                }
             } catch (Exception ignored) {
                 // Search bar is not open yet.
             }
@@ -1696,7 +1777,7 @@ public class SWTBotPluginOperations {
         Assertions.assertTrue(searchFieldVisible,
                               "Timed out waiting for the dashboard search field to appear.");
 
-        bot.textWithMessage(SEARCH_BOX_FILTER_HINT).setText(filterText);
+        bot.viewByTitle(DASHBOARD_VIEW_TITLE).bot().text().setText(filterText);
     }
 
     /**
@@ -1725,12 +1806,15 @@ public class SWTBotPluginOperations {
      *
      * @param bot The SWTWorkbenchBot instance.
      */
-    public static void clearDashboardFilter(SWTWorkbenchBot bot) {
+    public static void clearAndHideDashboardFilter(SWTWorkbenchBot bot) {
         openDashboardUsingToolbar();
         activateDashboardView();
 
         try {
-            bot.textWithMessage(SEARCH_BOX_FILTER_HINT).setText("");
+            SWTBotView dashboardView = bot.viewByTitle(DASHBOARD_VIEW_TITLE);
+            if (dashboardView.bot().text().isVisible()) {
+                dashboardView.bot().text().setText("");
+            }
         } catch (Exception ignored) {
             // Search bar may already be hidden.
         }

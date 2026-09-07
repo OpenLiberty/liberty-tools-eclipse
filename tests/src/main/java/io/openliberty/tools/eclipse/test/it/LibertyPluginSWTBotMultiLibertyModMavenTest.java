@@ -14,7 +14,7 @@ package io.openliberty.tools.eclipse.test.it;
 
 import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.go;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.cancelModuleSelectionDialog;
-import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.clearDashboardFilter;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.clearAndHideDashboardFilter;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.clickDeselectAllInModuleSelectionDialog;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.clickSelectAllInModuleSelectionDialog;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.collapseDashboard;
@@ -42,6 +42,7 @@ import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.unsetBuildCmdPathInPreferences;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.waitForAndClickButton;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.waitForModuleSelectionDialog;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchDashboardStopAndWaitForServerDown;
 
 import java.io.File;
 import java.io.IOException;
@@ -400,7 +401,7 @@ public class LibertyPluginSWTBotMultiLibertyModMavenTest extends AbstractLiberty
 
         LibertyPluginTestUtils.validateApplicationOutcomeCustom(
                                                                 "http://localhost:9080/converter/heights.jsp?heightCm=10", true,
-                                                                "Height in feet and inches", ear1ServerPath.toString());
+                                                                "Height in feet and inches", ear1ServerPath.toString(), MVN_EAR1_MODULE_NAME);
 
         pressWorkspaceErrorDialogProceedButton(bot);
 
@@ -432,7 +433,7 @@ public class LibertyPluginSWTBotMultiLibertyModMavenTest extends AbstractLiberty
 
         LibertyPluginTestUtils.validateApplicationOutcomeCustom(
                                                                 "http://localhost:9080/converter/heights.jsp?heightCm=10", true,
-                                                                "Height in feet and inches", ear1ServerPath.toString());
+                                                                "Height in feet and inches", ear1ServerPath.toString(), MVN_EAR1_MODULE_NAME);
 
         pressWorkspaceErrorDialogProceedButton(bot);
 
@@ -471,7 +472,7 @@ public class LibertyPluginSWTBotMultiLibertyModMavenTest extends AbstractLiberty
 
         LibertyPluginTestUtils.validateApplicationOutcomeCustom(
                                                                 "http://localhost:9080/converter/heights.jsp?heightCm=10", true,
-                                                                "Height in feet and inches", ear1ServerPath.toString());
+                                                                "Height in feet and inches", ear1ServerPath.toString(), MVN_EAR1_MODULE_NAME);
 
         pressWorkspaceErrorDialogProceedButton(bot);
 
@@ -511,7 +512,7 @@ public class LibertyPluginSWTBotMultiLibertyModMavenTest extends AbstractLiberty
 
         LibertyPluginTestUtils.validateApplicationOutcomeCustom(
                                                                 "http://localhost:9080/converter/heights.jsp?heightCm=10", true,
-                                                                "Height in feet and inches", ear1ServerPath.toString());
+                                                                "Height in feet and inches", ear1ServerPath.toString(), MVN_EAR1_MODULE_NAME);
 
         pressWorkspaceErrorDialogProceedButton(bot);
 
@@ -590,7 +591,7 @@ public class LibertyPluginSWTBotMultiLibertyModMavenTest extends AbstractLiberty
 
         LibertyPluginTestUtils.validateApplicationOutcomeCustom(
                                                                 "http://localhost:9080/converter/heights.jsp?heightCm=10", true,
-                                                                "Height in feet and inches", ear1ServerPath.toString());
+                                                                "Height in feet and inches", ear1ServerPath.toString(), MVN_EAR1_MODULE_NAME);
         pressWorkspaceErrorDialogProceedButton(bot);
 
         // Step 2: Start ear2. Only 2 inactive modules should remain (ear2 and ear-skinny-modules).
@@ -611,7 +612,7 @@ public class LibertyPluginSWTBotMultiLibertyModMavenTest extends AbstractLiberty
 
         LibertyPluginTestUtils.validateApplicationOutcomeCustom(
                                                                 "http://localhost:9081/converter/heights.jsp?heightCm=20", true,
-                                                                "Height in feet and inches", ear2ServerPath.toString());
+                                                                "Height in feet and inches", ear2ServerPath.toString(), MVN_EAR2_MODULE_NAME);
         pressWorkspaceErrorDialogProceedButton(bot);
 
         // Step 3: Stop from the parent. Both ear1 and ear2 are active so the dialog should
@@ -682,7 +683,7 @@ public class LibertyPluginSWTBotMultiLibertyModMavenTest extends AbstractLiberty
                                    "Module " + MVN_EAR_SKINNY_MODULE_NAME + " should not be visible after filtering by 'ear2'.");
         } finally {
             // Clear the filter so the full dashboard is restored for subsequent tests.
-            clearDashboardFilter(bot);
+            clearAndHideDashboardFilter(bot);
 
             SWTBotTestCondition.waitFor(() -> {
                 List<String> content = getDashboardContent();
@@ -803,7 +804,7 @@ public class LibertyPluginSWTBotMultiLibertyModMavenTest extends AbstractLiberty
         // Validate that ear1 is up and running outside of Liberty Tools.
         LibertyPluginTestUtils.validateApplicationOutcomeCustom(
                                                                 "http://localhost:9080/converter/heights.jsp?heightCm=10", true,
-                                                                "Height in feet and inches", ear1ServerPath.toString());
+                                                                "Height in feet and inches", ear1ServerPath.toString(), MVN_EAR1_MODULE_NAME);
 
         boolean devModeStopped = false;
         try {
@@ -836,15 +837,20 @@ public class LibertyPluginSWTBotMultiLibertyModMavenTest extends AbstractLiberty
             // Validate that the server came back up under Liberty Tools.
             LibertyPluginTestUtils.validateApplicationOutcomeCustom(
                                                                     "http://localhost:9080/converter/heights.jsp?heightCm=10", true,
-                                                                    "Height in feet and inches", ear1ServerPath.toString());
+                                                                    "Height in feet and inches", ear1ServerPath.toString(), MVN_EAR1_MODULE_NAME);
 
             pressWorkspaceErrorDialogProceedButton(bot);
 
-            // Stop ear1 from the parent dashboard Stop action. Only one module is active so
-            // no module selection dialog is expected and ear1 stops directly.
-            launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
-
-            LibertyPluginTestUtils.validateLibertyServerStopped(ear1ServerPath.toString());
+            // Stop ear1 from the parent dashboard. Only one module is active so no module
+            // selection dialog is expected and ear1 stops directly. The helper re-issues the
+            // Stop action if it silently fails due to the console view stealing focus, and
+            // confirms the server is down via the HTTP endpoint rather than messages.log.
+            // The log already contains a CWWKE0036I from the earlier restart-induced stop,
+            // so a file-based check would return a false positive.
+            launchDashboardStopAndWaitForServerDown(
+                                                    MVN_APP_NAME,
+                                                    "http://localhost:9080/converter/heights.jsp?heightCm=10",
+                                                    3);
             devModeStopped = true;
         } finally {
             if (!devModeStopped) {
@@ -862,7 +868,10 @@ public class LibertyPluginSWTBotMultiLibertyModMavenTest extends AbstractLiberty
                 Process stopDMProcess = stopDMPB.start();
                 stopDMProcess.waitFor(3, TimeUnit.SECONDS);
 
-                LibertyPluginTestUtils.validateLibertyServerStopped(ear1ServerPath.toString());
+                // HTTP probe for the fallback cleanup path, same reason as above.
+                LibertyPluginTestUtils.validateApplicationOutcomeCustom(
+                                                                        "http://localhost:9080/converter/heights.jsp?heightCm=10", false,
+                                                                        null, ear1ServerPath.toString(), MVN_EAR1_MODULE_NAME);
             }
 
         }
@@ -963,13 +972,13 @@ public class LibertyPluginSWTBotMultiLibertyModMavenTest extends AbstractLiberty
         // Validate that ear1, ear2, and ear-skinny-modules are serving the expected response.
         LibertyPluginTestUtils.validateApplicationOutcomeCustom(
                                                                 "http://localhost:9080/converter/heights.jsp?heightCm=10", true,
-                                                                "Height in feet and inches", ear1ServerPath.toString());
+                                                                "Height in feet and inches", ear1ServerPath.toString(), MVN_EAR1_MODULE_NAME);
         LibertyPluginTestUtils.validateApplicationOutcomeCustom(
                                                                 "http://localhost:9081/converter/heights.jsp?heightCm=20", true,
-                                                                "Height in feet and inches", ear2ServerPath.toString());
+                                                                "Height in feet and inches", ear2ServerPath.toString(), MVN_EAR2_MODULE_NAME);
         LibertyPluginTestUtils.validateApplicationOutcomeCustom(
                                                                 "http://localhost:9083/converter/heights.jsp?heightCm=10", true,
-                                                                "Height in feet and inches", earSkinnyServerPath.toString());
+                                                                "Height in feet and inches", earSkinnyServerPath.toString(), MVN_EAR_SKINNY_MODULE_NAME);
 
         pressWorkspaceErrorDialogProceedButton(bot);
 

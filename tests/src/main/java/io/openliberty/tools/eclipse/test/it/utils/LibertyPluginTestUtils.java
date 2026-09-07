@@ -21,6 +21,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -53,15 +54,15 @@ public class LibertyPluginTestUtils {
 
     /**
      * Validates the state of the application (active/inactive) based on the expectation of success (true/false).
-     * 
-     * @param ctxRoot       The applications context root.
+     *
+     * @param ctxRoot       The application context root. Also used as the project name to filter console output on failure.
      * @param expectSuccess True for success. False for failure.
      * @param testAppPath   The base path to the liberty installation.
      */
     public static void validateApplicationOutcome(String ctxRoot, boolean expectSuccess, String testAppPath) {
         String expectedResponse = "Hello! How are you today?";
         String appUrl = "http://localhost:9080/" + ctxRoot + "/servlet";
-        validateApplicationOutcomeCustom(appUrl, expectSuccess, expectedResponse, testAppPath);
+        validateApplicationOutcomeCustom(appUrl, expectSuccess, expectedResponse, testAppPath, ctxRoot);
     }
 
     /**
@@ -106,8 +107,9 @@ public class LibertyPluginTestUtils {
      * @param expectSuccess    True to check for success. False to check for failure.
      * @param expectedResponse The expected application response payload.
      * @param testAppPath      The base path to the liberty installation.
+     * @param projectName      The project name used to filter console output on failure.
      */
-    public static void validateApplicationOutcomeCustom(String appUrl, boolean expectSuccess, String expectedResponse, String testAppPath) {
+    public static void validateApplicationOutcomeCustom(String appUrl, boolean expectSuccess, String expectedResponse, String testAppPath, String projectName) {
         System.out.println("INFO: Entering validateApplicationOutcomeCustom, appUrl: " + appUrl);
 
         // Poll for the server to start or stop.
@@ -115,7 +117,7 @@ public class LibertyPluginTestUtils {
             int status = 0;
             HttpURLConnection con = null;
             try {
-                URL url = new URL(appUrl);
+                URL url = URI.create(appUrl).toURL();
                 con = (HttpURLConnection) url.openConnection();
                 con.setRequestMethod("GET");
                 con.connect();
@@ -152,9 +154,10 @@ public class LibertyPluginTestUtils {
         }, SWTBotTestCondition.SERVER_WAIT_MS);
 
         if (!outcomeReached) {
-            // If we are here, the expected outcome was not found. Print the Liberty server's messages.log and fail.
+            // If we are here, the expected outcome was not found. Print diagnostics and fail.
             String wlpMsgLogPath = testAppPath + "/wlp/usr/servers/defaultServer/logs/messages.log";
             printLibertyMessagesLogFile(wlpMsgLogPath);
+            printConsoleOutput(projectName);
             Assertions.fail("Timed out while waiting for application under URL: " + appUrl + " to become available.");
         }
 
@@ -237,26 +240,50 @@ public class LibertyPluginTestUtils {
     }
 
     /**
-     * Reads and returns the text from the console output tab
-     * 
-     * @return
+     * Reads and returns the text from all console output tabs.
+     *
+     * @return The concatenated output from all text consoles.
      */
     public static String getConsoleOutput() {
         IConsoleManager consoleManager = ConsolePlugin.getDefault().getConsoleManager();
         IConsole[] consoles = consoleManager.getConsoles();
         StringBuilder result = new StringBuilder();
 
-        // Iterate through each console
         for (IConsole console : consoles) {
             if (console instanceof TextConsole) {
-                TextConsole textConsole = (TextConsole) console;
-                // Append the console output to the result
-                result.append(textConsole.getDocument().get());
+                result.append(((TextConsole) console).getDocument().get());
             }
         }
 
-        // Return the concatenated result from all text consoles
         return result.toString();
+    }
+
+    /**
+     * Prints the console output for the project identified by the given name. Only consoles
+     * whose name contains projectName are included, so that in a multi-module run the output
+     * printed is scoped to the failing project.
+     *
+     * @param projectName The project name to match against console names.
+     */
+    public static void printConsoleOutput(String projectName) {
+        System.out.println("----------------------- console output [" + projectName + "] -----------------------");
+
+        IConsoleManager consoleManager = ConsolePlugin.getDefault().getConsoleManager();
+        IConsole[] consoles = consoleManager.getConsoles();
+        boolean found = false;
+
+        for (IConsole console : consoles) {
+            if (console instanceof TextConsole && console.getName().contains(projectName)) {
+                System.out.println(((TextConsole) console).getDocument().get());
+                found = true;
+            }
+        }
+
+        if (!found) {
+            System.out.println("No console found for project: " + projectName);
+        }
+
+        System.out.println("---------------------------------------------------------------------");
     }
 
     /**
