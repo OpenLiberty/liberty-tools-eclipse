@@ -775,16 +775,35 @@
      </wizard>
   </extension>
 
-  <!-- Add Liberty Starter to Java perspective shortcuts -->
+  <!-- Add Liberty Starter wizard shortcut to all perspectives so it appears in the empty Project/Package Explorer -->
   <extension point="org.eclipse.ui.perspectiveExtensions">
-     <perspectiveExtension targetID="org.eclipse.jdt.ui.JavaPerspective">
+     <perspectiveExtension targetID="*">
         <newWizardShortcut id="io.openliberty.tools.eclipse.ui.wizard.LibertyStarter"/>
      </perspectiveExtension>
-     <perspectiveExtension targetID="org.eclipse.ui.resourcePerspective">
-        <newWizardShortcut id="io.openliberty.tools.eclipse.ui.wizard.LibertyStarter"/>
-     </perspectiveExtension>
-     <perspectiveExtension targetID="org.eclipse.jdt.ui.JavaBrowsingPerspective">
-        <newWizardShortcut id="io.openliberty.tools.eclipse.ui.wizard.LibertyStarter"/>
-     </perspectiveExtension>
+  </extension>
+
+  <!-- Add Liberty Starter to Project/Package Explorer right-click New menu -->
+  <extension point="org.eclipse.ui.navigator.navigatorContent">
+     <commonWizard
+           type="new"
+           wizardId="io.openliberty.tools.eclipse.ui.wizard.LibertyStarter">
+        <enablement>
+           <or>
+              <adapt type="org.eclipse.core.resources.IWorkspaceRoot"/>
+              <adapt type="org.eclipse.core.resources.IProject"/>
+           </or>
+        </enablement>
+     </commonWizard>
+  </extension>
+
+  <!-- E4 model processor: adds Liberty wizard shortcut tag to all perspectives
+       on every startup so the empty Project/Package Explorer link always appears -->
+  <extension id="io.openliberty.tools.eclipse.ui.model.processor"
+             point="org.eclipse.e4.workbench.model">
+     <processor
+           apply="always"
+           beforefragment="false"
+           class="io.openliberty.tools.eclipse.ui.model.LibertyPerspectiveProcessor">
+     </processor>
   </extension>
 </plugin>
