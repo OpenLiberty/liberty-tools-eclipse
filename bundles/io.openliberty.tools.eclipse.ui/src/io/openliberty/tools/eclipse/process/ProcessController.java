@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2022, 2025 IBM Corporation and others.
+* Copyright (c) 2022, 2026 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -21,18 +21,24 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.eclipse.debug.core.DebugPlugin;
+import org.eclipse.debug.core.ILaunch;
+import org.eclipse.debug.core.model.IProcess;
+import org.eclipse.debug.core.model.IStreamMonitor;
 
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.messages.Messages;
 import io.openliberty.tools.eclipse.utils.Utils;
 
 /**
- * Manages the set up running dev mode processes.
+ * Manages the set of running dev mode processes.
  */
 public class ProcessController {
 
     /** The set of processes associated with different application projects. */
     private static final ConcurrentHashMap<String, Process> projectProcessMap = new ConcurrentHashMap<String, Process>();
+
+    /** The set of console output interceptors keyed by project path. */
+    private static final ConcurrentHashMap<String, ConsoleOutputInterceptor> interceptorMap = new ConcurrentHashMap<String, ConsoleOutputInterceptor>();
 
     /** Instance of this class */
     private static ProcessController instance;
@@ -63,10 +69,15 @@ public class ProcessController {
      * @param projectPath The application project path.
      * @param command     The command to execute.
      * @param envs        The environment properties to be set for the process.
-     * 
-     * @throws IOException
+     * @param printCmd    Whether to echo the command to the console before running it.
+     * @param launch      The Eclipse launch object used to register the process in the debug framework.
+     *
+     * @throws IOException If an error occurs while starting the process.
      */
-    public Process runProcess(String projectName, String projectPath, String command, List<String> envs, boolean printCmd) throws IOException {
+    public void runProcess(String projectName, String projectPath, String command, List<String> envs, boolean printCmd, ILaunch launch) throws IOException {
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_UI, new Object[] { projectName, projectPath, command, envs, printCmd });
+        }
 
         List<String> commandList = new ArrayList<String>();
 
@@ -112,9 +123,37 @@ public class ProcessController {
 
         projectProcessMap.put(projectName, process);
 
+        // Register a termination listener with the Debug plugin framework.
         addTerminateListener(projectName);
 
-        return process;
+        // Launch the Java process as part of the Debug plugin framework, which wraps
+        // the raw Java process and monitors it.
+        // Cleanup for the initiated process is done by the registered listener.
+        IProcess iProcess = DebugPlugin.newProcess(launch, process, projectName);
+
+        // Create a console output interceptor and register it on both the stdout and
+        // stderr monitors so that handlers can react to messages on either stream.
+        ConsoleOutputInterceptor interceptor = new ConsoleOutputInterceptor(projectName);
+        IStreamMonitor outMonitor = iProcess.getStreamsProxy().getOutputStreamMonitor();
+        IStreamMonitor errMonitor = iProcess.getStreamsProxy().getErrorStreamMonitor();
+        outMonitor.addListener(interceptor);
+        errMonitor.addListener(interceptor);
+        interceptorMap.put(projectPath, interceptor);
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_UI, process.pid());
+        }
+    }
+
+    /**
+     * Returns the ConsoleOutputInterceptor registered for the specified project path, or null
+     * if no process is currently running for that project.
+     *
+     * @param projectPath The file system path of the project.
+     * @return The ConsoleOutputInterceptor for the project, or null if none exists.
+     */
+    public ConsoleOutputInterceptor getInterceptor(String projectPath) {
+        return interceptorMap.get(projectPath);
     }
 
     private void addTerminateListener(String projectName) {
@@ -125,9 +164,9 @@ public class ProcessController {
      * Writes the input data to the running process associated with the input project name.
      *
      * @param projectName The application project name.
-     * @param content     The data to write.
+     * @param data        The data to write.
      *
-     * @throws Exception
+     * @throws Exception If no process is found for the given project name.
      */
     public void writeToProcessStream(String projectName, String data) throws Exception {
         Process process = projectProcessMap.get(projectName);
@@ -164,11 +203,26 @@ public class ProcessController {
 
     /**
      * Cleans up any objects associated with this project.
-     * 
-     * @param projectName - The name of the project to clean up.
+     *
+     * @param projectName The name of the project to clean up.
+     * @param projectPath The file system path of the project.
      */
-    public void cleanup(String projectName) {
+    public void cleanup(String projectName, String projectPath) {
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_UI, new Object[] { projectName, projectPath });
+        }
+
         projectProcessMap.remove(projectName);
+        if (projectPath != null) {
+            ConsoleOutputInterceptor interceptor = interceptorMap.remove(projectPath);
+            if (interceptor != null) {
+                interceptor.flush();
+            }
+        }
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_UI, projectProcessMap.size());
+        }
     }
 
     /**
@@ -179,7 +233,9 @@ public class ProcessController {
         StringBuffer sb = new StringBuffer();
         sb.append("Class: ").append(instance.getClass().getName()).append(": ");
         sb.append("projectProcessMap size: ").append(projectProcessMap.size()).append(", ");
-        sb.append("projectProcessMap: ").append(projectProcessMap);
+        sb.append("projectProcessMap: ").append(projectProcessMap).append(", ");
+        sb.append("interceptorMap size: ").append(interceptorMap.size()).append(", ");
+        sb.append("interceptorMap: ").append(interceptorMap);
         return sb.toString();
     }
 }

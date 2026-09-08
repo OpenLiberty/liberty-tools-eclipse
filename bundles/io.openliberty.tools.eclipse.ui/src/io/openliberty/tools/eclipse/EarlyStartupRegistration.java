@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2022 IBM Corporation and others.
+ * Copyright (c) 2022, 2026 IBM Corporation and others.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -14,6 +14,9 @@ package io.openliberty.tools.eclipse;
 
 public class EarlyStartupRegistration implements org.eclipse.ui.IStartup {
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void earlyStartup() {
         // Causes AbstractUIPlugin to start() early

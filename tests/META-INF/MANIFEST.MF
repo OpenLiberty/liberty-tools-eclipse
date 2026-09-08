@@ -12,6 +12,7 @@ Require-Bundle: junit-jupiter-api,
  org.eclipse.text
 Import-Package: io.openliberty.tools.eclipse,
  io.openliberty.tools.eclipse.debug,
+ io.openliberty.tools.eclipse.model,
  io.openliberty.tools.eclipse.ui.dashboard,
  io.openliberty.tools.eclipse.ui.launch,
  io.openliberty.tools.eclipse.ui.launch.shortcuts,

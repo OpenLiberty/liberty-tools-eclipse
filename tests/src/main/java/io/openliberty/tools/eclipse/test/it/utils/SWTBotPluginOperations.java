@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2022, 2023 IBM Corporation and others.
+* Copyright (c) 2022, 2026 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -23,6 +23,10 @@ import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.set;
 import static org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory.allOf;
 import static org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory.widgetOfType;
 
+import java.io.IOException;
+import java.net.HttpURLConnection;
+import java.net.URI;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -36,15 +40,15 @@ import org.eclipse.swt.widgets.Item;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.MenuItem;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.Table;
-import org.eclipse.swt.widgets.TableItem;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.swt.widgets.ToolItem;
+import org.eclipse.swt.widgets.Tree;
 import org.eclipse.swt.widgets.TreeItem;
 import org.eclipse.swtbot.eclipse.finder.SWTWorkbenchBot;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotEditor;
 import org.eclipse.swtbot.eclipse.finder.widgets.SWTBotView;
 import org.eclipse.swtbot.swt.finder.SWTBot;
+import org.eclipse.swtbot.swt.finder.exceptions.WidgetNotFoundException;
 import org.eclipse.swtbot.swt.finder.matchers.WidgetMatcherFactory;
 import org.eclipse.swtbot.swt.finder.utils.SWTUtils;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotCTabItem;
@@ -53,11 +57,11 @@ import org.eclipse.swtbot.swt.finder.widgets.SWTBotMenu;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotRootMenu;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotShell;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotStyledText;
-import org.eclipse.swtbot.swt.finder.widgets.SWTBotTable;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotToolbarButton;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotToolbarPushButton;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTree;
 import org.eclipse.swtbot.swt.finder.widgets.SWTBotTreeItem;
+import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
@@ -92,6 +96,7 @@ public class SWTBotPluginOperations {
     public static final String LAUNCH_CONFIG_LIBERTY_MENU_NAME = "Liberty";
     public static final String EXPLORER_CONFIGURE_MENU_ENABLE_LIBERTY_TOOLS = "Enable Liberty";
     public static final String NEW_CONFIGURATION = "New_configuration";
+    public static final String SEARCH_BOX_FILTER_HINT = "Type filter text...";
 
     /**
      * Close the welcome page if active.
@@ -135,19 +140,41 @@ public class SWTBotPluginOperations {
      */
     public static SWTBotMenu getDebuggerConnectMenuForDebugObject(Object debugObject) {
         openDebugPerspective();
-        // Open Debug view using Eclipse API instead of menu navigation
-        // This is more reliable in headless CI environments
+        // Open Debug view using Eclipse API instead of menu navigation.
+        // This is more reliable in headless CI environments.
         showDebugView();
 
         SWTBotTreeItem obj = new SWTBotTreeItem((TreeItem) debugObject);
 
-        // Ensure the tree item is properly selected and focused before accessing context menu
-        // This is critical for headless CI environments where context menus can hang
+        // Select and focus the item so the workbench selection service has it as the
+        // active selection. LibertyDebugReconnectHandler.isEnabled() reads the selection
+        // service, not the object passed here, so the selection must be current before
+        // the context menu is opened.
+        // Note: do NOT wait for isEnabled() here — callers may legitimately be checking
+        // that the menu is *disabled*, and waiting for enabled would mask that state.
         obj.select();
         obj.setFocus();
-        MagicWidgetFinder.pause(500);
 
         return obj.contextMenu("Connect Liberty Debugger");
+    }
+
+    /**
+     * Polls the input debugger context menu object ("Connect Liberty Debugger") until its
+     * enabled state matches the expected enabled input indicator.
+     *
+     * @param debugObject     The debug view tree item to check.
+     * @param expectedEnabled {@code true} to wait until the menu is enabled;
+     *                            {@code false} to wait until it is disabled.
+     * @return {@code true} if the expected state was reached within 5 seconds.
+     */
+    public static boolean waitForDebuggerConnectMenuState(Object debugObject, boolean expectedEnabled) {
+        return SWTBotTestCondition.waitFor(() -> {
+            try {
+                return getDebuggerConnectMenuForDebugObject(debugObject).isEnabled() == expectedEnabled;
+            } catch (Exception e) {
+                return false;
+            }
+        }, SWTBotTestCondition.MIN_WAIT_MS);
     }
 
     /**
@@ -163,41 +190,113 @@ public class SWTBotPluginOperations {
         // This is more reliable in headless CI environments
         showDebugView();
 
-        // Ensure proper selection before accessing context menu
+        // Wait until the item is enabled before accessing its context menu.
         SWTBotTreeItem obj = new SWTBotTreeItem((TreeItem) debugTarget);
         obj.select();
         obj.setFocus();
-        MagicWidgetFinder.pause(500);
+        SWTBotTestCondition.waitFor(obj::isEnabled, SWTBotTestCondition.VALIDATION_WAIT_MS);
 
         MagicWidgetFinder.context(debugTarget, "Disconnect");
 
-        MagicWidgetFinder.pause(3000);
+        // Wait for disconnect to complete by polling the item's disposed/enabled state.
+        SWTBotTestCondition.waitFor(() -> !isTreeItemEnabled(obj), SWTBotTestCondition.MIN_WAIT_MS);
     }
 
     /**
-     * Terminate the launch
+     * Returns true if the input tree item is enabled, false otherwise.
+     * 
+     * @param item The tree item.
+     * 
+     * @return True if the input tree item is enabled, false otherwise.
+     */
+    private static boolean isTreeItemEnabled(SWTBotTreeItem item) {
+        try {
+            return item.isEnabled();
+        } catch (Exception e) {
+            // Item disposed or no longer accessible — disconnect completed.
+            return false;
+        }
+    }
+
+    /**
+     * Terminates the Liberty launch if one is present in the Debug view, then verifies
+     * it is gone using a single instant check (no polling).
+     *
+     * <p>Callers do not need to do any follow-up lookup — the assertion is done here.
+     *
+     * @throws AssertionError if a launch was found and terminated but the Debug view
+     *                            still shows it immediately after termination.
      */
     public static void terminateLaunch() {
-        // Use getObjectInDebugView to find the Liberty launch with retry logic
-        Object launch = getObjectInDebugView("[Liberty]");
+        String searchObjectName = "[Liberty]";
+        Object launch = null;
+        if (isObjectInDebugView(searchObjectName)) {
+            launch = getObjectInDebugView(searchObjectName);
+        }
 
-        // Only attempt to terminate if launch exists
         if (launch != null) {
             System.out.println("Found Liberty launch, attempting to terminate");
             MagicWidgetFinder.context(launch, "Terminate and Remove");
 
-            try {
+            // The confirmation shell only appears when the process is still running.
+            if (isShellVisible("Terminate and Remove")) {
                 Shell confirm = (Shell) findGlobal("Terminate and Remove", Option.factory().widgetClass(Shell.class).build());
-
                 MagicWidgetFinder.go("Yes", confirm);
-                MagicWidgetFinder.pause(3000);
-            } catch (Exception e) {
-                // The confirmation pop up window only shows if the launch has not yet been terminated.
-                // If it has been terminated (or stopped), there is no confirmation.
+                SWTBotTestCondition.waitFor(() -> !isShellVisible("Terminate and Remove"), SWTBotTestCondition.MIN_WAIT_MS);
             }
+
+            boolean stillPresent = !SWTBotTestCondition.waitFor(
+                                                                () -> !isObjectInDebugView(searchObjectName), SWTBotTestCondition.MIN_WAIT_MS);
+            Assertions.assertFalse(stillPresent,
+                                                         "Liberty launch was not removed from the Debug view after termination.");
         } else {
             System.out.println("No Liberty launch found in Debug view to terminate");
         }
+    }
+
+    /**
+     * Returns true while a shell with the given title is still open and visible.
+     * 
+     * @param title The shell title.
+     */
+    private static boolean isShellVisible(String title) {
+        final boolean[] found = { false };
+        Display.getDefault().syncExec(() -> {
+            for (org.eclipse.swt.widgets.Shell s : Display.getDefault().getShells()) {
+                if (!s.isDisposed() && s.isVisible() && title.equals(s.getText())) {
+                    found[0] = true;
+                    return;
+                }
+            }
+        });
+        return found[0];
+    }
+
+    /**
+     * Returns true if an object containing the input object name currently exists in the
+     * Debug view, false otherwise.
+     */
+    public static boolean isObjectInDebugView(final String objectName) {
+        final boolean[] found = { false };
+        Display.getDefault().syncExec(() -> {
+            try {
+                IWorkbench wb = PlatformUI.getWorkbench();
+                IWorkbenchWindow window = wb.getActiveWorkbenchWindow();
+                if (window == null || window.getActivePage() == null) {
+                    return;
+                }
+                ViewPart debugView = (ViewPart) window.getActivePage().findView("org.eclipse.debug.ui.DebugView");
+                if (debugView == null) {
+                    return;
+                }
+                Object result = MagicWidgetFinder.find(objectName, debugView,
+                                                       Option.factory().useContains(true).setThrowExceptionOnNotFound(false).setRetryAttempts(0).widgetClass(TreeItem.class).build());
+                found[0] = (result != null);
+            } catch (Exception ignored) {
+                // View not ready. Treat as not found.
+            }
+        });
+        return found[0];
     }
 
     /**
@@ -239,8 +338,9 @@ public class SWTBotPluginOperations {
             }
         });
 
-        // Give the view time to activate and render
-        MagicWidgetFinder.pause(500);
+        // Wait for the Debug view to activate before searching for items in it.
+        SWTBotTestCondition.waitFor(
+                                    () -> isDebugViewPresent(), SWTBotTestCondition.VALIDATION_WAIT_MS);
 
         Object debugView = debugViewHolder[0];
         if (debugView == null) {
@@ -248,20 +348,18 @@ public class SWTBotPluginOperations {
             return null;
         }
 
-        // Try multiple times to find the object, as it may take time to appear in headless CI
-        Object result = null;
-        for (int attempt = 0; attempt < 3 && result == null; attempt++) {
-            if (attempt > 0) {
-                System.out.println("Retry attempt " + attempt + " to find object: " + objectName);
-                MagicWidgetFinder.pause(1000);
-            }
-
-            result = MagicWidgetFinder.find(objectName, debugView,
-                                            Option.factory().useContains(true).setThrowExceptionOnNotFound(false).widgetClass(TreeItem.class).build());
-        }
+        // Try multiple times to find the object, as it may take time to appear in headless CI.
+        final Object debugViewFinal = debugView;
+        final Object[] resultHolder = { null };
+        final Option singleShotOption = Option.factory().useContains(true).setThrowExceptionOnNotFound(false).setRetryAttempts(0).widgetClass(TreeItem.class).build();
+        SWTBotTestCondition.waitFor(() -> {
+            resultHolder[0] = MagicWidgetFinder.find(objectName, debugViewFinal, singleShotOption);
+            return resultHolder[0] != null;
+        }, SWTBotTestCondition.MIN_WAIT_MS);
+        Object result = resultHolder[0];
 
         if (result == null) {
-            System.out.println("Object not found in Debug view after 3 attempts: " + objectName);
+            System.out.println("Object not found in Debug view: " + objectName);
         }
 
         return result;
@@ -308,8 +406,30 @@ public class SWTBotPluginOperations {
                 }
             }
         });
-        // Give the view time to open
-        MagicWidgetFinder.pause(500);
+        // Wait for the Debug view to open.
+        SWTBotTestCondition.waitFor(
+                                    () -> isDebugViewPresent(), SWTBotTestCondition.MIN_WAIT_MS);
+    }
+
+    /**
+     * Returns true once the Debug view becomes visible on the active page.
+     * 
+     * @return True once the Debug view becomes visible on the active page.
+     */
+    private static boolean isDebugViewPresent() {
+        final boolean[] visible = { false };
+        Display.getDefault().syncExec(() -> {
+            try {
+                org.eclipse.ui.IWorkbenchWindow window = org.eclipse.ui.PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+                if (window != null && window.getActivePage() != null) {
+                    org.eclipse.ui.IViewPart view = window.getActivePage().findView("org.eclipse.debug.ui.DebugView");
+                    visible[0] = (view != null);
+                }
+            } catch (Exception ignored) {
+                // View not ready yet; waitFor will retry.
+            }
+        });
+        return visible[0];
     }
 
     public static void openJavaPerspectiveViaMenu() {
@@ -323,14 +443,19 @@ public class SWTBotPluginOperations {
         }
     }
 
-    public static SWTBotTable getDashboardTable() {
+    /**
+     * Returns the dashboard tree widget.
+     *
+     * @return The dashboard tree widget.
+     */
+    public static SWTBotTree getDashboardTree() {
         openDashboardUsingToolbar();
 
-        // Ensure the dashboard view is actually shown and has focus
-        // This prevents finding the wrong view (like ConsoleView) when the console takes focus after server start
+        // Ensure the dashboard view is actually shown and has focus.
+        // This prevents finding the wrong view (like ConsoleView) when the console takes focus after server start.
         Object dashboardView = findGlobal(DASHBOARD_VIEW_TITLE, Option.factory().widgetClass(ViewPart.class).build());
 
-        // Explicitly show and activate the dashboard view to ensure it has focus
+        // Explicitly show and activate the dashboard view to ensure it has focus.
         if (dashboardView instanceof ViewPart) {
             final ViewPart vp = (ViewPart) dashboardView;
             Display.getDefault().syncExec(new Runnable() {
@@ -348,28 +473,81 @@ public class SWTBotPluginOperations {
                 }
             });
 
-            // Give the UI a moment to update after activation
-            MagicWidgetFinder.pause(500);
         }
 
-        Table table = ((DashboardView) dashboardView).getTable();
-        return new SWTBotTable(table);
+        Tree tree = ((DashboardView) dashboardView).getTree();
+        return new SWTBotTree(tree);
     }
 
     /**
      * Returns a list of entries on the Open Liberty dashboard.
-     * 
+     * This includes both root level projects and their children in a hierarchical tree.
+     * Tree items are expanded before collecting to ensure all children are visible.
+     *
      * @return A list of entries on the Open Liberty dashboard.
      */
     public static List<String> getDashboardContent() {
-        SWTBotTable dashboardTable = getDashboardTable();
+        SWTBotTree dashboardTree = getDashboardTree();
 
         ArrayList<String> contentList = new ArrayList<String>();
-        for (int i = 0; i < dashboardTable.rowCount(); i++) {
-            contentList.add(dashboardTable.getTableItem(i).getText());
+        // Get all tree items (root level projects).
+        SWTBotTreeItem[] items = dashboardTree.getAllItems();
+        for (SWTBotTreeItem item : items) {
+            // Column 1 holds the project name; column 0 holds the build-type badge.
+            contentList.add(getTreeItemNameText(item));
+            // Expand the item to make children visible.
+            item.expand();
+            // Recursively add child items.
+            addChildItems(item, contentList);
         }
 
         return contentList;
+    }
+
+    /**
+     * Recursively adds child tree items to the content list.
+     * Expands each item before processing its children.
+     *
+     * @param parent      The parent tree item.
+     * @param contentList The list to add items to.
+     */
+    private static void addChildItems(SWTBotTreeItem parent, ArrayList<String> contentList) {
+        SWTBotTreeItem[] children = parent.getItems();
+        for (SWTBotTreeItem child : children) {
+            // Column 1 holds the project name; column 0 holds the build-type badge.
+            contentList.add(getTreeItemNameText(child));
+            // Expand child to make grandchildren visible.
+            child.expand();
+            // Recursively process grandchildren.
+            addChildItems(child, contentList);
+        }
+    }
+
+    /**
+     * Returns the project name text from column 1 of the given dashboard tree item.
+     *
+     * The dashboard tree has two columns: column 0 is the build-type badge (image only,
+     * empty text) and column 1 is the state icon plus project name. SWTBotTreeItem.getText()
+     * reads only column 0, so the underlying SWT TreeItem must be accessed directly via
+     * syncExec to retrieve column 1 text.
+     *
+     * @param item The tree item whose column 1 text to read.
+     *
+     * @return The project name from column 1, or an empty string if unavailable.
+     */
+    public static String getTreeItemNameText(SWTBotTreeItem item) {
+        final String[] result = { "" };
+        Display.getDefault().syncExec(() -> {
+            try {
+                TreeItem treeItem = item.widget;
+                if (treeItem != null && !treeItem.isDisposed()) {
+                    result[0] = treeItem.getText(1);
+                }
+            } catch (Exception e) {
+                // Return empty string on any error.
+            }
+        });
+        return result[0];
     }
 
     /**
@@ -383,10 +561,65 @@ public class SWTBotPluginOperations {
      */
     public static List<String> getDashboardItemMenuActions(String item) {
 
-        SWTBotTable dashboardTable = getDashboardTable();
-        dashboardTable.select(item);
-        SWTBotRootMenu appCtxMenu = dashboardTable.contextMenu();
+        SWTBotTree dashboardTree = getDashboardTree();
+        SWTBotTreeItem treeItem = findTreeItem(dashboardTree, item);
+        if (treeItem == null) {
+            throw new WidgetNotFoundException("Tree item not found: " + item);
+        }
+        treeItem.select();
+        SWTBotRootMenu appCtxMenu = treeItem.contextMenu();
         return appCtxMenu.menuItems();
+    }
+
+    /**
+     * Recursively searches for a tree item by name in the dashboard tree.
+     * Searches both root items and nested children.
+     *
+     * @param tree     The dashboard tree
+     * @param itemName The name of the item to find
+     * @return The tree item if found, null otherwise
+     */
+    private static SWTBotTreeItem findTreeItem(SWTBotTree tree, String itemName) {
+        // First try root level items.
+        SWTBotTreeItem[] rootItems = tree.getAllItems();
+        for (SWTBotTreeItem rootItem : rootItems) {
+            // Column 1 holds the project name; column 0 holds the build-type badge.
+            if (getTreeItemNameText(rootItem).equals(itemName)) {
+                return rootItem;
+            }
+            // Expand and search children recursively.
+            rootItem.expand();
+            SWTBotTreeItem found = findTreeItemInChildren(rootItem, itemName);
+            if (found != null) {
+                return found;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Recursively searches for a tree item by name within the children of a parent item.
+     *
+     * @param parent   The parent tree item.
+     * @param itemName The name of the item to find.
+     *
+     * @return The tree item if found, null otherwise.
+     */
+    private static SWTBotTreeItem findTreeItemInChildren(SWTBotTreeItem parent, String itemName) {
+        SWTBotTreeItem[] children = parent.getItems();
+        for (SWTBotTreeItem child : children) {
+            // Column 1 holds the project name; column 0 holds the build-type badge.
+            if (getTreeItemNameText(child).equals(itemName)) {
+                return child;
+            }
+            // Expand and search grandchildren recursively.
+            child.expand();
+            SWTBotTreeItem found = findTreeItemInChildren(child, itemName);
+            if (found != null) {
+                return found;
+            }
+        }
+        return null;
     }
 
     /**
@@ -411,17 +644,172 @@ public class SWTBotPluginOperations {
 
     /**
      * Launches a dashboard action for the specified application name.
-     * 
+     * Retries the action if the dashboard loses focus or the action fails.
+     *
      * @param appName The application name to select.
      * @param action  The action to select
      */
     public static void launchDashboardAction(String appName, String action) {
-        openDashboardUsingToolbar();
+        boolean success = SWTBotTestCondition.waitFor(() -> {
+            try {
+                SWTBotTree dashboardTree = getDashboardTree();
+                SWTBotTreeItem treeItem = findTreeItem(dashboardTree, appName);
+                if (treeItem == null) {
+                    System.out.println("[launchDashboardAction] Retrying: tree item not found");
+                    return false;
+                }
+                treeItem.select();
+                SWTBotRootMenu appCtxMenu = treeItem.contextMenu();
+                appCtxMenu.menu(action).click();
+                return true;
+            } catch (Exception e) {
+                System.out.println("[launchDashboardAction] Retrying: " + e.getClass().getSimpleName());
+                return false;
+            }
+        }, SWTBotTestCondition.SHORT_WAIT_MS);
 
-        Object dashboardView = MagicWidgetFinder.findGlobal(DASHBOARD_VIEW_TITLE);
-        Object project = MagicWidgetFinder.find(appName, dashboardView, Option.factory().widgetClass(TableItem.class).build());
-        MagicWidgetFinder.go(project);
-        MagicWidgetFinder.context(project, action);
+        if (!success) {
+            throw new WidgetNotFoundException("Failed to execute dashboard action '" + action + "' for " + appName);
+        }
+    }
+
+    /**
+     * Issues a dashboard Stop action for the given application and confirms the server went
+     * down by probing its HTTP endpoint. If the Stop action fires but the endpoint is still
+     * reachable after a short wait, the action is re-issued and the probe is repeated. This
+     * guards against the case where the Stop action fails because the console view
+     * steals focus between treeItem.select() and stopAction.run(), causing the SWT selection
+     * service to return null and the stop to be skipped without any error visible to the caller.
+     *
+     * @param appName    The application name as it appears in the dashboard tree.
+     * @param appUrl     The HTTP URL to probe.
+     * @param maxRetries The maximum number of times to re-issue the Stop action before failing.
+     */
+    public static void launchDashboardStopAndWaitForServerDown(String appName, String appUrl, int maxRetries) {
+        for (int attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                launchDashboardAction(appName, DashboardView.APP_MENU_ACTION_STOP);
+            } catch (Exception e) {
+                // launchDashboardAction failed to click the Stop action. This can happen
+                // for two reasons: the action is grayed out because the stop that was
+                // issued on a previous attempt already succeeded, or something else went
+                // wrong (wrong project name, dashboard not loaded, etc.). Probe the HTTP
+                // endpoint to tell them apart. If the server is already down the stop
+                // succeeded and we return. If it is still up the exception represents a
+                // genuine failure and we re-throw it so the test fails with a clear cause.
+                if (isServerDown(appUrl)) {
+                    System.out.println("[launchDashboardStopAndWaitForServerDown] Stop action failed on attempt "
+                                       + attempt + " but server is already down. Treating as success.");
+                    return;
+                }
+                throw e;
+            }
+
+            // Stop action was issued. Poll the HTTP endpoint to confirm the server went down.
+            if (isServerDown(appUrl)) {
+                return;
+            }
+
+            System.out.println("[launchDashboardStopAndWaitForServerDown] Server still up after attempt "
+                               + attempt + " of " + maxRetries + ". Re-issuing Stop.");
+        }
+
+        Assertions.fail("Server at " + appUrl + " did not stop after " + maxRetries + " Stop action attempt(s).");
+    }
+
+    /**
+     * Returns true if the server at the given URL is no longer reachable.
+     * Polls the endpoint at 500 ms intervals for up to SHORT_WAIT_MS milliseconds.
+     * A connection refused or any non-200 response is treated as the server being down.
+     *
+     * @param appUrl The HTTP URL to probe.
+     *
+     * @return True if the server is down within the wait period. False otherwise.
+     */
+    private static boolean isServerDown(String appUrl) {
+        return SWTBotTestCondition.waitFor(() -> {
+            HttpURLConnection con = null;
+            try {
+                URL url = URI.create(appUrl).toURL();
+                con = (HttpURLConnection) url.openConnection();
+                con.setConnectTimeout(2000);
+                con.setReadTimeout(2000);
+                con.setRequestMethod("GET");
+                con.connect();
+                return con.getResponseCode() != HttpURLConnection.HTTP_OK;
+            } catch (Exception e) {
+                // Connection refused means the server is no longer listening.
+                return true;
+            } finally {
+                if (con != null) {
+                    con.disconnect();
+                }
+            }
+        }, SWTBotTestCondition.SHORT_WAIT_MS);
+    }
+
+    /**
+     * Waits for and clicks a button with retry logic.
+     * Finds a dialog with the specified title, brings it into focus, and clicks the button.
+     * Useful for dialogs that may take time to appear and may lose focus.
+     *
+     * @param bot         The SWTWorkbenchBot instance.
+     * @param dialogTitle The title of the dialog to find (substring match).
+     * @param buttonText  The text of the button to find and click.
+     * @param timeoutMs   The maximum time to wait in milliseconds.
+     */
+    public static void waitForAndClickButton(SWTBot bot, String dialogTitle, String buttonText, int timeoutMs) {
+        boolean success = SWTBotTestCondition.waitFor(() -> {
+            try {
+                // Find the shell with the specified title that has the button
+                // Condition 1: Shell title should contain dialogTitle
+                // Condition 2: Shell must have the button
+                SWTBotShell dialogShell = null;
+                for (SWTBotShell shell : bot.shells()) {
+                    try {
+                        String shellTitle = shell.getText();
+                        if (shellTitle != null && shellTitle.contains(dialogTitle)) {
+                            // Check if this shell has the button
+                            shell.bot().button(buttonText);
+                            dialogShell = shell;
+                            break;
+                        }
+                    } catch (Exception e) {
+                        // Continue searching
+                    }
+                }
+
+                if (dialogShell == null) {
+                    System.out.println("[waitForAndClickButton] Retrying: dialog with title '" + dialogTitle + "' and button '" + buttonText + "' not found");
+                    return false;
+                }
+
+                // Bring the dialog into focus before clicking
+                final SWTBotShell shellToFocus = dialogShell;
+                Display.getDefault().syncExec(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            shellToFocus.setFocus();
+                        } catch (Exception e) {
+                            System.out.println("[waitForAndClickButton] Failed to set shell focus: " + e.getClass().getSimpleName());
+                        }
+                    }
+                });
+
+                // Click the button
+                dialogShell.bot().button(buttonText).click();
+                return true;
+            } catch (Exception e) {
+                System.out.println("[waitForAndClickButton] Retrying: " + e.getClass().getSimpleName());
+                return false;
+            }
+        }, timeoutMs);
+
+        if (!success) {
+            throw new WidgetNotFoundException("Failed to find and click button '" + buttonText + "' in dialog with title '" + dialogTitle
+                                                                                       + "'");
+        }
     }
 
     /**
@@ -460,11 +848,11 @@ public class SWTBotPluginOperations {
         SWTBotMenu runAsMenu = null;
         SWTBotTreeItem project = getInstalledProjectItem(bot, item);
         Assertions.assertTrue(project != null, () -> "Could not find active project.");
-        bot.waitUntil(SWTBotTestCondition.isTreeItemEnabled(project), 5000);
+        SWTBotTestCondition.waitFor(project::isEnabled, SWTBotTestCondition.MIN_WAIT_MS);
         project.select().setFocus();
 
         runAsMenu = project.contextMenu("Run As");
-        bot.waitUntil(SWTBotTestCondition.isMenuEnabled(runAsMenu), 5000);
+        SWTBotTestCondition.waitFor(runAsMenu::isEnabled, SWTBotTestCondition.MIN_WAIT_MS);
         runAsMenu.click();
 
         return runAsMenu;
@@ -483,11 +871,11 @@ public class SWTBotPluginOperations {
 
         SWTBotTreeItem project = getInstalledProjectItem(bot, item);
         Assertions.assertTrue(project != null, () -> "Could not find active project.");
-        bot.waitUntil(SWTBotTestCondition.isTreeItemEnabled(project), 5000);
+        SWTBotTestCondition.waitFor(project::isEnabled, SWTBotTestCondition.MIN_WAIT_MS);
         project.select().setFocus();
 
         runAsMenu = project.contextMenu("Debug As");
-        bot.waitUntil(SWTBotTestCondition.isMenuEnabled(runAsMenu), 5000);
+        SWTBotTestCondition.waitFor(runAsMenu::isEnabled, SWTBotTestCondition.MIN_WAIT_MS);
         runAsMenu.click();
 
         return runAsMenu;
@@ -520,7 +908,7 @@ public class SWTBotPluginOperations {
         if (prefStore instanceof org.eclipse.ui.preferences.ScopedPreferenceStore) {
             try {
                 ((org.eclipse.ui.preferences.ScopedPreferenceStore) prefStore).save();
-            } catch (java.io.IOException e) {
+            } catch (IOException e) {
                 System.err.println("Failed to save preferences: " + e.getMessage());
                 e.printStackTrace();
             }
@@ -545,7 +933,7 @@ public class SWTBotPluginOperations {
         if (prefStore instanceof org.eclipse.ui.preferences.ScopedPreferenceStore) {
             try {
                 ((org.eclipse.ui.preferences.ScopedPreferenceStore) prefStore).save();
-            } catch (java.io.IOException e) {
+            } catch (IOException e) {
                 System.err.println("Failed to save preferences: " + e.getMessage());
                 e.printStackTrace();
             }
@@ -614,6 +1002,27 @@ public class SWTBotPluginOperations {
         TreeItem ti = (TreeItem) find("Default", shell);
         expandTreeItem(ti);
         return ti;
+    }
+
+    /**
+     * Returns a comma-separated string of the direct child item texts of the given tree item.
+     * Uses {@code getItems()} (safe: returns an empty array, never throws) so it can be called
+     * while the shell is still open without risking an {@code IndexOutOfBoundsException}.
+     *
+     * @param treeItem The parent tree item whose children to list.
+     * @return A string of the form {@code [child1, child2, ...]} or {@code []} if there are none.
+     */
+    public static String getTreeItemChildrenAsString(SWTBotTreeItem treeItem) {
+        SWTBotTreeItem[] items = treeItem.getItems();
+        StringBuilder sb = new StringBuilder("[");
+        for (int i = 0; i < items.length; i++) {
+            if (i > 0) {
+                sb.append(", ");
+            }
+            sb.append(items[i].getText());
+        }
+        sb.append("]");
+        return sb.toString();
     }
 
     public static SWTBotTreeItem getLibertyToolsConfigMenuItem(Shell shell) {
@@ -791,22 +1200,39 @@ public class SWTBotPluginOperations {
 
     public static Object getAppInPackageExplorerTree(String appName) {
         openJavaPerspectiveViaMenu();
-        // Open Package Explorer view using Eclipse API instead of menu navigation
-        // This is more reliable in headless CI environments
         showPackageExplorerView();
-        Object peView = MagicWidgetFinder.findGlobal("Package Explorer");
+        IViewPart peView = getPackageExplorerView();
 
-        Object project = MagicWidgetFinder.find(appName, peView, Option.factory().useContains(true).widgetClass(TreeItem.class).build());
-        go(project);
+        Object project = MagicWidgetFinder.find(appName, peView, Option.factory().widgetClass(TreeItem.class).build());
 
-        // Add pause to ensure UI is fully ready after selection
-        // This helps prevent race conditions where TreeItem data isn't fully initialized
-        // particularly on Windows in headless CI environments where selection events
-        // can trigger cascading calls to getSelectedDashboardProject() before the
-        // selection is fully resolved, causing infinite loops
-        MagicWidgetFinder.pause(5000);
+        SWTBotTreeItem botItem = new SWTBotTreeItem((TreeItem) project);
+        SWTBotTestCondition.waitFor(botItem::isEnabled, SWTBotTestCondition.SHORT_WAIT_MS);
+        botItem.select();
+        botItem.setFocus();
 
         return project;
+    }
+
+    /**
+     * Returns the Package Explorer IViewPart obtained directly from the Eclipse API.
+     * Must be called after showPackageExplorerView() has confirmed the view is present.
+     *
+     * @return The Package Explorer IViewPart, or {@code null} if unavailable.
+     */
+    private static IViewPart getPackageExplorerView() {
+        final IViewPart[] result = { null };
+        Display.getDefault().syncExec(() -> {
+            try {
+                IWorkbench wb = PlatformUI.getWorkbench();
+                IWorkbenchWindow window = wb.getActiveWorkbenchWindow();
+                if (window != null && window.getActivePage() != null) {
+                    result[0] = window.getActivePage().findView("org.eclipse.jdt.ui.PackageExplorer");
+                }
+            } catch (Exception e) {
+                System.err.println("Failed to retrieve Package Explorer view: " + e.getMessage());
+            }
+        });
+        return result[0];
     }
 
     /**
@@ -880,7 +1306,8 @@ public class SWTBotPluginOperations {
         stopShortcut.setFocus();
         stopShortcut.click();
 
-        bot.waitUntil(SWTBotTestCondition.isEditorActive(bot, item + " " + DevModeOperations.BROWSER_MVN_IT_REPORT_NAME_SUFFIX), 5000);
+        SWTBotTestCondition.waitFor(
+                                    () -> isEditorActiveFor(bot, item + " " + DevModeOperations.BROWSER_MVN_IT_REPORT_NAME_SUFFIX), SWTBotTestCondition.MIN_WAIT_MS);
     }
 
     /**
@@ -897,7 +1324,8 @@ public class SWTBotPluginOperations {
         stopShortcut.setFocus();
         stopShortcut.click();
 
-        bot.waitUntil(SWTBotTestCondition.isEditorActive(bot, item + " " + DevModeOperations.BROWSER_MVN_UT_REPORT_NAME_SUFFIX), 5000);
+        SWTBotTestCondition.waitFor(
+                                    () -> isEditorActiveFor(bot, item + " " + DevModeOperations.BROWSER_MVN_UT_REPORT_NAME_SUFFIX), SWTBotTestCondition.MIN_WAIT_MS);
     }
 
     /**
@@ -914,7 +1342,21 @@ public class SWTBotPluginOperations {
         stopShortcut.setFocus();
         stopShortcut.click();
 
-        bot.waitUntil(SWTBotTestCondition.isEditorActive(bot, item + " " + DevModeOperations.BROWSER_GRADLE_TEST_REPORT_NAME_SUFFIX), 5000);
+        SWTBotTestCondition.waitFor(
+                                    () -> isEditorActiveFor(bot, item + " " + DevModeOperations.BROWSER_GRADLE_TEST_REPORT_NAME_SUFFIX), SWTBotTestCondition.MIN_WAIT_MS);
+    }
+
+    /**
+     * returns true if the editor containing the input title is active, false otherwise.
+     * 
+     * @param wbbot        The SWTWorkbenchBot instance.
+     * @param titleContent The editor title.
+     * 
+     * @return True if the editor containing the input title is active, false otherwise.
+     */
+    private static boolean isEditorActiveFor(SWTWorkbenchBot wbbot, String titleContent) {
+        SWTBotEditor editor = searchForEditor(wbbot, titleContent);
+        return editor != null && editor.isActive();
     }
 
     /**
@@ -1037,20 +1479,37 @@ public class SWTBotPluginOperations {
      */
     public static SWTBotRootMenu getAppContextMenu(String item) {
 
-        SWTBotTable dashboardTable = getDashboardTable();
-        dashboardTable.select(item);
-        return dashboardTable.contextMenu();
+        SWTBotTree dashboardTree = getDashboardTree();
+        // Use findTreeItem instead of getTreeItem because getTreeItem matches on column-0
+        // text, which is the badge column. The project name lives in column 1.
+        SWTBotTreeItem treeItem = findTreeItem(dashboardTree, item);
+        if (treeItem == null) {
+            throw new WidgetNotFoundException("Dashboard tree item not found: " + item);
+        }
+        treeItem.select();
+        return treeItem.contextMenu();
     }
 
     /**
-     * Returns the Open Liberty dashboard view obtained by pressing on the Open Liberty icon located on the main tool bar.
-     *
-     * @param bot The SWTWorkbenchBot instance.
-     *
-     * @return The Open Liberty dashboard view obtained by pressing on the Open Liberty icon located on the main tool bar.
+     * Clicks the toolbar button to open the Liberty Dashboard view, then retries until
+     * the dashboard view is active.
      */
     public static void openDashboardUsingToolbar() {
-        goGlobal(TOOLBAR_OPEN_DASHBOARD_TIP, Option.factory().widgetClass(ToolItem.class).useContains(true).build());
+        SWTBotTestCondition.waitFor(() -> {
+            goGlobal(TOOLBAR_OPEN_DASHBOARD_TIP, Option.factory().widgetClass(ToolItem.class).useContains(true).build());
+            final boolean[] active = { false };
+            Display.getDefault().syncExec(() -> {
+                try {
+                    IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+                    if (window != null && window.getActivePage() != null) {
+                        active[0] = window.getActivePage().getActivePart() instanceof DashboardView;
+                    }
+                } catch (Exception ignored) {
+                    // Not ready yet; waitFor will retry.
+                }
+            });
+            return active[0];
+        }, SWTBotTestCondition.VALIDATION_WAIT_MS);
     }
 
     /**
@@ -1086,8 +1545,30 @@ public class SWTBotPluginOperations {
                 }
             }
         });
-        // Give the view time to open
-        MagicWidgetFinder.pause(500);
+        // Wait for the Package Explorer view to open.
+        SWTBotTestCondition.waitFor(
+                                    () -> isPackageExplorerViewPresent(), SWTBotTestCondition.VALIDATION_WAIT_MS);
+    }
+
+    /**
+     * Returns true once the Package Explorer is visible on the active page.
+     * 
+     * @return True once the Package Explorer is visible on the active page.
+     */
+    private static boolean isPackageExplorerViewPresent() {
+        final boolean[] visible = { false };
+        Display.getDefault().syncExec(() -> {
+            try {
+                org.eclipse.ui.IWorkbenchWindow window = org.eclipse.ui.PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+                if (window != null && window.getActivePage() != null) {
+                    org.eclipse.ui.IViewPart view = window.getActivePage().findView("org.eclipse.jdt.ui.PackageExplorer");
+                    visible[0] = (view != null);
+                }
+            } catch (Exception ignored) {
+                // View not ready yet; waitFor will retry.
+            }
+        });
+        return visible[0];
     }
 
     /**
@@ -1107,15 +1588,54 @@ public class SWTBotPluginOperations {
     /**
      * Switches the Liberty run configuration main tab to the Source Tab. A Liberty configuration must be opened prior to calling this
      * method.
-     * 
-     * @param bot The SWTWorkbenchBot instance.
+     *
+     * <p>On Linux the source path computer runs asynchronously after a new configuration is created
+     * and populates the source lookup tree incrementally. This method waits until the "Default" tree
+     * item count has been stable (unchanged) across 3 consecutive polls before returning, ensuring
+     * the tree is fully populated before callers inspect its contents.
+     *
+     * @param shell The Debug Configurations shell already obtained by the caller.
      */
-    public static void openSourceTab(SWTWorkbenchBot bot) {
-        SWTBotShell shell = bot.shell("Debug Configurations");
-        shell.activate().setFocus();
-        SWTBot shellBot = shell.bot();
+    public static void openSourceTab(Shell shell) {
+        SWTBotShell botShell = new SWTBotShell(shell);
+        botShell.setFocus();
+        SWTBot shellBot = botShell.bot();
         SWTBotCTabItem tabItem = shellBot.cTabItem("Source");
         tabItem.activate().setFocus();
+
+        // Wait until the Source tab's "Default" item has a stable non-zero child count
+        // across 2 consecutive polls. The source path computer on Linux populates the tree
+        // incrementally, so we must confirm the count has stopped changing before returning.
+        // We use shellBot.tree(1) to target the Source tab's tree directly rather than
+        // find("Default", shell), which can match the wrong tree on the left-hand side of
+        // the Debug Configurations dialog.
+        final int STABLE_ITERATIONS_REQUIRED = 2;
+        final int[] lastCount = { -1 };
+        final int[] stableIterations = { 0 };
+        SWTBotTestCondition.waitFor(() -> {
+            try {
+                SWTBotTreeItem defaultItem = shellBot.tree(1).getTreeItem("Default");
+                if (defaultItem == null || !defaultItem.isEnabled()) {
+                    lastCount[0] = -1;
+                    stableIterations[0] = 0;
+                    return false;
+                }
+                defaultItem.expand();
+                int count = defaultItem.getItems().length;
+                if (count > 0 && count == lastCount[0]) {
+                    stableIterations[0]++;
+                } else {
+                    // Count changed (or is still zero) — reset the stability counter.
+                    stableIterations[0] = 0;
+                    lastCount[0] = count;
+                }
+                return stableIterations[0] >= STABLE_ITERATIONS_REQUIRED;
+            } catch (Exception e) {
+                lastCount[0] = -1;
+                stableIterations[0] = 0;
+                return false;
+            }
+        }, SWTBotTestCondition.MID_WAIT_MS);
     }
 
     /**
@@ -1143,6 +1663,527 @@ public class SWTBotPluginOperations {
         } catch (Exception e) {
             // Not a problem if error wasn't generated. Continue...
         }
+    }
+
+    /**
+     * Clicks the Collapse All toolbar button in the Liberty dashboard and waits until the
+     * named root-level tree item is collapsed.
+     *
+     * @param bot     The SWTWorkbenchBot instance.
+     * @param appName The name of the root-level project whose collapsed state is verified.
+     *
+     * @return True if the named item is collapsed within the timeout. False otherwise.
+     */
+    public static boolean collapseDashboard(SWTWorkbenchBot bot, String appName) {
+        activateDashboardView();
+
+        return SWTBotTestCondition.waitFor(() -> {
+            activateDashboardView();
+            try {
+                bot.viewByTitle(DASHBOARD_VIEW_TITLE).toolbarButton(DashboardView.DASHBOARD_TOOLBAR_COLLAPSE_ALL).click();
+            } catch (Exception ignored) {
+            }
+
+            final boolean[] targetCollapsed = { false };
+            Display.getDefault().syncExec(() -> {
+                Object dashboardView = findGlobal(DASHBOARD_VIEW_TITLE, Option.factory().widgetClass(ViewPart.class).build());
+                if (dashboardView instanceof DashboardView) {
+                    Tree tree = ((DashboardView) dashboardView).getTree();
+                    if (tree != null && !tree.isDisposed()) {
+                        for (TreeItem item : tree.getItems()) {
+                            if (appName.equals(item.getText(1)) && !item.getExpanded()) {
+                                targetCollapsed[0] = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            });
+
+            return targetCollapsed[0];
+        }, SWTBotTestCondition.SHORT_WAIT_MS);
+    }
+
+    /**
+     * Clicks the Expand All toolbar button in the Liberty dashboard and waits until the
+     * root-level tree items are expanded. Re-opens and activates the dashboard on each
+     * polling iteration to recover from focus being stolen by the console or another view.
+     *
+     * @param bot     The SWTWorkbenchBot instance.
+     * @param appName The name of the root-level project expected to be expanded.
+     *
+     * @return True if the named root-level item is expanded within the timeout. False otherwise.
+     */
+    public static boolean expandDashboard(SWTWorkbenchBot bot, String appName) {
+        activateDashboardView();
+
+        return SWTBotTestCondition.waitFor(() -> {
+            activateDashboardView();
+            try {
+                bot.viewByTitle(DASHBOARD_VIEW_TITLE).toolbarButton(DashboardView.DASHBOARD_TOOLBAR_EXPAND_ALL).click();
+            } catch (Exception ignored) {
+            }
+
+            final boolean[] targetExpanded = { false };
+            Display.getDefault().syncExec(() -> {
+                Object dashboardView = findGlobal(DASHBOARD_VIEW_TITLE, Option.factory().widgetClass(ViewPart.class).build());
+                if (dashboardView instanceof DashboardView) {
+                    Tree tree = ((DashboardView) dashboardView).getTree();
+                    if (tree != null && !tree.isDisposed()) {
+                        for (TreeItem item : tree.getItems()) {
+                            if (appName.equals(item.getText(1)) && item.getExpanded()) {
+                                targetExpanded[0] = true;
+                                break;
+                            }
+                        }
+                    }
+                }
+            });
+
+            return targetExpanded[0];
+        }, SWTBotTestCondition.SHORT_WAIT_MS);
+    }
+
+    /**
+     * Ensures the Liberty dashboard search bar is open and types the given text into it.
+     * The filter button is a toggle — it is only clicked if the search bar is not already
+     * visible, preventing the toggle from accidentally closing the bar on retry.
+     *
+     * @param bot        The SWTWorkbenchBot instance.
+     * @param filterText The text to enter into the dashboard search field.
+     */
+    public static void filterDashboardByText(SWTWorkbenchBot bot, String filterText) {
+        openDashboardUsingToolbar();
+        activateDashboardView();
+        bot.viewByTitle(DASHBOARD_VIEW_TITLE).toolbarButton(DashboardView.DASHBOARD_TOOLBAR_FILTER).click();
+
+        boolean searchFieldVisible = SWTBotTestCondition.waitFor(() -> {
+            try {
+                if (bot.viewByTitle(DASHBOARD_VIEW_TITLE).bot().text().isVisible()) {
+                    return true;
+                }
+            } catch (Exception ignored) {
+                // Search bar is not open yet.
+            }
+            // The search bar is not open. Re-open and activate the dashboard in case the
+            // console or another view has taken focus, then click the filter toggle button.
+            openDashboardUsingToolbar();
+            activateDashboardView();
+            bot.viewByTitle(DASHBOARD_VIEW_TITLE).toolbarButton(DashboardView.DASHBOARD_TOOLBAR_FILTER).click();
+
+            return false;
+        }, SWTBotTestCondition.SHORT_WAIT_MS);
+
+        Assertions.assertTrue(searchFieldVisible,
+                              "Timed out waiting for the dashboard search field to appear.");
+
+        bot.viewByTitle(DASHBOARD_VIEW_TITLE).bot().text().setText(filterText);
+    }
+
+    /**
+     * Activates the Liberty Dashboard view via the Eclipse workbench API, ensuring its
+     * toolbar is live before any toolbar button interaction. This is the same activation
+     * pattern used by getDashboardTree() and is more reliable than relying solely on
+     * openDashboardUsingToolbar(), which only checks that DashboardView is the active part
+     * but does not force the workbench to bring the view to the foreground.
+     */
+    private static void activateDashboardView() {
+        Display.getDefault().syncExec(() -> {
+            try {
+                IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
+                if (window != null && window.getActivePage() != null) {
+                    window.getActivePage().showView(DashboardView.ID);
+                }
+            } catch (Exception e) {
+                System.err.println("Failed to activate dashboard view: " + e.getMessage());
+            }
+        });
+    }
+
+    /**
+     * Clears the dashboard search field and hides the search bar by clicking the Filter
+     * toolbar button again within the Liberty Dashboard view toolbar.
+     *
+     * @param bot The SWTWorkbenchBot instance.
+     */
+    public static void clearAndHideDashboardFilter(SWTWorkbenchBot bot) {
+        openDashboardUsingToolbar();
+        activateDashboardView();
+
+        try {
+            SWTBotView dashboardView = bot.viewByTitle(DASHBOARD_VIEW_TITLE);
+            if (dashboardView.bot().text().isVisible()) {
+                dashboardView.bot().text().setText("");
+            }
+        } catch (Exception ignored) {
+            // Search bar may already be hidden.
+        }
+        // Toggle the filter button off to hide the search bar.
+        bot.viewByTitle(DASHBOARD_VIEW_TITLE).toolbarButton(DashboardView.DASHBOARD_TOOLBAR_FILTER).click();
+    }
+
+    /**
+     * Types the given text into the filter text field of the module selection dialog.
+     * The filter text field is the search box at the top of the ElementListSelectionDialog.
+     *
+     * @param dialogShell The shell of the module selection dialog.
+     * @param filterText  The text to type into the filter field.
+     */
+    public static void typeInModuleSelectionDialogFilter(Shell dialogShell, String filterText) {
+        Display.getDefault().syncExec(() -> {
+            org.eclipse.swt.widgets.Text filterField = findTextInShell(dialogShell);
+            if (filterField != null) {
+                filterField.setFocus();
+                filterField.setText(filterText);
+                // Fire Modify event so the dialog's filter listener updates the list.
+                org.eclipse.swt.widgets.Event event = new org.eclipse.swt.widgets.Event();
+                event.widget = filterField;
+                filterField.notifyListeners(SWT.Modify, event);
+            }
+        });
+    }
+
+    /**
+     * Finds the first Text widget within the given shell, searching recursively through
+     * child composites. Used to locate the filter field in a selection dialog.
+     *
+     * @param shell The shell to search.
+     *
+     * @return The first Text widget found, or null if none is present.
+     */
+    private static org.eclipse.swt.widgets.Text findTextInShell(Shell shell) {
+        final org.eclipse.swt.widgets.Text[] result = { null };
+        Display.getDefault().syncExec(() -> {
+            result[0] = findTextInComposite(shell);
+        });
+        return result[0];
+    }
+
+    /**
+     * Recursively searches a composite hierarchy for a Text widget.
+     *
+     * @param composite The composite to search.
+     *
+     * @return The first Text widget found, or null if none is present.
+     */
+    private static org.eclipse.swt.widgets.Text findTextInComposite(org.eclipse.swt.widgets.Composite composite) {
+        for (org.eclipse.swt.widgets.Control child : composite.getChildren()) {
+            if (child instanceof org.eclipse.swt.widgets.Text) {
+                return (org.eclipse.swt.widgets.Text) child;
+            }
+            if (child instanceof org.eclipse.swt.widgets.Composite) {
+                org.eclipse.swt.widgets.Text found = findTextInComposite((org.eclipse.swt.widgets.Composite) child);
+                if (found != null) {
+                    return found;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Waits for the module selection dialog to appear, then returns its shell.
+     * The dialog is identified by the presence of the description label
+     * "Select a module." or "Select one or more modules." since the dialog title
+     * is now the action name and therefore not a stable identifier.
+     *
+     * @param maxWaitMs Maximum number of milliseconds to wait for the dialog.
+     *
+     * @return The dialog shell, or null if the dialog did not appear within the given timeout.
+     */
+    public static Shell waitForModuleSelectionDialog(int maxWaitMs) {
+        boolean appeared = SWTBotTestCondition.waitFor(
+                                                       () -> findShellWithLabel("Select a module.") != null
+                                                             || findShellWithLabel("Select one or more modules.") != null,
+                                                       maxWaitMs);
+        if (!appeared) {
+            return null;
+        }
+        Shell s = findShellWithLabel("Select a module.");
+        return s != null ? s : findShellWithLabel("Select one or more modules.");
+    }
+
+    /**
+     * Waits for the test report module selection dialog to appear, then returns its shell.
+     * The dialog is identified by the presence of the description label
+     * "Test reports are available for multiple modules. Select a module." since the
+     * dialog title is now the action name and therefore not a stable identifier.
+     *
+     * @param maxWaitMs Maximum number of milliseconds to wait for the dialog.
+     *
+     * @return The dialog shell, or null if the dialog did not appear within the given timeout.
+     */
+    public static Shell waitForTestReportModuleSelectionDialog(int maxWaitMs) {
+        String labelText = "Test reports are available for multiple modules. Select a module.";
+        boolean appeared = SWTBotTestCondition.waitFor(() -> findShellWithLabel(labelText) != null, maxWaitMs);
+        if (!appeared) {
+            return null;
+        }
+        return findShellWithLabel(labelText);
+    }
+
+    /**
+     * Returns the first visible shell that contains a Label widget whose text
+     * exactly matches the given string. Must not be called from the SWT display thread.
+     *
+     * @param labelText The exact label text to search for.
+     *
+     * @return The matching shell, or null if none is found.
+     */
+    private static Shell findShellWithLabel(String labelText) {
+        final Shell[] result = { null };
+        Display.getDefault().syncExec(() -> {
+            for (org.eclipse.swt.widgets.Shell s : Display.getDefault().getShells()) {
+                if (s.isDisposed() || !s.isVisible()) {
+                    continue;
+                }
+                if (shellContainsLabel(s, labelText)) {
+                    result[0] = s;
+                    return;
+                }
+            }
+        });
+        return result[0];
+    }
+
+    /**
+     * Returns true if the given composite (or any of its descendants) contains a
+     * Label widget whose text exactly matches the given string.
+     * Must be called from the SWT display thread.
+     *
+     * @param composite The composite to search.
+     * @param labelText The exact label text to match.
+     *
+     * @return True if a matching Label is found.
+     */
+    private static boolean shellContainsLabel(org.eclipse.swt.widgets.Composite composite, String labelText) {
+        for (org.eclipse.swt.widgets.Control child : composite.getChildren()) {
+            if (child instanceof org.eclipse.swt.widgets.Label) {
+                if (labelText.equals(((org.eclipse.swt.widgets.Label) child).getText())) {
+                    return true;
+                }
+            }
+            if (child instanceof org.eclipse.swt.widgets.Composite) {
+                if (shellContainsLabel((org.eclipse.swt.widgets.Composite) child, labelText)) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Returns the number of items shown in the list portion of the module selection dialog.
+     *
+     * @param dialogShell The shell of the module selection dialog.
+     *
+     * @return The number of list items displayed in the dialog.
+     */
+    public static int getModuleSelectionDialogItemCount(Shell dialogShell) {
+        final int[] count = { 0 };
+        Display.getDefault().syncExec(() -> {
+            org.eclipse.swt.widgets.Table table = findTableInShell(dialogShell);
+            if (table != null) {
+                count[0] = table.getItemCount();
+            }
+        });
+        return count[0];
+    }
+
+    /**
+     * Returns the list of item text values shown in the module selection dialog.
+     *
+     * @param dialogShell The shell of the module selection dialog.
+     *
+     * @return A list containing the text of every item in the dialog list.
+     */
+    public static List<String> getModuleSelectionDialogItems(Shell dialogShell) {
+        final List<String> items = new ArrayList<>();
+        Display.getDefault().syncExec(() -> {
+            org.eclipse.swt.widgets.Table table = findTableInShell(dialogShell);
+            if (table != null) {
+                for (org.eclipse.swt.widgets.TableItem ti : table.getItems()) {
+                    items.add(ti.getText());
+                }
+            }
+        });
+        return items;
+    }
+
+    /**
+     * Cancels the module selection dialog by pressing the Cancel button.
+     *
+     * @param dialogShell The shell of the module selection dialog.
+     */
+    public static void cancelModuleSelectionDialog(Shell dialogShell) {
+        go("Cancel", dialogShell);
+    }
+
+    /**
+     * Selects the specified module name in the module selection dialog and presses OK.
+     *
+     * When the table has {@code SWT.CHECK} style (multi-select checkbox dialog) the item's
+     * checkbox is checked. When the table is a plain single-select list the row is highlighted
+     * via {@code table.setSelection()}.
+     *
+     * @param dialogShell The shell of the module selection dialog.
+     * @param moduleName  The module name to select.
+     */
+    public static void selectModuleInDialog(Shell dialogShell, String moduleName) {
+        Display.getDefault().syncExec(() -> {
+            org.eclipse.swt.widgets.Table table = findTableInShell(dialogShell);
+            if (table != null) {
+                boolean isCheckTable = (table.getStyle() & SWT.CHECK) != 0;
+                for (org.eclipse.swt.widgets.TableItem ti : table.getItems()) {
+                    if (moduleName.equals(ti.getText())) {
+                        if (isCheckTable) {
+                            ti.setChecked(true);
+                            // Fire SWT.Selection with detail=SWT.CHECK so the
+                            // CheckboxTableViewer's CheckStateListener picks up the
+                            // change and enables the OK button via updateOkButton().
+                            org.eclipse.swt.widgets.Event e = new org.eclipse.swt.widgets.Event();
+                            e.widget = table;
+                            e.item = ti;
+                            e.detail = SWT.CHECK;
+                            table.notifyListeners(SWT.Selection, e);
+                        } else {
+                            table.setSelection(ti);
+                        }
+                        return;
+                    }
+                }
+            }
+        });
+        go("OK", dialogShell);
+    }
+
+    /**
+     * Clicks the "Select All" button in the module selection dialog. This button checks every
+     * currently visible item in the checkbox table.
+     *
+     * @param dialogShell The shell of the module selection dialog.
+     */
+    public static void clickSelectAllInModuleSelectionDialog(Shell dialogShell) {
+        clickButtonInShell(dialogShell, "Select All");
+    }
+
+    /**
+     * Clicks the "Deselect All" button in the module selection dialog. This button unchecks every
+     * currently visible item in the checkbox table.
+     *
+     * @param dialogShell The shell of the module selection dialog.
+     */
+    public static void clickDeselectAllInModuleSelectionDialog(Shell dialogShell) {
+        clickButtonInShell(dialogShell, "Deselect All");
+    }
+
+    /**
+     * Returns the number of checked items in the checkbox table of the module selection dialog.
+     *
+     * @param dialogShell The shell of the module selection dialog.
+     *
+     * @return The number of checked items in the dialog's checkbox table.
+     */
+    public static int getModuleSelectionDialogCheckedItemCount(Shell dialogShell) {
+        final int[] count = { 0 };
+        Display.getDefault().syncExec(() -> {
+            org.eclipse.swt.widgets.Table table = findTableInShell(dialogShell);
+            if (table != null && (table.getStyle() & SWT.CHECK) != 0) {
+                for (org.eclipse.swt.widgets.TableItem ti : table.getItems()) {
+                    if (ti.getChecked()) {
+                        count[0]++;
+                    }
+                }
+            }
+        });
+        return count[0];
+    }
+
+    /**
+     * Selects all modules in the dialog by clicking the "Select All" button and then confirms
+     * the selection by pressing OK.
+     *
+     * @param dialogShell The shell of the module selection dialog.
+     */
+    public static void selectAllModulesAndConfirmInDialog(Shell dialogShell) {
+        clickSelectAllInModuleSelectionDialog(dialogShell);
+        go("OK", dialogShell);
+    }
+
+    /**
+     * Clicks the button with the given label inside the given shell. Must not be called from the
+     * SWT display thread.
+     *
+     * @param shell       The shell to search.
+     * @param buttonLabel The exact label text of the button to click.
+     */
+    private static void clickButtonInShell(Shell shell, String buttonLabel) {
+        Display.getDefault().syncExec(() -> {
+            Button btn = findButtonInComposite(shell, buttonLabel);
+            if (btn != null && !btn.isDisposed() && btn.isEnabled()) {
+                btn.notifyListeners(SWT.Selection, new org.eclipse.swt.widgets.Event());
+            }
+        });
+    }
+
+    /**
+     * Recursively searches a composite hierarchy for a Button widget with the given label.
+     * Must be called from the SWT display thread.
+     *
+     * @param composite   The composite to search.
+     * @param buttonLabel The exact label text of the button to locate.
+     *
+     * @return The matching Button widget, or null if none is found.
+     */
+    private static Button findButtonInComposite(org.eclipse.swt.widgets.Composite composite, String buttonLabel) {
+        for (Control child : composite.getChildren()) {
+            if (child instanceof Button) {
+                if (buttonLabel.equals(((Button) child).getText())) {
+                    return (Button) child;
+                }
+            }
+            if (child instanceof org.eclipse.swt.widgets.Composite) {
+                Button found = findButtonInComposite((org.eclipse.swt.widgets.Composite) child, buttonLabel);
+                if (found != null) {
+                    return found;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Finds a Table widget within the given shell, searching recursively through child composites.
+     * Must be called from the SWT display thread.
+     *
+     * @param shell The shell to search.
+     *
+     * @return The first Table widget found, or null if none is present.
+     */
+    private static org.eclipse.swt.widgets.Table findTableInShell(Shell shell) {
+        return findTableInComposite(shell);
+    }
+
+    /**
+     * Recursively searches a composite hierarchy for a Table widget.
+     *
+     * @param composite The composite to search.
+     *
+     * @return The first Table found, or null if none is present.
+     */
+    private static org.eclipse.swt.widgets.Table findTableInComposite(org.eclipse.swt.widgets.Composite composite) {
+        for (org.eclipse.swt.widgets.Control child : composite.getChildren()) {
+            if (child instanceof org.eclipse.swt.widgets.Table) {
+                return (org.eclipse.swt.widgets.Table) child;
+            }
+            if (child instanceof org.eclipse.swt.widgets.Composite) {
+                org.eclipse.swt.widgets.Table found = findTableInComposite((org.eclipse.swt.widgets.Composite) child);
+                if (found != null) {
+                    return found;
+                }
+            }
+        }
+        return null;
     }
 
     /**

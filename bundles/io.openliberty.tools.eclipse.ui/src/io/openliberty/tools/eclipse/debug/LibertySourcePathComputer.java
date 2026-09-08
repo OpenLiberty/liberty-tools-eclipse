@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2023, 2024 IBM Corporation and others.
+* Copyright (c) 2023, 2026 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -41,7 +41,8 @@ import org.gradle.tooling.model.GradleModuleVersion;
 import org.gradle.tooling.model.eclipse.EclipseProject;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
-import io.openliberty.tools.eclipse.Project;
+import io.openliberty.tools.eclipse.messages.Messages;
+import io.openliberty.tools.eclipse.model.ProjectModel;
 import io.openliberty.tools.eclipse.ui.launch.StartTab;
 import io.openliberty.tools.eclipse.utils.Utils;
 
@@ -51,10 +52,13 @@ public class LibertySourcePathComputer implements ISourcePathComputerDelegate {
      * Gradle distribution that supports Java 21.
      * Gradle version 8.4+ supports Java 21.
      */
-    private static String GRADLE_DISTRIBUTION_VERISION = "8.8";
+    private static String GRADLE_DISTRIBUTION_VERSION = "8.8";
 
     ArrayList<IRuntimeClasspathEntry> unresolvedClasspathEntries;
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public ISourceContainer[] computeSourceContainers(ILaunchConfiguration configuration, IProgressMonitor monitor) throws CoreException {
 
@@ -75,13 +79,18 @@ public class LibertySourcePathComputer implements ISourcePathComputerDelegate {
         // Get current project
         String projectName = configuration.getAttribute(StartTab.PROJECT_NAME, (String) null);
 
-        Project project = DevModeOperations.getInstance().getProjectModel().getProject(projectName);
+        ProjectModel projectModel = DevModeOperations.getInstance().getWorkspaceModel().getProjectByName(projectName);
 
+        // Validate that we know about the selected project.
+        if (projectModel == null) {
+            throw new IllegalStateException(Messages.getMessage("internal_project_not_found", projectName));
+        }
+        
         // Get full list of projects (multi-mod, children, siblings, etc)
-        List<Project> baseProjects = getBaseProjects(project);
+        List<ProjectModel> baseProjects = getBaseProjects(projectModel);
 
         // Loop through each
-        for (Project baseProject : baseProjects) {
+        for (ProjectModel baseProject : baseProjects) {
 
             addRuntimeDependencies(baseProject.getIProject());
 
@@ -113,8 +122,9 @@ public class LibertySourcePathComputer implements ISourcePathComputerDelegate {
         return containers;
     }
 
-    private List<Project> getBaseProjects(Project project) {
-        List<Project> baseProjects = new ArrayList<Project>();
+
+    private List<ProjectModel> getBaseProjects(ProjectModel project) {
+        List<ProjectModel> baseProjects = new ArrayList<ProjectModel>();
 
         baseProjects.add(project);
 
@@ -124,10 +134,10 @@ public class LibertySourcePathComputer implements ISourcePathComputerDelegate {
         return baseProjects;
     }
 
-    private List<IProject> getProjectDependencies(Project project) throws CoreException {
+    private List<IProject> getProjectDependencies(ProjectModel project) throws CoreException {
         List<IProject> projectDependencies = new ArrayList<IProject>();
 
-        if (project.getBuildType() == Project.BuildType.MAVEN) {
+        if (project.getBuildType() == ProjectModel.BuildType.Maven) {
 
             MavenProject mavenModuleProject = MavenPlugin.getMavenModelManager().readMavenProject(project.getIProject().getFile("pom.xml"),
                                                                                                   new NullProgressMonitor());
@@ -167,7 +177,7 @@ public class LibertySourcePathComputer implements ISourcePathComputerDelegate {
                         String message = rootCause.getMessage();
 
                         if (message != null && message.contains("Unsupported class file major version 65")) {
-                            connection = getProjectGradleConnection(project.getIProject(), GRADLE_DISTRIBUTION_VERISION);
+                            connection = getProjectGradleConnection(project.getIProject(), GRADLE_DISTRIBUTION_VERSION);
                             eclipseProject = connection.getModel(EclipseProject.class);
                         }
                     } else {
@@ -194,13 +204,13 @@ public class LibertySourcePathComputer implements ISourcePathComputerDelegate {
     }
 
     /**
-     * Returns a connection to the input gradle project.
-     * 
+     * Returns a connection to the input Gradle project.
+     *
      * @param project           The Gradle project.
-     * @param gradleDistVersion The gradle distribution version to be used by the
+     * @param gradleDistVersion The Gradle distribution version to be used by the
      *                              Gradle API tooling.
-     * 
-     * @return A connection to the input gradle project.
+     *
+     * @return A connection to the input Gradle project.
      */
     private ProjectConnection getProjectGradleConnection(IProject project, String gradleDistVersion) {
         GradleConnector connector = GradleConnector.newConnector();

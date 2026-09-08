@@ -12,7 +12,6 @@
  *******************************************************************************/
 package io.openliberty.tools.eclipse.test.it;
 
-import static io.openliberty.tools.eclipse.DevModeOperations.MVN_RUN_APP_LOG_FILE;
 import static io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.isInternalBrowserSupportAvailable;
 import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.go;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.closeWelcomePage;
@@ -56,7 +55,7 @@ import io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils;
 public abstract class AbstractLibertyPluginSWTBotTest {
 
     /**
-     * Wokbench bot instance.
+     * Workbench bot instance.
      */
     static SWTWorkbenchBot bot;
 
@@ -69,18 +68,18 @@ public abstract class AbstractLibertyPluginSWTBotTest {
      * Gradle distribution that supports Java 21.
      * Gradle version 8.4+ supports Java 21.
      */
-    private static String GRADLE_DISTRIBUTION_VERISION = "8.8";
+    private static String GRADLE_DISTRIBUTION_VERSION = "8.8";
 
     protected static String getMvnCmdFilename() {
         return LibertyPluginTestUtils.onWindows() ? "mvn.cmd" : "mvn";
     }
 
     public static String getMvnCmd() {
-        return getMvnCmdPath() + File.separator + "bin" + File.separator + getMvnCmdFilename();
-    }
-
-    public static boolean isMvnLogFile() {
-        return Boolean.getBoolean("io.liberty.tools.eclipse.tests.mvn.logfile");
+        String mvnCmdPath = getMvnCmdPath();
+        if (mvnCmdPath == null || mvnCmdPath.isBlank()) {
+            return getMvnCmdFilename();
+        }
+        return mvnCmdPath + File.separator + "bin" + File.separator + getMvnCmdFilename();
     }
 
     public static String getMvnCmdPath() {
@@ -130,11 +129,6 @@ public abstract class AbstractLibertyPluginSWTBotTest {
     public void beforeEach(TestInfo info) {
         System.out.println(
                            "INFO: Test " + this.getClass().getSimpleName() + "#" + info.getDisplayName() + " entry: " + java.time.LocalDateTime.now());
-
-        if (isMvnLogFile()) {
-            // Turn on config to log dev mode output to file
-            System.setProperty(MVN_RUN_APP_LOG_FILE, "lte-dev-mode-output-" + getTimestamp() + ".log");
-        }
     }
 
     @AfterEach
@@ -209,12 +203,12 @@ public abstract class AbstractLibertyPluginSWTBotTest {
         // is downloaded and used by the Gradle build. Gradle 8.1.1 does not support Java 21.
         // This causes runtime issues during the synchronization step (Unsupported class file major 
         // version 65), which are not reported back to the caller. 
-        // To workaround this issue, specify a Java 21 compatible Gradle version that the
+        // To work around this issue, specify a Java 21 compatible Gradle version that the
         // tooling can use (i.e. 8.4+). Note that since it is preferable to use the default version 
         // provided by the tooling API, setting the version can be revised at a later time.
         for (File projectFile : projectsToInstall) {
             IPath projectLocation = org.eclipse.core.runtime.Path.fromOSString(Paths.get(projectFile.getPath()).toAbsolutePath().toString());
-            BuildConfiguration configuration = BuildConfiguration.forRootProjectDirectory(projectLocation.toFile()).gradleDistribution(GradleDistribution.forVersion(GRADLE_DISTRIBUTION_VERISION)).overrideWorkspaceConfiguration(true).build();
+            BuildConfiguration configuration = BuildConfiguration.forRootProjectDirectory(projectLocation.toFile()).gradleDistribution(GradleDistribution.forVersion(GRADLE_DISTRIBUTION_VERSION)).overrideWorkspaceConfiguration(true).build();
             GradleWorkspace workspace = GradleCore.getWorkspace();
             GradleBuild newBuild = workspace.createBuild(configuration);
             newBuild.synchronize(new NullProgressMonitor());
@@ -246,11 +240,5 @@ public abstract class AbstractLibertyPluginSWTBotTest {
         }
 
         Assertions.fail("The debug configuration: " + configName + " was not found.");
-    }
-
-    private String getTimestamp() {
-        long currentTime = System.currentTimeMillis();
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd.HH-mm-ss.SSS");
-        return formatter.format(currentTime);
     }
 }

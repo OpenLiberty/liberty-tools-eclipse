@@ -1,0 +1,19 @@
+rootProject.name = 'guide-gradle-multimodules-custmm'
+
+include ':jar'
+include ':ejb'
+include ':war'
+include ':war2'
+include ':ear1'
+include ':ear2'
+include ':rar'
+include ':ear-skinny-modules'
+
+project(':jar').projectDir            = "$rootDir/jar" as File
+project(':ejb').projectDir            = "$rootDir/ejb" as File
+project(':war').projectDir            = "$rootDir/war" as File
+project(':war2').projectDir           = "$rootDir/war2" as File
+project(':ear1').projectDir           = "$rootDir/ear1" as File
+project(':ear2').projectDir           = "$rootDir/ear2" as File
+project(':rar').projectDir            = "$rootDir/rar" as File
+project(':ear-skinny-modules').projectDir = "$rootDir/ear-skinny-modules" as File

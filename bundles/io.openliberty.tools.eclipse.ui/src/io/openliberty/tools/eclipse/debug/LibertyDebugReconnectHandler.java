@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2025 IBM Corporation and others.
+* Copyright (c) 2025, 2026 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -21,14 +21,13 @@ import org.eclipse.debug.core.model.IDebugTarget;
 import org.eclipse.debug.core.model.IProcess;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.osgi.util.NLS;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.handlers.HandlerUtil;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
-import io.openliberty.tools.eclipse.Project;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.messages.Messages;
+import io.openliberty.tools.eclipse.model.ProjectModel;
 import io.openliberty.tools.eclipse.ui.launch.StartTab;
 import io.openliberty.tools.eclipse.utils.ErrorHandler;
 
@@ -39,7 +38,7 @@ public class LibertyDebugReconnectHandler extends AbstractHandler {
         Object target = null;
 
         ISelection selection = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getSelectionService().getSelection();
-        if (selection != null & selection instanceof IStructuredSelection) {
+        if (selection != null && selection instanceof IStructuredSelection) {
             IStructuredSelection strucSelection = (IStructuredSelection) selection;
             Object[] elements = strucSelection.toArray();
             target = elements[0];
@@ -111,12 +110,17 @@ public class LibertyDebugReconnectHandler extends AbstractHandler {
             }
 
             if (projectName != null && !projectName.isBlank()) {
-                Project project = devModeOps.getProjectModel().getProject(projectName);
+                ProjectModel projectModel = devModeOps.getWorkspaceModel().getProjectByName(projectName);
+
+                // Validate that we know about the selected project.
+                if (projectModel == null) {
+                    throw new IllegalStateException(Messages.getMessage("internal_project_not_found", projectName));
+                }
 
                 // Reconnect debugger
-                if (devModeOps.isProjectStarted(projectName)) {
+                if (devModeOps.isProjectStarted(projectModel)) {
                     DebugModeHandler debugModeHandler = devModeOps.getDebugModeHandler();
-                    debugModeHandler.startDebugAttacher(project, launch, null);
+                    debugModeHandler.startDebugAttacher(projectModel, launch, null);
                 }
 
                 // Remove old debug target

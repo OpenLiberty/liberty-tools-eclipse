@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2022, 2025 IBM Corporation and others.
+ * Copyright (c) 2022, 2026 IBM Corporation and others.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -51,6 +51,7 @@ import org.junit.jupiter.api.TestMethodOrder;
 
 import io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils;
 import io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations;
+import io.openliberty.tools.eclipse.test.it.utils.SWTBotTestCondition;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher;
 
@@ -89,18 +90,24 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
     /**
      * Expected menu items.
      */
-    static String[] mvnMenuItems = new String[] { DashboardView.APP_MENU_ACTION_START, DashboardView.APP_MENU_ACTION_START_CONFIG,
-                                                  DashboardView.APP_MENU_ACTION_START_IN_CONTAINER, DashboardView.APP_MENU_ACTION_DEBUG,
-                                                  DashboardView.APP_MENU_ACTION_DEBUG_CONFIG, DashboardView.APP_MENU_ACTION_DEBUG_IN_CONTAINER,
-                                                  DashboardView.APP_MENU_ACTION_STOP, DashboardView.APP_MENU_ACTION_RUN_TESTS, DashboardView.APP_MENU_ACTION_VIEW_MVN_IT_REPORT,
+    static String[] mvnMenuItems = new String[] { DashboardView.APP_MENU_ACTION_START,
+                                                  DashboardView.APP_MENU_ACTION_START_CONFIG,
+                                                  DashboardView.APP_MENU_ACTION_START_IN_CONTAINER,
+                                                  DashboardView.APP_MENU_ACTION_DEBUG,
+                                                  DashboardView.APP_MENU_ACTION_DEBUG_CONFIG,
+                                                  DashboardView.APP_MENU_ACTION_DEBUG_IN_CONTAINER,
+                                                  DashboardView.APP_MENU_ACTION_STOP,
+                                                  DashboardView.APP_MENU_ACTION_RUN_TESTS,
+                                                  DashboardView.APP_MENU_ACTION_VIEW_MVN_IT_REPORT,
                                                   DashboardView.APP_MENU_ACTION_VIEW_MVN_UT_REPORT };
 
     /**
-     * Run As configuration menu items.
+     * Run As configuration menu items with the project inactive. Actions such
+     * as "Stop" and "Run Tests" are only present when the project is active.
      */
     static String[] runAsShortcuts = new String[] { LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START,
-                                                    LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONTAINER, LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_STOP,
-                                                    LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_RUN_TESTS,
+                                                    LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONFIG,
+                                                    LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONTAINER,
                                                     LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_MVN_VIEW_IT_REPORT,
                                                     LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_MVN_VIEW_UT_REPORT, };
 
@@ -145,7 +152,7 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
     }
 
     /**
-     * Makes sure that some basics actions can be performed before running the tests:
+     * Makes sure that some basic actions can be performed before running the tests:
      * 
      * <pre>
      * 1. The dashboard can be opened and its content retrieved. 
@@ -158,12 +165,9 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
      */
     public static final void validateBeforeTestRun() {
 
-        // Give the app some time to be imported (especially on Windows GHA runs)
-        try {
-            Thread.sleep(Integer.parseInt(System.getProperty("io.liberty.tools.eclipse.tests.app.import.wait", "0")));
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        // Wait until the dashboard contains the expected application.
+        SWTBotTestCondition.waitFor(
+                                    () -> getDashboardContent().contains(MVN_APP_NAME), SWTBotTestCondition.LARGE_WAIT_MS);
 
         // Check that the dashboard can be opened and its content retrieved.
         List<String> projectList = getDashboardContent();
@@ -205,7 +209,7 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
         Assertions.assertTrue(foundItems == runAsShortcuts.length,
                               "The runAs menu associated with project: " + MVN_APP_NAME
                                                                    + " does not contain one or more expected entries. Expected number of entries: " + runAsShortcuts.length
-                                                                   + "Found entry count: " + foundItems + ". Found menu entries: " + runAsMenuItems);
+                                                                   + ". Found menu entries count: " + foundItems + ". Found menu entries: " + runAsMenuItems);
 
         // Check that the Run As -> Run Configurations... contains the Liberty entry in the menu.
         Shell configShell = launchRunConfigurationsDialogFromAppRunAs(MVN_APP_NAME);
@@ -233,9 +237,9 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
         SWTBotPluginOperations.launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_START);
 
         LibertyPluginTestUtils.validateApplicationOutcomeCustom("http://localhost:9080/converter1/heights.jsp?heightCm=10", true,
-                                                                "Height in feet and inches", serverModule1Path + "/target/liberty");
+                                                                "Height in feet and inches", serverModule1Path + "/target/liberty", MVN_APP_NAME);
         LibertyPluginTestUtils.validateApplicationOutcomeCustom("http://localhost:9080/converter2/heights.jsp?heightCm=20", true,
-                                                                "Height in feet and inches", serverModule1Path + "/target/liberty");
+                                                                "Height in feet and inches", serverModule1Path + "/target/liberty", MVN_APP_NAME);
 
         // If there are issues with the workspace, close the error dialog.
         SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
@@ -268,7 +272,7 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
 
         // Validate application is up and running.
         LibertyPluginTestUtils.validateApplicationOutcomeCustom("http://localhost:9080/converter1/heights.jsp?heightCm=30", true,
-                                                                "Height in feet and inches", serverModule1Path + "/target/liberty");
+                                                                "Height in feet and inches", serverModule1Path + "/target/liberty", MVN_APP_NAME);
 
         // If there are issues with the workspace, close the error dialog.
         pressWorkspaceErrorDialogProceedButton(bot);
@@ -293,21 +297,24 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
 
         boolean jarEntryFound = false;
         boolean warEntryFound = false;
+        SWTBotTreeItem defaultSourceLookupTree = null;
+        String foundNodesSnapshot = "";
 
         try {
             Object libertyConfigTree = getLibertyTreeItemNoBot(configShell);
 
             context(libertyConfigTree, "New Configuration");
 
-            openSourceTab(bot);
+            openSourceTab(configShell);
 
-            SWTBotTreeItem defaultSourceLookupTree = new SWTBotTreeItem((TreeItem) getDefaultSourceLookupTreeItemNoBot(configShell));
+            defaultSourceLookupTree = new SWTBotTreeItem((TreeItem) getDefaultSourceLookupTreeItemNoBot(configShell));
+            foundNodesSnapshot = SWTBotPluginOperations.getTreeItemChildrenAsString(defaultSourceLookupTree);
 
             try {
                 defaultSourceLookupTree.getNode(MVN_JAR_NAME);
                 jarEntryFound = true;
             } catch (WidgetNotFoundException wnfe) {
-                // Jar project was not found in source lookup list.
+                wnfe.printStackTrace();
             }
 
             // Lookup war project
@@ -315,7 +322,7 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
                 defaultSourceLookupTree.getNode(MVN_WAR_NAME);
                 warEntryFound = true;
             } catch (WidgetNotFoundException wnfe) {
-                // War project was not found in source lookup list.
+                wnfe.printStackTrace();
             }
 
         } finally {
@@ -324,9 +331,11 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
 
         // Validate dependency projects are in source lookup list
         Assertions.assertTrue(jarEntryFound,
-                              "The sibling module project, " + MVN_JAR_NAME + ", was not listed in the source lookup list for project " + MVN_APP_NAME);
+                              "The sibling module project, " + MVN_JAR_NAME + ", was not listed in the source lookup list for project " + MVN_APP_NAME
+                                             + ". Nodes found: " + foundNodesSnapshot);
         Assertions.assertTrue(warEntryFound,
-                              "The sibling module project, " + MVN_WAR_NAME + ", was not listed in the source lookup list for project " + MVN_APP_NAME);
+                              "The sibling module project, " + MVN_WAR_NAME + ", was not listed in the source lookup list for project " + MVN_APP_NAME
+                                             + ". Nodes found: " + foundNodesSnapshot);
 
     }
 
@@ -340,22 +349,26 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
 
         boolean jarEntryFound = false;
         boolean warEntryFound = false;
+        String foundNodesSnapshot = "";
 
         try {
             Object libertyConfigTree = getLibertyTreeItemNoBot(configShell);
 
             context(libertyConfigTree, "New Configuration");
 
-            openSourceTab(bot);
+            openSourceTab(configShell);
 
             SWTBotTreeItem defaultSourceLookupTree = new SWTBotTreeItem((TreeItem) getDefaultSourceLookupTreeItemNoBot(configShell));
+            foundNodesSnapshot = SWTBotPluginOperations.getTreeItemChildrenAsString(defaultSourceLookupTree);
+            System.out.println("@ed: Source lookup list. Nodes found: " + foundNodesSnapshot);
 
             // Lookup jar project
             try {
                 defaultSourceLookupTree.getNode(MVN_JAR_NAME);
                 jarEntryFound = true;
             } catch (WidgetNotFoundException wnfe) {
-                // Jar project was not found in source lookup list.
+                wnfe.printStackTrace();
+
             }
 
             // Lookup war project
@@ -363,7 +376,7 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
                 defaultSourceLookupTree.getNode(MVN_WAR_NAME);
                 warEntryFound = true;
             } catch (WidgetNotFoundException wnfe) {
-                // War project was not found in source lookup list.
+                wnfe.printStackTrace();
             }
 
         } finally {
@@ -372,9 +385,11 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
 
         // Validate dependency projects are in source lookup list
         Assertions.assertTrue(jarEntryFound,
-                              "The child module project, " + MVN_JAR_NAME + ", was not listed in the source lookup list for project " + MVN_PARENT_NAME);
+                              "The child module project, " + MVN_JAR_NAME + ", was not listed in the source lookup list for project " + MVN_PARENT_NAME
+                                             + ". Nodes found: " + foundNodesSnapshot);
         Assertions.assertTrue(warEntryFound,
-                              "The child module project, " + MVN_WAR_NAME + ", was not listed in the source lookup list for project " + MVN_PARENT_NAME);
+                              "The child module project, " + MVN_WAR_NAME + ", was not listed in the source lookup list for project " + MVN_PARENT_NAME
+                                             + ". Nodes found: " + foundNodesSnapshot);
 
     }
 }

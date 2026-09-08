@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2022, 2025 IBM Corporation and others.
+ * Copyright (c) 2022, 2026 IBM Corporation and others.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -21,6 +21,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -53,143 +54,114 @@ public class LibertyPluginTestUtils {
 
     /**
      * Validates the state of the application (active/inactive) based on the expectation of success (true/false).
-     * 
-     * @param ctxRoot       The applications context root.
+     *
+     * @param ctxRoot       The application context root. Also used as the project name to filter console output on failure.
      * @param expectSuccess True for success. False for failure.
      * @param testAppPath   The base path to the liberty installation.
      */
     public static void validateApplicationOutcome(String ctxRoot, boolean expectSuccess, String testAppPath) {
         String expectedResponse = "Hello! How are you today?";
         String appUrl = "http://localhost:9080/" + ctxRoot + "/servlet";
-        validateApplicationOutcomeCustom(appUrl, expectSuccess, expectedResponse, testAppPath);
+        validateApplicationOutcomeCustom(appUrl, expectSuccess, expectedResponse, testAppPath, ctxRoot);
     }
 
     /**
      * Validates that the Liberty server is no longer running.
-     * 
+     *
      * @param testAppPath The base path to the Liberty installation.
      */
     public static void validateLibertyServerStopped(String testAppPath) {
         String wlpMsgLogPath = testAppPath + "/wlp/usr/servers/defaultServer/logs/messages.log";
-        int maxAttempts = 30;
-        boolean foundStoppedMsg = false;
 
-        // Find message CWWKE0036I: The server x stopped after y seconds
-        for (int i = 0; i < maxAttempts; i++) {
+        System.out.println("INFO: Waiting for Liberty server stopped message in: " + wlpMsgLogPath);
+
+        // Find stop message: CWWKE0036I: The server x stopped after y seconds.
+        // Poll at 500 ms intervals until the stop message appears.
+        boolean foundStoppedMsg = SWTBotTestCondition.waitFor(() -> {
             try (BufferedReader br = new BufferedReader(new FileReader(wlpMsgLogPath))) {
                 String line;
                 while ((line = br.readLine()) != null) {
                     if (line.contains("CWWKE0036I")) {
-                        foundStoppedMsg = true;
-                        break;
+                        return true;
                     }
                 }
-
-                if (foundStoppedMsg) {
-                    break;
-                } else {
-                    Thread.sleep(3000);
-                }
-            } catch (Exception e) {
-                Assertions.fail("Caught exception waiting for stop message", e);
+            } catch (java.io.FileNotFoundException e) {
+                System.out.println("INFO: [validateLibertyServerStopped] messages.log not found: " + e.getMessage());
+            } catch (Exception ignored) {
+                // Other I/O errors.
             }
-        }
+            return false;
+        }, SWTBotTestCondition.SERVER_STOP_WAIT_MS);
 
         if (!foundStoppedMsg) {
             // If we are here, the expected outcome was not found. Print the Liberty server's messages.log and fail.
             printLibertyMessagesLogFile(wlpMsgLogPath);
             Assertions.fail("Message CWWKE0036I not found in " + wlpMsgLogPath);
         }
-
     }
 
     /**
      * Validates the state of the application (active/inactive) based on the expectation of success (true/false).
-     * 
+     *
      * @param appUrl           The application URL.
      * @param expectSuccess    True to check for success. False to check for failure.
      * @param expectedResponse The expected application response payload.
      * @param testAppPath      The base path to the liberty installation.
+     * @param projectName      The project name used to filter console output on failure.
      */
-    public static void validateApplicationOutcomeCustom(String appUrl, boolean expectSuccess, String expectedResponse, String testAppPath) {
-        int retryCountLimit = 60;
-        int reryIntervalSecs = 3;
-        int retryCount = 0;
-
+    public static void validateApplicationOutcomeCustom(String appUrl, boolean expectSuccess, String expectedResponse, String testAppPath, String projectName) {
         System.out.println("INFO: Entering validateApplicationOutcomeCustom, appUrl: " + appUrl);
-        while (retryCount < retryCountLimit) {
-            retryCount++;
-            int status = 0;
-            try {
-                URL url = new URL(appUrl);
-                HttpURLConnection con = (HttpURLConnection) url.openConnection();
-                con.setRequestMethod("GET");
 
-                // Possible error: java.net.ConnectException: Connection refused
+        // Poll for the server to start or stop.
+        boolean outcomeReached = SWTBotTestCondition.waitFor(() -> {
+            int status = 0;
+            HttpURLConnection con = null;
+            try {
+                URL url = URI.create(appUrl).toURL();
+                con = (HttpURLConnection) url.openConnection();
+                con.setRequestMethod("GET");
                 con.connect();
                 status = con.getResponseCode();
 
                 if (expectSuccess) {
                     if (status != HttpURLConnection.HTTP_OK) {
-                        Thread.sleep(reryIntervalSecs * 1000);
-                        con.disconnect();
-                        continue;
+                        return false;
                     }
-
                     BufferedReader br = new BufferedReader(new InputStreamReader(con.getInputStream()));
-                    String responseLine = "";
+                    String responseLine;
                     StringBuffer content = new StringBuffer();
                     while ((responseLine = br.readLine()) != null) {
                         content.append(responseLine).append(System.lineSeparator());
                     }
-
-                    if (!(content.toString().contains(expectedResponse))) {
-                        Thread.sleep(reryIntervalSecs * 1000);
-                        con.disconnect();
-                        continue;
-                    }
-
+                    return content.toString().contains(expectedResponse);
                 } else {
-                    if (status == HttpURLConnection.HTTP_OK) {
-                        Thread.sleep(reryIntervalSecs * 1000);
-                        con.disconnect();
-                        continue;
-                    } else {
-                        // Giving the server a few secs to start if it is starting.
-                        int counter = 0;
-                        if (counter <= 5) {
-                            counter++;
-                            Thread.sleep(reryIntervalSecs * 1000);
-                        }
-                        con.disconnect();
-                        continue;
-                    }
+                    // Expecting failure: any non-200 response (or connection refused) means server is down.
+                    return status != HttpURLConnection.HTTP_OK;
                 }
-
-                System.out.println("INFO: Exiting normally validateApplicationOutcomeCustom, appUrl: " + appUrl);
-                return;
             } catch (Exception e) {
                 if (expectSuccess) {
-                    System.out.println(
-                                       "INFO: Retrying application connection: Response code: " + status + ". Error message: " + e.getMessage());
-                    try {
-                        Thread.sleep(reryIntervalSecs * 1000);
-                    } catch (Exception ee) {
-                        ee.printStackTrace(System.out);
-                    }
-                    continue;
+                    System.out.println("INFO: Retrying application connection: Response code: " + status
+                                       + ". Error message: " + e.getMessage());
+                    return false;
                 }
-
-                System.out.println("INFO: Exiting with exc validateApplicationOutcomeCustom, appUrl: " + appUrl);
-                return;
+                // Connection refused / error when expecting failure = server is down = success.
+                return true;
+            } finally {
+                if (con != null) {
+                    con.disconnect();
+                }
             }
+        }, SWTBotTestCondition.SERVER_WAIT_MS);
+
+        if (!outcomeReached) {
+            // If we are here, the expected outcome was not found. Print diagnostics and fail.
+            String wlpMsgLogPath = testAppPath + "/wlp/usr/servers/defaultServer/logs/messages.log";
+            printLibertyMessagesLogFile(wlpMsgLogPath);
+            printConsoleOutput(projectName);
+            Assertions.fail("Timed out while waiting for application under URL: " + appUrl + " to become available.");
         }
 
-        // If we are here, the expected outcome was not found. Print the Liberty server's messages.log and fail.
-        String wlpMsgLogPath = testAppPath + "/wlp/usr/servers/defaultServer/logs/messages.log";
-        printLibertyMessagesLogFile(wlpMsgLogPath);
-
-        Assertions.fail("Timed out while waiting for application under URL: " + appUrl + " to become available.");
+        System.out.println("INFO: Exiting normally validateApplicationOutcomeCustom, appUrl: " + appUrl);
     }
 
     /**
@@ -218,28 +190,13 @@ public class LibertyPluginTestUtils {
      * @param pathToTestReport The path to the report.
      */
     public static void validateTestReportExists(Path pathToTestReport) {
-        int retryCountLimit = 100;
-        int reryIntervalSecs = 1;
-        int retryCount = 0;
+        // Poll until the report file appears.
+        boolean found = SWTBotTestCondition.waitFor(
+                                                    () -> fileExists(pathToTestReport.toAbsolutePath()), SWTBotTestCondition.LARGE_WAIT_MS);
 
-        while (retryCount < retryCountLimit) {
-            retryCount++;
-
-            boolean fileExists = fileExists(pathToTestReport.toAbsolutePath());
-            if (!fileExists) {
-                try {
-                    Thread.sleep(reryIntervalSecs * 1000);
-                } catch (Exception e) {
-                    e.printStackTrace(System.out);
-                    continue;
-                }
-                continue;
-            }
-
-            return;
+        if (!found) {
+            throw new IllegalStateException("Timed out waiting for test report: " + pathToTestReport + " file to be created.");
         }
-
-        throw new IllegalStateException("Timed out waiting for test report: " + pathToTestReport + " file to be created.");
     }
 
     /**
@@ -248,28 +205,9 @@ public class LibertyPluginTestUtils {
      * @param pathToTestReport The path to the report.
      */
     public static boolean appMonitorDisabledXmlExists(Path xmlFilePath) {
-        int retryCountLimit = 20;
-        int reryIntervalSecs = 1;
-        int retryCount = 0;
-
-        while (retryCount < retryCountLimit) {
-            retryCount++;
-
-            boolean fileExists = fileExists(xmlFilePath.toAbsolutePath());
-            if (!fileExists) {
-                try {
-                    Thread.sleep(reryIntervalSecs * 1000);
-                } catch (Exception e) {
-                    e.printStackTrace(System.out);
-                    continue;
-                }
-                continue;
-            }
-
-            return true;
-        }
-
-        return false;
+        // Poll until the xml file appears.
+        return SWTBotTestCondition.waitFor(
+                                           () -> fileExists(xmlFilePath.toAbsolutePath()), SWTBotTestCondition.MIN_WAIT_MS);
     }
 
     /**
@@ -302,26 +240,50 @@ public class LibertyPluginTestUtils {
     }
 
     /**
-     * Reads and returns the text from the console output tab
-     * 
-     * @return
+     * Reads and returns the text from all console output tabs.
+     *
+     * @return The concatenated output from all text consoles.
      */
     public static String getConsoleOutput() {
         IConsoleManager consoleManager = ConsolePlugin.getDefault().getConsoleManager();
         IConsole[] consoles = consoleManager.getConsoles();
         StringBuilder result = new StringBuilder();
 
-        // Iterate through each console
         for (IConsole console : consoles) {
             if (console instanceof TextConsole) {
-                TextConsole textConsole = (TextConsole) console;
-                // Append the console output to the result
-                result.append(textConsole.getDocument().get());
+                result.append(((TextConsole) console).getDocument().get());
             }
         }
 
-        // Return the concatenated result from all text consoles
         return result.toString();
+    }
+
+    /**
+     * Prints the console output for the project identified by the given name. Only consoles
+     * whose name contains projectName are included, so that in a multi-module run the output
+     * printed is scoped to the failing project.
+     *
+     * @param projectName The project name to match against console names.
+     */
+    public static void printConsoleOutput(String projectName) {
+        System.out.println("----------------------- console output [" + projectName + "] -----------------------");
+
+        IConsoleManager consoleManager = ConsolePlugin.getDefault().getConsoleManager();
+        IConsole[] consoles = consoleManager.getConsoles();
+        boolean found = false;
+
+        for (IConsole console : consoles) {
+            if (console instanceof TextConsole && console.getName().contains(projectName)) {
+                System.out.println(((TextConsole) console).getDocument().get());
+                found = true;
+            }
+        }
+
+        if (!found) {
+            System.out.println("No console found for project: " + projectName);
+        }
+
+        System.out.println("---------------------------------------------------------------------");
     }
 
     /**
@@ -341,9 +303,9 @@ public class LibertyPluginTestUtils {
     }
 
     /**
-     * Returns true if the current process is running on a windows environment. False, otherwise.
+     * Returns true if the current process is running in a Windows environment. False, otherwise.
      *
-     * @return True if the current process is running on a windows environment. False, otherwise.
+     * @return True if the current process is running in a Windows environment. False, otherwise.
      */
     public static boolean onWindows() {
         return System.getProperty("os.name").contains("Windows");

@@ -41,8 +41,8 @@ MAVEN_ARCHIVE_SHA512=0eb0432004a91ebf399314ad33e5aaffec3d3b29279f2f143b2f43ade26
 
 # Gradle version control constants.
 # NOTE: If this version is changed, the "mvn clean install" command in tests/resources/ci/scripts/exec.sh.
-GRADLE_VERSION=8.8
-GRADLE_ARCHIVE_SHA256=a4b4158601f8636cdeeab09bd76afb640030bb5b144aafe261a5e8af027dc612
+GRADLE_VERSION=9.7.1
+GRADLE_ARCHIVE_SHA256=acd53f1edaf02f1a8ff99879f8a34b302661a057d9b063ae9e35b552f804d20a
 
 SOFTWARE_INSTALL_DIR="${PWD}/test-tools/liberty-dev-tools"
 

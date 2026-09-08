@@ -1,0 +1,41 @@
+description = 'RAR Module'
+
+configurations {
+    rarArchive
+}
+
+dependencies {
+    implementation project(':jar')
+}
+
+// Override the default jar task archive name so that the Liberty loose application
+// generator (which calls proj.jar.getArchiveFileName()) uses the correct RAR filename.
+jar {
+    archiveBaseName = 'guide-gradle-multimodules-custmm-rar'
+    archiveExtension = 'rar'
+}
+
+task rar(type: Zip) {
+    archiveBaseName  = 'guide-gradle-multimodules-custmm-rar'
+    archiveVersion   = project.version
+    archiveExtension = 'rar'
+    destinationDirectory = layout.buildDirectory.dir('libs')
+
+    // Include ra.xml descriptor
+    from('src/main/rar-source') {
+        include 'META-INF/ra.xml'
+    }
+    // Include compiled classes
+    from(sourceSets.main.output)
+
+    dependsOn compileJava
+}
+
+artifacts {
+    rarArchive(rar.archiveFile) {
+        builtBy    rar
+        name       'guide-gradle-multimodules-custmm-rar'
+        type       'rar'
+        extension  'rar'
+    }
+}

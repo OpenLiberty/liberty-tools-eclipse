@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - main
+      - dev
 jobs:
   build:
     strategy:
@@ -56,7 +57,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: test-tools/liberty-dev-tools
-          key: ${{ runner.os }}-tools-jdk21.0.3-maven3.9.6-gradle8.8
+          key: ${{ runner.os }}-tools-jdk21.0.3-maven3.9.6-gradle9.7.1
           restore-keys: |
             ${{ runner.os }}-tools-
 
@@ -67,20 +68,6 @@ jobs:
       # Build the plugin.
       - name: 'Build: Build-Package-RunTests'
         run: bash ./tests/resources/ci/scripts/exec.sh ${{ matrix.targetPlatform }}
-
-      # Collect logs
-      - run: |
-          mkdir logs
-          find tests -type f -name "lte-dev-mode-output-*.log" -exec cp {} logs \;
-        if: failure()
-
-      # save logs
-      - name: Upload Logs
-        uses: actions/upload-artifact@v4
-        if: failure()
-        with:
-          name: test-app-logs
-          path: logs
 
       # Save Maven and Tycho dependencies cache (even on failure)
       - name: 'Cache: Maven and Tycho repository (save)'
@@ -108,4 +95,4 @@ jobs:
         if: always()
         with:
           path: test-tools/liberty-dev-tools
-          key: ${{ runner.os }}-tools-jdk21.0.3-maven3.9.6-gradle8.8
+          key: ${{ runner.os }}-tools-jdk21.0.3-maven3.9.6-gradle9.7.1

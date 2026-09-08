@@ -8,6 +8,7 @@ Bundle-Version: 26.0.8.qualifier
 Bundle-Activator: io.openliberty.tools.eclipse.LibertyDevPlugin
 Export-Package: io.openliberty.tools.eclipse;x-friends:="io.openliberty.tools.eclipse.tests",
  io.openliberty.tools.eclipse.debug;x-friends:="io.openliberty.tools.eclipse.tests",
+ io.openliberty.tools.eclipse.model;x-friends:="io.openliberty.tools.eclipse.tests",
  io.openliberty.tools.eclipse.ui.dashboard;x-friends:="io.openliberty.tools.eclipse.tests",
  io.openliberty.tools.eclipse.ui.launch;x-friends:="io.openliberty.tools.eclipse.tests",
  io.openliberty.tools.eclipse.ui.launch.shortcuts;x-friends:="io.openliberty.tools.eclipse.tests",
@@ -15,11 +16,13 @@ Export-Package: io.openliberty.tools.eclipse;x-friends:="io.openliberty.tools.ec
 Require-Bundle: org.eclipse.ui,
  org.eclipse.m2e.maven.runtime,
  org.eclipse.jdt.debug.ui;bundle-version="3.14.0",
- org.eclipse.jdt.debug;bundle-version="3.22.0"
+ org.eclipse.jdt.debug;bundle-version="3.22.0",
+ org.eclipse.ui.ide
 Bundle-RequiredExecutionEnvironment: JavaSE-21
 Automatic-Module-Name: io.openliberty.tools.eclipse.ui
 Bundle-ActivationPolicy: lazy
-Import-Package: org.eclipse.cdt.launch.ui,
+Import-Package: org.eclipse.buildship.core,
+ org.eclipse.cdt.launch.ui,
  org.eclipse.core.commands,
  org.eclipse.core.expressions,
  org.eclipse.core.resources,
@@ -47,7 +50,12 @@ Import-Package: org.eclipse.cdt.launch.ui,
  org.eclipse.osgi.util,
  org.eclipse.swt.custom,
  org.eclipse.ui.console,
+ org.eclipse.ui.forms.events,
+ org.eclipse.ui.forms.widgets,
+ org.eclipse.ui.dialogs,
  org.gradle.tooling,
  org.gradle.tooling.model,
  org.gradle.tooling.model.eclipse,
  org.osgi.framework
+Bundle-ClassPath: libs/json-20250107.jar,
+ .

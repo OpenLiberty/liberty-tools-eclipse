@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2023 IBM Corporation and others.
+* Copyright (c) 2023, 2026 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -13,6 +13,7 @@
 package io.openliberty.tools.eclipse.test.ut;
 
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.mockStatic;
 import static org.mockito.Mockito.when;
@@ -20,8 +21,9 @@ import static org.mockito.Mockito.when;
 import java.util.HashSet;
 import java.util.Set;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IProject;
-import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.resources.IProjectDescription;
 import org.eclipse.debug.core.ILaunchConfiguration;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -31,7 +33,9 @@ import org.junit.jupiter.api.TestInfo;
 import org.mockito.MockedStatic;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
-import io.openliberty.tools.eclipse.WorkspaceProjectsModel;
+import io.openliberty.tools.eclipse.model.Metadata;
+import io.openliberty.tools.eclipse.model.ProjectModel;
+import io.openliberty.tools.eclipse.model.WorkspaceModel;
 import io.openliberty.tools.eclipse.ui.launch.JRETab;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher.RuntimeEnv;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationHelper;
@@ -74,24 +78,23 @@ public class LibertyPluginTychoOnlyUnitTest {
     public void testGetLaunchConfiguration() throws Exception {
 
         DevModeOperations devModeOps = mock(DevModeOperations.class);
-        WorkspaceProjectsModel projModel = mock(WorkspaceProjectsModel.class);
+        WorkspaceModel projModel = mock(WorkspaceModel.class);
         try (MockedStatic<DevModeOperations> devModeOpsMock = mockStatic(DevModeOperations.class);
                         MockedStatic<JRETab> jreTabMock = mockStatic(JRETab.class)) {
 
             devModeOpsMock.when(DevModeOperations::getInstance).thenReturn(devModeOps);
             jreTabMock.when(() -> JRETab.getDefaultJavaFromBuildPath(any())).thenReturn("mock-build-path");
 
-            when(devModeOps.getProjectModel()).thenReturn(projModel);
-            when(projModel.getDefaultStartParameters(any())).thenReturn("");
+            when(devModeOps.getWorkspaceModel()).thenReturn(projModel);
 
             LaunchConfigurationHelper launchConfigHelper = LaunchConfigurationHelper.getInstance();
-            ILaunchConfiguration cfg1 = launchConfigHelper.getLaunchConfiguration(mockIProject("getLaunchConfiguration"), "run", RuntimeEnv.LOCAL);
-            ILaunchConfiguration cfg2 = launchConfigHelper.getLaunchConfiguration(mockIProject("getLaunchConfiguration"), "run", RuntimeEnv.CONTAINER);
-            ILaunchConfiguration cfg3 = launchConfigHelper.getLaunchConfiguration(mockIProject("getLaunchConfiguration"), "run", RuntimeEnv.LOCAL);
-            ILaunchConfiguration cfg4 = launchConfigHelper.getLaunchConfiguration(mockIProject("getLaunchConfiguration"), "run", RuntimeEnv.LOCAL);
-            ILaunchConfiguration cfg5 = launchConfigHelper.getLaunchConfiguration(mockIProject("getLaunchConfiguration"), "run", RuntimeEnv.CONTAINER);
-            ILaunchConfiguration cfg6 = launchConfigHelper.getLaunchConfiguration(mockIProject("getLaunchConfiguration"), "run", RuntimeEnv.CONTAINER);
-            ILaunchConfiguration cfg7 = launchConfigHelper.getLaunchConfiguration(mockIProject("getLaunchConfiguration"), "run", RuntimeEnv.LOCAL);
+            ILaunchConfiguration cfg1 = launchConfigHelper.getLaunchConfiguration(mockProjectModel("getLaunchConfiguration"), "run", RuntimeEnv.LOCAL);
+            ILaunchConfiguration cfg2 = launchConfigHelper.getLaunchConfiguration(mockProjectModel("getLaunchConfiguration"), "run", RuntimeEnv.CONTAINER);
+            ILaunchConfiguration cfg3 = launchConfigHelper.getLaunchConfiguration(mockProjectModel("getLaunchConfiguration"), "run", RuntimeEnv.LOCAL);
+            ILaunchConfiguration cfg4 = launchConfigHelper.getLaunchConfiguration(mockProjectModel("getLaunchConfiguration"), "run", RuntimeEnv.LOCAL);
+            ILaunchConfiguration cfg5 = launchConfigHelper.getLaunchConfiguration(mockProjectModel("getLaunchConfiguration"), "run", RuntimeEnv.CONTAINER);
+            ILaunchConfiguration cfg6 = launchConfigHelper.getLaunchConfiguration(mockProjectModel("getLaunchConfiguration"), "run", RuntimeEnv.CONTAINER);
+            ILaunchConfiguration cfg7 = launchConfigHelper.getLaunchConfiguration(mockProjectModel("getLaunchConfiguration"), "run", RuntimeEnv.LOCAL);
             Set<String> uniqueConfigNames = new HashSet<String>();
             ILaunchConfiguration[] configs = { cfg1, cfg2, cfg3, cfg4, cfg5, cfg6, cfg7 };
             for (ILaunchConfiguration config : configs) {
@@ -106,9 +109,36 @@ public class LibertyPluginTychoOnlyUnitTest {
         }
     }
 
-    public static IProject mockIProject(String projectName) throws CoreException {
+    public static ProjectModel mockProjectModel(String projectName) throws Exception {
         IProject mockProject = mock(IProject.class);
+        IFile mockPomFile = mock(IFile.class);
+        IFile mockBuildGradleFile = mock(IFile.class);
+        IFile mockBuildGradleKtsFile = mock(IFile.class);
+        IProjectDescription mockProjectDescription = mock(IProjectDescription.class);
+
         when(mockProject.getName()).thenReturn(projectName);
-        return mockProject;
+
+        // Mock getFile() to return mock IFile objects.
+        when(mockProject.getFile("pom.xml")).thenReturn(mockPomFile);
+        when(mockProject.getFile("build.gradle")).thenReturn(mockBuildGradleFile);
+        when(mockProject.getFile("build.gradle.kts")).thenReturn(mockBuildGradleKtsFile);
+
+        // Mock the exists() method to return false (no build files).
+        when(mockPomFile.exists()).thenReturn(false);
+        when(mockBuildGradleFile.exists()).thenReturn(false);
+        when(mockBuildGradleKtsFile.exists()).thenReturn(false);
+
+        // Mock getDescription().
+        when(mockProject.getDescription()).thenReturn(mockProjectDescription);
+        when(mockProjectDescription.hasNature(anyString())).thenReturn(false);
+
+        // Mock getLocation() to return null (not needed for this test).
+        when(mockProject.getLocation()).thenReturn(null);
+
+        ProjectModel projectModel = new ProjectModel(mockProject);
+        Metadata metadata = mock(Metadata.class);
+        when(metadata.getProjectName()).thenReturn(projectName);
+        projectModel.setBuildConfigMetadata(metadata);
+        return projectModel;
     }
 }

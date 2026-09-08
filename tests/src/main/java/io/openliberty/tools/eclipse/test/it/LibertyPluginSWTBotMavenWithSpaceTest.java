@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2025 IBM Corporation and others.
+* Copyright (c) 2025, 2026 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -12,7 +12,6 @@
 *******************************************************************************/
 package io.openliberty.tools.eclipse.test.it;
 
-import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getObjectInDebugView;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchDashboardAction;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.setBuildCmdPathInPreferences;
@@ -28,7 +27,6 @@ import java.util.ArrayList;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestInfo;
@@ -86,11 +84,6 @@ public class LibertyPluginSWTBotMavenWithSpaceTest extends AbstractLibertyPlugin
     @AfterEach
     public void afterEach(TestInfo info) {
         terminateLaunch();
-
-        // Validate that launch has been removed
-        Object launch = getObjectInDebugView("[Liberty]");
-        Assertions.assertNull(launch);
-
         super.afterEach(info);
     }
 

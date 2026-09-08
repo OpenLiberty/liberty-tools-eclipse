@@ -1,0 +1,15 @@
+mvn clean
+rm -rf .project
+rm -rf .settings
+rm -rf pom/.settings
+rm -rf pom/.classpath
+rm -rf pom/.project
+rm -rf war2/.settings
+rm -rf war2/.classpath
+rm -rf war2/.project
+rm -rf jar/.settings
+rm -rf jar/.classpath
+rm -rf jar/.project
+rm -rf war1/.settings
+rm -rf war1/.classpath
+rm -rf war1/.project

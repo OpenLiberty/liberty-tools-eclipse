@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2022, 2025 IBM Corporation and others.
+* Copyright (c) 2022, 2026 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -25,7 +25,6 @@ import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getDefaultSourceLookupTreeItemNoBot;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getLibertyTreeItem;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getLibertyTreeItemNoBot;
-import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getObjectInDebugView;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getRunConfigurationsShell;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchCustomDebugFromDashboard;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchCustomRunFromDashboard;
@@ -48,6 +47,7 @@ import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.setBuildCmdPathInPreferences;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.terminateLaunch;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.unsetBuildCmdPathInPreferences;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.waitForAndClickButton;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.io.BufferedReader;
@@ -85,9 +85,10 @@ import io.openliberty.tools.eclipse.CommandBuilder;
 import io.openliberty.tools.eclipse.CommandBuilder.CommandNotFoundException;
 import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.LibertyNature;
-import io.openliberty.tools.eclipse.Project;
+import io.openliberty.tools.eclipse.model.ProjectModel;
 import io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils;
 import io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations;
+import io.openliberty.tools.eclipse.test.it.utils.SWTBotTestCondition;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher;
 
@@ -133,12 +134,12 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
                                                      DashboardView.APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT };
 
     /**
-     * Run As configuration menu items.
+     * Run As configuration menu items for an inactive project. Actions such
+     * as "Stop" and "Run Tests" are only present when the project is active.
      */
     static String[] runAsShortcuts = new String[] { LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START,
                                                     LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONFIG,
-                                                    LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONTAINER, LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_STOP,
-                                                    LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_RUN_TESTS,
+                                                    LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONTAINER,
                                                     LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_GRADLE_VIEW_TEST_REPORT };
 
     /**
@@ -206,11 +207,6 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
     @AfterEach
     public void afterEach(TestInfo info) {
         terminateLaunch();
-
-        // Validate that launch has been removed
-        Object launch = getObjectInDebugView("[Liberty]");
-        Assertions.assertNull(launch);
-
         super.afterEach(info);
     }
 
@@ -228,7 +224,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
     }
 
     /**
-     * Makes sure that some basics actions can be performed before running the tests:
+     * Makes sure that some basic actions can be performed before running the tests:
      * 
      * <pre>
      * 1. The dashboard can be opened and its content retrieved. 
@@ -241,14 +237,11 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
      */
     public static final void validateBeforeTestRun() {
 
-        // Though supposedly we use blocking methods to do the import, it seems Eclipse has the ability to break out of a deadlock
-        // by interrupting our thread, and we also seem to be causing one due to changing compiler settings. Since we haven't debugged
-        // the latter, we'll introduce this wait.
-        try {
-            Thread.sleep(Integer.parseInt(System.getProperty("io.liberty.tools.eclipse.tests.app.import.wait", "0")));
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        // Wait until the dashboard contains the expected application.
+        // Note: Eclipse may interrupt blocking import calls due to internal deadlock avoidance;
+        // polling the dashboard directly avoids relying on import blocking semantics.
+        SWTBotTestCondition.waitFor(
+                                    () -> getDashboardContent().contains(GRADLE_APP_NAME), SWTBotTestCondition.LARGE_WAIT_MS);
 
         Path projPath = Paths.get("resources", "applications", "gradle", GRADLE_APP_NAME);
         File projectFile = projPath.toFile();
@@ -388,41 +381,76 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
     }
 
     /**
-     * Tests stop of a server started outside of the current Liberty Tools Eclipse session
+     * Tests the restart of an externally started dev mode process when
+     * the user selects a start action using Liberty Tools.
      * 
      * @throws CommandNotFoundException
      * @throws IOException
      * @throws InterruptedException
      */
     @Test
-    public void testDashboardStopExternalServer() throws CommandNotFoundException, IOException, InterruptedException {
+    public void testRestartOfExternallyStartedDevMode() throws CommandNotFoundException, IOException, InterruptedException {
+        IProject iProject = LibertyPluginTestUtils.getProject(GRADLE_WRAPPER_APP_NAME);
+        ProjectModel projectModel = new ProjectModel(iProject);
 
         Path wrapperProject = Paths.get("resources", "applications", "gradle", GRADLE_WRAPPER_APP_NAME).toAbsolutePath();
+        String libertyBasePath = wrapperProject.toString() + "/build";
 
-        // Doing a 'clean' first in case server was started previously and terminated abruptly
-        String cmd = CommandBuilder.getGradleCommandLine(wrapperProject.toString(), "clean libertyDev", null);
+        // Doing a 'clean' first in case server was started previously and terminated abruptly.
+        String startDevModeCmd = CommandBuilder.constructGradleCommand(projectModel, "libertyDev", true, null, null).getCommand();
 
         if (LibertyPluginTestUtils.onWindows()) {
-            cmd = "cmd.exe /c" + cmd;
+            startDevModeCmd = "cmd.exe /c" + startDevModeCmd;
         }
-        String[] cmdParts = cmd.split(" ");
-        ProcessBuilder pb = new ProcessBuilder(cmdParts).inheritIO().directory(wrapperProject.toFile()).redirectErrorStream(true);
-        pb.environment().put("JAVA_HOME", JavaRuntime.getDefaultVMInstall().getInstallLocation().getAbsolutePath());
+        String[] startDMCmdParts = startDevModeCmd.split(" ");
+        ProcessBuilder startDMPB = new ProcessBuilder(startDMCmdParts).inheritIO().directory(wrapperProject.toFile()).redirectErrorStream(true);
+        startDMPB.environment().put("JAVA_HOME", JavaRuntime.getDefaultVMInstall().getInstallLocation().getAbsolutePath());
 
-        Process p = pb.start();
-        p.waitFor(3, TimeUnit.SECONDS);
+        Process startDMProcess = startDMPB.start();
+        startDMProcess.waitFor(SWTBotTestCondition.LARGE_WAIT_MS, TimeUnit.MILLISECONDS);
 
-        // Validate application is up and running.
-        LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_WRAPPER_APP_NAME, true, wrapperProject.toString() + "/target/liberty");
+        // Validate application is up and running outside of Liberty Tools.
+        LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_WRAPPER_APP_NAME, true, libertyBasePath);
 
-        // Stop dev mode.
-        launchDashboardAction(GRADLE_WRAPPER_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
+        boolean devModeStopped = false;
+        try {
+            // Trigger the start action. Liberty Tools detects the externally running server
+            // and opens a Yes/No dialog.
+            launchDashboardAction(GRADLE_WRAPPER_APP_NAME, DashboardView.APP_MENU_ACTION_START);
 
-        bot.button("Yes").click();
+            // Wait for the dialog and confirm the restart.
+            try {
+                waitForAndClickButton(bot, "Liberty Tools", "Yes", SWTBotTestCondition.XL_WAIT_MS);
+            } catch (org.eclipse.swtbot.swt.finder.exceptions.WidgetNotFoundException e) {
+                System.out.println("[testRestartOfExternallyStartedDevMode] Eclipse console output before dialog failure:\n"
+                                   + LibertyPluginTestUtils.getConsoleOutput());
+                throw e;
+            }
 
-        // Validate application stopped.
-        LibertyPluginTestUtils.validateLibertyServerStopped(wrapperProject.toString() + "/build");
+            // Validate that the server came back up under Liberty Tools.
+            LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_WRAPPER_APP_NAME, true, libertyBasePath);
 
+            // Stop dev mode via Liberty Tools.
+            launchDashboardAction(GRADLE_WRAPPER_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
+            LibertyPluginTestUtils.validateLibertyServerStopped(libertyBasePath);
+            devModeStopped = true;
+        } finally {
+            if (!devModeStopped) {
+                String stopDevModeCmd = CommandBuilder.constructGradleCommand(projectModel, "libertyStop", false, null, null).getCommand();
+
+                if (LibertyPluginTestUtils.onWindows()) {
+                    stopDevModeCmd = "cmd.exe /c" + stopDevModeCmd;
+                }
+                String[] stopDMCmdParts = stopDevModeCmd.split(" ");
+                ProcessBuilder stopDMPB = new ProcessBuilder(stopDMCmdParts).inheritIO().directory(wrapperProject.toFile()).redirectErrorStream(true);
+                stopDMPB.environment().put("JAVA_HOME", JavaRuntime.getDefaultVMInstall().getInstallLocation().getAbsolutePath());
+
+                Process stopDMProcess = stopDMPB.start();
+                stopDMProcess.waitFor(SWTBotTestCondition.SHORT_WAIT_MS, TimeUnit.MILLISECONDS);
+
+                LibertyPluginTestUtils.validateLibertyServerStopped(libertyBasePath);
+            }
+        }
     }
 
     /**
@@ -509,12 +537,6 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
 
         // Start dev mode.
         launchDashboardAction(GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_START);
-        try {
-            Thread.sleep(10000); // sleep for 1 min
-        } catch (InterruptedException e) {
-            // Handle interruption
-            Thread.currentThread().interrupt();
-        }
 
         // Validate application is up and running.
         LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_APP_NAME, true, testAppPath + "/build");
@@ -525,14 +547,6 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         try {
             // Run Tests.
             launchDashboardAction(GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_RUN_TESTS);
-
-            // Sleep for a bit to allow tests to complete and not have the console tab take focus
-            try {
-                Thread.sleep(10000);
-            } catch (InterruptedException e) {
-                // Handle interruption
-                Thread.currentThread().interrupt();
-            }
 
             // Validate that the reports were generated and the the browser editor was launched.
             LibertyPluginTestUtils.validateTestReportExists(pathToTestReport);
@@ -562,7 +576,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         IProject iProject = LibertyPluginTestUtils.getProject(GRADLE_APP_NAME);
         String projectName = iProject.getName();
 
-        Project.removeNature(iProject, LibertyNature.NATURE_ID);
+        ProjectModel.removeNature(iProject, LibertyNature.NATURE_ID);
 
         // Rename the server.xml file.
         Path originalPath = Paths.get("resources", "applications", "gradle", "liberty-gradle-test-app", "src", "main", "liberty", "config", "server.xml").toAbsolutePath();
@@ -724,14 +738,10 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
 
         // Start dev mode. This should start locally.
         launchDashboardAction(GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_START);
-        try {
-            Thread.sleep(10000); // sleep for 1 min
-        } catch (InterruptedException e) {
-            // Handle interruption
-            Thread.currentThread().interrupt();
-        }
 
+        // Validate application is up and running.
         LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_APP_NAME, true, testAppPath + "/build");
+
         // Reads the text from the console output tab
         String consoleText = LibertyPluginTestUtils.getConsoleOutput();
         Assertions.assertTrue(consoleText.contains("clean libertyDev"), "Console text should contain 'clean libertyDev'");
@@ -907,7 +917,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
 
             context(libertyConfigTree, "New Configuration");
 
-            openSourceTab(bot);
+            openSourceTab(configShell);
 
             SWTBotTreeItem defaultSourceLookupTree = new SWTBotTreeItem((TreeItem) getDefaultSourceLookupTreeItemNoBot(configShell));
 

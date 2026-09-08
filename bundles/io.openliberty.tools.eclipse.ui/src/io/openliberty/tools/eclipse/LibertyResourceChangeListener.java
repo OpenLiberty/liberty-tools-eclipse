@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2022 IBM Corporation and others.
+ * Copyright (c) 2022, 2026 IBM Corporation and others.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -12,15 +12,16 @@
  *******************************************************************************/
 package io.openliberty.tools.eclipse;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.swt.widgets.Display;
+
+import io.openliberty.tools.eclipse.logging.Trace;
+import io.openliberty.tools.eclipse.model.ProjectModel;
+import io.openliberty.tools.eclipse.model.WorkspaceModel;
 
 public class LibertyResourceChangeListener implements IResourceChangeListener {
 
@@ -31,19 +32,27 @@ public class LibertyResourceChangeListener implements IResourceChangeListener {
     public void resourceChanged(IResourceChangeEvent event) {
         Display.getDefault().syncExec(new Runnable() {
 
+            /**
+             * {@inheritDoc}
+             */
             @Override
             public void run() {
+                if (Trace.isEnabled()) {
+                    Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { event.getType(), event.getSource() });
+                }
+
                 DevModeOperations devModeOps = DevModeOperations.getInstance();
-                WorkspaceProjectsModel db = devModeOps.getProjectModel();
+                WorkspaceModel workspaceModel = devModeOps.getWorkspaceModel();
                 IResourceDelta delta = event.getDelta();
                 if (delta == null) {
+                    if (Trace.isEnabled()) {
+                        Trace.getTracer().traceExit(Trace.TRACE_TOOLS, "No delta. No-op.");
+                    }
                     return;
                 }
 
                 // On entry the resource type is the root workspace. Find the child resources affected.
                 IResourceDelta[] resourcesChanged = delta.getAffectedChildren();
-
-                List<IProject> projectsChanged = new ArrayList<IProject>();
 
                 boolean refreshNeeded = false;
 
@@ -53,9 +62,8 @@ public class LibertyResourceChangeListener implements IResourceChangeListener {
                     if (iResource.getType() != IResource.PROJECT) {
                         continue;
                     }
+
                     IProject iProject = (IProject) iResource;
-                    projectsChanged.add(iProject);
-                    Project project = db.getProject(iProject.getName());
 
                     int updateFlag = resourceChanged.getFlags();
 
@@ -65,7 +73,14 @@ public class LibertyResourceChangeListener implements IResourceChangeListener {
                         // Flag 147456: Although IResourceDelta does not have a predefined constant, this flag value is used to
                         // denote open/close actions.
                         case IResourceDelta.CHANGED:
-                            if (updateFlag == IResourceDelta.OPEN || updateFlag == 147456) {
+                            String projectLocation = iProject.getLocation().toOSString();
+                            ProjectModel projectModel = workspaceModel.getProjectByLocation(projectLocation);
+
+                            if (projectModel != null && (updateFlag == IResourceDelta.OPEN || updateFlag == 147456)) {
+                                if (Trace.isEnabled()) {
+                                    Trace.getTracer().trace(Trace.TRACE_TOOLS,
+                                                            "Project changed. Project: " + iProject.getName() + ". Flag: " + updateFlag);
+                                }
                                 refreshNeeded = true;
                             }
                             break;
@@ -74,7 +89,14 @@ public class LibertyResourceChangeListener implements IResourceChangeListener {
                         // Flag 147456: Although IResourceDelta does not have a predefined constant, this flag
                         // value is set when a project, that previously did not exist, is created.
                         case IResourceDelta.ADDED:
-                            if (project == null && (updateFlag == IResourceDelta.OPEN || updateFlag == 147456)) {
+                            projectLocation = iProject.getLocation().toOSString();
+                            projectModel = workspaceModel.getProjectByLocation(projectLocation);
+
+                            if (projectModel == null && (updateFlag == IResourceDelta.OPEN || updateFlag == 147456)) {
+                                if (Trace.isEnabled()) {
+                                    Trace.getTracer().trace(Trace.TRACE_TOOLS,
+                                                            "Project added. Project: " + iProject.getName() + ". Flag: " + updateFlag);
+                                }
                                 refreshNeeded = true;
                             }
                             break;
@@ -82,7 +104,11 @@ public class LibertyResourceChangeListener implements IResourceChangeListener {
                         // Flag NO_CHANGE (0).
                         // Flag MARKERS (130172).
                         case IResourceDelta.REMOVED:
-                            if (project != null && (updateFlag == IResourceDelta.NO_CHANGE || updateFlag == IResourceDelta.MARKERS)) {
+                            if ((updateFlag == IResourceDelta.NO_CHANGE || updateFlag == IResourceDelta.MARKERS)) {
+                                if (Trace.isEnabled()) {
+                                    Trace.getTracer().trace(Trace.TRACE_TOOLS,
+                                                            "Project removed. Project: " + iProject.getName() + ". Flag: " + updateFlag);
+                                }
                                 refreshNeeded = true;
                             }
                             break;
@@ -95,11 +121,14 @@ public class LibertyResourceChangeListener implements IResourceChangeListener {
                     // We leave this commented out as a marker of the idea that maybe one day we'll only
                     // build the "delta" model instead of the whole workspace model
                     // workspaceProjectsModel.buildMultiProjectModel(projectsChanged, true);
-                    db.createNewCompleteWorkspaceModelWithClassify();
+                    workspaceModel.createNewCompleteWorkspaceModelWithClassify();
                     devModeOps.refreshDashboardView(false);
+                }
+
+                if (Trace.isEnabled()) {
+                    Trace.getTracer().traceExit(Trace.TRACE_TOOLS, refreshNeeded);
                 }
             }
         });
     }
-
 }

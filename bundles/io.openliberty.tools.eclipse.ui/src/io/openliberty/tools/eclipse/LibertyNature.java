@@ -1,5 +1,5 @@
 /*******************************************************************************
-* Copyright (c) 2022 IBM Corporation and others.
+* Copyright (c) 2022, 2026 IBM Corporation and others.
 *
 * This program and the accompanying materials are made available under the
 * terms of the Eclipse Public License v. 2.0 which is available at
@@ -17,6 +17,8 @@ import org.eclipse.core.resources.IProjectNature;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.swt.widgets.Display;
 
+import io.openliberty.tools.eclipse.logging.Trace;
+
 /**
  * Represents a Liberty nature or type.
  */
@@ -25,31 +27,65 @@ public class LibertyNature implements IProjectNature {
     public static final String NATURE_ID = "io.openliberty.tools.eclipse.ui.libertyNature";
     private IProject project;
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void configure() throws CoreException {
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { project.getName() });
+        }
+
         Display.getDefault().syncExec(new Runnable() {
+            /**
+             * {@inheritDoc}
+             */
             @Override
             public void run() {
                 DevModeOperations.getInstance().refreshDashboardView(false);
             }
         });
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, project.getName());
+        }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void deconfigure() throws CoreException {
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { project.getName() });
+        }
+
         Display.getDefault().syncExec(new Runnable() {
+            /**
+             * {@inheritDoc}
+             */
             @Override
             public void run() {
                 DevModeOperations.getInstance().refreshDashboardView(false);
             }
         });
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, project.getName());
+        }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public IProject getProject() {
         return project;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void setProject(IProject project) {
         this.project = project;
