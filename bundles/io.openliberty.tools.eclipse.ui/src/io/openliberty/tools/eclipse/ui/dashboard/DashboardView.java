@@ -326,7 +326,7 @@ public class DashboardView extends ViewPart {
 
         // Create a composite to center the content.
         Composite centerComposite = new Composite(emptyComposite, SWT.NONE);
-        GridData centerData = new GridData(SWT.CENTER, SWT.CENTER, true, true);
+        GridData centerData = new GridData(SWT.FILL, SWT.CENTER, true, true);
         centerComposite.setLayoutData(centerData);
         GridLayout centerLayout = new GridLayout(1, false);
         centerLayout.marginWidth = 0;
@@ -337,8 +337,8 @@ public class DashboardView extends ViewPart {
         // which supports rich text with embedded hyperlinks.
         formToolkit = new FormToolkit(emptyComposite.getDisplay());
         FormText formText = formToolkit.createFormText(centerComposite, true);
-        GridData textData = new GridData(SWT.FILL, SWT.CENTER, true, false);
-        textData.widthHint = SWT.DEFAULT;
+        GridData textData = new GridData(SWT.CENTER, SWT.CENTER, true, false);
+        textData.widthHint = 900;
         textData.grabExcessHorizontalSpace = true;
         formText.setLayoutData(textData);
 
