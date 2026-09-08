@@ -106,9 +106,9 @@ If using the dev mode in containers (devc) function, you must add the 'docker' e
    
 ## Opening the Liberty dashboard view
 
-Click the Open Liberty icon on the toolbar.
+Click the Liberty icon on the toolbar.
 
-![Dashboard context menu for Maven Project with Open Liberty icon](images/openLibertyIconOnToolbar.png)
+![Dashboard context menu for Maven Project with Liberty icon](images/openLibertyIconOnToolbar.png)
 
 If projects exist that are already properly configured to run on Liberty and use Liberty dev mode, those projects are automatically added to the dashboard when it opens.
 
