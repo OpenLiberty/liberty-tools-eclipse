@@ -80,9 +80,6 @@ public class DashboardView extends ViewPart {
     /** Dashboard view ID. */
     public static final String ID = "io.openliberty.tools.eclipse.views.liberty.devmode.dashboard";
 
-    /** Context menu ID. */
-    private static final String CONTEXT_MENU_ID = ID;
-
     /** Liberty logo path. */
     public static final String LIBERTY_LOGO_PATH = "icons/openLibertyLogo.png";
 
@@ -445,8 +442,6 @@ public class DashboardView extends ViewPart {
 
         Menu menu = menuMgr.createContextMenu(viewer.getControl());
         viewer.getControl().setMenu(menu);
-
-        getSite().registerContextMenu(CONTEXT_MENU_ID, menuMgr, viewer);
     }
 
     /**
