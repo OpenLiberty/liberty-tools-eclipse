@@ -19,7 +19,6 @@ import org.eclipse.e4.ui.model.application.MApplication;
 import org.eclipse.e4.ui.model.application.ui.MElementContainer;
 import org.eclipse.e4.ui.model.application.ui.MUIElement;
 import org.eclipse.e4.ui.model.application.ui.advanced.MPerspective;
-import org.eclipse.e4.ui.model.application.ui.advanced.MPerspectiveStack;
 
 /**
  * E4 model processor registered via org.eclipse.e4.workbench.model extension
@@ -38,13 +37,6 @@ public class LibertyPerspectiveProcessor {
         // Recursively walk the entire model tree — perspectives can be nested
         // at any depth (e.g. TrimmedWindow → PartSashContainer → PerspectiveStack → Perspective)
         walkAndTag(application);
-
-        // Also cover snippets
-        for (MUIElement snippet : application.getSnippets()) {
-            if (snippet instanceof MPerspective perspective) {
-                addTagIfMissing(perspective);
-            }
-        }
     }
 
     private void walkAndTag(MUIElement element) {

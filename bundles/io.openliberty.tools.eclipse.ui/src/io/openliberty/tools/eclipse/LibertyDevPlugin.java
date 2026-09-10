@@ -142,6 +142,10 @@ public class LibertyDevPlugin extends AbstractUIPlugin {
      * Removes the resource change listener registered with the Eclipse workspace.
      */
     public void unregisterResourceChangeListener() {
+        if (resourceChangeListener == null) {
+            return;
+        }
+
         if (Trace.isEnabled()) {
             Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, resourceChangeListener);
         }
