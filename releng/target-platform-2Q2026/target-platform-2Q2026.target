@@ -32,7 +32,6 @@
             <unit id="org.eclipse.jdt.debug" version="3.26.0.v20260418-1439"/>
             <unit id="org.eclipse.lsp4e" version="0.19.12.202605060644"/>
             <unit id="org.eclipse.lsp4e.jdt" version="0.14.2.202512150839"/>
-            <unit id="org.objectweb.asm" version="9.9.1" />
         </location>
         <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
             <repository location="https://download.eclipse.org/tools/orbit/downloads/drops/R20220531185310/repository"/>
@@ -77,12 +76,11 @@
 	     <unit id="org.eclipse.lsp4jakarta.jdt.core" version="0.2.7"/>
 	    </location>
 	    <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-	  <repository location="https://download.eclipse.org/eclipse/updates/4.41-I-builds/I20260817-2300" />
-	  <unit id="org.objectweb.asm" version="9.10.1" />
-	  <unit id="org.objectweb.asm.util" version="9.10.1" />
-	  <unit id="org.objectweb.asm.tree" version="9.10.1" />
-	  <unit id="org.objectweb.asm.commons" version="9.10.1" />
-	 </location>
+		 <repository location="https://download.eclipse.org/releases/2026-06/"/>
+	     <unit id="org.objectweb.asm.util" version="9.9.1" />
+	     <unit id="org.objectweb.asm.tree" version="9.9.1" />
+	     <unit id="org.objectweb.asm.commons" version="9.9.1" />
+	    </location>
 	    <location includeDependencyDepth="none" includeDependencyScopes="compile" missingManifest="generate" type="Maven">
 		    <dependencies>
 			    <dependency>
