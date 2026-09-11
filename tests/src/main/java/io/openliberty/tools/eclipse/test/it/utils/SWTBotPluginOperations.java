@@ -90,7 +90,7 @@ public class SWTBotPluginOperations {
      */
     public static final String MENU_NAME = "Liberty";
     public static final String MENU_OPEN_DASHBOARD_ACTION = "Open Dashboard";
-    public static final String TOOLBAR_OPEN_DASHBOARD_TIP = "Open Liberty Dashboard View";
+    public static final String TOOLBAR_OPEN_DASHBOARD_TIP = "Liberty Dashboard View";
     public static final String DASHBOARD_TOOLBAR_REFRESH_TIP = "refresh";
     public static final String DASHBOARD_VIEW_TITLE = "Liberty Dashboard";
     public static final String LAUNCH_CONFIG_LIBERTY_MENU_NAME = "Liberty";
@@ -554,7 +554,7 @@ public class SWTBotPluginOperations {
      * Returns a list of menu actions associated with the input application item.
      *
      * @param bot       The SWTWorkbenchBot instance.
-     * @param dashboard An instance representing the Open Liberty dashboard view.
+     * @param dashboard An instance representing the Liberty dashboard view.
      * @param item      The application name to select.
      *
      * @return A list of menu actions for the input application item.
@@ -1513,7 +1513,7 @@ public class SWTBotPluginOperations {
     }
 
     /**
-     * Closes the Open Liberty dashboard view.
+     * Closes the Liberty dashboard view.
      *
      * @param bot The SWTWorkbenchBot instance.
      */

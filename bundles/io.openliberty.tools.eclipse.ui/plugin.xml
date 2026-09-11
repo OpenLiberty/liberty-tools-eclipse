@@ -345,7 +345,7 @@
             <command id="io.openliberty.tools.eclipse.dashboard.toolbar.command"
                   commandId="io.openliberty.tools.eclipse.open.dashboard.command"
                   icon="icons/openLibertyLogo.png"
-                  tooltip="Open Liberty Dashboard View"
+                  tooltip="Liberty Dashboard View"
                   style="push">
             </command>
          </toolbar>
