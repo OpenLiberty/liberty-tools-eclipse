@@ -1,0 +1,15 @@
+requires.0.namespace = org.eclipse.equinox.p2.iu
+requires.0.name = org.objectweb.asm
+requires.0.range = [0.0.0,9.10.1)
+requires.1.namespace = org.eclipse.equinox.p2.iu
+requires.1.name = org.objectweb.asm.tree
+requires.1.range = [0.0.0,9.10.1)
+requires.2.namespace = org.eclipse.equinox.p2.iu
+requires.2.name = org.objectweb.asm.tree.analysis
+requires.2.range = [0.0.0,9.10.1)
+requires.3.namespace = org.eclipse.equinox.p2.iu
+requires.3.name = org.objectweb.asm.util
+requires.3.range = [0.0.0,9.10.1)
+requires.4.namespace = org.eclipse.equinox.p2.iu
+requires.4.name = org.objectweb.asm.commons
+requires.4.range = [0.0.0,9.10.1)
