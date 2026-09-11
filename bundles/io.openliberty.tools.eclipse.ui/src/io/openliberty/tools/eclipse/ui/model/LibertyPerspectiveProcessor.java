@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2025 IBM Corporation and others.
+ * Copyright (c) 2026 IBM Corporation and others.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -30,7 +30,7 @@ import org.eclipse.e4.ui.model.application.ui.advanced.MPerspective;
 public class LibertyPerspectiveProcessor {
 
     private static final String LIBERTY_WIZARD_TAG =
-            "persp.newWizSC:io.openliberty.tools.eclipse.ui.wizard.LibertyStarter"; //$NON-NLS-1$
+            "persp.newWizSC:io.openliberty.tools.eclipse.ui.wizard.LibertyStarter";
 
     @Execute
     public void process(MApplication application) {

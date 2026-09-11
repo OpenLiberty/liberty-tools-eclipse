@@ -786,11 +786,20 @@
      <perspectiveExtension targetID="org.eclipse.jdt.ui.JavaBrowsingPerspective">
         <newWizardShortcut id="io.openliberty.tools.eclipse.ui.wizard.LibertyStarter"/>
      </perspectiveExtension>
-     <perspectiveExtension targetID="org.eclipse.jst.j2ee.J2EEPerspective">
-        <newWizardShortcut id="io.openliberty.tools.eclipse.ui.wizard.LibertyStarter"/>
-     </perspectiveExtension>
   </extension>
 
+  <!-- Allow the create starter link to show at front when New is selected in the project
+       explorer. This behavior matches the default behavior in the package explorer. -->
+  <extension point="org.eclipse.ui.navigator.navigatorContent">
+     <commonWizard type="new" wizardId="io.openliberty.tools.eclipse.ui.wizard.LibertyStarter">
+        <enablement>
+           <or>
+              <adapt type="org.eclipse.core.resources.IProject"/>
+              <count value="0"/>
+           </or>
+        </enablement>
+     </commonWizard>
+  </extension>
 
   <!-- E4 model processor: adds Liberty wizard shortcut tag to all perspectives
        on every startup so the empty Project/Package Explorer link always appears -->
