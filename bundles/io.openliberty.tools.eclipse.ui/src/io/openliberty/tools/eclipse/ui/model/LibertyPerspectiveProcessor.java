@@ -12,7 +12,10 @@
  *******************************************************************************/
 package io.openliberty.tools.eclipse.ui.model;
 
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import org.eclipse.e4.core.di.annotations.Execute;
 import org.eclipse.e4.ui.model.application.MApplication;
@@ -23,25 +26,40 @@ import org.eclipse.e4.ui.model.application.ui.advanced.MPerspective;
 /**
  * E4 model processor registered via org.eclipse.e4.workbench.model extension
  * point. Runs synchronously on every startup during model assembly. Recursively
- * walks the entire model tree to find every MPerspective and adds the Liberty
- * Starter wizard shortcut tag so the "Create new Liberty starter project" link
- * appears in the empty Project/Package Explorer without a perspective reset.
+ * walks the model tree to find targeted MPerspective elements and adds the
+ * Liberty Starter wizard shortcut tag so the create new Liberty starter project link
+ * appears in the empty Project or Package Explorer without a perspective reset.
  */
 public class LibertyPerspectiveProcessor {
 
     private static final String LIBERTY_WIZARD_TAG =
             "persp.newWizSC:io.openliberty.tools.eclipse.ui.wizard.LibertyStarter";
 
+    /**
+     * List of perspectives to tag. This list must remain in sync with the list
+     * outlined in the org.eclipse.ui.perspectiveExtensions extension point in
+     * plugin.xml.
+     */
+    private static final Set<String> TARGET_PERSPECTIVES = new HashSet<>(Arrays.asList(
+            "org.eclipse.jdt.ui.JavaPerspective",
+            "org.eclipse.ui.resourcePerspective",
+            "org.eclipse.jdt.ui.JavaBrowsingPerspective",
+            "org.eclipse.jst.j2ee.J2EEPerspective",
+            "org.eclipse.jpt.ui.jpaPerspective"
+    ));
+
     @Execute
     public void process(MApplication application) {
-        // Recursively walk the entire model tree — perspectives can be nested
-        // at any depth (e.g. TrimmedWindow → PartSashContainer → PerspectiveStack → Perspective)
+        // Recursively walk the entire model tree. Perspectives can be nested at any depth.
         walkAndTag(application);
     }
 
     private void walkAndTag(MUIElement element) {
         if (element instanceof MPerspective perspective) {
-            addTagIfMissing(perspective);
+            String perspectiveId = perspective.getElementId();
+            if (perspectiveId != null && TARGET_PERSPECTIVES.contains(perspectiveId)) {
+                addTagIfMissing(perspective);
+            }
         }
         if (element instanceof MElementContainer<?> container) {
             for (Object child : container.getChildren()) {
