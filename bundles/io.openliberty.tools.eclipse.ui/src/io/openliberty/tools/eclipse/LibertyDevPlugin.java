@@ -128,9 +128,7 @@ public class LibertyDevPlugin extends AbstractUIPlugin {
      * Registers listeners.
      */
     private void registerListeners() {
-        PlatformUI.getWorkbench().getDisplay().asyncExec(() -> {
-            registerResourceChangeListener();
-        });
+        registerResourceChangeListener();
     }
 
     /**

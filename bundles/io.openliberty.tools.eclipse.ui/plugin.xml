@@ -775,7 +775,8 @@
      </wizard>
   </extension>
 
-  <!-- Add Liberty Starter to Java perspective shortcuts -->
+  <!-- Add create Liberty Starter wizard shortcut to Java, Java EE, Java Browsing, JPA, and
+       resource perspectives -->
   <extension point="org.eclipse.ui.perspectiveExtensions">
      <perspectiveExtension targetID="org.eclipse.jdt.ui.JavaPerspective">
         <newWizardShortcut id="io.openliberty.tools.eclipse.ui.wizard.LibertyStarter"/>
@@ -786,5 +787,48 @@
      <perspectiveExtension targetID="org.eclipse.jdt.ui.JavaBrowsingPerspective">
         <newWizardShortcut id="io.openliberty.tools.eclipse.ui.wizard.LibertyStarter"/>
      </perspectiveExtension>
+     <perspectiveExtension targetID="org.eclipse.jst.j2ee.J2EEPerspective">
+        <newWizardShortcut id="io.openliberty.tools.eclipse.ui.wizard.LibertyStarter"/>
+     </perspectiveExtension>
+     <perspectiveExtension targetID="org.eclipse.jpt.ui.jpaPerspective">
+        <newWizardShortcut id="io.openliberty.tools.eclipse.ui.wizard.LibertyStarter"/>
+     </perspectiveExtension>
+  </extension>
+
+  <!-- Allow the create starter link to show at front when New is selected in the project
+       explorer. This behavior matches the default behavior in the package explorer. -->
+  <extension point="org.eclipse.ui.navigator.navigatorContent">
+     <commonWizard type="new" wizardId="io.openliberty.tools.eclipse.ui.wizard.LibertyStarter">
+        <enablement>
+           <and>
+              <with variable="activeWorkbenchWindow.activePerspective">
+                 <or>
+                    <equals value="org.eclipse.jdt.ui.JavaPerspective"/>
+                    <equals value="org.eclipse.ui.resourcePerspective"/>
+                    <equals value="org.eclipse.jdt.ui.JavaBrowsingPerspective"/>
+                    <equals value="org.eclipse.jst.j2ee.J2EEPerspective"/>
+                    <equals value="org.eclipse.jpt.ui.jpaPerspective"/>
+                 </or>
+              </with>
+              <or>
+                 <adapt type="org.eclipse.core.resources.IProject"/>
+                 <count value="0"/>
+              </or>
+           </and>
+        </enablement>
+     </commonWizard>
+  </extension>
+
+  <!-- E4 model processor: adds Liberty wizard shortcut tag to the perspectives
+       outlined under the org.eclipse.ui.perspectiveExtensions extension point.
+       This is done on every startup so the empty Project/Package Explorer 
+       link is always shown. -->
+  <extension id="io.openliberty.tools.eclipse.ui.model.processor"
+             point="org.eclipse.e4.workbench.model">
+     <processor
+           apply="always"
+           beforefragment="false"
+           class="io.openliberty.tools.eclipse.ui.model.LibertyPerspectiveProcessor">
+     </processor>
   </extension>
 </plugin>
