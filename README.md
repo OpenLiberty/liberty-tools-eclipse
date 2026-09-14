@@ -24,7 +24,7 @@ Maven Projects             | Gradle Projects
 
 ### Explorer view
 
-![Dashboard context menu view](docs/images/maven-RunAsConfigShortcutsExplorerMenuShown.png) 
+![Dashboard context menu view](docs/images/maven-explorerViewContextMenu.png) 
 
 ## Quick start
 
