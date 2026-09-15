@@ -51,9 +51,8 @@ import io.openliberty.tools.eclipse.test.it.utils.SWTBotTestCondition;
  *   <li>Cancel closes the wizard without creating a project</li>
  * </ul>
  *
- * <p>Every test opens the wizard fresh (via {@link BeforeEach} or inline) and
- * closes it via Cancel (or the OS close button) in its own cleanup, so no
- * inter-test state leaks.
+ * <p>Every test opens the wizard fresh inline and closes it via Cancel in its
+ * own cleanup, so no inter-test state leaks.
  */
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 public class LibertyPluginSWTBotStarterTest extends AbstractLibertyPluginSWTBotTest {
@@ -67,7 +66,6 @@ public class LibertyPluginSWTBotStarterTest extends AbstractLibertyPluginSWTBotT
 
     // Wizard button labels
     private static final String BUTTON_FINISH = "Finish";
-    private static final String BUTTON_CANCEL = "Cancel";
 
     // -----------------------------------------------------------------------
     // Setup / teardown
@@ -89,7 +87,7 @@ public class LibertyPluginSWTBotStarterTest extends AbstractLibertyPluginSWTBotT
 
     /**
      * Verifies that the Liberty Starter wizard can be opened from the main menu
-     * (File > New > Other… > Open Liberty > Liberty Starter Project) and that it
+     * (File > New > Other… > Liberty > Liberty Starter Project) and that it
      * shows the expected title and a Finish button.
      */
     @Test
@@ -370,7 +368,6 @@ public class LibertyPluginSWTBotStarterTest extends AbstractLibertyPluginSWTBotT
                 javaEeCombo.setSelection(eeVersion);
 
                 // Wait briefly for the async UI update to complete.
-                final int idx = i;
                 SWTBotTestCondition.waitFor(() -> !mpCombo.getText().isEmpty(),
                                             SWTBotTestCondition.VALIDATION_WAIT_MS);
 

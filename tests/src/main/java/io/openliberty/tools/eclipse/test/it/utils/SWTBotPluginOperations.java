@@ -2276,7 +2276,7 @@ public class SWTBotPluginOperations {
      * Opens the Liberty Starter wizard via File > New > Other… > <category> > <wizardName>.
      *
      * @param bot        The SWTWorkbenchBot instance.
-     * @param category   The wizard category label (e.g. "Open Liberty").
+     * @param category   The wizard category label (e.g. "Liberty").
      * @param wizardName The wizard entry label (e.g. "Liberty Starter Project").
      * @return The active wizard shell, or {@code null} if the wizard could not be opened.
      */
@@ -2357,7 +2357,9 @@ public class SWTBotPluginOperations {
      */
     public static SWTBotShell getStarterWizardShell(SWTWorkbenchBot bot) {
         for (SWTBotShell s : bot.shells()) {
-            if (!s.widget.isDisposed() && s.getText().contains("Liberty Project Starter")) {
+            final boolean[] disposed = { true };
+            Display.getDefault().syncExec(() -> disposed[0] = s.widget.isDisposed());
+            if (!disposed[0] && s.getText().contains("Liberty Project Starter")) {
                 return s;
             }
         }
@@ -2375,12 +2377,16 @@ public class SWTBotPluginOperations {
             return;
         }
         try {
-            if (!wizardShell.widget.isDisposed()) {
+            final boolean[] disposed = { false };
+            Display.getDefault().syncExec(() -> disposed[0] = wizardShell.widget.isDisposed());
+            if (!disposed[0]) {
                 wizardShell.activate();
                 wizardShell.bot().button("Cancel").click();
-                SWTBotTestCondition.waitFor(
-                    () -> wizardShell.widget.isDisposed(),
-                    SWTBotTestCondition.VALIDATION_WAIT_MS);
+                SWTBotTestCondition.waitFor(() -> {
+                    final boolean[] d = { false };
+                    Display.getDefault().syncExec(() -> d[0] = wizardShell.widget.isDisposed());
+                    return d[0];
+                }, SWTBotTestCondition.VALIDATION_WAIT_MS);
             }
         } catch (Exception e) {
             // Shell may already be gone; that is fine.
