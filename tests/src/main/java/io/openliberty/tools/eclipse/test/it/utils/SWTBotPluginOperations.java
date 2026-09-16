@@ -2268,4 +2268,130 @@ public class SWTBotPluginOperations {
         }
     }
 
+    // -----------------------------------------------------------------------
+    // Liberty Starter wizard helpers
+    // -----------------------------------------------------------------------
+
+    /**
+     * Opens the Liberty Starter wizard via File > New > Other… > <category> > <wizardName>.
+     *
+     * @param bot        The SWTWorkbenchBot instance.
+     * @param category   The wizard category label (e.g. "Liberty").
+     * @param wizardName The wizard entry label (e.g. "Liberty Starter Project").
+     * @return The active wizard shell, or {@code null} if the wizard could not be opened.
+     */
+    public static SWTBotShell openStarterWizardViaFileMenu(SWTWorkbenchBot bot, String category, String wizardName) {
+        // File > New > Other…
+        Object fileMenu = findGlobal("File", Option.factory().widgetClass(MenuItem.class).build());
+        goMenuItem(fileMenu, "New", "Other...");
+
+        // Wait for the "New" selection dialog to appear.
+        SWTBotTestCondition.waitFor(() -> {
+            for (SWTBotShell s : bot.shells()) {
+                if (s.getText().equals("New")) {
+                    return true;
+                }
+            }
+            return false;
+        }, SWTBotTestCondition.MIN_WAIT_MS);
+
+        SWTBotShell newDialog = bot.shell("New");
+        newDialog.activate();
+
+        // Expand the category tree item and select the wizard.
+        SWTBotTree wizardTree = newDialog.bot().tree();
+        SWTBotTreeItem categoryItem = wizardTree.getTreeItem(category);
+        categoryItem.expand();
+        categoryItem.getNode(wizardName).select();
+
+        // Click Next to advance to the wizard page, or Finish if it's a single-page wizard.
+        // For the Liberty Starter the dialog goes straight to the wizard on Next.
+        newDialog.bot().button("Next >").click();
+
+        // Wait for the starter wizard shell to become active.
+        SWTBotTestCondition.waitFor(() -> {
+            for (SWTBotShell s : bot.shells()) {
+                if (s.getText().contains("Liberty Project Starter")) {
+                    return true;
+                }
+            }
+            return false;
+        }, SWTBotTestCondition.MIN_WAIT_MS);
+
+        return getStarterWizardShell(bot);
+    }
+
+    /**
+     * Opens the Liberty Starter wizard via the Java perspective's File > New
+     * shortcut menu (added by {@code LibertyPerspectiveProcessor}).
+     *
+     * @param bot        The SWTWorkbenchBot instance.
+     * @param wizardName The wizard entry label (e.g. "Liberty Starter Project").
+     * @return The active wizard shell, or {@code null} if the wizard could not be opened.
+     */
+    public static SWTBotShell openStarterWizardViaNewMenu(SWTWorkbenchBot bot, String wizardName) {
+        openJavaPerspective();
+
+        // File > New > Liberty Starter Project (shortcut added by LibertyPerspectiveProcessor)
+        Object fileMenu = findGlobal("File", Option.factory().widgetClass(MenuItem.class).build());
+        goMenuItem(fileMenu, "New", wizardName);
+
+        SWTBotTestCondition.waitFor(() -> {
+            for (SWTBotShell s : bot.shells()) {
+                if (s.getText().contains("Liberty Project Starter")) {
+                    return true;
+                }
+            }
+            return false;
+        }, SWTBotTestCondition.MIN_WAIT_MS);
+
+        return getStarterWizardShell(bot);
+    }
+
+    /**
+     * Returns the currently visible Liberty Starter wizard shell, or {@code null}
+     * if no such shell exists.
+     *
+     * @param bot The SWTWorkbenchBot instance.
+     * @return The wizard shell, or {@code null}.
+     */
+    public static SWTBotShell getStarterWizardShell(SWTWorkbenchBot bot) {
+        for (SWTBotShell s : bot.shells()) {
+            final boolean[] disposed = { true };
+            Display.getDefault().syncExec(() -> disposed[0] = s.widget.isDisposed());
+            if (!disposed[0] && s.getText().contains("Liberty Project Starter")) {
+                return s;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Clicks the Cancel button on the Liberty Starter wizard shell to dismiss it.
+     * If the shell is already disposed this is a no-op.
+     *
+     * @param wizardShell The wizard shell returned by one of the open helpers.
+     */
+    public static void cancelStarterWizard(SWTBotShell wizardShell) {
+        if (wizardShell == null) {
+            return;
+        }
+        try {
+            final boolean[] disposed = { false };
+            Display.getDefault().syncExec(() -> disposed[0] = wizardShell.widget.isDisposed());
+            if (!disposed[0]) {
+                wizardShell.activate();
+                wizardShell.bot().button("Cancel").click();
+                SWTBotTestCondition.waitFor(() -> {
+                    final boolean[] d = { false };
+                    Display.getDefault().syncExec(() -> d[0] = wizardShell.widget.isDisposed());
+                    return d[0];
+                }, SWTBotTestCondition.VALIDATION_WAIT_MS);
+            }
+        } catch (Exception e) {
+            // Shell may already be gone; that is fine.
+            System.out.println("INFO: cancelStarterWizard: shell already closed or exception: " + e.getMessage());
+        }
+    }
+
 }
