@@ -8,7 +8,9 @@ This guide provides detailed instructions on how to use Liberty Tools for the Ec
     + [Application requirements](#application-requirements)
     + [Maven and Gradle](#maven-and-gradle)
     + [Docker](#docker)
+  * [Create a starter application](#create-a-starter-application)
   * [Opening the Liberty dashboard view](#opening-the-liberty-dashboard-view)
+  * [Liberty dashboard toolbar](#liberty-dashboard-toolbar)
   * [Accessing Liberty Tools Operations](#accessing-liberty-tools-operations)
     + [Using the Liberty dashboard view](#using-the-liberty-dashboard-view)
     + [Using the Project Explorer view](#using-the-project-explorer-view)
@@ -75,7 +77,7 @@ This guide provides detailed instructions on how to use Liberty Tools for the Ec
     
   - Liberty Gradle Plugin -> 3.8
 
-### Maven and Gradle 
+### Maven and Gradle
 
 Since Liberty dev mode uses the Liberty Maven or Gradle plugins to manage a Maven/Gradle project, it must be able to find a Maven/Gradle executable to launch a build.
 
@@ -104,18 +106,46 @@ If using the dev mode in containers (devc) function, you must add the 'docker' e
 * launch Eclipse by running the following command  `PATH=$PATH:../path/to/docker eclipse.exe ...`
 
    
+## Create a starter application
+
+Liberty Tools includes a built-in starter project wizard that gives you a simple, quick way to get the necessary files to start building an application on Liberty.
+
+To open the starter wizard, use the **New** context menu in the Eclipse explorers or the **File** menu.
+
+![OpenStarterWizardUsingLinkShownWhenSelectingMenuNew](images/starterLinkMenuNew.png)
+
+If you do not have any projects in your workspace, use the **Create** link provided through Liberty Dashboard or **Create new Liberty starter project** link in the Eclipse explorers when empty.
+
+Explorer             | Dashboard
+:-------------------:|:-------------------:
+![Open starter wizard using explorer link](images/starterLinkExplorer.png) | ![Open starter wizard using dashboard link](images/starterLinkDashboard.png)
+
+The links open up the Liberty project starter wizard.
+
+![StarterWizard](images/starterWizard.png)
+
+Specify your application and project name, choose Maven or Gradle as your build tool, and select which versions of Java SE, Jakarta EE, and MicroProfile your application will use. The wizard performs version compatibility checks and validates your selections before generating the project.
+
+Once you are satisfied with your changes, click **Finish** to generate the project. Liberty Tools will automatically install the project for you.
+
 ## Opening the Liberty dashboard view
 
-Click the Liberty icon on the toolbar.
+Click the Liberty icon on the main Eclipse toolbar.
 
 ![Dashboard context menu for Maven Project with Liberty icon](images/openLibertyIconOnToolbar.png)
 
 If projects exist that are already properly configured to run on Liberty and use Liberty dev mode, those projects are automatically added to the dashboard when it opens.
 
-If you add new projects or make changes, and you need to refresh the dashboard, use the refresh icon in the Liberty dashboard toolbar.
+## Liberty dashboard toolbar
 
-![Dashboard Refresh highlighted](images/dashboardToolbarRefresh.png)
+The Liberty dashboard view provides a toolbar with the following icons:
 
+![Liberty dashboard toolbar](images/dashboardToolbar.png)
+
+- **Expand All**: Expands all multi-module project nodes in the dashboard tree to show their child modules configured to run on a Liberty server.
+- **Collapse All**: Collapses all expanded multi-module project nodes in the dashboard tree, hiding the Liberty-configured child modules and showing only the parent project.
+- **Filter**: Toggles a search bar that filters the displayed projects to those whose name contains the typed string.
+- **Refresh**: Rescans the workspace and updates the dashboard project list.
 
 ## Accessing Liberty Tools operations
 
@@ -336,10 +366,51 @@ One approach to resolve this incompatibility is to configure the preference at:
 More generally, the Gradle Eclipse preferences and project Java requirements must be compatible.
 
 
-## Multi-module 
-Gradle multi-project builds are not supported at this time.
+## Multi-module
 
-Liberty Tools offers a level of support for Maven multi-module projects. Rather than attempt to fully model the multi-project build, we make a heuristic "best guess" at the project structure, and allow the user to edit and customize the start command they use.  Liberty Tools also might offer a choice of dashboard entries, one for the top-level, aggregate module and one for a specific server module.  The top-level module dashboard entry might not be usable in the case that Liberty dev mode is not able to guess the right starting module on its own, in which case the server module entry can provide a useful starting point instead. For more information, see the [Liberty Maven plugin multi-module documentation ](https://github.com/OpenLiberty/ci.maven/blob/main/docs/dev.md#multiple-modules).
+Liberty Tools supports multi-module projects for both Maven and Gradle builds.
+
+### Supported project structures
+
+A project is recognized as a multi-module project when an aggregator (parent) project declares child modules.
+
+Child modules are identified as Liberty server modules if they contain Liberty server configuration (i.e. `server.xml`, `bootstrap.properties`, or `server.env` under `src/main/liberty/config/`), declare the Liberty plugin, or were manually enabled as Liberty projects using the **Configure** -> **Enable Liberty** context menu option.
+
+**Note:** Only one level of nesting is currently supported. Liberty server modules must be direct children of the aggregator.
+
+### Dashboard
+
+The Liberty dashboard displays multi-module projects as a tree. The aggregator (parent) project appears as the top-level entry, and its Liberty-enabled child modules are shown nested under it. You can interact with the aggregator entry to target one or more modules, or interact directly with an individual child module entry.
+
+### Starting the application in dev mode
+
+When you invoke **Start** or **Start in container** on an aggregator project, Liberty Tools opens a module selection dialog listing the Liberty-enabled inactive modules in that project. You can select one or more modules to start simultaneously. This behavior is the same whether you use the Liberty dashboard or the **Run As** context menu in the project explorer.
+
+![Maven multi-liberty module start all selection](images/maven-multiLibertyModuleStartAll.png)
+
+If the aggregator has only one eligible module, that module is used directly and no dialog is shown.
+
+For **Start...**, **Debug**, **Debug...**, and **Debug in container**, only one module can be selected at a time.
+
+Your module selection from the multi-select dialog is remembered and pre-checked the next time you open the dialog for the same aggregator.
+
+### Stopping, running tests, and viewing test reports
+
+**Stop** and **Run tests**, when invoked on an aggregator, open a module selection dialog so you can choose one or more active Liberty-enabled modules to target.
+
+![Maven multi-liberty module stop all selection](images/maven-multiLibertyModuleStopAll.png)
+
+When viewing test reports for an aggregator project, the action works in two steps. First, if the aggregator has more than one Liberty-enabled child module, you are prompted to select which Liberty-enabled module to target. Then, Liberty Tools scans the selected module and its build dependencies within the same multi-module project for test report files. If reports are found for more than one module, you are prompted to select which module's report to open. The list may include non-Liberty modules whose tests ran as part of the Liberty module's build.
+
+![Maven multi-liberty module view IT test reports selection from parent](images/maven-multiLibertyModuleParentViewITTests.png)
+
+![Maven multi-liberty module view IT test reports selection](images/maven-multiLibertyModuleViewITTests.png)
+
+For more information on Maven multi-module configuration, see:
+
+[Liberty Maven plugin multi-module documentation](https://github.com/OpenLiberty/ci.maven/blob/main/docs/dev.md#multiple-modules)
+
+[Liberty Gradle plugin multi-module documentation](https://github.com/OpenLiberty/ci.gradle/blob/main/docs/libertyDev.md#multi-project-builds)
 
 ## Common Issues
 

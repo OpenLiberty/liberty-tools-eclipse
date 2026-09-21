@@ -357,7 +357,7 @@ public class ProjectModel {
             boolean isLibertyPluginConfigured = (buildConfigMetadata != null) ? buildConfigMetadata.isLibertyPluginConfigured() : false;
             boolean isModuleDisabled = (buildConfigMetadata != null) ? buildConfigMetadata.isModuleDisabled() : false;
 
-            if (!isModuleDisabled && (serverxml.exists() || bootstrapProps.exists() || serverenv.exists() || isLibertyPluginConfigured)) {
+            if (!isModuleDisabled && (serverxml.exists() || bootstrapProps.exists() || serverenv.exists() || isLibertyPluginConfigured) || hasLibertyNature()) {
                 libertyServerModule = true;
             } else {
                 libertyServerModule = false;
