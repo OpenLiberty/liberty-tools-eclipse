@@ -27,7 +27,7 @@ import org.eclipse.e4.ui.model.application.ui.advanced.MPerspective;
  * E4 model processor registered via org.eclipse.e4.workbench.model extension
  * point. Runs synchronously on every startup during model assembly. Recursively
  * walks the model tree to find targeted MPerspective elements and adds the
- * Liberty Starter wizard shortcut tag so the create new Liberty starter project link
+ * Liberty Starter wizard shortcut tag so the create a Liberty project link
  * appears in the empty Project or Package Explorer without a perspective reset.
  */
 public class LibertyPerspectiveProcessor {

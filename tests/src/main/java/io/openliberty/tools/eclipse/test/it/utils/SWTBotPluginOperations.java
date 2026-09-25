@@ -808,7 +808,7 @@ public class SWTBotPluginOperations {
 
         if (!success) {
             throw new WidgetNotFoundException("Failed to find and click button '" + buttonText + "' in dialog with title '" + dialogTitle
-                                                                                       + "'");
+                                              + "'");
         }
     }
 
@@ -2277,7 +2277,7 @@ public class SWTBotPluginOperations {
      *
      * @param bot        The SWTWorkbenchBot instance.
      * @param category   The wizard category label (e.g. "Liberty").
-     * @param wizardName The wizard entry label (e.g. "Liberty Starter Project").
+     * @param wizardName The wizard entry label (e.g. "Liberty Project").
      * @return The active wizard shell, or {@code null} if the wizard could not be opened.
      */
     public static SWTBotShell openStarterWizardViaFileMenu(SWTWorkbenchBot bot, String category, String wizardName) {
@@ -2311,7 +2311,7 @@ public class SWTBotPluginOperations {
         // Wait for the starter wizard shell to become active.
         SWTBotTestCondition.waitFor(() -> {
             for (SWTBotShell s : bot.shells()) {
-                if (s.getText().contains("Liberty Project Starter")) {
+                if (s.getText().contains("Liberty Project")) {
                     return true;
                 }
             }
@@ -2326,19 +2326,19 @@ public class SWTBotPluginOperations {
      * shortcut menu (added by {@code LibertyPerspectiveProcessor}).
      *
      * @param bot        The SWTWorkbenchBot instance.
-     * @param wizardName The wizard entry label (e.g. "Liberty Starter Project").
+     * @param wizardName The wizard entry label (e.g. "Liberty Project").
      * @return The active wizard shell, or {@code null} if the wizard could not be opened.
      */
     public static SWTBotShell openStarterWizardViaNewMenu(SWTWorkbenchBot bot, String wizardName) {
         openJavaPerspective();
 
-        // File > New > Liberty Starter Project (shortcut added by LibertyPerspectiveProcessor)
+        // File > New > Liberty Project (shortcut added by LibertyPerspectiveProcessor)
         Object fileMenu = findGlobal("File", Option.factory().widgetClass(MenuItem.class).build());
         goMenuItem(fileMenu, "New", wizardName);
 
         SWTBotTestCondition.waitFor(() -> {
             for (SWTBotShell s : bot.shells()) {
-                if (s.getText().contains("Liberty Project Starter")) {
+                if (s.getText().contains("Liberty Project")) {
                     return true;
                 }
             }
@@ -2359,7 +2359,7 @@ public class SWTBotPluginOperations {
         for (SWTBotShell s : bot.shells()) {
             final boolean[] disposed = { true };
             Display.getDefault().syncExec(() -> disposed[0] = s.widget.isDisposed());
-            if (!disposed[0] && s.getText().contains("Liberty Project Starter")) {
+            if (!disposed[0] && s.getText().contains("Liberty Project")) {
                 return s;
             }
         }

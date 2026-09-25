@@ -48,7 +48,7 @@ import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.messages.Messages;
 
 /**
- * Wizard for creating a new Liberty Starter Project.
+ * Wizard for creating a new Liberty Project.
  */
 public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkbenchWizard {
 
@@ -76,7 +76,7 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
     public LibertyStarterWizard() {
         super();
         setNeedsProgressMonitor(true);
-        setWindowTitle("Liberty Project Starter");
+        setWindowTitle(Messages.getMessage("starter_wizard_window_title"));
 
         IDialogSettings settings = LibertyDevPlugin.getDefault().getDialogSettings();
         starterSettingsSection = settings.getSection(PREF_SECTION);
@@ -95,10 +95,11 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
         try {
             starter.loadData();
         } catch (Exception e) {
+            String traceMsg = "An error occurred while loading Liberty starter data.";
             if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_TOOLS, "An error occurred while loading Liberty starter data.", e);
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, traceMsg, e);
             }
-            Logger.logError("An error occurred while loading Liberty starter data.", e);
+            Logger.logError(traceMsg, e);
         }
     }
 
@@ -127,7 +128,7 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
         boolean useDefaultLocation = mainPage.getUseDefaultLocation();
 
         if (locationText == null || locationText.isEmpty()) {
-            mainPage.setErrorMessage("Location cannot be empty.");
+            mainPage.setErrorMessage(Messages.getMessage("starter_wizard_location_empty_error"));
             return false;
         }
 
@@ -137,11 +138,12 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
             starter.generateStarter(artifact, group, buildTool, javaEEVersion, javaSEVersion, microProfileVersion,
                                     locationText);
         } catch (Exception e) {
+            String traceMsg = "An error occurred while attempting to generate and install the starter project.";
             if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_TOOLS, "An error occurred while attempting to generate and install the starter project.", e);
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, traceMsg, e);
             }
-            Logger.logError("An error occurred while attempting to generate and install the starter project.", e);
-            mainPage.setErrorMessage(e.getMessage());
+            Logger.logError(traceMsg, e);
+            mainPage.setErrorMessage(Messages.getMessage("starter_generate_install_error", e.getMessage()));
             return false;
         }
         return true;
@@ -173,14 +175,14 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
         private Combo javaSECombo;
         private Combo javaEECombo;
         private Combo microProfileCombo;
-        
+
         // Flag to prevent recursive listener calls
         private boolean isUpdatingVersions = false;
 
         protected LibertyStarterMainPage() {
             super("libertyStarterPage");
-            setTitle("Liberty Project Starter");
-            setDescription("Select your preferred development tools.");
+            setTitle(Messages.getMessage("starter_wizard_page_title"));
+            setDescription(Messages.getMessage("starter_wizard_page_description"));
             URL imgURL = LibertyDevPlugin.getDefault().getBundle().getResource(LIBERTY_ICON_PATH);
             ImageDescriptor imgDesc = ImageDescriptor.createFromURL(imgURL);
             setImageDescriptor(imgDesc);
@@ -225,25 +227,23 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
             fieldsComposite.setLayout(fieldsLayout);
             fieldsComposite.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
 
-              // Group label and text field.
+            // Group label and text field.
             Label groupLabel = new Label(fieldsComposite, SWT.NONE);
-            groupLabel.setText("Group");
+            groupLabel.setText(Messages.getMessage("starter_wizard_group_label"));
             groupLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
 
             groupText = new Text(fieldsComposite, SWT.BORDER);
             groupText.setText(starter.getDefaultGroupName());
             groupText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 
-
             // ProjectName/Artifact label and text field.
             Label artifactLabel = new Label(fieldsComposite, SWT.NONE);
-            artifactLabel.setText("ProjectName/Artifact");
+            artifactLabel.setText(Messages.getMessage("starter_wizard_artifact_label"));
             artifactLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
 
             artifactText = new Text(fieldsComposite, SWT.BORDER);
             artifactText.setText(starter.getDefaultProjectName());
             artifactText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
-
 
         }
 
@@ -263,18 +263,18 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
             buildToolComposite.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 
             Label buildToolLabel = new Label(buildToolComposite, SWT.NONE);
-            buildToolLabel.setText("Build Tool");
+            buildToolLabel.setText(Messages.getMessage("starter_wizard_build_tool_label"));
             buildToolLabel.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
 
             mavenRadio = new Button(buildToolComposite, SWT.RADIO);
-            mavenRadio.setText("Maven");
+            mavenRadio.setText(Messages.getMessage("starter_wizard_maven_label"));
             mavenRadio.setSelection("maven".equals(starter.getDefaultBuildType()));
             GridData mavenRadioGD = new GridData(SWT.LEFT, SWT.CENTER, false, false);
             mavenRadioGD.horizontalIndent = 37;
             mavenRadio.setLayoutData(mavenRadioGD);
 
             gradleRadio = new Button(buildToolComposite, SWT.RADIO);
-            gradleRadio.setText("Gradle");
+            gradleRadio.setText(Messages.getMessage("starter_wizard_gradle_label"));
             gradleRadio.setSelection("gradle".equals(starter.getDefaultBuildType()));
             gradleRadio.setLayoutData(new GridData(SWT.LEFT, SWT.CENTER, false, false));
         }
@@ -295,7 +295,7 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
 
             // Java SE Version.
             Label javaSELabel = new Label(versionsComposite, SWT.NONE);
-            javaSELabel.setText("Java SE Version");
+            javaSELabel.setText(Messages.getMessage("starter_wizard_java_se_label"));
             javaSELabel.setLayoutData(new GridData(SWT.RIGHT, SWT.CENTER, false, false));
 
             javaSECombo = new Combo(versionsComposite, SWT.BORDER | SWT.READ_ONLY);
@@ -309,7 +309,7 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
 
             // Jakarta EE Version.
             Label javaEELabel = new Label(versionsComposite, SWT.NONE);
-            javaEELabel.setText("Java EE/Jakarta EE Version");
+            javaEELabel.setText(Messages.getMessage("starter_wizard_java_ee_label"));
             GridData javaEELabelGD = new GridData(SWT.RIGHT, SWT.CENTER, false, false);
             javaEELabelGD.horizontalIndent = 20;
             javaEELabel.setLayoutData(javaEELabelGD);
@@ -380,8 +380,8 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
                         if (mpActuallyChanged && newJavaSE != null) {
                             // Both MP and Java SE auto-updated — combined message matching website
                             final String combinedMsg = Messages.getMessage(
-                                    "starter_wizard_mp_updated_java_se_combined",
-                                    finalOldMP, finalCompatibleMP, selectedEE, newJavaSE);
+                                                                           "starter_wizard_mp_updated_java_se_combined",
+                                                                           finalOldMP, finalCompatibleMP, selectedEE, newJavaSE);
                             getControl().getDisplay().asyncExec(new Runnable() {
                                 public void run() {
                                     setMessage(combinedMsg, IMessageProvider.INFORMATION);
@@ -410,17 +410,18 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
                     } else {
                         String warnMsg = Messages.getMessage("starter_wizard_ee_no_compatible_mp", selectedEE);
                         setMessage(warnMsg, IMessageProvider.WARNING);
+                        String traceMsg = "No compatible MicroProfile version found for Jakarta EE: " + selectedEE;
                         if (Trace.isEnabled()) {
-                            Trace.getTracer().trace(Trace.TRACE_TOOLS, warnMsg);
+                            Trace.getTracer().trace(Trace.TRACE_TOOLS, traceMsg);
                         }
-                        Logger.logWarning(warnMsg);
+                        Logger.logWarning(traceMsg);
                     }
                 }
             });
 
             // MicroProfile Version.
             Label microProfileLabel = new Label(versionsComposite, SWT.NONE);
-            microProfileLabel.setText("MicroProfile Version");
+            microProfileLabel.setText(Messages.getMessage("starter_wizard_mp_label"));
             GridData microProfileLabelGD = new GridData(SWT.RIGHT, SWT.CENTER, false, false);
             microProfileLabelGD.horizontalIndent = 20;
             microProfileLabel.setLayoutData(microProfileLabelGD);
@@ -491,8 +492,8 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
                         if (eeActuallyChanged && newJavaSE != null) {
                             // Both EE and Java SE auto-updated — combined message matching website
                             final String combinedMsg = Messages.getMessage(
-                                    "starter_wizard_ee_updated_java_se_combined",
-                                    finalOldEE, finalCompatibleEE, newJavaSE, selectedMP);
+                                                                           "starter_wizard_ee_updated_java_se_combined",
+                                                                           finalOldEE, finalCompatibleEE, newJavaSE, selectedMP);
                             getControl().getDisplay().asyncExec(new Runnable() {
                                 public void run() {
                                     setMessage(combinedMsg, IMessageProvider.INFORMATION);
@@ -521,10 +522,12 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
                     } else {
                         String warnMsg = Messages.getMessage("starter_wizard_mp_no_compatible_ee", selectedMP);
                         setMessage(warnMsg, IMessageProvider.WARNING);
+
+                        String traceMsg = "No compatible Jakarta EE version found for MicroProfile: " + selectedMP;
                         if (Trace.isEnabled()) {
-                            Trace.getTracer().trace(Trace.TRACE_TOOLS, warnMsg);
+                            Trace.getTracer().trace(Trace.TRACE_TOOLS, traceMsg);
                         }
-                        Logger.logWarning(warnMsg);
+                        Logger.logWarning(traceMsg);
                     }
                 }
             });
@@ -544,13 +547,11 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
             locationGroup.setLayout(gLayout);
             locationGroup.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 
-            boolean savedUseDefault = (starterSettingsSection.get(PREF_USE_DEFAULT_LOCATION) != null)
-                    ? starterSettingsSection.getBoolean(PREF_USE_DEFAULT_LOCATION)
-                    : true;
+            boolean savedUseDefault = (starterSettingsSection.get(PREF_USE_DEFAULT_LOCATION) != null) ? starterSettingsSection.getBoolean(PREF_USE_DEFAULT_LOCATION) : true;
 
             // Use default location checkbox.
             useDefaultLocationCheckbox = new Button(locationGroup, SWT.CHECK);
-            useDefaultLocationCheckbox.setText("Use default location");
+            useDefaultLocationCheckbox.setText(Messages.getMessage("starter_wizard_use_default_location_label"));
             useDefaultLocationCheckbox.setSelection(savedUseDefault);
             useDefaultLocationCheckbox.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
 
@@ -565,7 +566,7 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
                         try {
                             locationText.setText(starter.getDefaultStarterDirPath());
                         } catch (IOException ex) {
-                            setErrorMessage("Unable to create the default starter directory: " + ex.getMessage());
+                            setErrorMessage(Messages.getMessage("starter_wizard_default_dir_error", ex.getMessage()));
                         }
                     }
                     locationText.setEnabled(!configuredUseDefLoc);
@@ -583,7 +584,7 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
             locationComposite.setLayoutData(new GridData(SWT.FILL, SWT.TOP, true, false));
 
             Label locationLabel = new Label(locationComposite, SWT.NONE);
-            locationLabel.setText("Location:");
+            locationLabel.setText(Messages.getMessage("starter_wizard_location_label"));
             GridData locationLabelData = new GridData(SWT.LEFT, SWT.CENTER, false, false);
             locationLabelData.widthHint = 70;
             locationLabel.setLayoutData(locationLabelData);
@@ -595,18 +596,16 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
             try {
                 defaultLocation = starter.getDefaultStarterDirPath();
             } catch (IOException ex) {
-                setErrorMessage("Unable to create the default starter directory: " + ex.getMessage());
+                setErrorMessage(Messages.getMessage("starter_wizard_default_dir_error", ex.getMessage()));
             }
-            String initialLocation = (!savedUseDefault && savedLocation != null && !savedLocation.isEmpty())
-                    ? savedLocation
-                    : defaultLocation;
+            String initialLocation = (!savedUseDefault && savedLocation != null && !savedLocation.isEmpty()) ? savedLocation : defaultLocation;
             locationText.setText(initialLocation);
             locationText.setEnabled(!useDefaultLocationCheckbox.getSelection());
 
             locationText.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, true, false));
 
             browseButton = new Button(locationComposite, SWT.PUSH);
-            browseButton.setText("Browse...");
+            browseButton.setText(Messages.getMessage("starter_wizard_browse_button"));
             browseButton.setEnabled(!useDefaultLocationCheckbox.getSelection());
             GridData browseData = new GridData(SWT.RIGHT, SWT.CENTER, false, false);
             browseData.widthHint = 90;
@@ -619,7 +618,7 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
                 @Override
                 public void widgetSelected(SelectionEvent e) {
                     DirectoryDialog dialog = new DirectoryDialog(getShell());
-                    dialog.setText("Select Location");
+                    dialog.setText(Messages.getMessage("starter_wizard_select_location_dialog"));
                     dialog.setFilterPath(locationText.getText());
                     String selectedDir = dialog.open();
                     if (selectedDir != null) {
@@ -703,7 +702,7 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
             String groupErrorMsg = Messages.getMessage("starter_wizard_group_invalid_error");
 
             if (group.isEmpty()) {
-                setErrorMessage("Group cannot be empty.");
+                setErrorMessage(Messages.getMessage("starter_wizard_group_empty_error"));
                 setPageComplete(false);
                 return false;
             }
@@ -728,7 +727,7 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
             String artifactErrorMsg = Messages.getMessage("starter_wizard_artifact_invalid_error");
 
             if (artifact.isEmpty()) {
-                setErrorMessage("Artifact cannot be empty.");
+                setErrorMessage(Messages.getMessage("starter_wizard_artifact_empty_error"));
                 setPageComplete(false);
                 return false;
             }
@@ -751,7 +750,7 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
             setPageComplete(true);
             return true;
         }
-        
+
         /**
          * Validates artifact name according to Liberty Starter website rules.
          *
@@ -806,16 +805,17 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
             try {
                 LibertyProjectStarter starter = LibertyProjectStarter.getInstance();
                 HashMap<String, JSONArray> ee2mp = starter.getDependenciesEE2MP();
-                
+
                 // Check if compatibility data is loaded
                 if (ee2mp == null || ee2mp.isEmpty()) {
+                    String traceMsg = "Compatibility data not loaded yet";
                     if (Trace.isEnabled()) {
-                        Trace.getTracer().trace(Trace.TRACE_TOOLS, "Compatibility data not loaded yet");
+                        Trace.getTracer().trace(Trace.TRACE_TOOLS, traceMsg);
                     }
-                    Logger.logWarning("Compatibility data not loaded yet");
+                    Logger.logWarning(traceMsg);
                     return true; // Assume compatible if data not loaded
                 }
-                
+
                 JSONArray compatibleMP = ee2mp.get(eeVersion);
 
                 if (compatibleMP != null) {
@@ -826,11 +826,12 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
                     }
                 }
             } catch (Exception e) {
+                String traceMsg = "Error checking compatibility";
                 if (Trace.isEnabled()) {
-                    Trace.getTracer().trace(Trace.TRACE_TOOLS, "Error checking compatibility", e);
+                    Trace.getTracer().trace(Trace.TRACE_TOOLS, traceMsg, e);
                 }
-                Logger.logError("Error checking compatibility", e);
-                return true; // Assume compatible on error
+                Logger.logError(traceMsg, e);
+                return true;
             }
 
             return false;
@@ -847,7 +848,7 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
             try {
                 LibertyProjectStarter starter = LibertyProjectStarter.getInstance();
                 HashMap<String, JSONArray> ee2mp = starter.getDependenciesEE2MP();
-                
+
                 // Check if compatibility data is loaded
                 if (ee2mp == null || ee2mp.isEmpty()) {
                     if (Trace.isEnabled()) {
@@ -856,9 +857,9 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
                     Logger.logWarning("Compatibility data (EE2MP) not loaded - map is empty");
                     return null;
                 }
-                
+
                 JSONArray compatibleMP = ee2mp.get(eeVersion);
-                
+
                 if (compatibleMP == null) {
                     if (Trace.isEnabled()) {
                         Trace.getTracer().trace(Trace.TRACE_TOOLS, "No compatibility data found for Jakarta EE " + eeVersion);
@@ -878,21 +879,22 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
                         break;
                     }
                 }
-                
+
                 // If we found a version, return it
                 if (highestVersion != null) {
                     return highestVersion;
                 }
-                
+
                 // If all versions are "None", return "None"
                 if (compatibleMP.length() > 0) {
                     return "None";
                 }
             } catch (Exception e) {
+                String traceMsg = "Error getting compatible MP version for EE " + eeVersion;
                 if (Trace.isEnabled()) {
-                    Trace.getTracer().trace(Trace.TRACE_TOOLS, "Error getting compatible MP version for EE " + eeVersion, e);
+                    Trace.getTracer().trace(Trace.TRACE_TOOLS, traceMsg, e);
                 }
-                Logger.logError("Error getting compatible MP version for EE " + eeVersion, e);
+                Logger.logError(traceMsg, e);
             }
             return null;
         }
@@ -908,23 +910,25 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
             try {
                 LibertyProjectStarter starter = LibertyProjectStarter.getInstance();
                 HashMap<String, JSONArray> mp2ee = starter.getDependenciesMP2EE();
-                
+
                 // Check if compatibility data is loaded
                 if (mp2ee == null || mp2ee.isEmpty()) {
+                    String traceMsg = "Compatibility data (MP2EE) not loaded - map is empty";
                     if (Trace.isEnabled()) {
-                        Trace.getTracer().trace(Trace.TRACE_TOOLS, "Compatibility data (MP2EE) not loaded - map is empty");
+                        Trace.getTracer().trace(Trace.TRACE_TOOLS, traceMsg);
                     }
-                    Logger.logWarning("Compatibility data (MP2EE) not loaded - map is empty");
+                    Logger.logWarning(traceMsg);
                     return null;
                 }
-                
+
                 JSONArray compatibleEE = mp2ee.get(mpVersion);
-                
+
                 if (compatibleEE == null) {
+                    String traceMsg = "No compatibility data found for MicroProfile " + mpVersion;
                     if (Trace.isEnabled()) {
-                        Trace.getTracer().trace(Trace.TRACE_TOOLS, "No compatibility data found for MicroProfile " + mpVersion);
+                        Trace.getTracer().trace(Trace.TRACE_TOOLS, traceMsg);
                     }
-                    Logger.logWarning("No compatibility data found for MicroProfile " + mpVersion);
+                    Logger.logWarning(traceMsg);
                     return null;
                 }
 
@@ -939,21 +943,22 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
                         break;
                     }
                 }
-                
+
                 // If we found a version, return it
                 if (highestVersion != null) {
                     return highestVersion;
                 }
-                
+
                 // If all versions are "None", return "None"
                 if (compatibleEE.length() > 0) {
                     return "None";
                 }
             } catch (Exception e) {
+                String traceMsg = "Error getting compatible EE version for MP " + mpVersion;
                 if (Trace.isEnabled()) {
-                    Trace.getTracer().trace(Trace.TRACE_TOOLS, "Error getting compatible EE version for MP " + mpVersion, e);
+                    Trace.getTracer().trace(Trace.TRACE_TOOLS, traceMsg, e);
                 }
-                Logger.logError("Error getting compatible EE version for MP " + mpVersion, e);
+                Logger.logError(traceMsg, e);
             }
             return null;
         }
@@ -1006,10 +1011,11 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
                     return requiredJavaSE;
                 }
             } catch (Exception e) {
+                String traceMsg = "Error checking Java SE requirements";
                 if (Trace.isEnabled()) {
-                    Trace.getTracer().trace(Trace.TRACE_TOOLS, "Error checking Java SE requirements", e);
+                    Trace.getTracer().trace(Trace.TRACE_TOOLS, traceMsg, e);
                 }
-                Logger.logError("Error checking Java SE requirements", e);
+                Logger.logError(traceMsg, e);
             }
             return null;
         }

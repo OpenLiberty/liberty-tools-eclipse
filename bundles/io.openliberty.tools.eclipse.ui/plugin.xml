@@ -766,12 +766,12 @@
      </category>
      <wizard
            id="io.openliberty.tools.eclipse.ui.wizard.LibertyStarter"
-           name="Liberty Starter Project"
+           name="Liberty Project"
            category="io.openliberty.tools.eclipse.wizard.category"
            class="io.openliberty.tools.eclipse.ui.wizards.LibertyStarterWizard"
            icon="icons/openLibertyLogo.png"
            project="true">
-           <description>Create new Liberty starter project</description>
+           <description>Create a Liberty project</description>
      </wizard>
   </extension>
 
