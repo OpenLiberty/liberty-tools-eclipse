@@ -8,7 +8,7 @@ This guide provides detailed instructions on how to use Liberty Tools for the Ec
     + [Application requirements](#application-requirements)
     + [Maven and Gradle](#maven-and-gradle)
     + [Docker](#docker)
-  * [Create a starter application](#create-a-starter-application)
+  * [Create a new Liberty application](#create-a-new-liberty-application)
   * [Opening the Liberty dashboard view](#opening-the-liberty-dashboard-view)
   * [Liberty dashboard toolbar](#liberty-dashboard-toolbar)
   * [Accessing Liberty Tools Operations](#accessing-liberty-tools-operations)
@@ -106,23 +106,21 @@ If using the dev mode in containers (devc) function, you must add the 'docker' e
 * launch Eclipse by running the following command  `PATH=$PATH:../path/to/docker eclipse.exe ...`
 
    
-## Create a starter application
+## Create a new Liberty application
 
-Liberty Tools includes a built-in starter project wizard that gives you a simple, quick way to get the necessary files to start building an application on Liberty.
+Liberty Tools includes a built-in project wizard that gives you a simple, quick way to get the necessary files to start building an application on Liberty.
 
-To open the starter wizard, use the **New** context menu in the Eclipse explorers or the **File** menu.
+To open the **New Liberty Project** wizard, use the **New** context menu in the Eclipse explorers or the **File** menu.
 
-![OpenStarterWizardUsingLinkShownWhenSelectingMenuNew](images/starterLinkMenuNew.png)
+![Open new Liberty project wizard using link in File-New](images/newLibertyProjectLinkMenuNew.png)
 
-If you do not have any projects in your workspace, use the **Create** link provided through Liberty Dashboard or **Create new Liberty starter project** link in the Eclipse explorers when empty.
+If you do not have any projects in your workspace, use the **Create** link provided through Liberty Dashboard or **Create a Liberty project** link in the Eclipse explorers when empty. Both links open the **New Liberty Project** wizard.
 
 Explorer             | Dashboard
 :-------------------:|:-------------------:
-![Open starter wizard using explorer link](images/starterLinkExplorer.png) | ![Open starter wizard using dashboard link](images/starterLinkDashboard.png)
+![Open the new Liberty project wizard using explorer link](images/newLibertyProjectLinkExplorer.png) | ![Open the new Liberty project wizard using dashboard link](images/newLibertyProjectLinkDashboard.png)
 
-The links open up the Liberty project starter wizard.
-
-![StarterWizard](images/starterWizard.png)
+![New Liberty Project wizard](images/newLibertyProjectWizard.png)
 
 Specify your application and project name, choose Maven or Gradle as your build tool, and select which versions of Java SE, Jakarta EE, and MicroProfile your application will use. The wizard performs version compatibility checks and validates your selections before generating the project.
 
