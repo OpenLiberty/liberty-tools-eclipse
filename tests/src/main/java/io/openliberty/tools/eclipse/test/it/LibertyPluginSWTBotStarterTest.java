@@ -38,15 +38,15 @@ import io.openliberty.tools.eclipse.test.it.utils.SWTBotTestCondition;
  *
  * <p>Tests cover:
  * <ul>
- *   <li>Opening the wizard via File > New and the Java perspective shortcut</li>
- *   <li>Default field values match the Liberty Starter API</li>
- *   <li>Group / artifact validation (valid and invalid inputs)</li>
- *   <li>Jakarta EE → MicroProfile auto-update (highest compatible MP selected)</li>
- *   <li>MicroProfile → Jakarta EE auto-update (highest compatible EE selected)</li>
- *   <li>Java SE auto-upgrade when EE 10 / EE 11 / MP 6+ is selected</li>
- *   <li>Use-default-location checkbox behaviour</li>
- *   <li>Finish button is disabled while the page is invalid</li>
- *   <li>Cancel closes the wizard without creating a project</li>
+ * <li>Opening the wizard via File > New and the Java perspective shortcut</li>
+ * <li>Default field values match the Liberty Starter API</li>
+ * <li>Group / artifact validation (valid and invalid inputs)</li>
+ * <li>Jakarta EE → MicroProfile auto-update (highest compatible MP selected)</li>
+ * <li>MicroProfile → Jakarta EE auto-update (highest compatible EE selected)</li>
+ * <li>Java SE auto-upgrade when EE 10 / EE 11 / MP 6+ is selected</li>
+ * <li>Use-default-location checkbox behaviour</li>
+ * <li>Finish button is disabled while the page is invalid</li>
+ * <li>Cancel closes the wizard without creating a project</li>
  * </ul>
  *
  * <p>Every test opens the wizard fresh inline and closes it via Cancel in its
@@ -57,8 +57,8 @@ public class LibertyPluginSWTBotStarterTest extends AbstractLibertyPluginSWTBotT
     // -----------------------------------------------------------------------
     // Wizard title / widget labels (must match LibertyStarterWizard constants)
     // -----------------------------------------------------------------------
-    private static final String WIZARD_TITLE = "Liberty Project Starter";
-    private static final String WIZARD_NEW_MENU_PATH = "Liberty Starter Project";
+    private static final String WIZARD_TITLE = "New Liberty Project";
+    private static final String WIZARD_NEW_MENU_PATH = "Liberty Project";
     private static final String CATEGORY_NAME = "Liberty";
 
     // Wizard button labels
@@ -84,7 +84,7 @@ public class LibertyPluginSWTBotStarterTest extends AbstractLibertyPluginSWTBotT
 
     /**
      * Verifies that the Liberty Starter wizard can be opened from the main menu
-     * (File > New > Other… > Liberty > Liberty Starter Project) and that it
+     * (File > New > Other… > Liberty > Liberty Project) and that it
      * shows the expected title and a Finish button.
      */
     @Test
@@ -137,21 +137,21 @@ public class LibertyPluginSWTBotStarterTest extends AbstractLibertyPluginSWTBotT
         try {
             wizardShell.activate();
 
-            SWTBotText groupText    = wizardShell.bot().textWithLabel("Group");
+            SWTBotText groupText = wizardShell.bot().textWithLabel("Group");
             SWTBotText artifactText = wizardShell.bot().textWithLabel("ProjectName/Artifact");
             SWTBotCombo javaSeCombo = wizardShell.bot().comboBoxWithLabel("Java SE Version");
             SWTBotCombo javaEeCombo = wizardShell.bot().comboBoxWithLabel("Java EE/Jakarta EE Version");
-            SWTBotCombo mpCombo     = wizardShell.bot().comboBoxWithLabel("MicroProfile Version");
+            SWTBotCombo mpCombo = wizardShell.bot().comboBoxWithLabel("MicroProfile Version");
 
-            assertFalse(groupText.getText().isEmpty(),    "Group field must have a default value");
+            assertFalse(groupText.getText().isEmpty(), "Group field must have a default value");
             assertFalse(artifactText.getText().isEmpty(), "Artifact field must have a default value");
-            assertFalse(javaSeCombo.getText().isEmpty(),  "Java SE combo must have a default selection");
-            assertFalse(javaEeCombo.getText().isEmpty(),  "Jakarta EE combo must have a default selection");
-            assertFalse(mpCombo.getText().isEmpty(),      "MicroProfile combo must have a default selection");
+            assertFalse(javaSeCombo.getText().isEmpty(), "Java SE combo must have a default selection");
+            assertFalse(javaEeCombo.getText().isEmpty(), "Jakarta EE combo must have a default selection");
+            assertFalse(mpCombo.getText().isEmpty(), "MicroProfile combo must have a default selection");
 
             assertTrue(javaSeCombo.itemCount() > 0, "Java SE combo must contain at least one item");
             assertTrue(javaEeCombo.itemCount() > 0, "Jakarta EE combo must contain at least one item");
-            assertTrue(mpCombo.itemCount()     > 0, "MicroProfile combo must contain at least one item");
+            assertTrue(mpCombo.itemCount() > 0, "MicroProfile combo must contain at least one item");
         } finally {
             cancelStarterWizard(wizardShell);
         }
@@ -172,14 +172,14 @@ public class LibertyPluginSWTBotStarterTest extends AbstractLibertyPluginSWTBotT
         try {
             wizardShell.activate();
 
-            SWTBotRadio mavenRadio  = wizardShell.bot().radio("Maven");
+            SWTBotRadio mavenRadio = wizardShell.bot().radio("Maven");
             SWTBotRadio gradleRadio = wizardShell.bot().radio("Gradle");
 
-            assertNotNull(mavenRadio,  "Maven radio button must be present");
+            assertNotNull(mavenRadio, "Maven radio button must be present");
             assertNotNull(gradleRadio, "Gradle radio button must be present");
 
             // Exactly one must be selected by default
-            boolean mavenSelected  = mavenRadio.isSelected();
+            boolean mavenSelected = mavenRadio.isSelected();
             boolean gradleSelected = gradleRadio.isSelected();
             assertTrue(mavenSelected ^ gradleSelected,
                        "Exactly one of Maven / Gradle must be selected; Maven=" + mavenSelected + " Gradle=" + gradleSelected);
@@ -191,7 +191,7 @@ public class LibertyPluginSWTBotStarterTest extends AbstractLibertyPluginSWTBotT
                 assertFalse(mavenRadio.isSelected(), "Maven radio must be deselected after clicking Gradle");
             } else {
                 mavenRadio.click();
-                assertTrue(mavenRadio.isSelected(),   "Maven radio must be selected after clicking it");
+                assertTrue(mavenRadio.isSelected(), "Maven radio must be selected after clicking it");
                 assertFalse(gradleRadio.isSelected(), "Gradle radio must be deselected after clicking Maven");
             }
         } finally {
@@ -252,8 +252,8 @@ public class LibertyPluginSWTBotStarterTest extends AbstractLibertyPluginSWTBotT
 
                 // The wizard must report an error and Finish must be disabled.
                 SWTBotTestCondition.waitFor(
-                    () -> !wizardShell.bot().button(BUTTON_FINISH).isEnabled(),
-                    SWTBotTestCondition.VALIDATION_WAIT_MS);
+                                            () -> !wizardShell.bot().button(BUTTON_FINISH).isEnabled(),
+                                            SWTBotTestCondition.VALIDATION_WAIT_MS);
 
                 assertFalse(wizardShell.bot().button(BUTTON_FINISH).isEnabled(),
                             "Finish must be disabled for invalid group '" + g + "'");
@@ -318,8 +318,8 @@ public class LibertyPluginSWTBotStarterTest extends AbstractLibertyPluginSWTBotT
                 wizardShell.bot().textWithLabel("Group").setFocus();
 
                 SWTBotTestCondition.waitFor(
-                    () -> !wizardShell.bot().button(BUTTON_FINISH).isEnabled(),
-                    SWTBotTestCondition.VALIDATION_WAIT_MS);
+                                            () -> !wizardShell.bot().button(BUTTON_FINISH).isEnabled(),
+                                            SWTBotTestCondition.VALIDATION_WAIT_MS);
 
                 assertFalse(wizardShell.bot().button(BUTTON_FINISH).isEnabled(),
                             "Finish must be disabled for invalid artifact '" + a + "'");
@@ -338,8 +338,8 @@ public class LibertyPluginSWTBotStarterTest extends AbstractLibertyPluginSWTBotT
      * while the wizard is showing the highest MP version (which is incompatible with EE 8.0).
      * Verifies that:
      * <ul>
-     *   <li>The MicroProfile combo is updated to a version compatible with EE 8.0.</li>
-     *   <li>The wizard description area shows the auto-update info message.</li>
+     * <li>The MicroProfile combo is updated to a version compatible with EE 8.0.</li>
+     * <li>The wizard description area shows the auto-update info message.</li>
      * </ul>
      * If EE 8.0 is not offered by the API, the test is skipped gracefully.
      */
@@ -349,7 +349,7 @@ public class LibertyPluginSWTBotStarterTest extends AbstractLibertyPluginSWTBotT
         try {
             wizardShell.activate();
             SWTBotCombo javaEeCombo = wizardShell.bot().comboBoxWithLabel("Java EE/Jakarta EE Version");
-            SWTBotCombo mpCombo     = wizardShell.bot().comboBoxWithLabel("MicroProfile Version");
+            SWTBotCombo mpCombo = wizardShell.bot().comboBoxWithLabel("MicroProfile Version");
 
             // Skip gracefully if EE 8.0 is not offered by the API.
             if (!java.util.Arrays.asList(javaEeCombo.items()).contains("8.0")) {
@@ -393,8 +393,8 @@ public class LibertyPluginSWTBotStarterTest extends AbstractLibertyPluginSWTBotT
      * while the wizard is showing the highest EE version (incompatible with MP 2.2).
      * Verifies that:
      * <ul>
-     *   <li>The Jakarta EE combo is updated to a version compatible with MP 2.2.</li>
-     *   <li>The wizard description area shows the auto-update info message.</li>
+     * <li>The Jakarta EE combo is updated to a version compatible with MP 2.2.</li>
+     * <li>The wizard description area shows the auto-update info message.</li>
      * </ul>
      * If MP 2.2 is not offered by the API, the test is skipped gracefully.
      */
@@ -404,7 +404,7 @@ public class LibertyPluginSWTBotStarterTest extends AbstractLibertyPluginSWTBotT
         try {
             wizardShell.activate();
             SWTBotCombo javaEeCombo = wizardShell.bot().comboBoxWithLabel("Java EE/Jakarta EE Version");
-            SWTBotCombo mpCombo     = wizardShell.bot().comboBoxWithLabel("MicroProfile Version");
+            SWTBotCombo mpCombo = wizardShell.bot().comboBoxWithLabel("MicroProfile Version");
 
             // Skip gracefully if MP 2.2 is not offered by the API.
             if (!java.util.Arrays.asList(mpCombo.items()).contains("2.2")) {
@@ -538,7 +538,7 @@ public class LibertyPluginSWTBotStarterTest extends AbstractLibertyPluginSWTBotT
         try {
             wizardShell.activate();
             SWTBotCombo javaSeCombo = wizardShell.bot().comboBoxWithLabel("Java SE Version");
-            SWTBotCombo mpCombo     = wizardShell.bot().comboBoxWithLabel("MicroProfile Version");
+            SWTBotCombo mpCombo = wizardShell.bot().comboBoxWithLabel("MicroProfile Version");
 
             boolean javaSe8Available = java.util.Arrays.asList(javaSeCombo.items()).contains("8");
             if (!javaSe8Available) {
@@ -558,8 +558,8 @@ public class LibertyPluginSWTBotStarterTest extends AbstractLibertyPluginSWTBotT
 
                 final String mpVer = mpVersion;
                 SWTBotTestCondition.waitFor(
-                    () -> !"8".equals(javaSeCombo.getText()),
-                    SWTBotTestCondition.VALIDATION_WAIT_MS);
+                                            () -> !"8".equals(javaSeCombo.getText()),
+                                            SWTBotTestCondition.VALIDATION_WAIT_MS);
 
                 String javaSe = javaSeCombo.getText();
                 assertFalse("8".equals(javaSe),
@@ -578,9 +578,9 @@ public class LibertyPluginSWTBotStarterTest extends AbstractLibertyPluginSWTBotT
     /**
      * Verifies that:
      * <ul>
-     *   <li>When "Use default location" is checked, the custom location text field
-     *       is disabled (greyed out).</li>
-     *   <li>When unchecked, the location text field becomes editable.</li>
+     * <li>When "Use default location" is checked, the custom location text field
+     * is disabled (greyed out).</li>
+     * <li>When unchecked, the location text field becomes editable.</li>
      * </ul>
      */
     @Test
@@ -590,8 +590,8 @@ public class LibertyPluginSWTBotStarterTest extends AbstractLibertyPluginSWTBotT
             wizardShell.activate();
 
             SWTBotCheckBox useDefaultChk = wizardShell.bot().checkBox("Use default location");
-            SWTBotText locationText      = wizardShell.bot().textWithLabel("Location:");
-            SWTBotButton browseBtn       = wizardShell.bot().button("Browse...");
+            SWTBotText locationText = wizardShell.bot().textWithLabel("Location:");
+            SWTBotButton browseBtn = wizardShell.bot().button("Browse...");
 
             // If default is checked, location and browse must be disabled.
             if (useDefaultChk.isChecked()) {
@@ -636,7 +636,7 @@ public class LibertyPluginSWTBotStarterTest extends AbstractLibertyPluginSWTBotT
             wizardShell.activate();
 
             SWTBotText artifactText = wizardShell.bot().textWithLabel("ProjectName/Artifact");
-            SWTBotButton finishBtn  = wizardShell.bot().button(BUTTON_FINISH);
+            SWTBotButton finishBtn = wizardShell.bot().button(BUTTON_FINISH);
 
             // Clear the artifact to make the page invalid.
             artifactText.setText("");
@@ -697,8 +697,8 @@ public class LibertyPluginSWTBotStarterTest extends AbstractLibertyPluginSWTBotT
             // Capture a final reference before reassigning wizardShell to null below.
             final SWTBotShell shellForFinish = wizardShell;
             SWTBotTestCondition.waitFor(
-                () -> shellForFinish.bot().button(BUTTON_FINISH).isEnabled(),
-                SWTBotTestCondition.VALIDATION_WAIT_MS);
+                                        () -> shellForFinish.bot().button(BUTTON_FINISH).isEnabled(),
+                                        SWTBotTestCondition.VALIDATION_WAIT_MS);
             assertTrue(shellForFinish.bot().button(BUTTON_FINISH).isEnabled(),
                        "Finish must be enabled with valid inputs");
 
@@ -708,8 +708,8 @@ public class LibertyPluginSWTBotStarterTest extends AbstractLibertyPluginSWTBotT
 
             // Wait for the project to appear in the Package Explorer (import is async).
             boolean appeared = SWTBotTestCondition.waitFor(
-                () -> (getInstalledProjectItem(bot, projectName) != null),
-                SWTBotTestCondition.SERVER_WAIT_MS);
+                                                           () -> (getInstalledProjectItem(bot, projectName) != null),
+                                                           SWTBotTestCondition.SERVER_WAIT_MS);
             assertTrue(appeared, "Project '" + projectName + "' must appear in the Package Explorer after wizard Finish");
 
         } finally {
@@ -719,18 +719,14 @@ public class LibertyPluginSWTBotStarterTest extends AbstractLibertyPluginSWTBotT
             }
 
             // Delete the project from the workspace and from disk.
-            org.eclipse.core.resources.IProject iProject =
-                io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.getProject(projectName);
+            org.eclipse.core.resources.IProject iProject = io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils.getProject(projectName);
             if (iProject != null && iProject.exists()) {
                 iProject.delete(true, true, new org.eclipse.core.runtime.NullProgressMonitor());
             }
 
             // Remove the temp directory if still present.
             try {
-                java.nio.file.Files.walk(destDir)
-                    .sorted(java.util.Comparator.reverseOrder())
-                    .map(java.nio.file.Path::toFile)
-                    .forEach(java.io.File::delete);
+                java.nio.file.Files.walk(destDir).sorted(java.util.Comparator.reverseOrder()).map(java.nio.file.Path::toFile).forEach(java.io.File::delete);
             } catch (Exception ignored) {
                 // Non-fatal: temp dir cleanup failure should not fail the test.
             }
@@ -837,7 +833,7 @@ public class LibertyPluginSWTBotStarterTest extends AbstractLibertyPluginSWTBotT
 
     /** Recursively collects all SWT Controls inside the given composite. */
     private static java.util.List<org.eclipse.swt.widgets.Control> getAllChildren(
-            org.eclipse.swt.widgets.Composite parent) {
+                                                                                  org.eclipse.swt.widgets.Composite parent) {
         java.util.List<org.eclipse.swt.widgets.Control> result = new java.util.ArrayList<>();
         for (org.eclipse.swt.widgets.Control child : parent.getChildren()) {
             result.add(child);

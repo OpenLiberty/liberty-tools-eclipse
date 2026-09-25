@@ -73,7 +73,7 @@ public class LibertyProjectStarter {
     /** Liberty starter API URL for retrieving configuration information. */
     private final String starterURL = "https://start.openliberty.io/api/start/info";
 
-    /** Base URL for generating Liberty starter projects. */
+    /** Base URL for generating Liberty projects. */
     private final String STARTER_GEN_BASE_URL = "https://start.openliberty.io/api/start";
 
     /**
@@ -295,7 +295,7 @@ public class LibertyProjectStarter {
 
         HttpClient client = HttpClient.newHttpClient();
 
-        // Call the Liberty starter project API
+        // Call the Liberty project API
         HttpRequest request = HttpRequest.newBuilder().uri(new URI(starterURL)).GET().build();
         HttpResponse<String> response = client.send(request, BodyHandlers.ofString());
 
@@ -347,7 +347,7 @@ public class LibertyProjectStarter {
     }
 
     /**
-     * Generates a Liberty starter project with the specified configuration
+     * Generates a Liberty project with the specified configuration
      * parameters and downloads it as a ZIP file to the specified directory.
      *
      * @param appName     The application/artifact name for the project.
@@ -487,10 +487,11 @@ public class LibertyProjectStarter {
 
         File file = filePath.toFile();
         if (!file.setExecutable(true, false)) {
+            String traceMsg = "Unable to set execute permission on wrapper script: " + filePath;
             if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_TOOLS, "Unable to set execute permission on wrapper script: " + filePath);
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, traceMsg);
             }
-            Logger.logError("Unable to set execute permission on wrapper script: " + filePath, null);
+            Logger.logError(traceMsg, null);
         }
     }
 
@@ -555,10 +556,11 @@ public class LibertyProjectStarter {
                     configManager.importProjects(Collections.singletonList(projectInfo), configuration,
                                                  new NullProgressMonitor());
                 } catch (Exception e) {
+                    String traceMsg = "Failed to import Maven application: " + appPath;
                     if (Trace.isEnabled()) {
-                        Trace.getTracer().trace(Trace.TRACE_TOOLS, Messages.getMessage("starter_maven_import_error"), e);
+                        Trace.getTracer().trace(Trace.TRACE_TOOLS, traceMsg, e);
                     }
-                    Logger.logError(Messages.getMessage("starter_maven_import_error"), e);
+                    Logger.logError(traceMsg, e);
                     return new Status(IStatus.ERROR, LibertyDevPlugin.PLUGIN_ID, Messages.getMessage("starter_maven_import_failed", e.getMessage()));
                 }
                 return Status.OK_STATUS;
