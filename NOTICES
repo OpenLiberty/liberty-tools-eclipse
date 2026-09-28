@@ -36,17 +36,17 @@ The Program includes some or all of the following that IBM obtained
 under the Eclipse Public License (source code available via the
 indicated URL):
 
-io.openliberty.tools:liberty-langserver | https://mvnrepository.com/artifact/io.openliberty.tools/liberty-langserver/2.4
-io.openliberty.tools:liberty-langserver-lemminx | https://mvnrepository.com/artifact/io.openliberty.tools/liberty-langserver-lemminx/2.4
-org.eclipse.lsp4j:org.eclipse.lsp4j | https://repo1.maven.org/maven2/org/eclipse/lsp4j/org.eclipse.lsp4j/0.14.0/org.eclipse.lsp4j-0.14.0-sources.jar
+io.openliberty.tools:liberty-langserver | https://mvnrepository.com/artifact/io.openliberty.tools/liberty-langserver/2.4.2
+io.openliberty.tools:liberty-langserver-lemminx | https://mvnrepository.com/artifact/io.openliberty.tools/liberty-langserver-lemminx/2.4.2
+org.eclipse.lsp4j:org.eclipse.lsp4j | https://repo1.maven.org/maven2/org/eclipse/lsp4j/org.eclipse.lsp4j/1.0.0/org.eclipse.lsp4j-1.0.0-sources.jar
 org.eclipse.lsp4j:org.eclipse.lsp4j.generator | https://mvnrepository.com/artifact/org.eclipse.lsp4j/org.eclipse.lsp4j.generator/0.14.0
-org.eclipse.lsp4j:org.eclipse.lsp4j.jsonrpc | https://repo1.maven.org/maven2/org/eclipse/lsp4j/org.eclipse.lsp4j.jsonrpc/0.14.0/org.eclipse.lsp4j.jsonrpc-0.14.0-sources.jar
+org.eclipse.lsp4j:org.eclipse.lsp4j.jsonrpc | https://repo1.maven.org/maven2/org/eclipse/lsp4j/org.eclipse.lsp4j.jsonrpc/1.0.0/org.eclipse.lsp4j.jsonrpc-1.0.0-sources.jar
 org.eclipse.lsp4jakarta:org.eclipse.lsp4jakarta.ls | https://github.com/eclipse/lsp4jakarta/tree/0.2.7
 org.eclipse.lsp4jakarta:org.eclipse.lsp4jakarta.jdt.core | https://github.com/eclipse/lsp4jakarta/tree/0.2.7
 org.eclipse.lsp4mp:org.eclipse.lsp4mp.ls | https://github.com/eclipse/lsp4mp/tree/0.18.0
 org.eclipse.xtend:org.eclipse.xtend.lib | https://mvnrepository.com/artifact/org.eclipse.xtend/org.eclipse.xtend.lib/2.24.0
 org.eclipse.xtend:org.eclipse.xtend.lib.macro | https://mvnrepository.com/artifact/org.eclipse.xtend/org.eclipse.xtend.lib.macro/2.24.0
-org.eclipse.xtext:org.eclipse.xtext.xbase.lib | https://mvnrepository.com/artifact/org.eclipse.xtext/org.eclipse.xtext.xbase.lib/2.24.0
+org.eclipse.xtext:org.eclipse.xtext.xbase.lib | https://mvnrepository.com/artifact/org.eclipse.xtext/org.eclipse.xtext.xbase.lib/2.42.0
 
 END OF ECLIPSE PUBLIC LICENSE, VERSION 2 NOTICES AND INFORMATION
 
@@ -367,7 +367,7 @@ Unicode-DFS-2016
 The Program includes some or all of the following that IBM obtained
 under a Unicode-DFS-2016 license:
 
-com.ibm.icu:icu4j 72.1 | Copyright (c) 1991-2022 Unicode  Inc. All rights reserved. | https://repo1.maven.org/maven2/com/ibm/icu/icu4j/72.1/icu4j-72.1-sources.jar
+com.ibm.icu:icu4j 78.3 | Copyright (c) 1991-2025 Unicode  Inc. All rights reserved. | https://repo1.maven.org/maven2/com/ibm/icu/icu4j/78.3/icu4j-78.3-sources.jar
 
 
 
