@@ -24,7 +24,7 @@ import io.openliberty.tools.eclipse.LibertyDevPlugin;
 import io.openliberty.tools.eclipse.model.ProjectModel;
 
 /**
- * Drives the STARTING in-progress animation for the Liberty Dashboard.
+ * Drives the STARTING in-progress animation for the Liberty Tools view.
  */
 class ProgressIndicatorAnimator {
 
