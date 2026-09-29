@@ -57,6 +57,7 @@ import org.eclipse.ui.part.ViewPart;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.DevModeOperations.ProjectAggregatedState;
+import io.openliberty.tools.eclipse.logging.Logger;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.messages.Messages;
 import io.openliberty.tools.eclipse.model.ProjectModel;
@@ -307,7 +308,7 @@ public class DashboardView extends ViewPart {
                 tree.setToolTipText("");
                 return;
             }
-            
+
             // Show the tooltip only when the cursor is within that bounds of the image.
             org.eclipse.swt.graphics.Rectangle iconBounds = item.getImageBounds(1);
             if (iconBounds.contains(e.x, e.y)) {
@@ -348,24 +349,24 @@ public class DashboardView extends ViewPart {
         formText.setLayoutData(textData);
 
         // Line 1: "There are no Liberty projects in your workspace. [Create] a Liberty project, or [import] one."
-        String line1Pre    = Messages.getMessage("dashboard_empty_msg_line1_pre");
+        String line1Pre = Messages.getMessage("dashboard_empty_msg_line1_pre");
         String line1Create = Messages.getMessage("dashboard_empty_msg_line1_create");
-        String line1Mid    = Messages.getMessage("dashboard_empty_msg_line1_mid");
+        String line1Mid = Messages.getMessage("dashboard_empty_msg_line1_mid");
         String line1Import = Messages.getMessage("dashboard_empty_msg_line1_import");
-        String line1Post   = Messages.getMessage("dashboard_empty_msg_line1_post");
+        String line1Post = Messages.getMessage("dashboard_empty_msg_line1_post");
 
         // Line 2: introductory sentence for the existing-project actions.
         String line2 = Messages.getMessage("dashboard_empty_msg_line2");
 
         // Action a: configure Liberty Maven or Gradle build plugin.
-        String actionAPre    = Messages.getMessage("dashboard_empty_msg_action_a_pre");
-        String actionAMaven  = Messages.getMessage("dashboard_empty_msg_action_a_maven");
-        String actionAMid    = Messages.getMessage("dashboard_empty_msg_action_a_mid");
+        String actionAPre = Messages.getMessage("dashboard_empty_msg_action_a_pre");
+        String actionAMaven = Messages.getMessage("dashboard_empty_msg_action_a_maven");
+        String actionAMid = Messages.getMessage("dashboard_empty_msg_action_a_mid");
         String actionAGradle = Messages.getMessage("dashboard_empty_msg_action_a_gradle");
-        String actionAPost   = Messages.getMessage("dashboard_empty_msg_action_a_post");
+        String actionAPost = Messages.getMessage("dashboard_empty_msg_action_a_post");
 
         // Action b: add a server.xml file.
-        String actionBPre  = Messages.getMessage("dashboard_empty_msg_action_b_pre");
+        String actionBPre = Messages.getMessage("dashboard_empty_msg_action_b_pre");
         String actionBLink = Messages.getMessage("dashboard_empty_msg_action_b_link");
         String actionBPost = Messages.getMessage("dashboard_empty_msg_action_b_post");
 
@@ -378,26 +379,26 @@ public class DashboardView extends ViewPart {
         String actionC = Messages.getMessage("dashboard_empty_msg_action_c");
 
         String message = "<form>"
-            + "<p>" + line1Pre
-            + " <a href=\"create\">" + line1Create + "</a>"
-            + " " + line1Mid
-            + " <a href=\"import\">" + line1Import + "</a>"
-            + " " + line1Post + "</p>"
-            + "<p>" + line2 + "</p>"
-            + "<li style=\"text\" value=\"" + actionALabel + "\">"
-            + actionAPre
-            + " <a href=\"" + URL_CI_MAVEN_CONFIG + "\">" + actionAMaven + "</a>"
-            + " " + actionAMid
-            + " <a href=\"" + URL_CI_GRADLE_CONFIG + "\">" + actionAGradle + "</a>"
-            + " " + actionAPost
-            + "</li>"
-            + "<li style=\"text\" value=\"" + actionBLabel + "\">"
-            + actionBPre
-            + " <a href=\"" + URL_SERVER_XML_CONFIG + "\">" + actionBLink + "</a>"
-            + " " + actionBPost
-            + "</li>"
-            + "<li style=\"text\" value=\"" + actionCLabel + "\">" + actionC + "</li>"
-            + "</form>";
+                         + "<p>" + line1Pre
+                         + " <a href=\"create\">" + line1Create + "</a>"
+                         + " " + line1Mid
+                         + " <a href=\"import\">" + line1Import + "</a>"
+                         + " " + line1Post + "</p>"
+                         + "<p>" + line2 + "</p>"
+                         + "<li style=\"text\" value=\"" + actionALabel + "\">"
+                         + actionAPre
+                         + " <a href=\"" + URL_CI_MAVEN_CONFIG + "\">" + actionAMaven + "</a>"
+                         + " " + actionAMid
+                         + " <a href=\"" + URL_CI_GRADLE_CONFIG + "\">" + actionAGradle + "</a>"
+                         + " " + actionAPost
+                         + "</li>"
+                         + "<li style=\"text\" value=\"" + actionBLabel + "\">"
+                         + actionBPre
+                         + " <a href=\"" + URL_SERVER_XML_CONFIG + "\">" + actionBLink + "</a>"
+                         + " " + actionBPost
+                         + "</li>"
+                         + "<li style=\"text\" value=\"" + actionCLabel + "\">" + actionC + "</li>"
+                         + "</form>";
         formText.setText(message, true, false);
 
         // Handle the Create and Import hyperlink clicks; documentation URLs are opened via openUrl().
@@ -464,8 +465,10 @@ public class DashboardView extends ViewPart {
         try {
             PlatformUI.getWorkbench().getBrowserSupport().createBrowser(null).openURL(new URI(url).toURL());
         } catch (Exception ex) {
+            String traceMsg = "Error opening URL: " + url;
+            Logger.logError(traceMsg, ex);
             if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_UI, "Error opening URL: " + url, ex);
+                Trace.getTracer().trace(Trace.TRACE_UI, traceMsg, ex);
             }
         }
     }
