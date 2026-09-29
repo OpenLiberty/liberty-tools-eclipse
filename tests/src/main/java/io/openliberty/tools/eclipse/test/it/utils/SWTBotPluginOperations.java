@@ -89,10 +89,9 @@ public class SWTBotPluginOperations {
      * Constants.
      */
     public static final String MENU_NAME = "Liberty";
-    public static final String MENU_OPEN_DASHBOARD_ACTION = "Open Dashboard";
-    public static final String TOOLBAR_OPEN_DASHBOARD_TIP = "Liberty Dashboard View";
+    public static final String TOOLBAR_OPEN_DASHBOARD_TIP = "Liberty Tools View";
     public static final String DASHBOARD_TOOLBAR_REFRESH_TIP = "refresh";
-    public static final String DASHBOARD_VIEW_TITLE = "Liberty Dashboard";
+    public static final String DASHBOARD_VIEW_TITLE = "Liberty Tools";
     public static final String LAUNCH_CONFIG_LIBERTY_MENU_NAME = "Liberty";
     public static final String EXPLORER_CONFIGURE_MENU_ENABLE_LIBERTY_TOOLS = "Enable Liberty";
     public static final String NEW_CONFIGURATION = "New_configuration";
