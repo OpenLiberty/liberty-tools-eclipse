@@ -89,6 +89,15 @@ public class DashboardView extends ViewPart {
     /** Gradle image tag path. */
     public static final String GRADLE_IMG_TAG_PATH = "icons/gradleTag.png";
 
+    /** URL for the Liberty Maven plugin configuration documentation. */
+    public static final String URL_CI_MAVEN_CONFIG = "https://github.com/OpenLiberty/ci.maven/#configuration";
+
+    /** URL for the Liberty Gradle plugin configuration documentation. */
+    public static final String URL_CI_GRADLE_CONFIG = "https://github.com/OpenLiberty/ci.gradle#adding-the-plugin-to-the-build-script";
+
+    /** URL for the Liberty server.xml configuration documentation. */
+    public static final String URL_SERVER_XML_CONFIG = "https://openliberty.io/docs/latest/reference/config/server-configuration-overview.html#server-xml";
+
     /** Menu Constants. */
     public static final String APP_MENU_ACTION_START = Messages.getMessage("dashboard_action_start");
     public static final String APP_MENU_ACTION_START_CONFIG = Messages.getMessage("dashboard_action_start_config");
@@ -321,7 +330,7 @@ public class DashboardView extends ViewPart {
         layout.marginHeight = 20;
         emptyComposite.setLayout(layout);
 
-        // Create a composite to center the content.
+        // Create a composite to center the content vertically.
         Composite centerComposite = new Composite(emptyComposite, SWT.NONE);
         GridData centerData = new GridData(SWT.FILL, SWT.CENTER, true, true);
         centerComposite.setLayoutData(centerData);
@@ -330,8 +339,7 @@ public class DashboardView extends ViewPart {
         centerLayout.marginHeight = 0;
         centerComposite.setLayout(centerLayout);
 
-        // Create FormToolkit for consistent styling with a FormText widget,
-        // which supports rich text with embedded hyperlinks.
+        // FormToolkit provides consistent styling; FormText supports embedded hyperlinks.
         formToolkit = new FormToolkit(emptyComposite.getDisplay());
         FormText formText = formToolkit.createFormText(centerComposite, true);
         GridData textData = new GridData(SWT.CENTER, SWT.CENTER, true, false);
@@ -339,26 +347,70 @@ public class DashboardView extends ViewPart {
         textData.grabExcessHorizontalSpace = true;
         formText.setLayoutData(textData);
 
-        // Set the message with two embedded hyperlinks: one for the Liberty starter
-        // wizard and one for the standard Eclipse import dialog.
-        String part1 = Messages.getMessage("dashboard_empty_message_part1");
-        String part2 = Messages.getMessage("dashboard_empty_message_part2");
-        String part3 = Messages.getMessage("dashboard_empty_message_part3");
-        String part4 = Messages.getMessage("dashboard_empty_message_part4");
-        String part5 = Messages.getMessage("dashboard_empty_message_part5");
-        String message = "<form><p>" + part1
-                         + " <a href=\"create\">" + part2 + "</a> " + part3
-                         + " <a href=\"import\">" + part4 + "</a> " + part5 + "</p></form>";
+        // Line 1: "There are no Liberty projects in your workspace. [Create] a Liberty project, or [import] one."
+        String line1Pre    = Messages.getMessage("dashboard_empty_msg_line1_pre");
+        String line1Create = Messages.getMessage("dashboard_empty_msg_line1_create");
+        String line1Mid    = Messages.getMessage("dashboard_empty_msg_line1_mid");
+        String line1Import = Messages.getMessage("dashboard_empty_msg_line1_import");
+        String line1Post   = Messages.getMessage("dashboard_empty_msg_line1_post");
+
+        // Line 2: introductory sentence for the existing-project actions.
+        String line2 = Messages.getMessage("dashboard_empty_msg_line2");
+
+        // Action a: configure Liberty Maven or Gradle build plugin.
+        String actionAPre    = Messages.getMessage("dashboard_empty_msg_action_a_pre");
+        String actionAMaven  = Messages.getMessage("dashboard_empty_msg_action_a_maven");
+        String actionAMid    = Messages.getMessage("dashboard_empty_msg_action_a_mid");
+        String actionAGradle = Messages.getMessage("dashboard_empty_msg_action_a_gradle");
+        String actionAPost   = Messages.getMessage("dashboard_empty_msg_action_a_post");
+
+        // Action b: add a server.xml file.
+        String actionBPre  = Messages.getMessage("dashboard_empty_msg_action_b_pre");
+        String actionBLink = Messages.getMessage("dashboard_empty_msg_action_b_link");
+        String actionBPost = Messages.getMessage("dashboard_empty_msg_action_b_post");
+
+        // Action a, b, c list labels.
+        String actionALabel = Messages.getMessage("dashboard_empty_msg_action_a_label");
+        String actionBLabel = Messages.getMessage("dashboard_empty_msg_action_b_label");
+        String actionCLabel = Messages.getMessage("dashboard_empty_msg_action_c_label");
+
+        // Action c: manually enable Liberty via the context menu.
+        String actionC = Messages.getMessage("dashboard_empty_msg_action_c");
+
+        String message = "<form>"
+            + "<p>" + line1Pre
+            + " <a href=\"create\">" + line1Create + "</a>"
+            + " " + line1Mid
+            + " <a href=\"import\">" + line1Import + "</a>"
+            + " " + line1Post + "</p>"
+            + "<p>" + line2 + "</p>"
+            + "<li style=\"text\" value=\"" + actionALabel + "\">"
+            + actionAPre
+            + " <a href=\"" + URL_CI_MAVEN_CONFIG + "\">" + actionAMaven + "</a>"
+            + " " + actionAMid
+            + " <a href=\"" + URL_CI_GRADLE_CONFIG + "\">" + actionAGradle + "</a>"
+            + " " + actionAPost
+            + "</li>"
+            + "<li style=\"text\" value=\"" + actionBLabel + "\">"
+            + actionBPre
+            + " <a href=\"" + URL_SERVER_XML_CONFIG + "\">" + actionBLink + "</a>"
+            + " " + actionBPost
+            + "</li>"
+            + "<li style=\"text\" value=\"" + actionCLabel + "\">" + actionC + "</li>"
+            + "</form>";
         formText.setText(message, true, false);
 
-        // Add hyperlink listener to handle both link clicks.
+        // Handle the Create and Import hyperlink clicks; documentation URLs are opened via openUrl().
         formText.addHyperlinkListener(new HyperlinkAdapter() {
             @Override
             public void linkActivated(HyperlinkEvent e) {
-                if ("create".equals(e.getHref())) {
+                String href = (String) e.getHref();
+                if ("create".equals(href)) {
                     openLibertyStarterWizard();
-                } else if ("import".equals(e.getHref())) {
+                } else if ("import".equals(href)) {
                     openImportWizard();
+                } else {
+                    openUrl(href);
                 }
             }
         });
@@ -400,6 +452,21 @@ public class DashboardView extends ViewPart {
                 Trace.getTracer().trace(Trace.TRACE_UI, "Error opening import wizard", ex);
             }
             ErrorHandler.processErrorMessage(Messages.getMessage("import_wizard_failed_to_open", ex.getMessage()), ex, true);
+        }
+    }
+
+    /**
+     * Opens the given URL using whichever browser is configured in Eclipse preferences.
+     *
+     * @param url The URL to open.
+     */
+    private void openUrl(String url) {
+        try {
+            PlatformUI.getWorkbench().getBrowserSupport().createBrowser(null).openURL(new URI(url).toURL());
+        } catch (Exception ex) {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UI, "Error opening URL: " + url, ex);
+            }
         }
     }
 
