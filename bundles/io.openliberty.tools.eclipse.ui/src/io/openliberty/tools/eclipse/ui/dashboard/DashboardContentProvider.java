@@ -21,7 +21,7 @@ import io.openliberty.tools.eclipse.model.ProjectModel;
 import io.openliberty.tools.eclipse.model.WorkspaceModel;
 
 /**
- * Content provider for the Liberty Dashboard tree view.
+ * Content provider for the Liberty Tools tree view.
  * Provides hierarchical display of multi-module projects.
  */
 public class DashboardContentProvider implements ITreeContentProvider {

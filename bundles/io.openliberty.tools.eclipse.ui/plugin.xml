@@ -345,7 +345,7 @@
             <command id="io.openliberty.tools.eclipse.dashboard.toolbar.command"
                   commandId="io.openliberty.tools.eclipse.open.dashboard.command"
                   icon="icons/openLibertyLogo.png"
-                  tooltip="Liberty Dashboard View"
+                  tooltip="Liberty Tools View"
                   style="push">
             </command>
          </toolbar>
@@ -689,7 +689,7 @@
            name="Liberty">
      </category>
      <view id="io.openliberty.tools.eclipse.views.liberty.devmode.dashboard"
-           name="Liberty Dashboard"
+           name="Liberty Tools"
            icon="icons/openLibertyLogo.png"
            category="io.openliberty.tools.eclipse.view.category"
            class="io.openliberty.tools.eclipse.ui.dashboard.DashboardView"/>

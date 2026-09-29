@@ -27,7 +27,7 @@ import io.openliberty.tools.eclipse.model.ProjectModel;
 import io.openliberty.tools.eclipse.model.ProjectModel.AppState;
 
 /**
- * Label providers for the two columns of the Liberty Dashboard tree viewer.
+ * Label providers for the two columns of the Liberty Tools tree viewer.
  *
  * Column 0: Has the badge project type column
  * Column 1: Has the state icon and the project name.

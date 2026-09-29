@@ -558,7 +558,7 @@ public class ProjectModel {
     /**
      * Checks whether this project is a parent of a module with Liberty server configuration.
      *
-     * This is used to expose parent/aggregator projects in the Liberty Dashboard
+     * This is used to expose parent/aggregator projects in the Liberty Tools view
      * even when they do not have Liberty configuration themselves.
      *
      * @return true if this is a parent of a Liberty server module, false otherwise.
