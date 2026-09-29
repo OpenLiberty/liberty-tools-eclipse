@@ -9,10 +9,10 @@ This guide provides detailed instructions on how to use Liberty Tools for the Ec
     + [Maven and Gradle](#maven-and-gradle)
     + [Docker](#docker)
   * [Create a new Liberty application](#create-a-new-liberty-application)
-  * [Opening the Liberty dashboard view](#opening-the-liberty-dashboard-view)
-  * [Liberty dashboard toolbar](#liberty-dashboard-toolbar)
-  * [Accessing Liberty Tools Operations](#accessing-liberty-tools-operations)
-    + [Using the Liberty dashboard view](#using-the-liberty-dashboard-view)
+  * [Opening the Liberty Tools view](#opening-the-liberty-tools-view)
+  * [Liberty Tools view toolbar](#liberty-tools-view-toolbar)
+  * [Accessing Liberty Tools operations](#accessing-liberty-tools-operations)
+    + [Using the Liberty Tools view](#using-the-liberty-tools-view)
     + [Using the Project Explorer view](#using-the-project-explorer-view)
   * [Running your application on Liberty using dev mode](#running-your-application-on-liberty-using-dev-mode)
     + [Start](#start)
@@ -114,11 +114,11 @@ To open the **New Liberty Project** wizard, use the **New** context menu in the 
 
 ![Open new Liberty project wizard using link in File-New](images/newLibertyProjectLinkMenuNew.png)
 
-If you do not have any projects in your workspace, use the **Create** link provided through Liberty Dashboard or **Create a Liberty project** link in the Eclipse explorers when empty. Both links open the **New Liberty Project** wizard.
+If you do not have any projects in your workspace, use the **Create** link provided through the Liberty Tools view or **Create a Liberty project** link in the Eclipse explorers when empty. Both links open the **New Liberty Project** wizard.
 
-Explorer             | Dashboard
+Explorer View            | Liberty Tools View
 :-------------------:|:-------------------:
-![Open the new Liberty project wizard using explorer link](images/newLibertyProjectLinkExplorer.png) | ![Open the new Liberty project wizard using dashboard link](images/newLibertyProjectLinkDashboard.png)
+![Open the new Liberty project wizard using explorer link](images/newLibertyProjectLinkExplorer.png) | ![Open the new Liberty project wizard using Liberty Tools view link](images/newLibertyProjectLinkLibertyToolsView.png)
 
 ![New Liberty Project wizard](images/newLibertyProjectWizard.png)
 
@@ -126,36 +126,36 @@ Specify your application and project name, choose Maven or Gradle as your build 
 
 Once you are satisfied with your changes, click **Finish** to generate the project. Liberty Tools will automatically install the project for you.
 
-## Opening the Liberty dashboard view
+## Opening the Liberty Tools view
 
 Click the Liberty icon on the main Eclipse toolbar.
 
-![Dashboard context menu for Maven Project with Liberty icon](images/openLibertyIconOnToolbar.png)
+![Liberty icon on main toolbar](images/openLibertyIconOnToolbar.png)
 
-If projects exist that are already properly configured to run on Liberty and use Liberty dev mode, those projects are automatically added to the dashboard when it opens.
+If projects exist that are already properly configured to run on Liberty and use Liberty dev mode, those projects are automatically added to the Liberty Tools view when it opens.
 
-## Liberty dashboard toolbar
+## Liberty Tools view toolbar
 
-The Liberty dashboard view provides a toolbar with the following icons:
+The Liberty Tools view provides a toolbar with the following icons:
 
-![Liberty dashboard toolbar](images/dashboardToolbar.png)
+![Liberty Tools view toolbar](images/libertyToolsViewToolbar.png)
 
-- **Expand All**: Expands all multi-module project nodes in the dashboard tree to show their child modules configured to run on a Liberty server.
-- **Collapse All**: Collapses all expanded multi-module project nodes in the dashboard tree, hiding the Liberty-configured child modules and showing only the parent project.
+- **Expand All**: Expands all multi-module project nodes in the tree to show their child modules configured to run on a Liberty server.
+- **Collapse All**: Collapses all expanded multi-module project nodes in the tree, hiding the Liberty-configured child modules and showing only the parent project.
 - **Filter**: Toggles a search bar that filters the displayed projects to those whose name contains the typed string.
-- **Refresh**: Rescans the workspace and updates the dashboard project list.
+- **Refresh**: Rescans the workspace and updates the project list.
 
 ## Accessing Liberty Tools operations
 
-Liberty Tools provides a series of operations to speed up application development.  These operations can be launched either through the **Liberty Dashboard** view or through the Project Explorer (or Package Explorer) views.  The multiple views can be mixed and matched, for example a run configuration created and customized through the **Liberty Dashboard** can later be launched through the Project Explorer context menu.  Another example is that an application started through the Project Explorer can be stopped through the **Liberty Dashboard** operation.
+Liberty Tools provides a series of operations to speed up application development.  These operations can be launched either through the **Liberty Tools** view or through the Project Explorer (or Package Explorer) views.  The multiple views can be mixed and matched, for example a run configuration created and customized through the **Liberty Tools** view can later be launched through the Project Explorer context menu.  Another example is that an application started through the Project Explorer can be stopped through the **Liberty Tools** view.
 
-### Using the Liberty dashboard view
+### Using the Liberty Tools view
 
-The Liberty dashboard provides a context menu to help run, test, and debug any configured Liberty projects. 
+The Liberty Tools view provides a context menu to help run, test, and debug any configured Liberty projects.
 
 Maven Projects             | Gradle Projects
 :-------------------------:|:-------------------------:
-![Dashboard context menu Gradle](images/maven-projectContextMenu.png) | ![Dashboard context menu Maven](images/gradle-projectContextMenu.png)
+![Liberty Tools view context menu Maven](images/maven-projectContextMenu.png) | ![Liberty Tools view context menu Gradle](images/gradle-projectContextMenu.png)
 
 ### Using the Project Explorer view
 
@@ -163,7 +163,7 @@ The Liberty Tools plugin provides a set of launch shortcut actions to the Libert
 
 Maven Projects             | Gradle Projects
 :-------------------------:|:-------------------------:
-![Dashboard context menu Gradle](images/maven-explorerViewContextMenu.png) | ![Dashboard context menu Maven](images/gradle-explorerViewContextMenu.png)
+![Explorer view context menu Maven](images/maven-explorerViewContextMenu.png) | ![Explorer view context menu Gradle](images/gradle-explorerViewContextMenu.png)
 
 (Note the Package Explorer view provides similar capabilities as Project Explorer.)
 
@@ -173,7 +173,7 @@ Three options are available to start your Liberty application in dev mode: Start
 
 ### Start
 
-To start your application in dev mode, you can either right-click the application listed in the Liberty dashboard and click the **Start** action, or right-click the application in the project explorer, select **Run As**, and select the **Liberty Start** launch shortcut.
+To start your application in dev mode, you can either right-click the application listed in the Liberty Tools view and click the **Start** action, or right-click the application in the project explorer, select **Run As**, and select the **Liberty Start** launch shortcut.
 
 A new Console opens to run the application in dev mode.
 
@@ -181,7 +181,7 @@ A new Console opens to run the application in dev mode.
 
 ### Start with Configuration
 
-To start your application in dev mode with customizations, you can either right-click on the application listed in the Liberty dashboard and click the  **Start...** action, or you can right-click the application in the project explorer, select **Run As** from the menu, and click the **Liberty Start...** launch shortcut. This action opens the Liberty configuration dialog that provides two customization tabs: **Start** and **JRE**.
+To start your application in dev mode with customizations, you can either right-click on the application listed in the Liberty Tools view and click the  **Start...** action, or you can right-click the application in the project explorer, select **Run As** from the menu, and click the **Liberty Start...** launch shortcut. This action opens the Liberty configuration dialog that provides two customization tabs: **Start** and **JRE**.
 
 Use the **Start** tab to customize how and where dev mode is run. On this tab, you can specify parameters such as `-DhotTests=true` and whether or not you want your application to run in a container. You can also specify if you want to run a clean before building the application. 
 
@@ -203,7 +203,7 @@ For a full list of supported parameters to customize dev mode, check out the [Li
 
 ### Start in container
 
-If you want to use dev mode for containers, you can either right-click on the application listed in the Liberty dashboard, and click the **Start in container** action. Alternatively, you can right-click the application in the project explorer, select **Run As** on the menu, and click the `Liberty Start in Container` launch shortcut.
+If you want to use dev mode for containers, you can either right-click on the application listed in the Liberty Tools view, and click the **Start in container** action. Alternatively, you can right-click the application in the project explorer, select **Run As** on the menu, and click the `Liberty Start in Container` launch shortcut.
 
 ![Start in container](images/maven-devModeWithContainerStarted.png)
 
@@ -215,7 +215,7 @@ For more information on dev mode for containers, check out the [Liberty Maven de
 
 Once your application is running on Liberty using dev mode, you can easily run the tests that are provided by your application. 
 
-To run tests, you can either right-click on the application listed in the Liberty dashboard, and click on the **Run tests** action, or you can right-click on the application in the project explorer, select **Run As** from the menu, and click the **Liberty Run Tests** launch shortcut.
+To run tests, you can either right-click on the application listed in the Liberty Tools view, and click on the **Run tests** action, or you can right-click on the application in the project explorer, select **Run As** from the menu, and click the **Liberty Run Tests** launch shortcut.
 
 The tests are run in the corresponding console.
 
@@ -227,17 +227,17 @@ Once you finish running your application's tests, you can access the test report
 
 ### Maven-built applications
 
-To view the integration test report you can either right-click on the application listed in the Liberty dashboard, and click the **View integration test report** action, or you can right-click the application in the project explorer, select **Run As** on the menu, and click on the **Liberty View Integration Test Report** launch shortcut.
+To view the integration test report you can either right-click on the application listed in the Liberty Tools view, and click the **View integration test report** action, or you can right-click the application in the project explorer, select **Run As** on the menu, and click on the **Liberty View Integration Test Report** launch shortcut.
 
 ![Integration test report on browser](images/maven-devModeITReportShown.png)
 
-To view the unit test report for Maven built applications, you can either right-click on the application listed in the Liberty dashboard and click the **View unit test report** action, or you can right-click the application in the project explorer, select **Run As**, and select the **Liberty View Unit Test Report** launch shortcut.
+To view the unit test report for Maven built applications, you can either right-click on the application listed in the Liberty Tools view and click the **View unit test report** action, or you can right-click the application in the project explorer, select **Run As**, and select the **Liberty View Unit Test Report** launch shortcut.
 
 ![Unit test report on browser](images/maven-devModeUTReportShown.png)
 
 ### Gradle-built applications
 
-To view the test report, you can either right-click the application listed in the Liberty dashboard and click the **View test report** action, or you can right-click on the application in the project explorer, select **Run As** on the menu, and click the **Liberty View Test Report** launch shortcut.
+To view the test report, you can either right-click the application listed in the Liberty Tools view and click the **View test report** action, or you can right-click on the application in the project explorer, select **Run As** on the menu, and click the **Liberty View Test Report** launch shortcut.
 
 ![Integration test report on browser](images/gradle-devModeTestReportShown.png)
 
@@ -245,7 +245,7 @@ Test reports are opened either in your Eclipse IDE's internal browser or an exte
 
 ## Stopping your application
 
-To stop your application, you can either right-click on the application listed in the Liberty dashboard, and click on the **Stop** action, or you can right-click on the application in the project explorer, select **Run As** on the menu, and click the **Liberty Stop** launch shortcut.
+To stop your application, you can either right-click on the application listed in the Liberty Tools view, and click on the **Stop** action, or you can right-click on the application in the project explorer, select **Run As** on the menu, and click the **Liberty Stop** launch shortcut.
 
 ![Stop action](images/maven-devModeStopped.png)
 
@@ -253,7 +253,7 @@ To stop your application, you can either right-click on the application listed i
 
 To debug your application, you can start dev mode with the debugger automatically attached to the Liberty server JVM running your application.
 
-To start dev mode with the debugger attached, right-click on the application in the project explorer, select **Debug As** on the menu, and click on one of the launch shortcut start actions: **Liberty Start**, **Liberty Start...**, or **Liberty Start in Container**. Alternatively, you can right-click on the application in the Liberty dashboard and select **Debug**, **Debug...**, or **Debug in container** for equivalent behavior. 
+To start dev mode with the debugger attached, right-click on the application in the project explorer, select **Debug As** on the menu, and click on one of the launch shortcut start actions: **Liberty Start**, **Liberty Start...**, or **Liberty Start in Container**. Alternatively, you can right-click on the application in the Liberty Tools view and select **Debug**, **Debug...**, or **Debug in container** for equivalent behavior.
 
 ![Debug As launch shortcuts](images/maven-DebugAsLaunchShortcuts.png)
 
@@ -292,7 +292,7 @@ To manually classify the project as a Liberty project, go to the project explore
 
 ![Explorer menu configure](images/explorerMenuConfigure.png)
 
-After the project is classified as a Liberty project, the project is automatically added to the Liberty dashboard, and you can start using the provided action commands. Similarly, you can start using the Liberty launch shortcuts through the project explorer **Run As** and **Debug As** menu entries.
+After the project is classified as a Liberty project, the project is automatically added to the Liberty Tools view, and you can start using the provided action commands. Similarly, you can start using the Liberty launch shortcuts through the project explorer **Run As** and **Debug As** menu entries.
 
 ## Setting preferences
 You can set some preferences through the Liberty Tools for Eclipse preference panel.
@@ -307,7 +307,7 @@ Set your preferences and click **Apply and Close**.
 
 Liberty configuration assistance provides editing assistance, such as [code completion, diagnostics, and quick-fixes](https://github.com/OpenLiberty/liberty-language-server#features), in Liberty `server.xml`, `server.env`, and `bootstrap.properties` files.
 
-1. Start the project in dev mode using one of the previously described dashboard start commands.  These commands install the Liberty features required for your app and allow the generation of a corresponding `server.xml` XSD schema file.
+1. Start the project in dev mode using one of the previously described start commands.  These commands install the Liberty features required for your app and allow the generation of a corresponding `server.xml` XSD schema file.
 
 2. Open any of the supported Liberty configuration files using the **Generic Text Editor**.
 
@@ -323,7 +323,7 @@ Liberty configuration assistance is offered through the Liberty Config Language 
 
 Liberty Tools editing assistance provides hover-over, code completion, and diagnostics in configuration and application files for MicroProfile APIs.
 
-1. Start the project in dev mode using one of the previously described dashboard start commands.
+1. Start the project in dev mode using one of the previously described start commands.
 2. Open a Java or `microprofile-config.properties` file. 
 3. To use MicroProfile-specific code completion, press <kbd>Ctrl</kbd> + <kbd>Space</kbd> / <kbd>Cmd</kbd> + <kbd>Space</kbd> anywhere within the document. A drop-down list of completion suggestions appears.
 
@@ -338,7 +338,7 @@ MicroProfile EE API configuration assistance is offered through Eclipse LSP4MP, 
 
 Liberty Tools editing assistance provides code completion, diagnostics, and quick-fixes in application files for Jakarta EE.
 
-1. Start the project in dev mode using one of the previously described dashboard start commands.
+1. Start the project in dev mode using one of the previously described start commands.
 2. Open a Java file. 
 3. To use Jakarta EE-specific code completion, press <kbd>Ctrl</kbd> + <kbd>Space</kbd> / <kbd>Cmd</kbd> + <kbd>Space</kbd> anywhere within the document. A drop-down list of completion suggestions and code snippets appears.
 
@@ -376,13 +376,13 @@ Child modules are identified as Liberty server modules if they contain Liberty s
 
 **Note:** Only one level of nesting is currently supported. Liberty server modules must be direct children of the aggregator.
 
-### Dashboard
+### Liberty Tools view
 
-The Liberty dashboard displays multi-module projects as a tree. The aggregator (parent) project appears as the top-level entry, and its Liberty-enabled child modules are shown nested under it. You can interact with the aggregator entry to target one or more modules, or interact directly with an individual child module entry.
+The Liberty Tools view displays multi-module projects as a tree. The aggregator (parent) project appears as the top-level entry, and its Liberty-enabled child modules are shown nested under it. You can interact with the aggregator entry to target one or more modules, or interact directly with an individual child module entry.
 
 ### Starting the application in dev mode
 
-When you invoke **Start** or **Start in container** on an aggregator project, Liberty Tools opens a module selection dialog listing the Liberty-enabled inactive modules in that project. You can select one or more modules to start simultaneously. This behavior is the same whether you use the Liberty dashboard or the **Run As** context menu in the project explorer.
+When you invoke **Start** or **Start in container** on an aggregator project, Liberty Tools opens a module selection dialog listing the Liberty-enabled inactive modules in that project. You can select one or more modules to start simultaneously. This behavior is the same whether you use the Liberty Tools view or the **Run As** context menu in the project explorer.
 
 ![Maven multi-liberty module start all selection](images/maven-multiLibertyModuleStartAll.png)
 

@@ -3,7 +3,7 @@
 [![License](https://img.shields.io/badge/License-EPL%202.0-red.svg?label=license&logo=eclipse)](https://www.eclipse.org/legal/epl-2.0/)
 
 A [Liberty](https://openliberty.io/) plugin for the Eclipse IDE. The plugin allows you to run your Liberty Maven or
-Liberty Gradle projects in dev mode through the Liberty dashboard view or through the project explorer view. You can start,
+Liberty Gradle projects in dev mode through the Liberty Tools view or through the project explorer view. You can start,
 stop, or interact with [Liberty dev mode](https://openliberty.io/docs/latest/development-mode.html) on all configured
 [Liberty Maven](https://github.com/OpenLiberty/ci.maven/blob/master/docs/dev.md#dev)
 and [Liberty Gradle](https://github.com/OpenLiberty/ci.gradle/blob/master/docs/libertyDev.md) projects in your
@@ -16,29 +16,29 @@ workspace.
 - [Contributing](#contributing)
 - [Issues](#issues)
 
-### Liberty dashboard
+### Liberty Tools view
 
 Maven Projects             | Gradle Projects
 :-------------------------:|:-------------------------:
-![Dashboard context menu for Maven Projects](docs/images/maven-dashboardViewContextMenuShown.png) | ![Dashboard context menu for Gradle Projects](docs/images/gradle-dashboardViewContextMenuShown.png)
+![Liberty Tools view context menu for Maven Projects](docs/images/maven-libertyToolsViewContextMenuShown.png) | ![Liberty Tools view context menu for Gradle Projects](docs/images/gradle-libertyToolsViewContextMenuShown.png)
 
 ### Explorer view
 
-![Dashboard context menu view](docs/images/maven-explorerViewContextMenu.png) 
+![Explorer context menu view](docs/images/maven-explorerViewContextMenu.png)
 
 ## Quick start
 
 - Understand the [prerequisites](docs/user-guide.md#before-you-begin)
 - [Install Liberty Tools](docs/installation.md).
 - Install your Maven or Gradle application.
-- Open the Liberty dashboard view by [clicking on the Liberty icon on the toolbar](https://github.com/OpenLiberty/liberty-tools-eclipse/blob/main/docs/user-guide.md#opening-the-liberty-dashboard-view), or open the project explorer view.
-- Right-click on your application in the Liberty dashboard to view the available action commands. If you are using the project explorer view, right-click on your application and select the `Run As` entry on the menu to view the available Liberty launch shortcuts.
+- Open the Liberty Tools view by [clicking on the Liberty icon on the toolbar](https://github.com/OpenLiberty/liberty-tools-eclipse/blob/main/docs/user-guide.md#opening-the-liberty-tools-view), or open the project explorer view.
+- Right-click on your application in the Liberty Tools view to see the available action commands. If you are using the project explorer view, right-click on your application and select the `Run As` entry on the menu to see the available Liberty launch shortcuts.
 
-For detailed instructions on how to use the Liberty dashboard context menu commands or the Liberty launch shortcuts in the project explorer view, check out the [User Guide](docs/user-guide.md) page.
+For detailed instructions on how to use the Liberty Tools view context menu commands or the Liberty launch shortcuts in the project explorer view, check out the [User Guide](docs/user-guide.md) page.
 
 ## Features
 
-- View supported projects in the dashboard.
+- View supported projects in the Liberty Tools view.
 - Start and stop dev mode.
 - Start dev mode with custom parameters.
 - Start dev mode in a container.
