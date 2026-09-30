@@ -14,8 +14,11 @@ package io.openliberty.tools.eclipse.ui.wizards;
 
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.HashMap;
 
+import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.jface.dialogs.IDialogSettings;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.resource.ImageDescriptor;
@@ -742,6 +745,21 @@ public class LibertyStarterWizard extends Wizard implements INewWizard, IWorkben
             // Validate Artifact format (matches website validation)
             if (!isValidArtifactName(artifact)) {
                 setErrorMessage(artifactErrorMsg);
+                setPageComplete(false);
+                return false;
+            }
+
+            // Check that no project with the same name already exists in the workspace.
+            if (ResourcesPlugin.getWorkspace().getRoot().getProject(artifact).exists()) {
+                setErrorMessage(Messages.getMessage("starter_wizard_project_exists_error"));
+                setPageComplete(false);
+                return false;
+            }
+
+            // Check that no directory with the same project name already exists at the chosen location.
+            String location = locationText.getText().trim();
+            if (!location.isEmpty() && Files.exists(Paths.get(location, artifact))) {
+                setErrorMessage(Messages.getMessage("starter_wizard_dir_exists_error", artifact));
                 setPageComplete(false);
                 return false;
             }
