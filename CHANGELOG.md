@@ -1,5 +1,19 @@
 # Liberty Tools Eclipse Changelog
 
+## 26.0.9 [changes](https://github.com/OpenLiberty/liberty-tools-eclipse/milestone/16) / [release](https://github.com/OpenLiberty/liberty-tools-eclipse/releases/tag/liberty-tools-26.0.9.202609301704) (September , 2026)
+
+### Eclipse Platform target release upgrade
+ * 4.40 (2026-06)
+
+### Dependency Upgrades
+ * Liberty Config Language Server (LCLS) => 2.4.2
+ * Language Server for Jakarta EE (LSP4Jakarta) => 0.2.7
+ * Language Server for MicroProfile (LSP4MP) => 0.18.0
+ 
+### Enhancements
+
+ * Added Liberty Tools dashboard support for Maven and Gradle Multi-module applications
+ * Added support to easily create new Liberty application projects
 
 ## 26.0.8 [changes](https://github.com/OpenLiberty/liberty-tools-eclipse/milestone/15) / [release](https://github.com/OpenLiberty/liberty-tools-eclipse/releases/tag/liberty-tools-26.0.8.202608120942) (August , 2026)
 
