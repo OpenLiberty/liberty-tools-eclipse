@@ -38,6 +38,7 @@ For detailed instructions on how to use the Liberty Tools view context menu comm
 
 ## Features
 
+- Create Liberty projects.
 - View supported projects in the Liberty Tools view.
 - Start and stop dev mode.
 - Start dev mode with custom parameters.
