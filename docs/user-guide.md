@@ -8,7 +8,7 @@ This guide provides detailed instructions on how to use Liberty Tools for the Ec
     + [Application requirements](#application-requirements)
     + [Maven and Gradle](#maven-and-gradle)
     + [Docker](#docker)
-  * [Create a new Liberty application](#create-a-new-liberty-application)
+  * [Create Liberty projects](#create-liberty-projects)
   * [Opening the Liberty Tools view](#opening-the-liberty-tools-view)
   * [Liberty Tools view toolbar](#liberty-tools-view-toolbar)
   * [Accessing Liberty Tools operations](#accessing-liberty-tools-operations)
@@ -106,7 +106,7 @@ If using the dev mode in containers (devc) function, you must add the 'docker' e
 * launch Eclipse by running the following command  `PATH=$PATH:../path/to/docker eclipse.exe ...`
 
    
-## Create a new Liberty application
+## Create Liberty projects
 
 Liberty Tools includes a built-in project wizard that gives you a simple, quick way to get the necessary files to start building an application on Liberty.
 
@@ -122,9 +122,9 @@ Explorer View            | Liberty Tools View
 
 ![New Liberty Project wizard](images/newLibertyProjectWizard.png)
 
-Specify your application and project name, choose Maven or Gradle as your build tool, and select which versions of Java SE, Jakarta EE, and MicroProfile your application will use. The wizard performs version compatibility checks and validates your selections before generating the project.
+Specify your group ID and project name, choose Maven or Gradle as your build tool, and select which versions of Java SE, Jakarta EE, and MicroProfile your application will use. The wizard performs version compatibility checks and validates your selections before generating the project.
 
-Once you are satisfied with your changes, click **Finish** to generate the project. Liberty Tools will automatically install the project for you.
+Once you are satisfied with your selections, click **Finish** to generate the project. Liberty Tools will automatically install the project for you.
 
 ## Opening the Liberty Tools view
 
