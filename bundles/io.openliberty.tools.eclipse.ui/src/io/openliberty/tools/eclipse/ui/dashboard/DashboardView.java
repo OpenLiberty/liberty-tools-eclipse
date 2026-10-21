@@ -62,6 +62,7 @@ import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.messages.Messages;
 import io.openliberty.tools.eclipse.model.ProjectModel;
 import io.openliberty.tools.eclipse.model.WorkspaceModel;
+import io.openliberty.tools.eclipse.server.logs.LogMenu;
 import io.openliberty.tools.eclipse.ui.launch.shortcuts.OpenGradleTestReportAction;
 import io.openliberty.tools.eclipse.ui.launch.shortcuts.OpenMavenITestReportAction;
 import io.openliberty.tools.eclipse.ui.launch.shortcuts.OpenMavenUTestReportAction;
@@ -612,6 +613,8 @@ public class DashboardView extends ViewPart {
                 ErrorHandler.processErrorMessage(Messages.getMessage("project_not_gradle_or_maven", projectName), true);
                 return;
             }
+
+            LogMenu.contribute(mgr, projectModel);
         }
     }
 
