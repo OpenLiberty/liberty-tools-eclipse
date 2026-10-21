@@ -17,8 +17,9 @@ import java.nio.file.Path;
 
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileStore;
-import org.eclipse.core.resources.IContainer;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -45,6 +46,7 @@ import org.eclipse.ui.navigator.CommonNavigator;
 import org.eclipse.ui.part.IShowInTarget;
 import org.eclipse.ui.part.ShowInContext;
 
+import io.openliberty.tools.eclipse.logging.Logger;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.messages.Messages;
 import io.openliberty.tools.eclipse.model.ProjectModel;
@@ -354,7 +356,7 @@ public class OpenLogsMenuContributor {
                 @Override
                 protected IStatus run(IProgressMonitor monitor) {
                     refreshToFolder(folder, project, monitor);
-                    Display.getDefault().asyncExec(() -> showFolder(folder));
+                    Display.getDefault().asyncExec(() -> showFolder(folder, project));
                     return Status.OK_STATUS;
                 }
             };
@@ -375,33 +377,31 @@ public class OpenLogsMenuContributor {
      * @param monitor The progress monitor for the refresh.
      */
     private static void refreshToFolder(Path folder, ProjectModel project, IProgressMonitor monitor) {
-        // Build the path segments from the project down to the target folder.
-        Path projectPath = Path.of(project.getPath());
-        Path relative;
-        try {
-            relative = projectPath.relativize(folder);
-        } catch (IllegalArgumentException e) {
-            // Folder is not under the project. No workspace refresh needed.
+        // A folder outside the project directory is not part of the workspace. No refresh is needed.
+        Path projectPath = Path.of(project.getPath()).toAbsolutePath().normalize();
+        Path normalizedFolder = folder.toAbsolutePath().normalize();
+        if (!normalizedFolder.startsWith(projectPath)) {
             return;
         }
+        Path relative = projectPath.relativize(normalizedFolder);
 
-        // Refresh one container at a time, stopping when a level is not found.
-        IContainer current = project.getIProject();
+        // Refresh one level at a time, stopping when a level is not found.
+        IProject iProject = project.getIProject();
         try {
-            current.refreshLocal(IResource.DEPTH_ONE, monitor);
+            iProject.refreshLocal(IResource.DEPTH_ONE, monitor);
             for (int i = 0; i < relative.getNameCount(); i++) {
-                String segment = relative.getName(i).toString();
-                IResource member = current.findMember(segment);
-                if (!(member instanceof IContainer)) {
+                IFolder level = iProject.getFolder(org.eclipse.core.runtime.Path.fromOSString(relative.subpath(0, i + 1).toString()));
+                if (!level.exists()) {
                     break;
                 }
-                current = (IContainer) member;
-                current.refreshLocal(IResource.DEPTH_ONE, monitor);
+                level.refreshLocal(IResource.DEPTH_ONE, monitor);
             }
         } catch (Exception e) {
+            String traceMsg = "Failed to refresh workspace path to: " + folder;
             if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_TOOLS, "Failed to refresh workspace path to: " + folder, e);
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, traceMsg, e);
             }
+            Logger.logError(traceMsg, e);
         }
     }
 
@@ -410,39 +410,47 @@ public class OpenLogsMenuContributor {
      * If neither of the explorers are opened, the project explorer is opened to show the input folder.
      * If the input folder is not in the workspace, open it using the system file manager.
      *
-     * @param folder The folder to show.
+     * @param folder  The folder to show.
+     * @param project The project that owns the folder.
      */
-    private static void showFolder(Path folder) {
+    private static void showFolder(Path folder, ProjectModel project) {
         IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
         if (window == null) {
+            String traceMsg = "No active workbench window found. Unable to show folder: " + folder;
             if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_TOOLS, "No active workbench window found. Unable to show folder: " + folder);
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, traceMsg);
             }
+            Logger.logError(traceMsg);
             return;
         }
 
         IWorkbenchPage page = window.getActivePage();
         if (page == null) {
+            String traceMsg = "No active workbench page found. Unable to show folder: " + folder;
             if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_TOOLS, "No active workbench page found. Unable to show folder: " + folder);
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, traceMsg);
             }
+            Logger.logError(traceMsg);
             return;
         }
 
-        // Map the folder to a workspace resource. Prefer a match in the owning project.
-        IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
-        IContainer[] containers = root.findContainersForLocationURI(folder.toUri());
-
-        IContainer target = null;
-        for (IContainer c : containers) {
-            if (c.exists()) {
-                target = c;
-                break;
+        // Resolve the folder against the current project. A folder outside the project, such as a
+        // customized Liberty output directory, will not have a resource because it is external to the workspace.
+        Path projectPath = Path.of(project.getPath());
+        IFolder target = null;
+        if (folder.startsWith(projectPath)) {
+            Path relative = projectPath.relativize(folder);
+            IFolder candidate = project.getIProject().getFolder(org.eclipse.core.runtime.Path.fromOSString(relative.toString()));
+            if (candidate.exists()) {
+                target = candidate;
             }
         }
 
-        // Not in the workspace or not yet visible after refresh.
+        // Not in the workspace or not yet visible after refresh. Use the system file manager.
         if (target == null) {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, "Folder is not in the workspace. Opening with the system file manager: " + folder);
+            }
             Program.launch(folder.toString());
             return;
         }
@@ -458,13 +466,13 @@ public class OpenLogsMenuContributor {
     }
 
     /**
-     * Shows and expands the target container in the given view.
+     * Shows and expands the target resource in the given view.
      *
      * @param page   The workbench page that hosts the view.
-     * @param viewId The ID of the view to reveal the container in.
-     * @param target The container to reveal.
+     * @param viewId The ID of the view to reveal the resource in.
+     * @param target The resource to reveal.
      */
-    private static void showInView(IWorkbenchPage page, String viewId, IContainer target) {
+    private static void showInView(IWorkbenchPage page, String viewId, IResource target) {
         try {
             IViewPart view = page.showView(viewId);
             if (view instanceof IShowInTarget) {
@@ -475,21 +483,23 @@ public class OpenLogsMenuContributor {
                 }
             }
         } catch (PartInitException e) {
+            String traceMsg = "Could not open view: " + viewId;
             if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_TOOLS, "Could not open view: " + viewId, e);
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, traceMsg, e);
             }
+            Logger.logError(traceMsg, e);
         }
     }
 
     /**
-     * Selects and expands the target container in the given view. Project Explorer (CommonNavigator)
+     * Selects and expands the target resource in the given view. Project Explorer (CommonNavigator)
      * and Package Explorer (IPackagesViewPart) both expose public API to expand and select, so both
      * behave identically.
      *
-     * @param view   The view that contains the container.
-     * @param target The container to select and expand.
+     * @param view   The view that contains the resource.
+     * @param target The resource to select and expand.
      */
-    private static void expandInView(IViewPart view, IContainer target) {
+    private static void expandInView(IViewPart view, IResource target) {
         try {
             if (view instanceof CommonNavigator) {
                 // Project Explorer and any CommonNavigator-based view.
@@ -503,9 +513,11 @@ public class OpenLogsMenuContributor {
                 pkg.getTreeViewer().setSelection(new StructuredSelection(target), true);
             }
         } catch (Exception e) {
+            String traceMsg = "Could not expand folder in view: " + view.getSite().getId();
             if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_TOOLS, "Could not expand folder in view: " + view.getSite().getId(), e);
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, traceMsg, e);
             }
+            Logger.logError(traceMsg, e);
         }
     }
 }

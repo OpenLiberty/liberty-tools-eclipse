@@ -34,21 +34,30 @@ public class LogFileManager {
     /**
      * Default relative path to the Liberty logs directory for Maven projects.
      */
-    public static final String MAVEN_LOGS_REL_PATH = "target/liberty/wlp/usr/servers/defaultServer/logs";
+    public static final String DEFAULT_MAVEN_LOGS_REL_PATH = "target/liberty/wlp/usr/servers/defaultServer/logs";
 
     /**
      * Default relative path to the Liberty logs directory for Gradle projects.
      */
-    public static final String GRADLE_LOGS_REL_PATH = "build/wlp/usr/servers/defaultServer/logs";
+    public static final String DEFAULT_GRADLE_LOGS_REL_PATH = "build/wlp/usr/servers/defaultServer/logs";
+
+    /** Default log file name extension, including the leading dot. */
+    public static final String DEFAULT_FILE_EXTENSION = ".log";
 
     /** Default messages log file name. */
-    public static final String DEFAULT_MESSAGES_FILE = "messages.log";
+    public static final String DEFAULT_MESSAGES_FILE = "messages" + DEFAULT_FILE_EXTENSION;
 
     /** Default trace log file name. */
-    public static final String DEFAULT_TRACE_FILE = "trace.log";
+    public static final String DEFAULT_TRACE_FILE = "trace" + DEFAULT_FILE_EXTENSION;
 
     /** Name of the ffdc directory located under the Liberty logs directory. */
     public static final String FFDC_DIR_NAME = "ffdc";
+
+    /** File name prefix of the exception summary files located in the ffdc directory. */
+    public static final String EXCEPTION_SUMMARY_FILE_PREFIX = "exception_summary_";
+
+    /** File name prefix of the ffdc log files located in the ffdc directory. */
+    public static final String FFDC_FILE_PREFIX = "ffdc_";
 
     /** Maximum number of files returned per log type before the overflow indicator is set. */
     public static final int MAX_FILES_PER_TYPE = 10;
@@ -85,7 +94,7 @@ public class LogFileManager {
      * @return The scan result with matching files and an overflow indicator.
      */
     public LogSearchResult getMessagesLogs(Path logsDir, String configuredFileName) {
-        return getLogs(logsDir, configuredFileName, "messages_", ".log");
+        return getLogs(logsDir, configuredFileName);
     }
 
     /**
@@ -97,7 +106,7 @@ public class LogFileManager {
      * @return The scan result with matching files and an overflow indicator.
      */
     public LogSearchResult getTraceLogs(Path logsDir, String configuredFileName) {
-        return getLogs(logsDir, configuredFileName, "trace_", ".log");
+        return getLogs(logsDir, configuredFileName);
     }
 
     /**
@@ -155,9 +164,9 @@ public class LogFileManager {
         BuildType buildType = project.getBuildType();
         String relPath;
         if (buildType == BuildType.Maven) {
-            relPath = MAVEN_LOGS_REL_PATH;
+            relPath = DEFAULT_MAVEN_LOGS_REL_PATH;
         } else if (buildType == BuildType.Gradle) {
-            relPath = GRADLE_LOGS_REL_PATH;
+            relPath = DEFAULT_GRADLE_LOGS_REL_PATH;
         } else {
             return null;
         }
@@ -167,21 +176,30 @@ public class LogFileManager {
     }
 
     /**
-     * Searches the input directory for regular files whose name equals the active file name or
-     * starts with the prefix and ends with the suffix. Returns at most MAX_FILES_PER_TYPE
+     * Searches the input directory for files whose name equals the active file name or
+     * matches the rolled file name pattern derived from it. Returns at most MAX_FILES_PER_TYPE
      * entries, newest first.
      *
-     * @param dir            The directory to scan.
+     * Liberty treats the text after the last dot of the active file name as the extension. A
+     * rolled file name is the active file name without its extension, followed by an underscore
+     * and a timestamp, followed by the extension.
+     * 
+     * For example:
+     * messages.log, messages_[timestamp].log
+     * mytrace, mytrace_[timestamp]
+     * my_trace.debug.ext, my_trace.debug_[timestamp].ext
+     *
+     * @param dir The directory to scan.
      * @param activeFileName The active log file name.
-     * @param prefix         The file name prefix of the rolled log files.
-     * @param suffix         The file name suffix of the rolled log files.
      *
      * @return The scan result with matching files and an overflow indicator.
      */
-    private LogSearchResult getLogs(Path dir, String activeFileName, String prefix, String suffix) {
+    private LogSearchResult getLogs(Path dir, String activeFileName) {
         if (!Files.isDirectory(dir)) {
             return new LogSearchResult(List.of(), false);
         }
+        String prefix = getBaseName(activeFileName) + "_";
+        String suffix = getExtension(activeFileName);
         List<Path> matched = new ArrayList<>();
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(dir)) {
             for (Path entry : stream) {
@@ -204,6 +222,31 @@ public class LogFileManager {
 
         // Cap the result size to MAX_FILES_PER_TYPE.
         return capResult(matched);
+    }
+
+    /**
+     * Returns the file name without its extension. The extension starts at the last dot.
+     *
+     * @param fileName The file name.
+     *
+     * @return The file name without its extension, or the file name itself if it has no extension.
+     */
+    private String getBaseName(String fileName) {
+        int extIndex = fileName.lastIndexOf('.');
+        return (extIndex > 0) ? fileName.substring(0, extIndex) : fileName;
+    }
+
+    /**
+     * Returns the extension of the file name, including the leading dot. The extension starts at
+     * the last dot.
+     *
+     * @param fileName The file name.
+     *
+     * @return The extension including the leading dot, or an empty string if there is none.
+     */
+    private String getExtension(String fileName) {
+        int extIndex = fileName.lastIndexOf('.');
+        return (extIndex > 0) ? fileName.substring(extIndex) : "";
     }
 
     /**
@@ -262,7 +305,7 @@ public class LogFileManager {
      * @return True if the name matches exception_summary_*.log.
      */
     private boolean isExceptionSummaryFile(String name) {
-        return (name.startsWith("exception_summary_") && name.endsWith(".log"));
+        return name.startsWith(EXCEPTION_SUMMARY_FILE_PREFIX) && name.endsWith(DEFAULT_FILE_EXTENSION);
     }
 
     /**
@@ -273,7 +316,7 @@ public class LogFileManager {
      * @return True if the name matches ffdc_*.log.
      */
     private boolean isFfdcLogFile(String name) {
-        return name.startsWith("ffdc_") && name.endsWith(".log");
+        return name.startsWith(FFDC_FILE_PREFIX) && name.endsWith(DEFAULT_FILE_EXTENSION);
     }
 
     /**
