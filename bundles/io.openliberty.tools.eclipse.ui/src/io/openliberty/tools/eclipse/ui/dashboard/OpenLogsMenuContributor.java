@@ -10,7 +10,7 @@
  * Contributors:
  *     IBM Corporation - initial implementation
  *******************************************************************************/
-package io.openliberty.tools.eclipse.server.logs;
+package io.openliberty.tools.eclipse.ui.dashboard;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -31,7 +31,6 @@ import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
-import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Display;
@@ -49,11 +48,32 @@ import org.eclipse.ui.part.ShowInContext;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.messages.Messages;
 import io.openliberty.tools.eclipse.model.ProjectModel;
+import io.openliberty.tools.eclipse.server.logs.LogConfig;
+import io.openliberty.tools.eclipse.server.logs.LogFileManager;
+import io.openliberty.tools.eclipse.utils.ErrorHandler;
 
 /**
  * Builds and populates the 'Open logs' entry in the Liberty Dashboard context menu.
  */
-public class LogMenu {
+public class OpenLogsMenuContributor {
+
+    /** Label of the 'Open logs' context menu entry. */
+    public static final String MENU_ACTION_OPENLOGS = Messages.getMessage("logs_menu_open_logs");
+
+    /** Label of the 'Open logs folder' context menu entry. */
+    public static final String MENU_ACTION_OPENLOGS_FOLDER = Messages.getMessage("logs_menu_open_logs_folder");
+
+    /** Label of the 'More...' context menu entry. */
+    public static final String MENU_ACTION_OPENLOGS_MORE = Messages.getMessage("logs_menu_more");
+
+    /** Label of the messages log type context menu entry. */
+    public static final String MENU_ACTION_OPENLOGS_MSGS_TYPE = Messages.getMessage("logs_menu_type_messages");
+
+    /** Label of the trace log type context menu entry. */
+    public static final String MENU_ACTION_OPENLOGS_TRACE_TYPE = Messages.getMessage("logs_menu_type_trace");
+
+    /** Label of the ffdc log type context menu entry. */
+    public static final String MENU_ACTION_OPENLOGS_FFDC_TYPE = Messages.getMessage("logs_menu_type_ffdc");
 
     /** Project Explorer view ID. */
     private static final String PROJECT_EXPLORER_ID = "org.eclipse.ui.navigator.ProjectExplorer";
@@ -81,7 +101,7 @@ public class LogMenu {
 
         // Gray out the entry when the location cannot be determined or does not exist.
         if (config == null || config.getLogsDir() == null || !Files.isDirectory(config.getLogsDir())) {
-            Action disabled = new Action(Messages.getMessage("logs_menu_open_logs")) {
+            Action disabled = new Action(MENU_ACTION_OPENLOGS) {
                 /**
                  * {@inheritDoc}
                  */
@@ -96,18 +116,18 @@ public class LogMenu {
         }
 
         Path logsDir = config.getLogsDir();
-        MenuManager logsMenu = new MenuManager(Messages.getMessage("logs_menu_open_logs"));
+        MenuManager logsMenu = new MenuManager(MENU_ACTION_OPENLOGS);
 
-        addTypeSubmenu(logsMenu, Messages.getMessage("logs_menu_type_messages"),
+        addTypeSubmenu(logsMenu, MENU_ACTION_OPENLOGS_MSGS_TYPE,
                        logFileManager.getMessagesLogs(logsDir, config.getMessagesFileName()), logsDir, project);
 
-        addTypeSubmenu(logsMenu, Messages.getMessage("logs_menu_type_trace"),
+        addTypeSubmenu(logsMenu, MENU_ACTION_OPENLOGS_TRACE_TYPE,
                        logFileManager.getTraceLogs(logsDir, config.getTraceFileName()), logsDir, project);
 
         addFfdcSubmenu(logsMenu, logFileManager.getFFDCLogs(logsDir), logsDir, project);
 
         logsMenu.add(new Separator());
-        logsMenu.add(new RevealFolderAction(Messages.getMessage("logs_menu_open_logs_folder"), logsDir, project));
+        logsMenu.add(new RevealFolderAction(MENU_ACTION_OPENLOGS_FOLDER, logsDir, project));
 
         mgr.add(logsMenu);
     }
@@ -146,7 +166,7 @@ public class LogMenu {
 
         if (result.hasMore()) {
             sub.add(new Separator());
-            sub.add(new RevealFolderAction(Messages.getMessage("logs_menu_more"), logsDir, project));
+            sub.add(new RevealFolderAction(MENU_ACTION_OPENLOGS_MORE, logsDir, project));
         }
 
         parent.add(sub);
@@ -154,7 +174,7 @@ public class LogMenu {
 
     /**
      * Adds the ffdc type submenu. When no files match, adds a disabled entry instead. The 'More...' entry
-     * reveals, sets focus, and expands the ffdc folder
+     * reveals, sets focus, and expands the ffdc folder.
      *
      * @param parent  The menu manager to add the submenu to.
      * @param result  The scan result for the ffdc files.
@@ -163,11 +183,10 @@ public class LogMenu {
      */
     private static void addFfdcSubmenu(MenuManager parent, LogFileManager.LogSearchResult result,
                                        Path logsDir, ProjectModel project) {
-        String label = Messages.getMessage("logs_menu_type_ffdc");
-        Path ffdcDir = logsDir.resolve("ffdc");
+        Path ffdcDir = logsDir.resolve(LogFileManager.FFDC_DIR_NAME);
 
         if (result.getFiles().isEmpty()) {
-            Action disabled = new Action(label) {
+            Action disabled = new Action(MENU_ACTION_OPENLOGS_FFDC_TYPE) {
                 /**
                  * {@inheritDoc}
                  */
@@ -181,14 +200,14 @@ public class LogMenu {
             return;
         }
 
-        MenuManager sub = new MenuManager(label);
+        MenuManager sub = new MenuManager(MENU_ACTION_OPENLOGS_FFDC_TYPE);
         for (Path file : result.getFiles()) {
             sub.add(new OpenFileAction(file.getFileName().toString(), file));
         }
 
         if (result.hasMore()) {
             sub.add(new Separator());
-            sub.add(new RevealFolderAction(Messages.getMessage("logs_menu_more"), ffdcDir, project));
+            sub.add(new RevealFolderAction(MENU_ACTION_OPENLOGS_MORE, ffdcDir, project));
         }
 
         parent.add(sub);
@@ -232,16 +251,21 @@ public class LogMenu {
 
             // Check if the file exists.
             if (!Files.exists(file)) {
-                String msg = Messages.getMessage("logs_open_file_not_found", file.getFileName().toString());
                 if (Trace.isEnabled()) {
-                    Trace.getTracer().trace(Trace.TRACE_TOOLS, "Log file cannot be found: " + file);
+                    Trace.getTracer().traceExit(Trace.TRACE_TOOLS, "Log file cannot be found: " + file);
                 }
 
-                MessageDialog.openInformation(window.getShell(), Messages.getMessage("logs_dialog_title"), msg);
+                ErrorHandler.processErrorMessage(Messages.getMessage("logs_open_file_not_found", file.getFileName().toString()), true);
                 return;
             }
 
             IWorkbenchPage page = window.getActivePage();
+            if (page == null) {
+                if (Trace.isEnabled()) {
+                    Trace.getTracer().traceExit(Trace.TRACE_TOOLS, "No active workbench page found. Unable to open log file: " + file);
+                }
+                return;
+            }
 
             // Prefer opening as a workspace resource when the file is known to the workspace.
             IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
@@ -268,6 +292,8 @@ public class LogMenu {
                 if (Trace.isEnabled()) {
                     Trace.getTracer().trace(Trace.TRACE_TOOLS, "Failed to open log file: " + file, e);
                 }
+
+                ErrorHandler.processErrorMessage(Messages.getMessage("logs_open_file_failed", file.getFileName().toString()), e, true);
             }
 
             if (Trace.isEnabled()) {
@@ -278,7 +304,7 @@ public class LogMenu {
 
     /**
      * Reveals a logs folder in Package Explorer or Project Explorer. If the folder is not
-     * in the users workspace, the folder is opened using the system's file manager.
+     * in the user's workspace, the folder is opened using the system's file manager.
      */
     private static final class RevealFolderAction extends Action {
 
@@ -312,14 +338,11 @@ public class LogMenu {
 
             // Check if the folder is a directory.
             if (!Files.isDirectory(folder)) {
-                IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
-                String msg = Messages.getMessage("logs_folder_not_found", folder.getFileName().toString());
                 if (Trace.isEnabled()) {
-                    Trace.getTracer().trace(Trace.TRACE_TOOLS, "Logs folder cannot be found: " + folder);
+                    Trace.getTracer().traceExit(Trace.TRACE_TOOLS, "Logs folder cannot be found: " + folder);
                 }
-                if (window != null) {
-                    MessageDialog.openInformation(window.getShell(), Messages.getMessage("logs_dialog_title"), msg);
-                }
+
+                ErrorHandler.processErrorMessage(Messages.getMessage("logs_folder_not_found", folder.getFileName().toString()), true);
                 return;
             }
 
@@ -352,12 +375,6 @@ public class LogMenu {
      * @param monitor The progress monitor for the refresh.
      */
     private static void refreshToFolder(Path folder, ProjectModel project, IProgressMonitor monitor) {
-        IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
-        IResource projectResource = root.getProject(project.getIProject().getName());
-        if (projectResource == null) {
-            return;
-        }
-
         // Build the path segments from the project down to the target folder.
         Path projectPath = Path.of(project.getPath());
         Path relative;
@@ -369,7 +386,7 @@ public class LogMenu {
         }
 
         // Refresh one container at a time, stopping when a level is not found.
-        IContainer current = projectResource.getProject();
+        IContainer current = project.getIProject();
         try {
             current.refreshLocal(IResource.DEPTH_ONE, monitor);
             for (int i = 0; i < relative.getNameCount(); i++) {
@@ -399,7 +416,7 @@ public class LogMenu {
         IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
         if (window == null) {
             if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_TOOLS, "No active workbench window found. Uneable to show folder: " + folder);
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, "No active workbench window found. Unable to show folder: " + folder);
             }
             return;
         }
@@ -407,7 +424,7 @@ public class LogMenu {
         IWorkbenchPage page = window.getActivePage();
         if (page == null) {
             if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_TOOLS, "No active workbench page found. Uneable to show folder: " + folder);
+                Trace.getTracer().trace(Trace.TRACE_TOOLS, "No active workbench page found. Unable to show folder: " + folder);
             }
             return;
         }
@@ -446,8 +463,6 @@ public class LogMenu {
      * @param page   The workbench page that hosts the view.
      * @param viewId The ID of the view to reveal the container in.
      * @param target The container to reveal.
-     *
-     * @return True if the container was revealed, false otherwise.
      */
     private static void showInView(IWorkbenchPage page, String viewId, IContainer target) {
         try {

@@ -18,14 +18,16 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.model.ProjectModel;
 import io.openliberty.tools.eclipse.model.ProjectModel.BuildType;
 
 /**
- * Manages the discovery and distribution of Libert server log files.
+ * Manages the discovery of Liberty server log files.
  */
 public class LogFileManager {
 
@@ -44,7 +46,10 @@ public class LogFileManager {
 
     /** Default trace log file name. */
     public static final String DEFAULT_TRACE_FILE = "trace.log";
-    
+
+    /** Name of the ffdc directory located under the Liberty logs directory. */
+    public static final String FFDC_DIR_NAME = "ffdc";
+
     /** Maximum number of files returned per log type before the overflow indicator is set. */
     public static final int MAX_FILES_PER_TYPE = 10;
 
@@ -53,7 +58,7 @@ public class LogFileManager {
 
     /**
      * Returns a singleton instance of this class.
-     * 
+     *
      * @return A singleton instance of this class.
      */
     public static LogFileManager getInstance() {
@@ -74,7 +79,7 @@ public class LogFileManager {
     /**
      * Searches the input directory for messages log files.
      *
-     * @param logsDir        The Liberty logs directory to scan.
+     * @param logsDir            The Liberty logs directory to scan.
      * @param configuredFileName The active messages log file name, such as messages.log.
      *
      * @return The scan result with matching files and an overflow indicator.
@@ -86,7 +91,7 @@ public class LogFileManager {
     /**
      * Searches the input directory for trace log files.
      *
-     * @param logsDir        The Liberty logs directory to scan.
+     * @param logsDir            The Liberty logs directory to scan.
      * @param configuredFileName The active trace log file name, such as trace.log.
      *
      * @return The scan result with matching files and an overflow indicator.
@@ -103,7 +108,7 @@ public class LogFileManager {
      * @return The scan result with matching files and an overflow indicator.
      */
     public LogSearchResult getFFDCLogs(Path logsDir) {
-        Path ffdcDir = logsDir.resolve("ffdc");
+        Path ffdcDir = logsDir.resolve(FFDC_DIR_NAME);
         if (!Files.isDirectory(ffdcDir)) {
             return new LogSearchResult(List.of(), false);
         }
@@ -193,10 +198,10 @@ public class LogFileManager {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, "Failed to scan log directory: " + dir, e);
             }
         }
-        
+
         // Sort the files.
         sortNewestFirst(matched);
-        
+
         // Cap the result size to MAX_FILES_PER_TYPE.
         return capResult(matched);
     }
@@ -208,7 +213,14 @@ public class LogFileManager {
      * @param paths The paths to sort.
      */
     private void sortNewestFirst(List<Path> paths) {
-        paths.sort(Comparator.comparingLong(this::lastModified).reversed().thenComparing(p -> p.getFileName().toString(), Comparator.reverseOrder()));
+        // Read each modification time once so that the comparator performs no file system access.
+        Map<Path, Long> modifiedTimes = new HashMap<>();
+        for (Path path : paths) {
+            modifiedTimes.put(path, lastModified(path));
+        }
+
+        paths.sort(Comparator.<Path> comparingLong(modifiedTimes::get).reversed()
+                             .thenComparing(p -> p.getFileName().toString(), Comparator.reverseOrder()));
     }
 
     /**
@@ -247,7 +259,7 @@ public class LogFileManager {
      *
      * @param name The file name to test.
      *
-     * @return True if the name matches exception_summary.*.log or exception_summary_*.log.
+     * @return True if the name matches exception_summary_*.log.
      */
     private boolean isExceptionSummaryFile(String name) {
         return (name.startsWith("exception_summary_") && name.endsWith(".log"));
@@ -263,12 +275,12 @@ public class LogFileManager {
     private boolean isFfdcLogFile(String name) {
         return name.startsWith("ffdc_") && name.endsWith(".log");
     }
-    
+
     /**
      * The result of scanning one log type directory. Holds an ordered list of matching paths
      * and a flag indicating whether more files exist beyond the returned set.
      */
-    public final class LogSearchResult {
+    public static final class LogSearchResult {
 
         /** The ordered list of matching paths, at most MAX_FILES_PER_TYPE entries. */
         private final List<Path> files;
@@ -277,9 +289,9 @@ public class LogFileManager {
         private final boolean hasMore;
 
         /**
-         * Creates a ScanResult.
+         * Creates a LogSearchResult.
          *
-         * @param files The ordered list of matching paths.
+         * @param files   The ordered list of matching paths.
          * @param hasMore True when more matching files exist than were returned.
          */
         public LogSearchResult(List<Path> files, boolean hasMore) {

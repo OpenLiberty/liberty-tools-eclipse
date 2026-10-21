@@ -62,7 +62,6 @@ import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.messages.Messages;
 import io.openliberty.tools.eclipse.model.ProjectModel;
 import io.openliberty.tools.eclipse.model.WorkspaceModel;
-import io.openliberty.tools.eclipse.server.logs.LogMenu;
 import io.openliberty.tools.eclipse.ui.launch.shortcuts.OpenGradleTestReportAction;
 import io.openliberty.tools.eclipse.ui.launch.shortcuts.OpenMavenITestReportAction;
 import io.openliberty.tools.eclipse.ui.launch.shortcuts.OpenMavenUTestReportAction;
@@ -614,7 +613,7 @@ public class DashboardView extends ViewPart {
                 return;
             }
 
-            LogMenu.contribute(mgr, projectModel);
+            OpenLogsMenuContributor.contribute(mgr, projectModel);
         }
     }
 
