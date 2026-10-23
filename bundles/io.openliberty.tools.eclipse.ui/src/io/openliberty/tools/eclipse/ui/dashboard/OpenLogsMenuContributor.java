@@ -85,7 +85,7 @@ public class OpenLogsMenuContributor {
 
     /**
      * Adds the separator and "Open logs" submenu to the given context menu manager for the project.
-     * Does nothing when the project is a parent of Liberty server modules.
+     * No entries are added when the project is a parent of a Liberty server module.
      *
      * @param mgr     The context menu manager to contribute to.
      * @param project The project selected in the dashboard.
@@ -126,7 +126,8 @@ public class OpenLogsMenuContributor {
         addTypeSubmenu(logsMenu, MENU_ACTION_OPENLOGS_TRACE_TYPE,
                        logFileManager.getTraceLogs(logsDir, config.getTraceFileName()), logsDir, project);
 
-        addFfdcSubmenu(logsMenu, logFileManager.getFFDCLogs(logsDir), logsDir, project);
+        addTypeSubmenu(logsMenu, MENU_ACTION_OPENLOGS_FFDC_TYPE,
+                       logFileManager.getFFDCLogs(logsDir), logsDir.resolve(LogFileManager.FFDC_DIR_NAME), project);
 
         logsMenu.add(new Separator());
         logsMenu.add(new RevealFolderAction(MENU_ACTION_OPENLOGS_FOLDER, logsDir, project));
@@ -135,17 +136,18 @@ public class OpenLogsMenuContributor {
     }
 
     /**
-     * Adds a type submenu for messages or trace files. When no files match, adds a disabled entry
-     * with the type label instead.
+     * Adds a type submenu for messages, trace, or ffdc files. When no files match, adds a disabled
+     * entry with the type label instead. When the result has more files than shown, a 'More...' entry
+     * is added that reveals fileFolder.
      *
-     * @param parent  The menu manager to add the submenu to.
-     * @param label   The label of the type submenu.
-     * @param result  The scan result for the log type.
-     * @param logsDir The Liberty logs directory. The More entry reveals this folder.
-     * @param project The project selected in the dashboard.
+     * @param parent     The menu manager to add the submenu to.
+     * @param label      The label of the type submenu.
+     * @param result     The scan result for the log type.
+     * @param fileFolder The folder that contains the log files and that the 'More...' entry will reveal.
+     * @param project    The project selected in the dashboard.
      */
     private static void addTypeSubmenu(MenuManager parent, String label, LogFileManager.LogSearchResult result,
-                                       Path logsDir, ProjectModel project) {
+                                       Path fileFolder, ProjectModel project) {
         if (result.getFiles().isEmpty()) {
             Action disabled = new Action(label) {
                 /**
@@ -168,48 +170,7 @@ public class OpenLogsMenuContributor {
 
         if (result.hasMore()) {
             sub.add(new Separator());
-            sub.add(new RevealFolderAction(MENU_ACTION_OPENLOGS_MORE, logsDir, project));
-        }
-
-        parent.add(sub);
-    }
-
-    /**
-     * Adds the ffdc type submenu. When no files match, adds a disabled entry instead. The 'More...' entry
-     * reveals, sets focus, and expands the ffdc folder.
-     *
-     * @param parent  The menu manager to add the submenu to.
-     * @param result  The scan result for the ffdc files.
-     * @param logsDir The Liberty logs directory that contains the ffdc folder.
-     * @param project The project selected in the dashboard.
-     */
-    private static void addFfdcSubmenu(MenuManager parent, LogFileManager.LogSearchResult result,
-                                       Path logsDir, ProjectModel project) {
-        Path ffdcDir = logsDir.resolve(LogFileManager.FFDC_DIR_NAME);
-
-        if (result.getFiles().isEmpty()) {
-            Action disabled = new Action(MENU_ACTION_OPENLOGS_FFDC_TYPE) {
-                /**
-                 * {@inheritDoc}
-                 */
-                @Override
-                public void run() {
-                    // No-op. No FFDC files found.
-                }
-            };
-            disabled.setEnabled(false);
-            parent.add(disabled);
-            return;
-        }
-
-        MenuManager sub = new MenuManager(MENU_ACTION_OPENLOGS_FFDC_TYPE);
-        for (Path file : result.getFiles()) {
-            sub.add(new OpenFileAction(file.getFileName().toString(), file));
-        }
-
-        if (result.hasMore()) {
-            sub.add(new Separator());
-            sub.add(new RevealFolderAction(MENU_ACTION_OPENLOGS_MORE, ffdcDir, project));
+            sub.add(new RevealFolderAction(MENU_ACTION_OPENLOGS_MORE, fileFolder, project));
         }
 
         parent.add(sub);
@@ -251,7 +212,6 @@ public class OpenLogsMenuContributor {
                 return;
             }
 
-            // Check if the file exists.
             if (!Files.exists(file)) {
                 if (Trace.isEnabled()) {
                     Trace.getTracer().traceExit(Trace.TRACE_TOOLS, "Log file cannot be found: " + file);
@@ -338,7 +298,6 @@ public class OpenLogsMenuContributor {
                 Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, new Object[] { folder.toString(), project.getName() });
             }
 
-            // Check if the folder is a directory.
             if (!Files.isDirectory(folder)) {
                 if (Trace.isEnabled()) {
                     Trace.getTracer().traceExit(Trace.TRACE_TOOLS, "Logs folder cannot be found: " + folder);
@@ -407,8 +366,8 @@ public class OpenLogsMenuContributor {
 
     /**
      * Shows the input folder in the explorer view that is currently being used.
-     * If neither of the explorers are opened, the project explorer is opened to show the input folder.
-     * If the input folder is not in the workspace, open it using the system file manager.
+     * If neither explorer is open, the Project Explorer is opened to show the input folder.
+     * If the input folder is not in the workspace, opens it using the system file manager.
      *
      * @param folder  The folder to show.
      * @param project The project that owns the folder.

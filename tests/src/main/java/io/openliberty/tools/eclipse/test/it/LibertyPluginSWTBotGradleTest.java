@@ -135,6 +135,9 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
                                                      DashboardView.APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT,
                                                      OpenLogsMenuContributor.MENU_ACTION_OPENLOGS};
 
+    /** Number of separators added to the dashboard context menu alongside the named menu items. */
+    static final int MENU_SEPARATOR_COUNT = 1;
+
     /**
      * Run As configuration menu items for an inactive project. Actions such
      * as "Stop" and "Run Tests" are only present when the project is active.
@@ -268,10 +271,9 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         Assertions.assertTrue(foundWrapperApp, () -> "The dashboard does not contain expected application: " + GRADLE_WRAPPER_APP_NAME);
 
         // Check that the menu for the expected application contains the required actions.
-        // Note: gradleMenuItems.length + 1 accounts for the separator inserted before the "Open logs" entry.
         List<String> menuItems = getDashboardItemMenuActions(GRADLE_APP_NAME);
-        Assertions.assertTrue(menuItems.size() == gradleMenuItems.length + 1, () -> "Gradle application " + GRADLE_APP_NAME
-                                                                                    + " does not contain the expected number of menu items: " + (gradleMenuItems.length + 1)
+        Assertions.assertTrue(menuItems.size() == gradleMenuItems.length + MENU_SEPARATOR_COUNT, () -> "Gradle application " + GRADLE_APP_NAME
+                                                                                    + " does not contain the expected number of menu items: " + (gradleMenuItems.length + MENU_SEPARATOR_COUNT)
                                                                                     + ". Instead found: " + menuItems.size());
         Assertions.assertTrue(menuItems.containsAll(Arrays.asList(gradleMenuItems)),
                               () -> "Gradle application " + GRADLE_APP_NAME + " does not contain the expected menu items: " + gradleMenuItems);
