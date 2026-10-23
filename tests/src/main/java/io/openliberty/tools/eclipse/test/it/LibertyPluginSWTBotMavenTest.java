@@ -88,6 +88,7 @@ import io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils;
 import io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations;
 import io.openliberty.tools.eclipse.test.it.utils.SWTBotTestCondition;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
+import io.openliberty.tools.eclipse.ui.dashboard.OpenLogsMenuContributor;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher;
 
 /**
@@ -144,7 +145,11 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
                                                   DashboardView.APP_MENU_ACTION_START_IN_CONTAINER, DashboardView.APP_MENU_ACTION_DEBUG,
                                                   DashboardView.APP_MENU_ACTION_DEBUG_CONFIG, DashboardView.APP_MENU_ACTION_DEBUG_IN_CONTAINER,
                                                   DashboardView.APP_MENU_ACTION_STOP, DashboardView.APP_MENU_ACTION_RUN_TESTS, DashboardView.APP_MENU_ACTION_VIEW_MVN_IT_REPORT,
-                                                  DashboardView.APP_MENU_ACTION_VIEW_MVN_UT_REPORT };
+                                                  DashboardView.APP_MENU_ACTION_VIEW_MVN_UT_REPORT,
+                                                  OpenLogsMenuContributor.MENU_ACTION_OPENLOGS };
+
+    /** Number of separators added to the dashboard context menu alongside the named menu items. */
+    static final int MENU_SEPARATOR_COUNT = 1;
 
     /**
      * Run As configuration menu items for an inactive project. Actions such
@@ -254,8 +259,9 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
 
         // Check that the menu that the application in the dashboard contains the required actions.
         List<String> menuItems = getDashboardItemMenuActions(MVN_APP_NAME);
-        Assertions.assertTrue(menuItems.size() == mvnMenuItems.length,
-                              () -> "Maven application " + MVN_APP_NAME + " does not contain the expected number of menu items: " + mvnMenuItems.length);
+        Assertions.assertTrue(menuItems.size() == mvnMenuItems.length + MENU_SEPARATOR_COUNT,
+                              () -> "Maven application " + MVN_APP_NAME + " does not contain the expected number of menu items: " + (mvnMenuItems.length + MENU_SEPARATOR_COUNT)
+                                    + ". Instead found: " + menuItems.size());
         Assertions.assertTrue(menuItems.containsAll(Arrays.asList(mvnMenuItems)),
                               () -> "Maven application " + MVN_APP_NAME + " does not contain the expected menu items: " + mvnMenuItems);
 

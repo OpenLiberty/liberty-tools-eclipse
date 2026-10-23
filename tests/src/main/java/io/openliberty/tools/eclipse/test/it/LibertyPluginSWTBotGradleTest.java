@@ -90,6 +90,7 @@ import io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils;
 import io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations;
 import io.openliberty.tools.eclipse.test.it.utils.SWTBotTestCondition;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
+import io.openliberty.tools.eclipse.ui.dashboard.OpenLogsMenuContributor;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher;
 
 /**
@@ -131,7 +132,11 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
                                                      DashboardView.APP_MENU_ACTION_START_IN_CONTAINER, DashboardView.APP_MENU_ACTION_DEBUG,
                                                      DashboardView.APP_MENU_ACTION_DEBUG_CONFIG, DashboardView.APP_MENU_ACTION_DEBUG_IN_CONTAINER,
                                                      DashboardView.APP_MENU_ACTION_STOP, DashboardView.APP_MENU_ACTION_RUN_TESTS,
-                                                     DashboardView.APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT };
+                                                     DashboardView.APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT,
+                                                     OpenLogsMenuContributor.MENU_ACTION_OPENLOGS};
+
+    /** Number of separators added to the dashboard context menu alongside the named menu items. */
+    static final int MENU_SEPARATOR_COUNT = 1;
 
     /**
      * Run As configuration menu items for an inactive project. Actions such
@@ -267,8 +272,9 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
 
         // Check that the menu for the expected application contains the required actions.
         List<String> menuItems = getDashboardItemMenuActions(GRADLE_APP_NAME);
-        Assertions.assertTrue(menuItems.size() == gradleMenuItems.length, () -> "Gradle application " + GRADLE_APP_NAME
-                                                                                + " does not contain the expected number of menu items: " + gradleMenuItems.length);
+        Assertions.assertTrue(menuItems.size() == gradleMenuItems.length + MENU_SEPARATOR_COUNT, () -> "Gradle application " + GRADLE_APP_NAME
+                                                                                    + " does not contain the expected number of menu items: " + (gradleMenuItems.length + MENU_SEPARATOR_COUNT)
+                                                                                    + ". Instead found: " + menuItems.size());
         Assertions.assertTrue(menuItems.containsAll(Arrays.asList(gradleMenuItems)),
                               () -> "Gradle application " + GRADLE_APP_NAME + " does not contain the expected menu items: " + gradleMenuItems);
 

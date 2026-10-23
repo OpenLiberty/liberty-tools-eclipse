@@ -612,6 +612,8 @@ public class DashboardView extends ViewPart {
                 ErrorHandler.processErrorMessage(Messages.getMessage("project_not_gradle_or_maven", projectName), true);
                 return;
             }
+
+            OpenLogsMenuContributor.contribute(mgr, projectModel);
         }
     }
 
