@@ -14,6 +14,8 @@ package io.openliberty.tools.eclipse.ui.dashboard;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.core.filesystem.EFS;
 import org.eclipse.core.filesystem.IFileStore;
@@ -32,17 +34,22 @@ import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.viewers.ViewerFilter;
 import org.eclipse.swt.program.Program;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.FileStoreEditorInput;
 import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.navigator.CommonNavigator;
+import org.eclipse.ui.navigator.ICommonFilterDescriptor;
+import org.eclipse.ui.navigator.INavigatorFilterService;
 import org.eclipse.ui.part.IShowInTarget;
 import org.eclipse.ui.part.ShowInContext;
 
@@ -414,18 +421,49 @@ public class OpenLogsMenuContributor {
             return;
         }
 
-        // Use whichever explorer is already open. If none are opened, open the Project Explorer.
-        IViewPart openExplorer = page.findView(PROJECT_EXPLORER_ID);
-        if (openExplorer == null) {
-            openExplorer = page.findView(PACKAGE_EXPLORER_ID);
-        }
-
-        String preferredId = (openExplorer != null) ? openExplorer.getSite().getId() : PROJECT_EXPLORER_ID;
-        showInView(page, preferredId, target);
+        // Use the explorer that is currently in use. If none are opened, open the Project Explorer.
+        String explorerId = selectExplorerToUse(page);
+        showInView(page, explorerId, target);
     }
 
     /**
-     * Shows and expands the target resource in the given view.
+     * Determines which explorer view to use when both or neither the Project Explorer and the Package Explorer are open.
+     *
+     * @param page The workbench page that hosts the views.
+     *
+     * @return The ID of the explorer view to use. The Project Explorer ID if neither explorer is open.
+     */
+    private static String selectExplorerToUse(IWorkbenchPage page) {
+        // The active part is the one the user is working in.
+        IWorkbenchPart activePart = page.getActivePart();
+        if (activePart instanceof IViewPart) {
+            String activeId = ((IViewPart) activePart).getSite().getId();
+            if (PROJECT_EXPLORER_ID.equals(activeId) || PACKAGE_EXPLORER_ID.equals(activeId)) {
+                return activeId;
+            }
+        }
+
+        // Neither explorer is currently active. Select the one that is visible.
+        IViewPart projectExplorer = page.findView(PROJECT_EXPLORER_ID);
+        IViewPart packageExplorer = page.findView(PACKAGE_EXPLORER_ID);
+        if (projectExplorer != null && page.isPartVisible(projectExplorer)) {
+            return PROJECT_EXPLORER_ID;
+        }
+        if (packageExplorer != null && page.isPartVisible(packageExplorer)) {
+            return PACKAGE_EXPLORER_ID;
+        }
+
+        // No explorer is visible. Use whichever one is open.
+        if (projectExplorer == null && packageExplorer != null) {
+            return PACKAGE_EXPLORER_ID;
+        }
+        return PROJECT_EXPLORER_ID;
+    }
+
+    /**
+     * Shows and expands the target resource in the given view. For the Project Explorer, the user is asked
+     * to remove any filters that hide the target; nothing is shown if the user declines. The Package Explorer
+     * uses its own built-in filter dialog when it cannot reveal the target.
      *
      * @param page   The workbench page that hosts the view.
      * @param viewId The ID of the view to reveal the resource in.
@@ -434,6 +472,14 @@ public class OpenLogsMenuContributor {
     private static void showInView(IWorkbenchPage page, String viewId, IResource target) {
         try {
             IViewPart view = page.showView(viewId);
+
+            if (view instanceof CommonNavigator && !removeBlockingFilters((CommonNavigator) view, target)) {
+                if (Trace.isEnabled()) {
+                    Trace.getTracer().trace(Trace.TRACE_TOOLS, "The user chose not to remove the filters that hide: " + target.getFullPath());
+                }
+                return;
+            }
+
             if (view instanceof IShowInTarget) {
                 ShowInContext context = new ShowInContext(null, new StructuredSelection(target));
                 boolean shown = ((IShowInTarget) view).show(context);
@@ -451,6 +497,61 @@ public class OpenLogsMenuContributor {
     }
 
     /**
+     * Asks the user whether to deactivate the Project Explorer filters that hide the target resource, and
+     * deactivates them when the user agrees. A filter hides the target when it rejects the top level folder of the
+     * project that contains the target, such as the Gradle build folder. Filters are identified by their own
+     * selection result. The deactivation is persisted by the filter service.
+     *
+     * @param navigator The Project Explorer.
+     * @param target    The resource that must be visible.
+     *
+     * @return True if the target can be revealed. False if the user declined to remove the blocking filters.
+     */
+    private static boolean removeBlockingFilters(CommonNavigator navigator, IResource target) {
+        INavigatorFilterService filterService = navigator.getNavigatorContentService().getFilterService();
+
+        // Find the top level folder of the project that contains the target.
+        IResource topFolder = target;
+        while (topFolder.getParent() != null && topFolder.getParent().getType() != IResource.PROJECT) {
+            topFolder = topFolder.getParent();
+        }
+
+        List<String> activeIds = new ArrayList<>();
+        List<String> blockingIds = new ArrayList<>();
+        for (ICommonFilterDescriptor descriptor : filterService.getVisibleFilterDescriptors()) {
+            String id = descriptor.getId();
+            if (!filterService.isActive(id)) {
+                continue;
+            }
+            activeIds.add(id);
+
+            ViewerFilter filter = filterService.getViewerFilter(descriptor);
+            if (filter != null && !filter.select(navigator.getCommonViewer(), topFolder.getParent(), topFolder)) {
+                blockingIds.add(id);
+            }
+        }
+
+        if (blockingIds.isEmpty()) {
+            return true;
+        }
+
+        boolean remove = MessageDialog.openQuestion(navigator.getSite().getShell(), Messages.getMessage("logs_filtered_dialog_title"),
+                                                    Messages.getMessage("logs_filtered_dialog_message"));
+        if (!remove) {
+            return false;
+        }
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().trace(Trace.TRACE_TOOLS, "Deactivating Project Explorer filters that hide " + topFolder.getFullPath() + ": " + blockingIds);
+        }
+
+        // The service deactivates every visible filter that is not in the list, so keep the other active filters.
+        activeIds.removeAll(blockingIds);
+        filterService.activateFilterIdsAndUpdateViewer(activeIds.toArray(new String[0]));
+        return true;
+    }
+
+    /**
      * Selects and expands the target resource in the given view. Project Explorer (CommonNavigator)
      * and Package Explorer (IPackagesViewPart) both expose public API to expand and select, so both
      * behave identically.
@@ -461,7 +562,7 @@ public class OpenLogsMenuContributor {
     private static void expandInView(IViewPart view, IResource target) {
         try {
             if (view instanceof CommonNavigator) {
-                // Project Explorer and any CommonNavigator-based view.
+                // Project Explorer.
                 CommonNavigator nav = (CommonNavigator) view;
                 nav.getCommonViewer().expandToLevel(target, 1);
                 nav.getCommonViewer().setSelection(new StructuredSelection(target), true);
