@@ -423,6 +423,9 @@ public class OpenLogsMenuContributor {
 
         // Use the explorer that is currently in use. If none are opened, open the Project Explorer.
         String explorerId = selectExplorerToUse(page);
+        if (Trace.isEnabled()) {
+            Trace.getTracer().trace(Trace.TRACE_TOOLS, "Selected explorer: " + explorerId + ". Target: " + target.getFullPath());
+        }
         showInView(page, explorerId, target);
     }
 
@@ -434,7 +437,8 @@ public class OpenLogsMenuContributor {
      * @return The ID of the explorer view to use. The Project Explorer ID if neither explorer is open.
      */
     private static String selectExplorerToUse(IWorkbenchPage page) {
-        // The active part is the one the user is working in.
+        // Prefer the explorer the user is working in, if one is the active part. The action is usually started
+        // from the Liberty dashboard, so this applies only when the dashboard is not the active part.
         IWorkbenchPart activePart = page.getActivePart();
         if (activePart instanceof IViewPart) {
             String activeId = ((IViewPart) activePart).getSite().getId();
@@ -443,7 +447,7 @@ public class OpenLogsMenuContributor {
             }
         }
 
-        // Neither explorer is currently active. Select the one that is visible.
+        // Neither explorer is active. Select a visible one. The Project Explorer takes precedence if both are visible.
         IViewPart projectExplorer = page.findView(PROJECT_EXPLORER_ID);
         IViewPart packageExplorer = page.findView(PACKAGE_EXPLORER_ID);
         if (projectExplorer != null && page.isPartVisible(projectExplorer)) {
@@ -453,7 +457,8 @@ public class OpenLogsMenuContributor {
             return PACKAGE_EXPLORER_ID;
         }
 
-        // No explorer is visible. Use whichever one is open.
+        // No explorer is visible. Use the Package Explorer only if it is the only one open. Otherwise default to the
+        // Project Explorer, which is also the explorer opened when neither exists.
         if (projectExplorer == null && packageExplorer != null) {
             return PACKAGE_EXPLORER_ID;
         }
@@ -462,10 +467,10 @@ public class OpenLogsMenuContributor {
 
     /**
      * Shows and expands the target resource in the given view. For the Project Explorer, the user is asked
-     * to remove any filters that hide the target; nothing is shown if the user declines. The Package Explorer
+     * to remove any filters that hide the target. Nothing is shown if the user declines. The Package Explorer
      * uses its own built-in filter dialog when it cannot reveal the target.
      *
-     * @param page   The workbench page that hosts the view.
+     * @param page The workbench page that hosts the view.
      * @param viewId The ID of the view to reveal the resource in.
      * @param target The resource to reveal.
      */
@@ -498,12 +503,12 @@ public class OpenLogsMenuContributor {
 
     /**
      * Asks the user whether to deactivate the Project Explorer filters that hide the target resource, and
-     * deactivates them when the user agrees. A filter hides the target when it rejects the top level folder of the
-     * project that contains the target, such as the Gradle build folder. Filters are identified by their own
-     * selection result. The deactivation is persisted by the filter service.
+     * deactivates them when the user agrees. A filter is treated as blocking when its select method returns false
+     * for the top level folder of the project that contains the target, such as the Gradle build folder. The
+     * deactivation is persisted by the filter service.
      *
      * @param navigator The Project Explorer.
-     * @param target    The resource that must be visible.
+     * @param target The resource that must be visible.
      *
      * @return True if the target can be revealed. False if the user declined to remove the blocking filters.
      */
@@ -533,6 +538,10 @@ public class OpenLogsMenuContributor {
 
         if (blockingIds.isEmpty()) {
             return true;
+        }
+
+        if (Trace.isEnabled()) {
+            Trace.getTracer().trace(Trace.TRACE_TOOLS, "Project Explorer filters hide " + topFolder.getFullPath() + ": " + blockingIds);
         }
 
         boolean remove = MessageDialog.openQuestion(navigator.getSite().getShell(), Messages.getMessage("logs_filtered_dialog_title"),

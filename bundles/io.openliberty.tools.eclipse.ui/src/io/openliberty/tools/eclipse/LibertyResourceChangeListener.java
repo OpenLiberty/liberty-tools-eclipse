@@ -17,6 +17,7 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IResourceDelta;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.swt.widgets.Display;
 
 import io.openliberty.tools.eclipse.logging.Trace;
@@ -73,15 +74,27 @@ public class LibertyResourceChangeListener implements IResourceChangeListener {
                         // Flag 147456: Although IResourceDelta does not have a predefined constant, this flag value is used to
                         // denote open/close actions.
                         case IResourceDelta.CHANGED:
-                            String projectLocation = iProject.getLocation().toOSString();
-                            ProjectModel projectModel = workspaceModel.getProjectByLocation(projectLocation);
+                            if (updateFlag == IResourceDelta.OPEN || updateFlag == 147456) {
+                                String projectLocation = iProject.getLocation().toOSString();
+                                ProjectModel projectModel = workspaceModel.getProjectByLocation(projectLocation);
 
-                            if (projectModel != null && (updateFlag == IResourceDelta.OPEN || updateFlag == 147456)) {
-                                if (Trace.isEnabled()) {
-                                    Trace.getTracer().trace(Trace.TRACE_TOOLS,
-                                                            "Project changed. Project: " + iProject.getName() + ". Flag: " + updateFlag);
+                                // Project closed: There is a reference to the project model.
+                                // Project opened: The reference to the project model is removed on close.
+                                // Rely on the Liberty nature, which is only accessible if the project is open.
+                                try {
+                                    if ((projectModel != null && projectModel.isLibertyServerModule())
+                                        || iProject.getDescription().hasNature(LibertyNature.NATURE_ID)) {
+                                        if (Trace.isEnabled()) {
+                                            Trace.getTracer().trace(Trace.TRACE_TOOLS,
+                                                                    "Project changed. Project: " + iProject.getName() + ". Flag: " + updateFlag);
+                                        }
+                                        refreshNeeded = true;
+                                    }
+                                } catch (CoreException e) {
+                                    if (Trace.isEnabled()) {
+                                        Trace.getTracer().trace(Trace.TRACE_TOOLS, "Failed to read project description for: " + iProject.getName(), e);
+                                    }
                                 }
-                                refreshNeeded = true;
                             }
                             break;
                         // Project created/imported.
@@ -89,8 +102,8 @@ public class LibertyResourceChangeListener implements IResourceChangeListener {
                         // Flag 147456: Although IResourceDelta does not have a predefined constant, this flag
                         // value is set when a project, that previously did not exist, is created.
                         case IResourceDelta.ADDED:
-                            projectLocation = iProject.getLocation().toOSString();
-                            projectModel = workspaceModel.getProjectByLocation(projectLocation);
+                            String projectLocation = iProject.getLocation().toOSString();
+                            ProjectModel projectModel = workspaceModel.getProjectByLocation(projectLocation);
 
                             if (projectModel == null && (updateFlag == IResourceDelta.OPEN || updateFlag == 147456)) {
                                 if (Trace.isEnabled()) {
@@ -100,14 +113,18 @@ public class LibertyResourceChangeListener implements IResourceChangeListener {
                                 refreshNeeded = true;
                             }
                             break;
-                        // Project deleted.
+                        // Project deleted or renamed.
                         // Flag NO_CHANGE (0).
                         // Flag MARKERS (130172).
+                        // Flag MOVED_TO (8192): The project was renamed. For example, Buildship renames a project
+                        // after a successful Gradle synchronization. The model holds a handle to the old project,
+                        // which no longer exists and has no location, so the model must be rebuilt.
                         case IResourceDelta.REMOVED:
-                            if ((updateFlag == IResourceDelta.NO_CHANGE || updateFlag == IResourceDelta.MARKERS)) {
+                            if ((updateFlag == IResourceDelta.NO_CHANGE || updateFlag == IResourceDelta.MARKERS
+                                 || (updateFlag & IResourceDelta.MOVED_TO) != 0)) {
                                 if (Trace.isEnabled()) {
                                     Trace.getTracer().trace(Trace.TRACE_TOOLS,
-                                                            "Project removed. Project: " + iProject.getName() + ". Flag: " + updateFlag);
+                                                            "Project removed/renamed. Project: " + iProject.getName() + ". Flag: " + updateFlag);
                                 }
                                 refreshNeeded = true;
                             }
