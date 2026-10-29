@@ -66,7 +66,7 @@ public class OpenLogsMenuContributor {
      * Adds the separator and "Open logs" submenu to the given context menu manager for the project.
      * No entries are added when the project is a parent of a Liberty server module.
      *
-     * @param mgr The context menu manager to contribute to.
+     * @param mgr     The context menu manager to contribute to.
      * @param project The project selected in the dashboard.
      */
     public static void contribute(IMenuManager mgr, ProjectModel project) {
@@ -75,6 +75,7 @@ public class OpenLogsMenuContributor {
             return;
         }
 
+        // Add a separator.
         mgr.add(new Separator());
 
         LogFileManager logFileManager = LogFileManager.getInstance();
@@ -115,16 +116,15 @@ public class OpenLogsMenuContributor {
     }
 
     /**
-     * Adds a type submenu for messages, trace, or ffdc files. When no files match, adds a disabled
-     * entry with the type label instead. When the result has more files than shown, a 'More...' entry
-     * is added that browses the folder of the log type.
+     * Adds a type submenu for messages, trace, or ffdc files.
      *
-     * @param parent The menu manager to add the submenu to.
-     * @param label The label of the type submenu.
-     * @param result The scan result for the log type.
+     * @param parent     The menu manager to add the submenu to.
+     * @param label      The label of the type submenu.
+     * @param result     The scan result for the log type.
      * @param fileFolder The folder that contains the log files and that the 'More...' entry will browse.
      */
     private static void addTypeSubmenu(MenuManager parent, String label, LogFileManager.LogSearchResult result, Path fileFolder) {
+        // If there are no files to show for a particular log type, the log type is grayed out.
         if (result.getFiles().isEmpty()) {
             Action disabled = new Action(label) {
                 /**
@@ -140,12 +140,14 @@ public class OpenLogsMenuContributor {
             return;
         }
 
+        // If there are files to show, add them to the list to show.
         MenuManager sub = new MenuManager(label);
         for (Path file : result.getFiles()) {
             sub.add(new OpenFileAction(file.getFileName().toString(), file));
         }
 
-        if (result.hasMore()) {
+        // If the number of files exceeds the maximum allowed to show in the context menu, add More... action.
+        if (result.exceedsMaxAllowed()) {
             sub.add(new Separator());
             sub.add(new BrowseFolderAction(MENU_ACTION_OPENLOGS_MORE, fileFolder));
         }
@@ -165,7 +167,7 @@ public class OpenLogsMenuContributor {
          * Creates an action that opens the given log file.
          *
          * @param label The menu label of the action.
-         * @param file The log file to open.
+         * @param file  The log file to open.
          */
         OpenFileAction(String label, Path file) {
             super(label);
@@ -192,7 +194,7 @@ public class OpenLogsMenuContributor {
         /**
          * Creates an action that browses the given folder.
          *
-         * @param label The menu label of the action.
+         * @param label  The menu label of the action.
          * @param folder The folder that the file dialog opens on.
          */
         BrowseFolderAction(String label, Path folder) {
@@ -210,14 +212,13 @@ public class OpenLogsMenuContributor {
     }
 
     /**
-     * Opens a file dialog on the given folder and opens the file that the user selects. The dialog lists the
-     * files of the folder whether or not the folder is in the workspace. Nothing happens if the user cancels.
+     * Opens a file dialog (system explorer) on the given folder and opens the selected file.
      *
      * @param folder The folder that the file dialog opens on.
      */
     private static void browseFolder(Path folder) {
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, folder.toString());
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, folder);
         }
 
         if (!Files.isDirectory(folder)) {
@@ -225,7 +226,7 @@ public class OpenLogsMenuContributor {
                 Trace.getTracer().traceExit(Trace.TRACE_TOOLS, "Logs folder cannot be found: " + folder);
             }
 
-            ErrorHandler.processErrorMessage(Messages.getMessage("logs_folder_not_found", folder.toString()), true);
+            ErrorHandler.rawErrorMessageDialog(Messages.getMessage("logs_folder_not_found", folder.getFileName()));
             return;
         }
 
@@ -252,14 +253,13 @@ public class OpenLogsMenuContributor {
     }
 
     /**
-     * Opens a log file in an Eclipse editor. The file is opened as a workspace resource when the workspace
-     * knows it. Otherwise it is opened directly from the file system.
+     * Opens a file identified by the input path in an Eclipse editor.
      *
      * @param file The log file to open.
      */
     private static void openFile(Path file) {
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, file.toString());
+            Trace.getTracer().traceEntry(Trace.TRACE_TOOLS, file);
         }
 
         IWorkbenchWindow window = PlatformUI.getWorkbench().getActiveWorkbenchWindow();
@@ -275,7 +275,7 @@ public class OpenLogsMenuContributor {
                 Trace.getTracer().traceExit(Trace.TRACE_TOOLS, "Log file cannot be found: " + file);
             }
 
-            ErrorHandler.processErrorMessage(Messages.getMessage("logs_open_file_not_found", file.getFileName().toString()), true);
+            ErrorHandler.rawErrorMessageDialog(Messages.getMessage("logs_open_file_not_found", file.getFileName()));
             return;
         }
 
@@ -313,11 +313,11 @@ public class OpenLogsMenuContributor {
                 Trace.getTracer().trace(Trace.TRACE_TOOLS, "Failed to open log file: " + file, e);
             }
 
-            ErrorHandler.processErrorMessage(Messages.getMessage("logs_open_file_failed", file.getFileName().toString()), e, true);
+            ErrorHandler.processErrorMessage(Messages.getMessage("logs_open_file_failed", file.getFileName()), e, true);
         }
 
         if (Trace.isEnabled()) {
-            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, file.toString());
+            Trace.getTracer().traceExit(Trace.TRACE_TOOLS, file);
         }
     }
 }
