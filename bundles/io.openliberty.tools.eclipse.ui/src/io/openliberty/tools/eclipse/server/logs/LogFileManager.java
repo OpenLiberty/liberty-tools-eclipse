@@ -189,7 +189,7 @@ public class LogFileManager {
      * mytrace, mytrace_[timestamp]
      * my_trace.debug.ext, my_trace.debug_[timestamp].ext
      *
-     * @param dir The directory to scan.
+     * @param dir            The directory to scan.
      * @param activeFileName The active log file name.
      *
      * @return The scan result with matching files and an overflow indicator.
@@ -262,8 +262,7 @@ public class LogFileManager {
             modifiedTimes.put(path, lastModified(path));
         }
 
-        paths.sort(Comparator.<Path> comparingLong(modifiedTimes::get).reversed()
-                             .thenComparing(p -> p.getFileName().toString(), Comparator.reverseOrder()));
+        paths.sort(Comparator.<Path> comparingLong(modifiedTimes::get).reversed().thenComparing(p -> p.getFileName().toString(), Comparator.reverseOrder()));
     }
 
     /**
@@ -274,9 +273,9 @@ public class LogFileManager {
      * @return The scan result with the capped files and an overflow indicator.
      */
     private LogSearchResult capResult(List<Path> ordered) {
-        boolean hasMore = ordered.size() > MAX_FILES_PER_TYPE;
-        List<Path> capped = hasMore ? ordered.subList(0, MAX_FILES_PER_TYPE) : ordered;
-        return new LogSearchResult(List.copyOf(capped), hasMore);
+        boolean exceedsMaxAllowed = ordered.size() > MAX_FILES_PER_TYPE;
+        List<Path> capped = exceedsMaxAllowed ? ordered.subList(0, MAX_FILES_PER_TYPE) : ordered;
+        return new LogSearchResult(List.copyOf(capped), exceedsMaxAllowed);
     }
 
     /**
@@ -328,18 +327,18 @@ public class LogFileManager {
         /** The ordered list of matching paths, at most MAX_FILES_PER_TYPE entries. */
         private final List<Path> files;
 
-        /** True when more matching files exist than were returned. */
-        private final boolean hasMore;
+        /** True when the matching files exceeds the allowed maximum to show through the context menu. */
+        private final boolean exceedsMaxAllowed;
 
         /**
          * Creates a LogSearchResult.
          *
-         * @param files   The ordered list of matching paths.
-         * @param hasMore True when more matching files exist than were returned.
+         * @param files             The ordered list of matching paths.
+         * @param exceedsMaxAllowed True when the matching files exceeds the allowed maximum to show through the context menu.
          */
-        public LogSearchResult(List<Path> files, boolean hasMore) {
+        public LogSearchResult(List<Path> files, boolean exceedsMaxAllowed) {
             this.files = files;
-            this.hasMore = hasMore;
+            this.exceedsMaxAllowed = exceedsMaxAllowed;
         }
 
         /**
@@ -352,12 +351,12 @@ public class LogFileManager {
         }
 
         /**
-         * Returns true when more matching files exist than were returned.
+         * Returns true when the matching files exceeds the allowed maximum to show through the context menu.
          *
-         * @return True when more matching files exist than were returned.
+         * @return True when the matching files exceeds the allowed maximum to show through the context menu.
          */
-        public boolean hasMore() {
-            return hasMore;
+        public boolean exceedsMaxAllowed() {
+            return exceedsMaxAllowed;
         }
     }
 }
