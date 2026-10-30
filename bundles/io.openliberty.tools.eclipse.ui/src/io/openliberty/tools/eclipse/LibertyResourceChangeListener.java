@@ -27,6 +27,12 @@ import io.openliberty.tools.eclipse.model.WorkspaceModel;
 public class LibertyResourceChangeListener implements IResourceChangeListener {
 
     /**
+     * Flags reported for a project that has markers when it is opened, closed, or added.
+     * Closing a project removes its markers and opening it restores them.
+     */
+    private static final int OPEN_WITH_MARKERS = IResourceDelta.OPEN | IResourceDelta.MARKERS;
+
+    /**
      * {@inheritDoc}
      */
     @Override
@@ -70,11 +76,10 @@ public class LibertyResourceChangeListener implements IResourceChangeListener {
 
                     switch (resourceChanged.getKind()) {
                         // Project opened/closed.
-                        // Flag OPEN (16384): "Change constant (bit mask) indicating that the resource was opened or closed"
-                        // Flag 147456: Although IResourceDelta does not have a predefined constant, this flag value is used to
-                        // denote open/close actions.
+                        // Flag OPEN (16384): "Change constant (bit mask) indicating that the resource was opened or closed".
+                        // Flag OPEN | MARKERS (147456): The same action on a project that has markers.
                         case IResourceDelta.CHANGED:
-                            if (updateFlag == IResourceDelta.OPEN || updateFlag == 147456) {
+                            if (updateFlag == IResourceDelta.OPEN || updateFlag == OPEN_WITH_MARKERS) {
                                 String projectLocation = iProject.getLocation().toOSString();
                                 ProjectModel projectModel = workspaceModel.getProjectByLocation(projectLocation);
 
@@ -99,13 +104,12 @@ public class LibertyResourceChangeListener implements IResourceChangeListener {
                             break;
                         // Project created/imported.
                         // Flag OPEN (16384): "This flag is ... set when the project did not exist in the "before" state."
-                        // Flag 147456: Although IResourceDelta does not have a predefined constant, this flag
-                        // value is set when a project, that previously did not exist, is created.
+                        // Flag OPEN | MARKERS (147456): The same action for a project that has markers.
                         case IResourceDelta.ADDED:
                             String projectLocation = iProject.getLocation().toOSString();
                             ProjectModel projectModel = workspaceModel.getProjectByLocation(projectLocation);
 
-                            if (projectModel == null && (updateFlag == IResourceDelta.OPEN || updateFlag == 147456)) {
+                            if (projectModel == null && (updateFlag == IResourceDelta.OPEN || updateFlag == OPEN_WITH_MARKERS)) {
                                 if (Trace.isEnabled()) {
                                     Trace.getTracer().trace(Trace.TRACE_TOOLS,
                                                             "Project added. Project: " + iProject.getName() + ". Flag: " + updateFlag);
@@ -115,7 +119,7 @@ public class LibertyResourceChangeListener implements IResourceChangeListener {
                             break;
                         // Project deleted or renamed.
                         // Flag NO_CHANGE (0).
-                        // Flag MARKERS (130172).
+                        // Flag MARKERS (131072).
                         // Flag MOVED_TO (8192): The project was renamed. For example, Buildship renames a project
                         // after a successful Gradle synchronization. The model holds a handle to the old project,
                         // which no longer exists and has no location, so the model must be rebuilt.
