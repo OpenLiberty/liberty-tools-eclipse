@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2022, 2024 IBM Corporation and others.
+ * Copyright (c) 2022, 2026 IBM Corporation and others.
  *
  * This program and the accompanying materials are made available under the
  * terms of the Eclipse Public License v. 2.0 which is available at
@@ -22,7 +22,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -69,6 +68,26 @@ public abstract class AbstractLibertyPluginSWTBotTest {
      * Gradle version 8.4+ supports Java 21.
      */
     private static String GRADLE_DISTRIBUTION_VERSION = "8.8";
+
+    /**
+     * Default relative path from a Maven project root to the parent directory containing the Liberty wlp installation.
+     */
+    public static final String DEFAULT_MAVEN_WLP_PARENT_DIR = "target/liberty";
+
+    /**
+     * Default relative path from a Gradle project root to the parent directory containing the Liberty wlp installation.
+     */
+    public static final String DEFAULT_GRADLE_WLP_PARENT_DIR = "build";
+
+    /**
+     * Default relative path from the Liberty wlp parent directory to the default server logs directory.
+     */
+    public static final String DEFAULT_WLP_INSTALL_LOGS_PATH = "wlp/usr/servers/defaultServer/logs";
+
+    /**
+     * Default name of the Liberty server messages log file.
+     */
+    public static final String DEFAULT_MESSAGES_LOG_FILE_NAME = "messages.log";
 
     protected static String getMvnCmdFilename() {
         return LibertyPluginTestUtils.onWindows() ? "mvn.cmd" : "mvn";

@@ -112,7 +112,7 @@ public class LibertyPluginSWTBotGradleWithSpaceTest extends AbstractLibertyPlugi
 
         // Validate application is up and running.
         LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_WRAPPER_APP_NAME, true,
-                                                          wrapperProjectPath.toAbsolutePath().toString() + "/build");
+                                                          wrapperProjectPath.toAbsolutePath().resolve(DEFAULT_GRADLE_WLP_PARENT_DIR).toString());
 
         // If there are issues with the workspace, close the error dialog.
         pressWorkspaceErrorDialogProceedButton(bot);
@@ -121,7 +121,7 @@ public class LibertyPluginSWTBotGradleWithSpaceTest extends AbstractLibertyPlugi
         launchDashboardAction(GRADLE_WRAPPER_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
 
         // Validate application stopped.
-        LibertyPluginTestUtils.validateLibertyServerStopped(wrapperProjectPath.toAbsolutePath().toString() + "/build");
+        LibertyPluginTestUtils.validateLibertyServerStopped(wrapperProjectPath.toAbsolutePath().resolve(DEFAULT_GRADLE_WLP_PARENT_DIR).toString());
     }
 
     /**
@@ -133,7 +133,7 @@ public class LibertyPluginSWTBotGradleWithSpaceTest extends AbstractLibertyPlugi
         launchDashboardAction(GRADLE_WRAPPER_APP_NAME, DashboardView.APP_MENU_ACTION_DEBUG);
 
         // Validate application is up and running.
-        LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_WRAPPER_APP_NAME, true, wrapperProjectPath.toAbsolutePath().toString() + "/build");
+        LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_WRAPPER_APP_NAME, true, wrapperProjectPath.toAbsolutePath().resolve(DEFAULT_GRADLE_WLP_PARENT_DIR).toString());
 
         // If there are issues with the workspace, close the error dialog.
         pressWorkspaceErrorDialogProceedButton(bot);
@@ -142,7 +142,7 @@ public class LibertyPluginSWTBotGradleWithSpaceTest extends AbstractLibertyPlugi
         launchDashboardAction(GRADLE_WRAPPER_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
 
         // Validate application stopped.
-        LibertyPluginTestUtils.validateLibertyServerStopped(wrapperProjectPath.toAbsolutePath().toString() + "/build");
+        LibertyPluginTestUtils.validateLibertyServerStopped(wrapperProjectPath.toAbsolutePath().resolve(DEFAULT_GRADLE_WLP_PARENT_DIR).toString());
     }
 
     /**
@@ -156,7 +156,7 @@ public class LibertyPluginSWTBotGradleWithSpaceTest extends AbstractLibertyPlugi
 
         // Validate application is up and running.
         LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_APP_NAME, true,
-                                                          projectPath.toAbsolutePath().toString() + "/build");
+                                                          projectPath.toAbsolutePath().resolve(DEFAULT_GRADLE_WLP_PARENT_DIR).toString());
 
         // If there are issues with the workspace, close the error dialog.
         pressWorkspaceErrorDialogProceedButton(bot);
@@ -165,7 +165,7 @@ public class LibertyPluginSWTBotGradleWithSpaceTest extends AbstractLibertyPlugi
         launchDashboardAction(GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
 
         // Validate application stopped.
-        LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().toString() + "/build");
+        LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().resolve(DEFAULT_GRADLE_WLP_PARENT_DIR).toString());
     }
 
     /**
@@ -177,7 +177,7 @@ public class LibertyPluginSWTBotGradleWithSpaceTest extends AbstractLibertyPlugi
         launchDashboardAction(GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_DEBUG);
 
         // Validate application is up and running.
-        LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/build");
+        LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_APP_NAME, true, projectPath.toAbsolutePath().resolve(DEFAULT_GRADLE_WLP_PARENT_DIR).toString());
 
         // If there are issues with the workspace, close the error dialog.
         pressWorkspaceErrorDialogProceedButton(bot);
@@ -186,7 +186,7 @@ public class LibertyPluginSWTBotGradleWithSpaceTest extends AbstractLibertyPlugi
         launchDashboardAction(GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
 
         // Validate application stopped.
-        LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().toString() + "/build");
+        LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().resolve(DEFAULT_GRADLE_WLP_PARENT_DIR).toString());
     }
 
 }

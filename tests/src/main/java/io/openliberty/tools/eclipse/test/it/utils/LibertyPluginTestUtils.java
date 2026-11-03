@@ -47,6 +47,8 @@ import org.eclipse.ui.console.TextConsole;
 import org.junit.jupiter.api.Assertions;
 import org.osgi.service.prefs.Preferences;
 
+import io.openliberty.tools.eclipse.test.it.AbstractLibertyPluginSWTBotTest;
+
 /**
  * Tests Open Liberty Eclipse plugin functions.
  */
@@ -71,7 +73,7 @@ public class LibertyPluginTestUtils {
      * @param testAppPath The base path to the Liberty installation.
      */
     public static void validateLibertyServerStopped(String testAppPath) {
-        String wlpMsgLogPath = testAppPath + "/wlp/usr/servers/defaultServer/logs/messages.log";
+        String wlpMsgLogPath = testAppPath + "/" + AbstractLibertyPluginSWTBotTest.DEFAULT_WLP_INSTALL_LOGS_PATH + "/" + AbstractLibertyPluginSWTBotTest.DEFAULT_MESSAGES_LOG_FILE_NAME;
 
         System.out.println("INFO: Waiting for Liberty server stopped message in: " + wlpMsgLogPath);
 
@@ -155,7 +157,7 @@ public class LibertyPluginTestUtils {
 
         if (!outcomeReached) {
             // If we are here, the expected outcome was not found. Print diagnostics and fail.
-            String wlpMsgLogPath = testAppPath + "/wlp/usr/servers/defaultServer/logs/messages.log";
+            String wlpMsgLogPath = testAppPath + "/" + AbstractLibertyPluginSWTBotTest.DEFAULT_WLP_INSTALL_LOGS_PATH + "/" + AbstractLibertyPluginSWTBotTest.DEFAULT_MESSAGES_LOG_FILE_NAME;
             printLibertyMessagesLogFile(wlpMsgLogPath);
             printConsoleOutput(projectName);
             Assertions.fail("Timed out while waiting for application under URL: " + appUrl + " to become available.");
