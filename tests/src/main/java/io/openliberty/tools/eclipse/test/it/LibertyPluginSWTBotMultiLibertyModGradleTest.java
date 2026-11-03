@@ -29,6 +29,7 @@ import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getModuleSelectionDialogItems;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getRunConfigurationsShell;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchDashboardAction;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchDashboardStopAndWaitForServerDown;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchDebugConfigurationsDialogFromAppRunAs;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchRunConfigurationsDialogFromAppRunAs;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchRunTestsWithRunAsShortcut;
@@ -42,7 +43,6 @@ import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.unsetBuildCmdPathInPreferences;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.waitForAndClickButton;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.waitForModuleSelectionDialog;
-import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchDashboardStopAndWaitForServerDown;
 
 import java.io.File;
 import java.io.IOException;
@@ -69,6 +69,7 @@ import io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils;
 import io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations;
 import io.openliberty.tools.eclipse.test.it.utils.SWTBotTestCondition;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
+import io.openliberty.tools.eclipse.ui.dashboard.OpenLogsMenuContributor;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher;
 
 /**
@@ -125,19 +126,19 @@ public class LibertyPluginSWTBotMultiLibertyModGradleTest extends AbstractLibert
      * Path to the Liberty server output directory for the ear1 module. Used to
      * confirm that the server started or stopped.
      */
-    static final Path ear1ServerPath = rootProjectPath.resolve("ear1").resolve("build");
+    static final Path ear1ServerPath = rootProjectPath.resolve("ear1").resolve(DEFAULT_GRADLE_WLP_PARENT_DIR);
 
     /**
      * Path to the Liberty server output directory for the ear2 module. Used to
      * confirm that the server started or stopped.
      */
-    static final Path ear2ServerPath = rootProjectPath.resolve("ear2").resolve("build");
+    static final Path ear2ServerPath = rootProjectPath.resolve("ear2").resolve(DEFAULT_GRADLE_WLP_PARENT_DIR);
 
     /**
      * Path to the Liberty server output directory for the ear-skinny-modules module. Used to
      * confirm that the server started or stopped.
      */
-    static final Path earSkinnyServerPath = rootProjectPath.resolve("ear-skinny-modules").resolve("build");
+    static final Path earSkinnyServerPath = rootProjectPath.resolve("ear-skinny-modules").resolve(DEFAULT_GRADLE_WLP_PARENT_DIR);
 
     /**
      * Expected dashboard menu items for the root aggregator project.
@@ -346,10 +347,10 @@ public class LibertyPluginSWTBotMultiLibertyModGradleTest extends AbstractLibert
 
         // Verify the Start in Container shortcut.
         SWTBotMenu containerMenu = SWTBotPluginOperations.getAppRunAsMenu(bot, PACKAGE_EXPLORER_PROJECT_NAME).menu(WidgetMatcherFactory.withRegex(
-                                                                                                                                    ".*"
-                                                                                                                                    + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONTAINER
-                                                                                                                                    + ".*"),
-                                                                                                     false, 0);
+                                                                                                                                                  ".*"
+                                                                                                                                                  + LaunchConfigurationDelegateLauncher.LAUNCH_SHORTCUT_START_CONTAINER
+                                                                                                                                                  + ".*"),
+                                                                                                                   false, 0);
         containerMenu.click();
 
         Shell containerDialog = waitForModuleSelectionDialog(SWTBotTestCondition.SHORT_WAIT_MS);
@@ -1006,5 +1007,91 @@ public class LibertyPluginSWTBotMultiLibertyModGradleTest extends AbstractLibert
         LibertyPluginTestUtils.validateLibertyServerStopped(ear1ServerPath.toString());
         LibertyPluginTestUtils.validateLibertyServerStopped(ear2ServerPath.toString());
         LibertyPluginTestUtils.validateLibertyServerStopped(earSkinnyServerPath.toString());
+    }
+
+    /**
+     * Tests the full Open logs context menu entry behavior on a Liberty child module.
+     *
+     * @throws Exception If an error occurs.
+     */
+    @Test
+    public void testOpenLogsOnChildModule() throws Exception {
+        Path ear1Dir = rootProjectPath.resolve("ear1");
+
+        // Remove the logs directory so the entry starts in the disabled state.
+        SWTBotPluginOperations.deleteLogsDir(SWTBotPluginOperations.getDefaultLogsDir(ear1Dir, false));
+
+        // The Open logs entry must be disabled. The logs directory does not exist.
+        boolean disabledBefore = SWTBotPluginOperations.waitForOpenLogsEntryState(
+                                                                                  GRADLE_EAR1_MODULE_NAME, false, SWTBotTestCondition.SHORT_WAIT_MS);
+        Assertions.assertTrue(disabledBefore,
+                              "Open logs entry should be disabled when the logs directory does not exist.");
+
+        deleteLibertyToolsRunConfigEntriesFromAppRunAs(PACKAGE_EXPLORER_PROJECT_NAME);
+
+        // Start dev mode on the ear1 module only.
+        launchDashboardAction(GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_START);
+        Shell startDialog = waitForModuleSelectionDialog(SWTBotTestCondition.SHORT_WAIT_MS);
+        Assertions.assertNotNull(startDialog, "Module selection dialog did not open for the Start dashboard action.");
+        clickDeselectAllInModuleSelectionDialog(startDialog);
+        selectModuleInDialog(startDialog, GRADLE_EAR1_MODULE_NAME);
+
+        try {
+            LibertyPluginTestUtils.validateApplicationOutcomeCustom("http://localhost:9090/converter/heights.jsp?heightCm=10", true,
+                                                                    "Height in feet and inches", ear1ServerPath.toString(), GRADLE_EAR1_MODULE_NAME);
+            pressWorkspaceErrorDialogProceedButton(bot);
+
+            // After the server starts, the Open logs entry should become an enabled submenu.
+            boolean enabledAfterStart = SWTBotPluginOperations.waitForOpenLogsEntryState(
+                                                                                         GRADLE_EAR1_MODULE_NAME, true, SWTBotTestCondition.SHORT_WAIT_MS);
+            Assertions.assertTrue(enabledAfterStart,
+                                  "Open logs entry should be enabled after the server created the logs directory.");
+
+            // Show the Open logs submenu, check that all four entries are present, and verify that the Open logs folder entry is enabled.
+            SWTBotMenu logsMenu = SWTBotPluginOperations.getDashboardOpenLogsSubmenu(GRADLE_EAR1_MODULE_NAME, SWTBotTestCondition.SHORT_WAIT_MS);
+            Assertions.assertNotNull(logsMenu, "Open logs submenu could not be obtained for: " + GRADLE_EAR1_MODULE_NAME);
+            try {
+                List<String> items = logsMenu.menuItems();
+                Assertions.assertTrue(items.contains(OpenLogsMenuContributor.MENU_ACTION_OPENLOGS_MSGS_TYPE),
+                                      "Messages entry missing from Open logs submenu. Items found: " + items);
+                Assertions.assertTrue(items.contains(OpenLogsMenuContributor.MENU_ACTION_OPENLOGS_TRACE_TYPE),
+                                      "Trace entry missing from Open logs submenu. Items found: " + items);
+                Assertions.assertTrue(items.contains(OpenLogsMenuContributor.MENU_ACTION_OPENLOGS_FFDC_TYPE),
+                                      "FFDC entry missing from Open logs submenu. Items found: " + items);
+                Assertions.assertTrue(items.contains(OpenLogsMenuContributor.MENU_ACTION_OPENLOGS_FOLDER),
+                                      "Open logs folder entry missing from Open logs submenu. Items found: " + items);
+                SWTBotMenu folderEntry = logsMenu.menu(OpenLogsMenuContributor.MENU_ACTION_OPENLOGS_FOLDER);
+                Assertions.assertTrue(folderEntry.isEnabled(),
+                                      "Open logs folder entry should be enabled when the logs directory exists.");
+            } finally {
+                logsMenu.hide();
+            }
+
+            // Click the messages.log entry. The file should open in an editor.
+            boolean clicked = SWTBotPluginOperations.clickOpenLogsFileEntry(
+                                                                            GRADLE_EAR1_MODULE_NAME, DEFAULT_MESSAGES_LOG_FILE_NAME, SWTBotTestCondition.SHORT_WAIT_MS);
+            Assertions.assertTrue(clicked, "Failed to click messages.log entry in the Open logs submenu.");
+
+            boolean editorOpened = SWTBotTestCondition.waitFor(
+                                                               () -> SWTBotPluginOperations.searchForEditor(bot, DEFAULT_MESSAGES_LOG_FILE_NAME) != null,
+                                                               SWTBotTestCondition.SHORT_WAIT_MS);
+            Assertions.assertTrue(editorOpened, "An editor for messages.log did not open after clicking the entry.");
+        } finally {
+            // Stop dev mode and close the opened editor.
+            launchDashboardAction(GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
+            LibertyPluginTestUtils.validateLibertyServerStopped(ear1ServerPath.toString());
+            SWTBotPluginOperations.closeEditorByTitle(bot, DEFAULT_MESSAGES_LOG_FILE_NAME);
+        }
+    }
+
+    /**
+     * Tests that the Open logs entry is not shown for the root aggregator project.
+     */
+    @Test
+    public void testOpenLogsEntryNotShownOnParent() {
+        List<String> menuItems = SWTBotPluginOperations.getDashboardItemMenuActions(GRADLE_APP_NAME);
+        Assertions.assertFalse(menuItems.contains(OpenLogsMenuContributor.MENU_ACTION_OPENLOGS),
+                               "Open logs entry must not appear for the root aggregator project: " + GRADLE_APP_NAME
+                                                                                                 + ". Items found: " + menuItems);
     }
 }

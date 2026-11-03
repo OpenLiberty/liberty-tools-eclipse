@@ -118,8 +118,14 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
      */
     static final String MVN_SHARED_LIB_NAME = "shared-lib";
 
+    /** Absolute path string to the server output directory used by validateApplicationOutcome. */
     static String testAppPath;
+
+    /** Absolute path string to the wrapper app server output directory. */
     static String testWrapperAppPath;
+
+    /** Relative path to the Gradle test application directory. */
+    static final Path APP_DIR = Paths.get("resources", "applications", "gradle", GRADLE_APP_NAME);
 
     static ArrayList<File> projectsToInstall = new ArrayList<File>();
 
@@ -133,7 +139,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
                                                      DashboardView.APP_MENU_ACTION_DEBUG_CONFIG, DashboardView.APP_MENU_ACTION_DEBUG_IN_CONTAINER,
                                                      DashboardView.APP_MENU_ACTION_STOP, DashboardView.APP_MENU_ACTION_RUN_TESTS,
                                                      DashboardView.APP_MENU_ACTION_VIEW_GRADLE_TEST_REPORT,
-                                                     OpenLogsMenuContributor.MENU_ACTION_OPENLOGS};
+                                                     OpenLogsMenuContributor.MENU_ACTION_OPENLOGS };
 
     /** Number of separators added to the dashboard context menu alongside the named menu items. */
     static final int MENU_SEPARATOR_COUNT = 1;
@@ -273,8 +279,9 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         // Check that the menu for the expected application contains the required actions.
         List<String> menuItems = getDashboardItemMenuActions(GRADLE_APP_NAME);
         Assertions.assertTrue(menuItems.size() == gradleMenuItems.length + MENU_SEPARATOR_COUNT, () -> "Gradle application " + GRADLE_APP_NAME
-                                                                                    + " does not contain the expected number of menu items: " + (gradleMenuItems.length + MENU_SEPARATOR_COUNT)
-                                                                                    + ". Instead found: " + menuItems.size());
+                                                                                                       + " does not contain the expected number of menu items: "
+                                                                                                       + (gradleMenuItems.length + MENU_SEPARATOR_COUNT)
+                                                                                                       + ". Instead found: " + menuItems.size());
         Assertions.assertTrue(menuItems.containsAll(Arrays.asList(gradleMenuItems)),
                               () -> "Gradle application " + GRADLE_APP_NAME + " does not contain the expected menu items: " + gradleMenuItems);
 
@@ -352,7 +359,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         launchDashboardAction(GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_START);
 
         // Validate application is up and running.
-        LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_APP_NAME, true, testAppPath + "/build");
+        LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_APP_NAME, true, testAppPath + "/" + DEFAULT_GRADLE_WLP_PARENT_DIR);
 
         // If there are issues with the workspace, close the error dialog.
         pressWorkspaceErrorDialogProceedButton(bot);
@@ -361,7 +368,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         launchDashboardAction(GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
 
         // Validate application stopped.
-        LibertyPluginTestUtils.validateLibertyServerStopped(testAppPath + "/build");
+        LibertyPluginTestUtils.validateLibertyServerStopped(testAppPath + "/" + DEFAULT_GRADLE_WLP_PARENT_DIR);
     }
 
     /**
@@ -374,7 +381,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         launchDashboardAction(GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_DEBUG);
 
         // Validate application is up and running.
-        LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_APP_NAME, true, testAppPath + "/build");
+        LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_APP_NAME, true, testAppPath + "/" + DEFAULT_GRADLE_WLP_PARENT_DIR);
 
         // If there are issues with the workspace, close the error dialog.
         pressWorkspaceErrorDialogProceedButton(bot);
@@ -383,13 +390,13 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         launchDashboardAction(GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
 
         // Validate application stopped.
-        LibertyPluginTestUtils.validateLibertyServerStopped(testAppPath + "/build");
+        LibertyPluginTestUtils.validateLibertyServerStopped(testAppPath + "/" + DEFAULT_GRADLE_WLP_PARENT_DIR);
     }
 
     /**
      * Tests the restart of an externally started dev mode process when
      * the user selects a start action using Liberty Tools.
-     * 
+     *
      * @throws CommandNotFoundException
      * @throws IOException
      * @throws InterruptedException
@@ -400,7 +407,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         ProjectModel projectModel = new ProjectModel(iProject);
 
         Path wrapperProject = Paths.get("resources", "applications", "gradle", GRADLE_WRAPPER_APP_NAME).toAbsolutePath();
-        String libertyBasePath = wrapperProject.toString() + "/build";
+        String libertyBasePath = wrapperProject.resolve(DEFAULT_GRADLE_WLP_PARENT_DIR).toString();
 
         // Doing a 'clean' first in case server was started previously and terminated abruptly.
         String startDevModeCmd = CommandBuilder.constructGradleCommand(projectModel, "libertyDev", true, null, null).getCommand();
@@ -477,7 +484,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         launchCustomRunFromDashboard(GRADLE_APP_NAME, "--hotTests");
 
         // Validate application is up and running.
-        LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_APP_NAME, true, testAppPath + "/build");
+        LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_APP_NAME, true, testAppPath + "/" + DEFAULT_GRADLE_WLP_PARENT_DIR);
 
         // If there are issues with the workspace, close the error dialog.
         pressWorkspaceErrorDialogProceedButton(bot);
@@ -490,7 +497,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
             launchDashboardAction(GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
 
             // Validate application stopped.
-            LibertyPluginTestUtils.validateLibertyServerStopped(testAppPath + "/build");
+            LibertyPluginTestUtils.validateLibertyServerStopped(testAppPath + "/" + DEFAULT_GRADLE_WLP_PARENT_DIR);
         }
     }
 
@@ -512,7 +519,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         launchCustomDebugFromDashboard(GRADLE_APP_NAME, "--hotTests");
 
         // Validate application is up and running.
-        LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_APP_NAME, true, testAppPath + "/build");
+        LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_APP_NAME, true, testAppPath + "/" + DEFAULT_GRADLE_WLP_PARENT_DIR);
 
         // If there are issues with the workspace, close the error dialog.
         pressWorkspaceErrorDialogProceedButton(bot);
@@ -525,7 +532,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
             launchDashboardAction(GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
 
             // Validate application stopped.
-            LibertyPluginTestUtils.validateLibertyServerStopped(testAppPath + "/build");
+            LibertyPluginTestUtils.validateLibertyServerStopped(testAppPath + "/" + DEFAULT_GRADLE_WLP_PARENT_DIR);
         }
     }
 
@@ -545,7 +552,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         launchDashboardAction(GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_START);
 
         // Validate application is up and running.
-        LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_APP_NAME, true, testAppPath + "/build");
+        LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_APP_NAME, true, testAppPath + "/" + DEFAULT_GRADLE_WLP_PARENT_DIR);
 
         // If there are issues with the workspace, close the error dialog.
         pressWorkspaceErrorDialogProceedButton(bot);
@@ -564,7 +571,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
             launchDashboardAction(GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
 
             // Validate application stopped.
-            LibertyPluginTestUtils.validateLibertyServerStopped(testAppPath + "/build");
+            LibertyPluginTestUtils.validateLibertyServerStopped(testAppPath + "/" + DEFAULT_GRADLE_WLP_PARENT_DIR);
 
         }
     }
@@ -672,7 +679,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         launchStartWithDefaultRunConfigFromAppRunAs(GRADLE_APP_NAME);
 
         // Validate application is up and running.
-        LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_APP_NAME, true, testAppPath + "/build");
+        LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_APP_NAME, true, testAppPath + "/" + DEFAULT_GRADLE_WLP_PARENT_DIR);
 
         // If there are issues with the workspace, close the error dialog.
         pressWorkspaceErrorDialogProceedButton(bot);
@@ -681,7 +688,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         launchStopWithRunAsShortcut(GRADLE_APP_NAME);
 
         // Validate application stopped.
-        LibertyPluginTestUtils.validateLibertyServerStopped(testAppPath + "/build");
+        LibertyPluginTestUtils.validateLibertyServerStopped(testAppPath + "/" + DEFAULT_GRADLE_WLP_PARENT_DIR);
     }
 
     /**
@@ -704,7 +711,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         launchStartWithNewCustomRunConfig(GRADLE_APP_NAME, "--hotTests");
 
         // Validate application is up and running.
-        LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_APP_NAME, true, testAppPath + "/build");
+        LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_APP_NAME, true, testAppPath + "/" + DEFAULT_GRADLE_WLP_PARENT_DIR);
 
         // If there are issues with the workspace, close the error dialog.
         pressWorkspaceErrorDialogProceedButton(bot);
@@ -717,7 +724,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
             launchStopWithRunAsShortcut(GRADLE_APP_NAME);
 
             // Validate application stopped.
-            LibertyPluginTestUtils.validateLibertyServerStopped(testAppPath + "/build");
+            LibertyPluginTestUtils.validateLibertyServerStopped(testAppPath + "/" + DEFAULT_GRADLE_WLP_PARENT_DIR);
         }
     }
 
@@ -746,7 +753,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         launchDashboardAction(GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_START);
 
         // Validate application is up and running.
-        LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_APP_NAME, true, testAppPath + "/build");
+        LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_APP_NAME, true, testAppPath + "/" + DEFAULT_GRADLE_WLP_PARENT_DIR);
 
         // Reads the text from the console output tab
         String consoleText = LibertyPluginTestUtils.getConsoleOutput();
@@ -758,7 +765,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         launchDashboardAction(GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
 
         // Validate application stopped.
-        LibertyPluginTestUtils.validateLibertyServerStopped(testAppPath + "/build");
+        LibertyPluginTestUtils.validateLibertyServerStopped(testAppPath + "/" + DEFAULT_GRADLE_WLP_PARENT_DIR);
 
     }
 
@@ -781,7 +788,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         launchStartWithRunAsShortcut(GRADLE_APP_NAME);
 
         // Validate application is up and running.
-        LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_APP_NAME, true, testAppPath + "/build");
+        LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_APP_NAME, true, testAppPath + "/" + DEFAULT_GRADLE_WLP_PARENT_DIR);
 
         // If there are issues with the workspace, close the error dialog.
         pressWorkspaceErrorDialogProceedButton(bot);
@@ -800,7 +807,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
             launchStopWithRunAsShortcut(GRADLE_APP_NAME);
 
             // Validate application stopped.
-            LibertyPluginTestUtils.validateLibertyServerStopped(testAppPath + "/build");
+            LibertyPluginTestUtils.validateLibertyServerStopped(testAppPath + "/" + DEFAULT_GRADLE_WLP_PARENT_DIR);
         }
     }
 
@@ -823,7 +830,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         launchStartWithNewCustomDebugConfig(GRADLE_APP_NAME, "--hotTests");
 
         // Validate application is up and running.
-        LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_APP_NAME, true, testAppPath + "/build");
+        LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_APP_NAME, true, testAppPath + "/" + DEFAULT_GRADLE_WLP_PARENT_DIR);
 
         // If there are issues with the workspace, close the error dialog.
         pressWorkspaceErrorDialogProceedButton(bot);
@@ -839,7 +846,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
             launchStopWithRunAsShortcut(GRADLE_APP_NAME);
 
             // Validate application stopped.
-            LibertyPluginTestUtils.validateLibertyServerStopped(testAppPath + "/build");
+            LibertyPluginTestUtils.validateLibertyServerStopped(testAppPath + "/" + DEFAULT_GRADLE_WLP_PARENT_DIR);
 
         }
     }
@@ -856,7 +863,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         launchStartWithDebugAsShortcut(GRADLE_APP_NAME);
 
         // Validate application is up and running.
-        LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_APP_NAME, true, testAppPath + "/build");
+        LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_APP_NAME, true, testAppPath + "/" + DEFAULT_GRADLE_WLP_PARENT_DIR);
 
         // If there are issues with the workspace, close the error dialog.
         pressWorkspaceErrorDialogProceedButton(bot);
@@ -868,7 +875,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
         launchStopWithRunAsShortcut(GRADLE_APP_NAME);
 
         // Validate application stopped.
-        LibertyPluginTestUtils.validateLibertyServerStopped(testAppPath + "/build");
+        LibertyPluginTestUtils.validateLibertyServerStopped(testAppPath + "/" + DEFAULT_GRADLE_WLP_PARENT_DIR);
     }
 
     /**
@@ -945,4 +952,73 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
                                              + ", was not listed in the source lookup list for project " + GRADLE_APP_NAME);
 
     }
+
+    /**
+     * Tests the full Open logs context menu entry behavior.
+     *
+     * @throws Exception If an error occurs.
+     */
+    @Test
+    public void testOpenLogs() throws Exception {
+        String serverOutputPath = testAppPath + "/" + DEFAULT_GRADLE_WLP_PARENT_DIR;
+
+        // Remove the logs directory so the entry starts in the disabled state.
+        SWTBotPluginOperations.deleteLogsDir(SWTBotPluginOperations.getDefaultLogsDir(APP_DIR, false));
+
+        // The Open logs entry must be disabled. The logs directory does not exist.
+        boolean disabledBefore = SWTBotPluginOperations.waitForOpenLogsEntryState(
+                                                                                  GRADLE_APP_NAME, false, SWTBotTestCondition.SHORT_WAIT_MS);
+        Assertions.assertTrue(disabledBefore,
+                              "Open logs entry should be disabled when the logs directory does not exist.");
+
+        // Start dev mode.
+        launchDashboardAction(GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_START);
+
+        try {
+            LibertyPluginTestUtils.validateApplicationOutcome(GRADLE_APP_NAME, true, serverOutputPath);
+            pressWorkspaceErrorDialogProceedButton(bot);
+
+            // After the server starts, the Open logs entry should become an enabled submenu.
+            boolean enabledAfterStart = SWTBotPluginOperations.waitForOpenLogsEntryState(
+                                                                                         GRADLE_APP_NAME, true, SWTBotTestCondition.SHORT_WAIT_MS);
+            Assertions.assertTrue(enabledAfterStart,
+                                  "Open logs entry should be enabled after the server created the logs directory.");
+
+            // Show the Open logs submenu, check that all four entries are present, and verify that the Open logs folder entry is enabled.
+            SWTBotMenu logsMenu = SWTBotPluginOperations.getDashboardOpenLogsSubmenu(GRADLE_APP_NAME, SWTBotTestCondition.SHORT_WAIT_MS);
+            Assertions.assertNotNull(logsMenu, "Open logs submenu could not be obtained for: " + GRADLE_APP_NAME);
+            try {
+                List<String> items = logsMenu.menuItems();
+                Assertions.assertTrue(items.contains(OpenLogsMenuContributor.MENU_ACTION_OPENLOGS_MSGS_TYPE),
+                                      "Messages entry missing from Open logs submenu. Items found: " + items);
+                Assertions.assertTrue(items.contains(OpenLogsMenuContributor.MENU_ACTION_OPENLOGS_TRACE_TYPE),
+                                      "Trace entry missing from Open logs submenu. Items found: " + items);
+                Assertions.assertTrue(items.contains(OpenLogsMenuContributor.MENU_ACTION_OPENLOGS_FFDC_TYPE),
+                                      "FFDC entry missing from Open logs submenu. Items found: " + items);
+                Assertions.assertTrue(items.contains(OpenLogsMenuContributor.MENU_ACTION_OPENLOGS_FOLDER),
+                                      "Open logs folder entry missing from Open logs submenu. Items found: " + items);
+                SWTBotMenu folderEntry = logsMenu.menu(OpenLogsMenuContributor.MENU_ACTION_OPENLOGS_FOLDER);
+                Assertions.assertTrue(folderEntry.isEnabled(),
+                                      "Open logs folder entry should be enabled when the logs directory exists.");
+            } finally {
+                logsMenu.hide();
+            }
+
+            // Click the messages.log entry. The file should open in an editor.
+            boolean clicked = SWTBotPluginOperations.clickOpenLogsFileEntry(
+                                                                            GRADLE_APP_NAME, DEFAULT_MESSAGES_LOG_FILE_NAME, SWTBotTestCondition.SHORT_WAIT_MS);
+            Assertions.assertTrue(clicked, "Failed to click messages.log entry in the Open logs submenu.");
+
+            boolean editorOpened = SWTBotTestCondition.waitFor(
+                                                               () -> SWTBotPluginOperations.searchForEditor(bot, DEFAULT_MESSAGES_LOG_FILE_NAME) != null,
+                                                               SWTBotTestCondition.SHORT_WAIT_MS);
+            Assertions.assertTrue(editorOpened, "An editor for messages.log did not open after clicking the entry.");
+        } finally {
+            // Stop dev mode and close the opened editor.
+            launchDashboardAction(GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
+            LibertyPluginTestUtils.validateLibertyServerStopped(serverOutputPath);
+            SWTBotPluginOperations.closeEditorByTitle(bot, DEFAULT_MESSAGES_LOG_FILE_NAME);
+        }
+    }
+
 }
