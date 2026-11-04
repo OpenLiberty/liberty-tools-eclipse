@@ -17,6 +17,7 @@ import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.go;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.checkRunCleanProjectCheckBox;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.checkRunInContainerCheckBox;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.deleteLibertyToolsRunConfigEntriesFromAppRunAs;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.dismissLibertyToolsErrorDialog;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.enableLibertyTools;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getAppDebugAsMenu;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getAppRunAsMenu;
@@ -466,14 +467,30 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
                 throw e;
             }
 
-            // Validate that the server came back up under Liberty Tools.
-            LibertyPluginTestUtils.validateApplicationOutcome(MVN_WRAPPER_APP_NAME, true, libertyBasePath);
+            // Timestamps help to tell whether a failure happened before or after the old server stopped.
+            System.out.println("[testRestartOfExternallyStartedDevMode] Restart confirmed at " + java.time.Instant.now());
 
-            // Stop dev mode via Liberty Tools.
+            // Wait for the externally started server to stop. Its stop message stays in messages.log
+            // until the restarted server starts a new log file.
+            LibertyPluginTestUtils.validateLibertyServerStopped(libertyBasePath);
+            System.out.println("[testRestartOfExternallyStartedDevMode] Old server stopped at " + java.time.Instant.now());
+
+            // Validate that the server came back up under Liberty Tools. The application cannot respond
+            // again until the restarted server is running, and that server writes a new messages.log.
+            LibertyPluginTestUtils.validateApplicationOutcome(MVN_WRAPPER_APP_NAME, true, libertyBasePath);
+            System.out.println("[testRestartOfExternallyStartedDevMode] New server started at " + java.time.Instant.now());
+
+            // Stop dev mode via Liberty Tools. The stop message now comes from the restarted server.
             launchDashboardAction(MVN_WRAPPER_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
             LibertyPluginTestUtils.validateLibertyServerStopped(libertyBasePath);
+
+            // Validate that the port is released so that later tests can bind to it.
+            LibertyPluginTestUtils.validateApplicationOutcome(MVN_WRAPPER_APP_NAME, false, libertyBasePath);
             devModeStopped = true;
         } finally {
+            // Dismiss any error dialog left open by a failed restart so that it cannot block later tests.
+            dismissLibertyToolsErrorDialog(bot);
+
             if (!devModeStopped) {
                 String stopDevModeCmd = CommandBuilder.constructMavenCommand(projectModel,
                                                                              "io.openliberty.tools:liberty-maven-plugin:stop", false, null, null).getCommand();
@@ -490,6 +507,9 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
                 stopDMProcess.waitFor(SWTBotTestCondition.SHORT_WAIT_MS, TimeUnit.MILLISECONDS);
 
                 LibertyPluginTestUtils.validateLibertyServerStopped(libertyBasePath);
+
+                // Validate that the port is released so that later tests can bind to it.
+                LibertyPluginTestUtils.validateApplicationOutcome(MVN_WRAPPER_APP_NAME, false, libertyBasePath);
             }
         }
     }
@@ -1161,7 +1181,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
             Assertions.assertTrue(clicked, "Failed to click messages.log entry in the Open logs submenu.");
 
             boolean editorOpened = SWTBotTestCondition.waitFor(
-                                                               () -> SWTBotPluginOperations.searchForEditor(bot, DEFAULT_MESSAGES_LOG_FILE_NAME) != null,
+                                                               () -> SWTBotPluginOperations.findEditorByTitle(bot, DEFAULT_MESSAGES_LOG_FILE_NAME) != null,
                                                                SWTBotTestCondition.SHORT_WAIT_MS);
             Assertions.assertTrue(editorOpened, "An editor for messages.log did not open after clicking the entry.");
         } finally {

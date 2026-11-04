@@ -816,6 +816,27 @@ public class SWTBotPluginOperations {
     }
 
     /**
+     * Dismisses an open Liberty Tools error dialog by clicking its OK button. Does nothing when no such dialog
+     * is open. This prevents a modal dialog raised during a test from blocking the tests that follow.
+     *
+     * @param bot The SWTBot instance.
+     */
+    public static void dismissLibertyToolsErrorDialog(SWTBot bot) {
+        for (SWTBotShell shell : bot.shells()) {
+            try {
+                String shellTitle = shell.getText();
+                if (shellTitle != null && shellTitle.contains("Liberty Tools")) {
+                    // Only dialogs with an OK button are dismissed. Other shells throw and are skipped.
+                    shell.bot().button("OK").click();
+                    System.out.println("[dismissLibertyToolsErrorDialog] Dismissed the dialog with title: " + shellTitle);
+                }
+            } catch (Exception e) {
+                // The shell has no OK button or it was disposed. Continue with the next shell.
+            }
+        }
+    }
+
+    /**
      * Returns the object representing the active project matching the input project name.
      * 
      * @param bot  The SWTWorkbenchBot instance.
@@ -1408,6 +1429,24 @@ public class SWTBotPluginOperations {
             }
         }
         return editor;
+    }
+
+    /**
+     * Finds the editor whose title contains the input string without activating it. Activating a text editor
+     * whose file changed on disk can open a modal prompt that blocks the UI thread.
+     *
+     * @param bot The SWTWorkbenchBot instance.
+     * @param titleContent The complete or partial editor title to match.
+     *
+     * @return The matching editor, or null if no open editor title matches.
+     */
+    public static SWTBotEditor findEditorByTitle(SWTWorkbenchBot bot, String titleContent) {
+        for (SWTBotEditor editor : bot.editors()) {
+            if (editor.getTitle().contains(titleContent)) {
+                return editor;
+            }
+        }
+        return null;
     }
 
     /**
@@ -2531,14 +2570,15 @@ public class SWTBotPluginOperations {
     }
 
     /**
-     * Closes the editor whose title contains the given string.
+     * Closes the editor whose title contains the given string. The editor is not activated before it is closed,
+     * because activating a text editor whose file changed on disk can open a modal prompt that blocks the UI thread.
      *
      * @param bot The SWTWorkbenchBot instance.
      * @param titleContent The complete or partial editor title to match.
      */
     public static void closeEditorByTitle(SWTWorkbenchBot bot, String titleContent) {
         try {
-            SWTBotEditor editor = searchForEditor(bot, titleContent);
+            SWTBotEditor editor = findEditorByTitle(bot, titleContent);
             if (editor != null) {
                 editor.close();
             }

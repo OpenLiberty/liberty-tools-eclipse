@@ -19,6 +19,7 @@ import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.clickSelectAllInModuleSelectionDialog;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.collapseDashboard;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.deleteLibertyToolsRunConfigEntriesFromAppRunAs;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.dismissLibertyToolsErrorDialog;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.expandDashboard;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.filterDashboardByText;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getDashboardContent;
@@ -770,8 +771,8 @@ public class LibertyPluginSWTBotMultiLibertyModMavenTest extends AbstractLiberty
      * selection dialog appears because all modules are in scope. Select ear1.
      * 3. Liberty Tools detects that ear1 is already running and opens a Yes/No dialog.
      * Click Yes to confirm the stop and restart.
-     * 4. Validate that the server was genuinely restarted by checking that messages.log
-     * is newer than the timestamp recorded before the restart was triggered.
+     * 4. Validate that the externally started server goes down and that the application
+     * becomes reachable again after Liberty Tools restarts it.
      * 5. Stop ear1 from the parent using the dashboard Stop action. Since only one module
      * is active, no module selection dialog is expected. Validate that dev mode stopped.
      *
@@ -835,10 +836,21 @@ public class LibertyPluginSWTBotMultiLibertyModMavenTest extends AbstractLiberty
                 throw e;
             }
 
+            // Timestamps help to tell whether a failure happened before or after the old server stopped.
+            System.out.println("[testRestartOfExternallyStartedDevMode] Restart confirmed at " + java.time.Instant.now());
+
+            // Wait for the externally started ear1 server to go down. Without this wait the check below
+            // can pass against the old server before the restart has happened.
+            LibertyPluginTestUtils.validateApplicationOutcomeCustom(
+                                                                    "http://localhost:9080/converter/heights.jsp?heightCm=10", false,
+                                                                    null, ear1ServerPath.toString(), MVN_EAR1_MODULE_NAME);
+            System.out.println("[testRestartOfExternallyStartedDevMode] Old server stopped at " + java.time.Instant.now());
+
             // Validate that the server came back up under Liberty Tools.
             LibertyPluginTestUtils.validateApplicationOutcomeCustom(
                                                                     "http://localhost:9080/converter/heights.jsp?heightCm=10", true,
                                                                     "Height in feet and inches", ear1ServerPath.toString(), MVN_EAR1_MODULE_NAME);
+            System.out.println("[testRestartOfExternallyStartedDevMode] New server started at " + java.time.Instant.now());
 
             pressWorkspaceErrorDialogProceedButton(bot);
 
@@ -854,6 +866,9 @@ public class LibertyPluginSWTBotMultiLibertyModMavenTest extends AbstractLiberty
                                                     3);
             devModeStopped = true;
         } finally {
+            // Dismiss any error dialog left open by a failed restart so that it cannot block later tests.
+            dismissLibertyToolsErrorDialog(bot);
+
             if (!devModeStopped) {
                 String stopDevModeCmd = "io.openliberty.tools:liberty-maven-plugin:stop -pl ear1 -am";
                 if (LibertyPluginTestUtils.onWindows()) {
@@ -1088,7 +1103,7 @@ public class LibertyPluginSWTBotMultiLibertyModMavenTest extends AbstractLiberty
             Assertions.assertTrue(clicked, "Failed to click messages.log entry in the Open logs submenu.");
 
             boolean editorOpened = SWTBotTestCondition.waitFor(
-                                                               () -> SWTBotPluginOperations.searchForEditor(bot, DEFAULT_MESSAGES_LOG_FILE_NAME) != null,
+                                                               () -> SWTBotPluginOperations.findEditorByTitle(bot, DEFAULT_MESSAGES_LOG_FILE_NAME) != null,
                                                                SWTBotTestCondition.SHORT_WAIT_MS);
             Assertions.assertTrue(editorOpened, "An editor for messages.log did not open after clicking the entry.");
         } finally {

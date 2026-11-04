@@ -460,7 +460,7 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
             Assertions.assertTrue(clicked, "Failed to click messages.log entry in the Open logs submenu.");
 
             boolean editorOpened = SWTBotTestCondition.waitFor(
-                                                               () -> SWTBotPluginOperations.searchForEditor(bot, DEFAULT_MESSAGES_LOG_FILE_NAME) != null,
+                                                               () -> SWTBotPluginOperations.findEditorByTitle(bot, DEFAULT_MESSAGES_LOG_FILE_NAME) != null,
                                                                SWTBotTestCondition.SHORT_WAIT_MS);
             Assertions.assertTrue(editorOpened, "An editor for messages.log did not open after clicking the entry.");
         } finally {
