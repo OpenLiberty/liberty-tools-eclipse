@@ -30,6 +30,7 @@ import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchCustomDebugFromDashboard;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchCustomRunFromDashboard;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchDashboardAction;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchDashboardStopAndWaitForServerDown;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchDebugConfigurationsDialogFromAppRunAs;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchRunConfigurationsDialogFromAppRunAs;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchRunTestsWithRunAsShortcut;
@@ -588,7 +589,7 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
             }
         } finally {
             // Stop dev mode.
-            launchDashboardAction(GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
+            launchDashboardStopAndWaitForServerDown(GRADLE_APP_NAME, "http://localhost:9080/" + GRADLE_APP_NAME + "/servlet", 3);
 
             // Validate application stopped.
             LibertyPluginTestUtils.validateLibertyServerStopped(testAppPath + "/" + DEFAULT_GRADLE_WLP_PARENT_DIR);
@@ -1035,9 +1036,12 @@ public class LibertyPluginSWTBotGradleTest extends AbstractLibertyPluginSWTBotTe
             Assertions.assertTrue(editorOpened, "An editor for messages.log did not open after clicking the entry.");
         } finally {
             // Stop dev mode and close the opened editor.
-            launchDashboardAction(GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
-            LibertyPluginTestUtils.validateLibertyServerStopped(serverOutputPath);
-            SWTBotPluginOperations.closeEditorByTitle(bot, DEFAULT_MESSAGES_LOG_FILE_NAME);
+            try {
+                launchDashboardAction(GRADLE_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
+                LibertyPluginTestUtils.validateLibertyServerStopped(serverOutputPath);
+            } finally {
+                SWTBotPluginOperations.closeEditorByTitle(bot, DEFAULT_MESSAGES_LOG_FILE_NAME);
+            }
         }
     }
 

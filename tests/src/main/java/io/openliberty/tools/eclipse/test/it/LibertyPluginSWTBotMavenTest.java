@@ -31,6 +31,7 @@ import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchCustomDebugFromDashboard;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchCustomRunFromDashboard;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchDashboardAction;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchDashboardStopAndWaitForServerDown;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchDebugConfigurationsDialogFromAppRunAs;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchRunConfigurationsDialogFromAppRunAs;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchRunTestsWithRunAsShortcut;
@@ -646,7 +647,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
             }
         } finally {
             // Stop dev mode.
-            launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
+            launchDashboardStopAndWaitForServerDown(MVN_APP_NAME, "http://localhost:9080/" + MVN_APP_NAME + "/servlet", 3);
 
             // Validate application stopped.
             LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().resolve(DEFAULT_MAVEN_WLP_PARENT_DIR).toString());
@@ -1186,9 +1187,12 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
             Assertions.assertTrue(editorOpened, "An editor for messages.log did not open after clicking the entry.");
         } finally {
             // Stop dev mode and close the opened editor.
-            launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
-            LibertyPluginTestUtils.validateLibertyServerStopped(serverOutputPath);
-            SWTBotPluginOperations.closeEditorByTitle(bot, DEFAULT_MESSAGES_LOG_FILE_NAME);
+            try {
+                launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
+                LibertyPluginTestUtils.validateLibertyServerStopped(serverOutputPath);
+            } finally {
+                SWTBotPluginOperations.closeEditorByTitle(bot, DEFAULT_MESSAGES_LOG_FILE_NAME);
+            }
         }
     }
 }

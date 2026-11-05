@@ -465,9 +465,12 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
             Assertions.assertTrue(editorOpened, "An editor for messages.log did not open after clicking the entry.");
         } finally {
             // Stop dev mode, close the opened editor, and unset the preferences.
-            SWTBotPluginOperations.launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
-            LibertyPluginTestUtils.validateLibertyServerStopped(serverOutputPath);
-            SWTBotPluginOperations.closeEditorByTitle(bot, DEFAULT_MESSAGES_LOG_FILE_NAME);
+            try {
+                SWTBotPluginOperations.launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
+                LibertyPluginTestUtils.validateLibertyServerStopped(serverOutputPath);
+            } finally {
+                SWTBotPluginOperations.closeEditorByTitle(bot, DEFAULT_MESSAGES_LOG_FILE_NAME);
+            }
             SWTBotPluginOperations.unsetBuildCmdPathInPreferences(bot, "Maven");
         }
     }
