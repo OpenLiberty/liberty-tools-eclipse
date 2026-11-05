@@ -49,7 +49,7 @@
             <unit id="org.eclipse.swtbot.ide.feature.group" version="4.3.0.202506021445"/>
         </location>
         <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
-            <repository location="https://download.eclipse.org/tools/cdt/releases/12.5"/>
+            <repository location="https://download.eclipse.org/tools/cdt/releases/12.6"/>
             <unit id="org.eclipse.cdt.launch" version="11.0.300.202603111352"/>
         </location>
         <location includeAllPlatforms="false" includeConfigurePhase="true" includeMode="planner" includeSource="true" type="InstallableUnit">
@@ -107,42 +107,6 @@
 				    <version>3.4</version>
 				    <type>jar</type>
 			    </dependency>
-			    <!-- Pin ASM to 9.9.1 to match the Eclipse 2026-06 platform.           -->
-                <!-- ta-jam 4.3.2 shades its own ASM internally so it is unaffected.   -->
-                <!-- Without this pin, ta-jam's transitive resolution registers         -->
-                <!-- org.objectweb.asm 9.10.1 into the shared .p2 pool alongside the   -->
-                <!-- platform's 9.9.1, causing a spifly uses-constraint violation that  -->
-                <!-- prevents org.eclipse.jface and the entire workbench from loading.  -->
-                <dependency>
-                    <groupId>org.ow2.asm</groupId>
-                    <artifactId>asm</artifactId>
-                    <version>9.9.1</version>
-                    <type>jar</type>
-                </dependency>
-                <dependency>
-                    <groupId>org.ow2.asm</groupId>
-                    <artifactId>asm-analysis</artifactId>
-                    <version>9.9.1</version>
-                    <type>jar</type>
-                </dependency>
-                <dependency>
-                    <groupId>org.ow2.asm</groupId>
-                    <artifactId>asm-commons</artifactId>
-                    <version>9.9.1</version>
-                    <type>jar</type>
-                </dependency>
-                <dependency>
-                    <groupId>org.ow2.asm</groupId>
-                    <artifactId>asm-tree</artifactId>
-                    <version>9.9.1</version>
-                    <type>jar</type>
-                </dependency>
-                <dependency>
-                    <groupId>org.ow2.asm</groupId>
-                    <artifactId>asm-util</artifactId>
-                    <version>9.9.1</version>
-                    <type>jar</type>
-                </dependency>
 		    </dependencies>
 	    </location>
     </locations>
