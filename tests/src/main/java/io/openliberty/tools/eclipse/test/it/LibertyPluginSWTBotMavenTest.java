@@ -17,6 +17,7 @@ import static io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.go;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.checkRunCleanProjectCheckBox;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.checkRunInContainerCheckBox;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.deleteLibertyToolsRunConfigEntriesFromAppRunAs;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.dismissLibertyToolsErrorDialog;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.enableLibertyTools;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getAppDebugAsMenu;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.getAppRunAsMenu;
@@ -30,6 +31,7 @@ import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchCustomDebugFromDashboard;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchCustomRunFromDashboard;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchDashboardAction;
+import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchDashboardStopAndWaitForServerDown;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchDebugConfigurationsDialogFromAppRunAs;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchRunConfigurationsDialogFromAppRunAs;
 import static io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations.launchRunTestsWithRunAsShortcut;
@@ -383,7 +385,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
 
         // Validate application is up and running.
         LibertyPluginTestUtils.validateApplicationOutcome(MVN_WRAPPER_APP_NAME, true,
-                                                          wrapperProjectPath.toAbsolutePath().toString() + "/target/liberty");
+                                                          wrapperProjectPath.toAbsolutePath().resolve(DEFAULT_MAVEN_WLP_PARENT_DIR).toString());
 
         // If there are issues with the workspace, close the error dialog.
         pressWorkspaceErrorDialogProceedButton(bot);
@@ -392,7 +394,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         launchDashboardAction(MVN_WRAPPER_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
 
         // Validate application stopped.
-        LibertyPluginTestUtils.validateLibertyServerStopped(wrapperProjectPath.toAbsolutePath().toString() + "/target/liberty");
+        LibertyPluginTestUtils.validateLibertyServerStopped(wrapperProjectPath.toAbsolutePath().resolve(DEFAULT_MAVEN_WLP_PARENT_DIR).toString());
     }
 
     /**
@@ -404,7 +406,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_START);
 
         // Validate application is up and running.
-        LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
+        LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().resolve(DEFAULT_MAVEN_WLP_PARENT_DIR).toString());
 
         // If there are issues with the workspace, close the error dialog.
         pressWorkspaceErrorDialogProceedButton(bot);
@@ -413,13 +415,13 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
 
         // Validate application stopped.
-        LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
+        LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().resolve(DEFAULT_MAVEN_WLP_PARENT_DIR).toString());
     }
 
     /**
      * Tests the restart of an externally started dev mode process when
      * the user selects a start action using Liberty Tools.
-     * 
+     *
      * @throws CommandNotFoundException
      * @throws IOException
      * @throws InterruptedException
@@ -430,7 +432,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         Path projAbsolutePath = wrapperProjectPath.toAbsolutePath();
         IProject iProject = LibertyPluginTestUtils.getProject(MVN_WRAPPER_APP_NAME);
         ProjectModel projectModel = new ProjectModel(iProject);
-        String libertyBasePath = projAbsolutePath.toString() + "/target/liberty";
+        String libertyBasePath = projAbsolutePath.resolve(DEFAULT_MAVEN_WLP_PARENT_DIR).toString();
 
         // Doing a 'clean' first in case server was started previously and terminated abruptly. App tests may fail,
         // making it look like an "outer", actual test is failing, so we skip the tests.
@@ -466,14 +468,30 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
                 throw e;
             }
 
-            // Validate that the server came back up under Liberty Tools.
-            LibertyPluginTestUtils.validateApplicationOutcome(MVN_WRAPPER_APP_NAME, true, libertyBasePath);
+            // Timestamps help to tell whether a failure happened before or after the old server stopped.
+            System.out.println("[testRestartOfExternallyStartedDevMode] Restart confirmed at " + java.time.Instant.now());
 
-            // Stop dev mode via Liberty Tools.
+            // Wait for the externally started server to stop. Its stop message stays in messages.log
+            // until the restarted server starts a new log file.
+            LibertyPluginTestUtils.validateLibertyServerStopped(libertyBasePath);
+            System.out.println("[testRestartOfExternallyStartedDevMode] Old server stopped at " + java.time.Instant.now());
+
+            // Validate that the server came back up under Liberty Tools. The application cannot respond
+            // again until the restarted server is running, and that server writes a new messages.log.
+            LibertyPluginTestUtils.validateApplicationOutcome(MVN_WRAPPER_APP_NAME, true, libertyBasePath);
+            System.out.println("[testRestartOfExternallyStartedDevMode] New server started at " + java.time.Instant.now());
+
+            // Stop dev mode via Liberty Tools. The stop message now comes from the restarted server.
             launchDashboardAction(MVN_WRAPPER_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
             LibertyPluginTestUtils.validateLibertyServerStopped(libertyBasePath);
+
+            // Validate that the port is released so that later tests can bind to it.
+            LibertyPluginTestUtils.validateApplicationOutcome(MVN_WRAPPER_APP_NAME, false, libertyBasePath);
             devModeStopped = true;
         } finally {
+            // Dismiss any error dialog left open by a failed restart so that it cannot block later tests.
+            dismissLibertyToolsErrorDialog(bot);
+
             if (!devModeStopped) {
                 String stopDevModeCmd = CommandBuilder.constructMavenCommand(projectModel,
                                                                              "io.openliberty.tools:liberty-maven-plugin:stop", false, null, null).getCommand();
@@ -490,6 +508,9 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
                 stopDMProcess.waitFor(SWTBotTestCondition.SHORT_WAIT_MS, TimeUnit.MILLISECONDS);
 
                 LibertyPluginTestUtils.validateLibertyServerStopped(libertyBasePath);
+
+                // Validate that the port is released so that later tests can bind to it.
+                LibertyPluginTestUtils.validateApplicationOutcome(MVN_WRAPPER_APP_NAME, false, libertyBasePath);
             }
         }
     }
@@ -503,7 +524,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_DEBUG);
 
         // Validate application is up and running.
-        LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
+        LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().resolve(DEFAULT_MAVEN_WLP_PARENT_DIR).toString());
 
         // If there are issues with the workspace, close the error dialog.
         pressWorkspaceErrorDialogProceedButton(bot);
@@ -512,7 +533,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
 
         // Validate application stopped.
-        LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
+        LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().resolve(DEFAULT_MAVEN_WLP_PARENT_DIR).toString());
     }
 
     /**
@@ -532,7 +553,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         launchCustomRunFromDashboard(MVN_APP_NAME, "-DhotTests=true");
 
         // Validate application is up and running.
-        LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
+        LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().resolve(DEFAULT_MAVEN_WLP_PARENT_DIR).toString());
 
         // If there are issues with the workspace, close the error dialog.
         pressWorkspaceErrorDialogProceedButton(bot);
@@ -545,7 +566,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
             launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
 
             // Validate application stopped.
-            LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
+            LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().resolve(DEFAULT_MAVEN_WLP_PARENT_DIR).toString());
         }
     }
 
@@ -566,7 +587,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         launchCustomDebugFromDashboard(MVN_APP_NAME, "-DhotTests=true");
 
         // Validate application is up and running.
-        LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
+        LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().resolve(DEFAULT_MAVEN_WLP_PARENT_DIR).toString());
 
         // If there are issues with the workspace, close the error dialog.
         pressWorkspaceErrorDialogProceedButton(bot);
@@ -582,7 +603,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
             launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
 
             // Validate application stopped.
-            LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
+            LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().resolve(DEFAULT_MAVEN_WLP_PARENT_DIR).toString());
         }
     }
 
@@ -605,7 +626,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_START);
 
         // Validate application is up and running.
-        LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
+        LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().resolve(DEFAULT_MAVEN_WLP_PARENT_DIR).toString());
 
         // If there are issues with the workspace, close the error dialog.
         pressWorkspaceErrorDialogProceedButton(bot);
@@ -626,10 +647,10 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
             }
         } finally {
             // Stop dev mode.
-            launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
+            launchDashboardStopAndWaitForServerDown(MVN_APP_NAME, "http://localhost:9080/" + MVN_APP_NAME + "/servlet", 3);
 
             // Validate application stopped.
-            LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
+            LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().resolve(DEFAULT_MAVEN_WLP_PARENT_DIR).toString());
         }
     }
 
@@ -646,7 +667,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         launchStartWithDefaultRunConfigFromAppRunAs(MVN_APP_NAME);
 
         // Validate application is up and running.
-        LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
+        LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().resolve(DEFAULT_MAVEN_WLP_PARENT_DIR).toString());
 
         // If there are issues with the workspace, close the error dialog.
         pressWorkspaceErrorDialogProceedButton(bot);
@@ -655,7 +676,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         launchStopWithRunAsShortcut(MVN_APP_NAME);
 
         // Validate application stopped.
-        LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
+        LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().resolve(DEFAULT_MAVEN_WLP_PARENT_DIR).toString());
     }
 
     /**
@@ -676,7 +697,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         launchStartWithNewCustomRunConfig(MVN_APP_NAME, "-DhotTests=true");
 
         // Validate application is up and running.
-        LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
+        LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().resolve(DEFAULT_MAVEN_WLP_PARENT_DIR).toString());
 
         try {
             // Validate that the test reports were generated.
@@ -686,7 +707,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
             launchStopWithRunAsShortcut(MVN_APP_NAME);
 
             // Validate application stopped.
-            LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
+            LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().resolve(DEFAULT_MAVEN_WLP_PARENT_DIR).toString());
         }
     }
 
@@ -712,7 +733,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         launchStartWithRunAsShortcut(MVN_APP_NAME);
 
         // Validate application is up and running.
-        LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
+        LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().resolve(DEFAULT_MAVEN_WLP_PARENT_DIR).toString());
 
         // If there are issues with the workspace, close the error dialog.
         pressWorkspaceErrorDialogProceedButton(bot);
@@ -736,7 +757,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
             launchStopWithRunAsShortcut(MVN_APP_NAME);
 
             // Validate application stopped.
-            LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
+            LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().resolve(DEFAULT_MAVEN_WLP_PARENT_DIR).toString());
         }
     }
 
@@ -758,7 +779,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         launchStartWithNewCustomDebugConfig(MVN_APP_NAME, "-DhotTests=true");
 
         // Validate application is up and running.
-        LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
+        LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().resolve(DEFAULT_MAVEN_WLP_PARENT_DIR).toString());
 
         // If there are issues with the workspace, close the error dialog.
         pressWorkspaceErrorDialogProceedButton(bot);
@@ -780,7 +801,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
             launchStopWithRunAsShortcut(MVN_APP_NAME);
 
             // Validate application stopped.
-            LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
+            LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().resolve(DEFAULT_MAVEN_WLP_PARENT_DIR).toString());
         }
     }
 
@@ -797,7 +818,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         launchStartWithDebugAsShortcut(MVN_APP_NAME);
 
         // Validate application is up and running.
-        LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
+        LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().resolve(DEFAULT_MAVEN_WLP_PARENT_DIR).toString());
 
         // If there are issues with the workspace, close the error dialog.
         pressWorkspaceErrorDialogProceedButton(bot);
@@ -812,7 +833,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         launchStopWithRunAsShortcut(MVN_APP_NAME);
 
         // Validate application stopped.
-        LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
+        LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().resolve(DEFAULT_MAVEN_WLP_PARENT_DIR).toString());
     }
 
     @Test
@@ -828,7 +849,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_START);
 
         // Validate application is not up and not running.
-        LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
+        LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().resolve(DEFAULT_MAVEN_WLP_PARENT_DIR).toString());
     }
 
     @Test
@@ -847,7 +868,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
 
         // Validate application is up and running.
         LibertyPluginTestUtils.validateApplicationOutcome(MVN_WRAPPER_APP_NAME, true,
-                                                          wrapperProjectPath.toAbsolutePath().toString() + "/target/liberty");
+                                                          wrapperProjectPath.toAbsolutePath().resolve(DEFAULT_MAVEN_WLP_PARENT_DIR).toString());
 
         // If there are issues with the workspace, close the error dialog.
         pressWorkspaceErrorDialogProceedButton(bot);
@@ -856,7 +877,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         launchDashboardAction(MVN_WRAPPER_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
 
         // Validate application stopped.
-        LibertyPluginTestUtils.validateLibertyServerStopped(wrapperProjectPath.toAbsolutePath().toString() + "/target/liberty");
+        LibertyPluginTestUtils.validateLibertyServerStopped(wrapperProjectPath.toAbsolutePath().resolve(DEFAULT_MAVEN_WLP_PARENT_DIR).toString());
 
         setBuildCmdPathInPreferences(bot, "Maven");
     }
@@ -874,7 +895,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_START);
 
         // Validate application is up and running.
-        LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
+        LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().resolve(DEFAULT_MAVEN_WLP_PARENT_DIR).toString());
 
         // If there are issues with the workspace, close the error dialog.
         pressWorkspaceErrorDialogProceedButton(bot);
@@ -883,7 +904,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
 
         // Validate application stopped.
-        LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
+        LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().resolve(DEFAULT_MAVEN_WLP_PARENT_DIR).toString());
     }
 
     /**
@@ -1011,7 +1032,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         // Since our tests cannot run docker, any "failed" start would indicate we did not start locally.
         // There is certainly room for improvement here like perhaps reading the Console window for "devc" vs "dev" commands, but this is
         // ok for now.
-        LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
+        LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().resolve(DEFAULT_MAVEN_WLP_PARENT_DIR).toString());
 
         // If there are issues with the workspace, close the error dialog.
         pressWorkspaceErrorDialogProceedButton(bot);
@@ -1020,7 +1041,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
 
         // Validate application stopped.
-        LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
+        LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().resolve(DEFAULT_MAVEN_WLP_PARENT_DIR).toString());
 
     }
 
@@ -1048,7 +1069,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         // Start dev mode. This should start locally.
         launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_START);
 
-        LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().toString() + "/target/liberty");
+        LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, projectPath.toAbsolutePath().resolve(DEFAULT_MAVEN_WLP_PARENT_DIR).toString());
         // Reads the text from the console output tab
         String consoleText = LibertyPluginTestUtils.getConsoleOutput();
         Assertions.assertTrue(consoleText.contains("clean io.openliberty.tools:liberty-maven-plugin:dev"),
@@ -1060,7 +1081,7 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
 
         // Validate application stopped.
-        LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().toString() + "/target/liberty");
+        LibertyPluginTestUtils.validateLibertyServerStopped(projectPath.toAbsolutePath().resolve(DEFAULT_MAVEN_WLP_PARENT_DIR).toString());
 
     }
 
@@ -1102,5 +1123,76 @@ public class LibertyPluginSWTBotMavenTest extends AbstractLibertyPluginSWTBotTes
         Assertions.assertTrue(jarEntryFound, "The dependency project, " + MVN_SHARED_LIB_NAME
                                              + ", was not listed in the source lookup list for project " + MVN_APP_NAME);
 
+    }
+
+    /**
+     * Tests the full Open logs context menu entry behavior.
+     *
+     * @throws Exception If an error occurs.
+     */
+    @Test
+    public void testOpenLogs() throws Exception {
+        String serverOutputPath = projectPath.toAbsolutePath().resolve(DEFAULT_MAVEN_WLP_PARENT_DIR).toString();
+
+        // Remove the logs directory so the entry starts in the disabled state.
+        SWTBotPluginOperations.deleteLogsDir(SWTBotPluginOperations.getDefaultLogsDir(projectPath, true));
+
+        // The Open logs entry must be disabled. The logs directory does not exist.
+        boolean disabledBefore = SWTBotPluginOperations.waitForOpenLogsEntryState(
+                                                                                  MVN_APP_NAME, false, SWTBotTestCondition.SHORT_WAIT_MS);
+        Assertions.assertTrue(disabledBefore,
+                              "Open logs entry should be disabled when the logs directory does not exist.");
+
+        // Start dev mode.
+        launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_START);
+
+        try {
+            LibertyPluginTestUtils.validateApplicationOutcome(MVN_APP_NAME, true, serverOutputPath);
+            pressWorkspaceErrorDialogProceedButton(bot);
+
+            // After the server starts, the Open logs entry should become an enabled submenu.
+            boolean enabledAfterStart = SWTBotPluginOperations.waitForOpenLogsEntryState(
+                                                                                         MVN_APP_NAME, true, SWTBotTestCondition.SHORT_WAIT_MS);
+            Assertions.assertTrue(enabledAfterStart,
+                                  "Open logs entry should be enabled after the server created the logs directory.");
+
+            // Show the Open logs submenu, check that all four entries are present, and verify that the Open logs folder entry is enabled.
+            SWTBotMenu logsMenu = SWTBotPluginOperations.getDashboardOpenLogsSubmenu(MVN_APP_NAME, SWTBotTestCondition.SHORT_WAIT_MS);
+            Assertions.assertNotNull(logsMenu, "Open logs submenu could not be obtained for: " + MVN_APP_NAME);
+            try {
+                List<String> items = logsMenu.menuItems();
+                Assertions.assertTrue(items.contains(OpenLogsMenuContributor.MENU_ACTION_OPENLOGS_MSGS_TYPE),
+                                      "Messages entry missing from Open logs submenu. Items found: " + items);
+                Assertions.assertTrue(items.contains(OpenLogsMenuContributor.MENU_ACTION_OPENLOGS_TRACE_TYPE),
+                                      "Trace entry missing from Open logs submenu. Items found: " + items);
+                Assertions.assertTrue(items.contains(OpenLogsMenuContributor.MENU_ACTION_OPENLOGS_FFDC_TYPE),
+                                      "FFDC entry missing from Open logs submenu. Items found: " + items);
+                Assertions.assertTrue(items.contains(OpenLogsMenuContributor.MENU_ACTION_OPENLOGS_FOLDER),
+                                      "Open logs folder entry missing from Open logs submenu. Items found: " + items);
+                SWTBotMenu folderEntry = logsMenu.menu(OpenLogsMenuContributor.MENU_ACTION_OPENLOGS_FOLDER);
+                Assertions.assertTrue(folderEntry.isEnabled(),
+                                      "Open logs folder entry should be enabled when the logs directory exists.");
+            } finally {
+                logsMenu.hide();
+            }
+
+            // Click the messages.log entry. The file should open in an editor.
+            boolean clicked = SWTBotPluginOperations.clickOpenLogsFileEntry(
+                                                                            MVN_APP_NAME, DEFAULT_MESSAGES_LOG_FILE_NAME, SWTBotTestCondition.SHORT_WAIT_MS);
+            Assertions.assertTrue(clicked, "Failed to click messages.log entry in the Open logs submenu.");
+
+            boolean editorOpened = SWTBotTestCondition.waitFor(
+                                                               () -> SWTBotPluginOperations.findEditorByTitle(bot, DEFAULT_MESSAGES_LOG_FILE_NAME) != null,
+                                                               SWTBotTestCondition.SHORT_WAIT_MS);
+            Assertions.assertTrue(editorOpened, "An editor for messages.log did not open after clicking the entry.");
+        } finally {
+            // Stop dev mode and close the opened editor.
+            try {
+                launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
+                LibertyPluginTestUtils.validateLibertyServerStopped(serverOutputPath);
+            } finally {
+                SWTBotPluginOperations.closeEditorByTitle(bot, DEFAULT_MESSAGES_LOG_FILE_NAME);
+            }
+        }
     }
 }

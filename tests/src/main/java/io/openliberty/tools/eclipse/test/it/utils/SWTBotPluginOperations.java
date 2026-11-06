@@ -27,7 +27,10 @@ import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 
@@ -78,6 +81,7 @@ import io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.ControlFinde
 import io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.ControlFinder.Direction;
 import io.openliberty.tools.eclipse.test.it.utils.MagicWidgetFinder.Option;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
+import io.openliberty.tools.eclipse.ui.dashboard.OpenLogsMenuContributor;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher;
 
 /**
@@ -247,7 +251,7 @@ public class SWTBotPluginOperations {
             boolean stillPresent = !SWTBotTestCondition.waitFor(
                                                                 () -> !isObjectInDebugView(searchObjectName), SWTBotTestCondition.MIN_WAIT_MS);
             Assertions.assertFalse(stillPresent,
-                                                         "Liberty launch was not removed from the Debug view after termination.");
+                                   "Liberty launch was not removed from the Debug view after termination.");
         } else {
             System.out.println("No Liberty launch found in Debug view to terminate");
         }
@@ -808,6 +812,27 @@ public class SWTBotPluginOperations {
         if (!success) {
             throw new WidgetNotFoundException("Failed to find and click button '" + buttonText + "' in dialog with title '" + dialogTitle
                                               + "'");
+        }
+    }
+
+    /**
+     * Dismisses an open Liberty Tools error dialog by clicking its OK button. Does nothing when no such dialog
+     * is open. This prevents a modal dialog raised during a test from blocking the tests that follow.
+     *
+     * @param bot The SWTBot instance.
+     */
+    public static void dismissLibertyToolsErrorDialog(SWTBot bot) {
+        for (SWTBotShell shell : bot.shells()) {
+            try {
+                String shellTitle = shell.getText();
+                if (shellTitle != null && shellTitle.contains("Liberty Tools")) {
+                    // Only dialogs with an OK button are dismissed. Other shells throw and are skipped.
+                    shell.bot().button("OK").click();
+                    System.out.println("[dismissLibertyToolsErrorDialog] Dismissed the dialog with title: " + shellTitle);
+                }
+            } catch (Exception e) {
+                // The shell has no OK button or it was disposed. Continue with the next shell.
+            }
         }
     }
 
@@ -1404,6 +1429,24 @@ public class SWTBotPluginOperations {
             }
         }
         return editor;
+    }
+
+    /**
+     * Finds the editor whose title contains the input string without activating it. Activating a text editor
+     * whose file changed on disk can open a modal prompt that blocks the UI thread.
+     *
+     * @param bot The SWTWorkbenchBot instance.
+     * @param titleContent The complete or partial editor title to match.
+     *
+     * @return The matching editor, or null if no open editor title matches.
+     */
+    public static SWTBotEditor findEditorByTitle(SWTWorkbenchBot bot, String titleContent) {
+        for (SWTBotEditor editor : bot.editors()) {
+            if (editor.getTitle().contains(titleContent)) {
+                return editor;
+            }
+        }
+        return null;
     }
 
     /**
@@ -2393,4 +2436,155 @@ public class SWTBotPluginOperations {
         }
     }
 
+    /**
+     * Returns the default Liberty logs directory for a project given its root directory on the file system.
+     *
+     * @param projectDir The root directory of the project.
+     * @param isMaven True when the project uses Maven; false when it uses Gradle.
+     *
+     * @return The absolute path to the Liberty logs directory.
+     */
+    public static Path getDefaultLogsDir(Path projectDir, boolean isMaven) {
+        String parentDir = isMaven ? AbstractLibertyPluginSWTBotTest.DEFAULT_MAVEN_WLP_PARENT_DIR
+                                   : AbstractLibertyPluginSWTBotTest.DEFAULT_GRADLE_WLP_PARENT_DIR;
+        return projectDir.toAbsolutePath().resolve(parentDir).resolve(AbstractLibertyPluginSWTBotTest.DEFAULT_WLP_INSTALL_LOGS_PATH);
+    }
+
+    /**
+     * Deletes the Liberty logs directory and all of its contents.
+     *
+     * @param logsDir The path to the logs directory to remove.
+     */
+    public static void deleteLogsDir(Path logsDir) {
+        if (!Files.exists(logsDir)) {
+            return;
+        }
+        try {
+            Files.walk(logsDir).sorted(Comparator.reverseOrder()).forEach(p -> {
+                try {
+                    Files.delete(p);
+                } catch (IOException e) {
+                    System.err.println("[deleteLogsDir] Failed to delete: " + p + ". Cause: " + e.getMessage());
+                }
+            });
+        } catch (IOException e) {
+            System.err.println("[deleteLogsDir] Failed to walk logs directory: " + logsDir + ". Cause: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Returns true when the Open logs entry in the dashboard context menu for the given application
+     * is an enabled submenu (logs directory exists), and false when it is disabled (logs
+     * directory is absent).
+     *
+     * @param appName     The dashboard item name.
+     * @param isEnabled True if the entry is expected to be an enabled submenu; false if it is expected to be disabled.
+     * @param maxWaitMs   The maximum time to wait in milliseconds.
+     *
+     * @return True when the observed state matches isCascading within the timeout.
+     */
+    public static boolean waitForOpenLogsEntryState(String appName, boolean isEnabled, int maxWaitMs) {
+        // Retry until the menu becomes consistent with the expected state or the timeout elapses.
+        return SWTBotTestCondition.waitFor(() -> {
+            try {
+                SWTBotRootMenu ctxMenu = getAppContextMenu(appName);
+                List<String> items = ctxMenu.menuItems();
+                boolean hasEntry = items.contains(OpenLogsMenuContributor.MENU_ACTION_OPENLOGS);
+                if (!hasEntry) {
+                    return false;
+                }
+                if (isEnabled) {
+                    // Logs exist. The entry is an enabled submenu. Navigate into it to
+                    // confirm it is enabled.
+                    SWTBotMenu logsMenu = ctxMenu.menu(OpenLogsMenuContributor.MENU_ACTION_OPENLOGS);
+                    boolean enabled = logsMenu.isEnabled();
+                    logsMenu.hide();
+                    return enabled;
+                } else {
+                    // Logs do not exist. The entry is disabled.
+                    SWTBotMenu logsMenu = ctxMenu.menu(OpenLogsMenuContributor.MENU_ACTION_OPENLOGS);
+                    boolean disabled = !logsMenu.isEnabled();
+                    logsMenu.hide();
+                    return disabled;
+                }
+            } catch (Exception e) {
+                System.out.println("[waitForOpenLogsEntryState] Retrying: " + e.getClass().getSimpleName());
+                return false;
+            }
+        }, maxWaitMs);
+    }
+
+    /**
+     * Opens the Open logs submenu from the Liberty Tools view context menu for the given application.
+     * It returns the SWTBotMenu object representing the opened submenu.
+     *
+     * The caller is responsible for dismissing the menu after inspection.
+     *
+     * @param appName   The dashboard item name.
+     * @param maxWaitMs The maximum time to wait in milliseconds.
+     *
+     * @return The SWTBotMenu for the Open logs submenu, or null if it could not be obtained.
+     */
+    public static SWTBotMenu getDashboardOpenLogsSubmenu(String appName, int maxWaitMs) {
+        final SWTBotMenu[] result = { null };
+        
+        // Retry until the open logs menu item is found or a timeout.
+        SWTBotTestCondition.waitFor(() -> {
+            try {
+                SWTBotRootMenu ctxMenu = getAppContextMenu(appName);
+                result[0] = ctxMenu.menu(OpenLogsMenuContributor.MENU_ACTION_OPENLOGS);
+                return result[0] != null;
+            } catch (Exception e) {
+                System.out.println("[getDashboardOpenLogsSubmenu] Retrying: " + e.getClass().getSimpleName());
+                result[0] = null;
+                return false;
+            }
+        }, maxWaitMs);
+        return result[0];
+    }
+
+    /**
+     * Clicks the named file entry inside the Open logs submenu for the given application.
+     * Retries the full sequence (open context menu, navigate to Open logs, click file entry)
+     * until success or timeout.
+     *
+     * @param appName        The dashboard item name.
+     * @param fileEntryLabel The exact label of the file entry to click.
+     * @param maxWaitMs      The maximum time to wait in milliseconds.
+     *
+     * @return True when the file entry was clicked successfully within the timeout.
+     */
+    public static boolean clickOpenLogsFileEntry(String appName, String fileEntryLabel, int maxWaitMs) {
+        // Retries the full sequence (open context menu, navigate to Open logs, click file entry)
+        // until success or timeout.
+        return SWTBotTestCondition.waitFor(() -> {
+            try {
+                SWTBotRootMenu ctxMenu = getAppContextMenu(appName);
+                ctxMenu.menu(OpenLogsMenuContributor.MENU_ACTION_OPENLOGS).menu(OpenLogsMenuContributor.MENU_ACTION_OPENLOGS_MSGS_TYPE).menu(fileEntryLabel).click();
+                return true;
+            } catch (Exception e) {
+                System.out.println("[clickOpenLogsFileEntry] Retrying: " + e.getClass().getSimpleName());
+                return false;
+            }
+        }, maxWaitMs);
+    }
+
+    /**
+     * Closes the editor whose title contains the given string. The editor is not activated before it is closed,
+     * because activating a text editor whose file changed on disk can open a modal prompt that blocks the UI thread.
+     *
+     * @param bot The SWTWorkbenchBot instance.
+     * @param titleContent The complete or partial editor title to match.
+     */
+    public static void closeEditorByTitle(SWTWorkbenchBot bot, String titleContent) {
+        try {
+            SWTBotEditor editor = findEditorByTitle(bot, titleContent);
+            if (editor != null) {
+                editor.close();
+            }
+        } catch (Exception e) {
+            // Editor may already be closed. No action required.
+            System.out.println("[closeEditorByTitle] Editor not found or already closed: " + titleContent);
+        }
+    }
 }
