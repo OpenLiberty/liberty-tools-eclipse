@@ -296,9 +296,11 @@ The following log types are available:
 
 - **Messages**: The `messages.log` file and its rolled-over files.
 - **Trace**: The `trace.log` file and its rolled-over files.
-- **FFDC**: The first failure data capture (FFDC) exception summary files and incident files.
+- **FFDC**: The first failure data capture (FFDC) exception summary files and incident files. The exception summary files are listed first, followed by the incident files.
 
 Dev mode runs the server in the foreground, so the output that would normally go to `console.log` is displayed in the dev mode console instead.
+
+Files are listed from the most recent to the oldest. For FFDC, this order applies separately to the exception summary files and to the incident files.
 
 Notes:
 
@@ -311,7 +313,7 @@ Notes:
 
 To open a Liberty log that is not listed in the **Open logs** menu, select **Open logs folder**. A file dialog opens in the server's logs folder, and the file that you select opens in an Eclipse editor.
 
-Each log type lists the 10 most recent files. If more files exist, select **More...** in the log type's submenu to browse the folder that contains them.
+Each log type lists up to 10 files. To view more files, select **More...** in the log type's submenu to browse the folder that contains them.
 
 ### Log location
 
