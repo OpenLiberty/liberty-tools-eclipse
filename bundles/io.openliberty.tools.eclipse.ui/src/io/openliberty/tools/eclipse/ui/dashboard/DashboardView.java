@@ -57,6 +57,7 @@ import org.eclipse.ui.part.ViewPart;
 
 import io.openliberty.tools.eclipse.DevModeOperations;
 import io.openliberty.tools.eclipse.DevModeOperations.ProjectAggregatedState;
+import io.openliberty.tools.eclipse.LibertyDevPlugin;
 import io.openliberty.tools.eclipse.logging.Logger;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.messages.Messages;
@@ -89,6 +90,30 @@ public class DashboardView extends ViewPart {
 
     /** Gradle image tag path. */
     public static final String GRADLE_IMG_TAG_PATH = "icons/gradleTag.png";
+
+    /** Menu icon folder used with dark themes, relative to icons/. */
+    public static final String MENU_ICON_DARK_FOLDER = "menu/dark/";
+
+    /** Menu icon folder used with light themes, relative to icons/. */
+    public static final String MENU_ICON_LIGHT_FOLDER = "menu/light/";
+
+    /** Base name of the play menu icon. */
+    public static final String MENU_ICON_PLAY = "play";
+
+    /** Base name of the stop menu icon. */
+    public static final String MENU_ICON_STOP = "stop";
+
+    /** Base name of the debug menu icon. */
+    public static final String MENU_ICON_DEBUG = "debug";
+
+    /** Base name of the run tests menu icon. */
+    public static final String MENU_ICON_RUN = "run";
+
+    /** Base name of the data view menu icon. */
+    public static final String MENU_ICON_DATA_VIEW = "dataView";
+
+    /** Base name of the license maintenance menu icon. */
+    public static final String MENU_ICON_LICENSE_MAINTENANCE = "licenseMaintenance";
 
     /** URL for the Liberty Maven plugin configuration documentation. */
     public static final String URL_CI_MAVEN_CONFIG = "https://github.com/OpenLiberty/ci.maven/#configuration";
@@ -621,20 +646,16 @@ public class DashboardView extends ViewPart {
      * Instantiates menu and toolbar actions.
      */
     private void createActions() {
-        ImageDescriptor ActionImg = null;
         ImageDescriptor refreshImg = null;
 
-        // Get the image descriptors for the menu actions and toolbar.
-        // If there is a failure, display the error and proceed without the icons.
-        try {
-            ActionImg = ImageDescriptor.createFromURL(URI.create("platform:/plugin/org.eclipse.jdt.debug.ui/icons/full/elcl16/thread_view.gif").toURL());
-        } catch (Exception e) {
-            String msg = "An error was detected while retrieving image descriptions.";
-            if (Trace.isEnabled()) {
-                Trace.getTracer().trace(Trace.TRACE_UI, msg, e);
-            }
-            ErrorHandler.processWarningMessage(Messages.getMessage("image_descriptions_error"), e, true);
-        }
+        // Get the image descriptors for the menu actions. The theme and the image format (SVG or PNG) are resolved
+        // by LibertyDevPlugin. If an icon cannot be found, the action is displayed without an icon.
+        String menuIconFolder = LibertyDevPlugin.isDarkTheme() ? MENU_ICON_DARK_FOLDER : MENU_ICON_LIGHT_FOLDER;
+        ImageDescriptor playImg = LibertyDevPlugin.loadIconDescriptor(menuIconFolder + MENU_ICON_PLAY);
+        ImageDescriptor stopImg = LibertyDevPlugin.loadIconDescriptor(menuIconFolder + MENU_ICON_STOP);
+        ImageDescriptor debugImg = LibertyDevPlugin.loadIconDescriptor(menuIconFolder + MENU_ICON_DEBUG);
+        ImageDescriptor runImg = LibertyDevPlugin.loadIconDescriptor(menuIconFolder + MENU_ICON_RUN);
+        ImageDescriptor dataViewImg = LibertyDevPlugin.loadIconDescriptor(menuIconFolder + MENU_ICON_DATA_VIEW);
 
         // Activate the Liberty tools context.
         IContextService contextService = getSite().getService(IContextService.class);
@@ -657,7 +678,7 @@ public class DashboardView extends ViewPart {
             }
         };
 
-        startAction.setImageDescriptor(ActionImg);
+        startAction.setImageDescriptor(playImg);
         startAction.setActionDefinitionId("io.openliberty.tools.eclipse.project.start.command");
         IHandlerService handlerService = getSite().getService(IHandlerService.class);
         ActionHandler startHandler = new ActionHandler(startAction);
@@ -680,7 +701,7 @@ public class DashboardView extends ViewPart {
                 }
             }
         };
-        startConfigDialogAction.setImageDescriptor(ActionImg);
+        startConfigDialogAction.setImageDescriptor(playImg);
         startConfigDialogAction.setActionDefinitionId("io.openliberty.tools.eclipse.project.startConfigDialog.command");
         ActionHandler startConfigDialogHandler = new ActionHandler(startConfigDialogAction);
         handlerService.activateHandler(startConfigDialogAction.getActionDefinitionId(), startConfigDialogHandler);
@@ -702,7 +723,7 @@ public class DashboardView extends ViewPart {
                 }
             }
         };
-        startInContainerAction.setImageDescriptor(ActionImg);
+        startInContainerAction.setImageDescriptor(playImg);
         startInContainerAction.setActionDefinitionId("io.openliberty.tools.eclipse.project.startInContainer.command");
         ActionHandler startWithContainerHandler = new ActionHandler(startInContainerAction);
         handlerService.activateHandler(startInContainerAction.getActionDefinitionId(), startWithContainerHandler);
@@ -724,7 +745,7 @@ public class DashboardView extends ViewPart {
                 }
             }
         };
-        debugInContainerAction.setImageDescriptor(ActionImg);
+        debugInContainerAction.setImageDescriptor(debugImg);
         debugInContainerAction.setActionDefinitionId("io.openliberty.tools.eclipse.project.debugInContainer.command");
         ActionHandler debugWithContainerHandler = new ActionHandler(debugInContainerAction);
         handlerService.activateHandler(debugInContainerAction.getActionDefinitionId(), debugWithContainerHandler);
@@ -746,7 +767,7 @@ public class DashboardView extends ViewPart {
             }
         };
 
-        debugAction.setImageDescriptor(ActionImg);
+        debugAction.setImageDescriptor(debugImg);
         debugAction.setActionDefinitionId("io.openliberty.tools.eclipse.project.debug.command");
         ActionHandler debugHandler = new ActionHandler(debugAction);
         handlerService.activateHandler(debugAction.getActionDefinitionId(), debugHandler);
@@ -767,7 +788,7 @@ public class DashboardView extends ViewPart {
                 }
             }
         };
-        debugConfigDialogAction.setImageDescriptor(ActionImg);
+        debugConfigDialogAction.setImageDescriptor(debugImg);
         debugConfigDialogAction.setActionDefinitionId("io.openliberty.tools.eclipse.project.debugConfigDialog.command");
         ActionHandler debugConfigDialogHandler = new ActionHandler(debugConfigDialogAction);
         handlerService.activateHandler(debugConfigDialogAction.getActionDefinitionId(), debugConfigDialogHandler);
@@ -788,7 +809,7 @@ public class DashboardView extends ViewPart {
                 }
             }
         };
-        stopAction.setImageDescriptor(ActionImg);
+        stopAction.setImageDescriptor(stopImg);
         stopAction.setActionDefinitionId("io.openliberty.tools.eclipse.project.stop.command");
         ActionHandler stopHandler = new ActionHandler(stopAction);
         handlerService.activateHandler(stopAction.getActionDefinitionId(), stopHandler);
@@ -809,7 +830,7 @@ public class DashboardView extends ViewPart {
                 }
             }
         };
-        runTestAction.setImageDescriptor(ActionImg);
+        runTestAction.setImageDescriptor(runImg);
         runTestAction.setActionDefinitionId("io.openliberty.tools.eclipse.project.runTests.command");
         ActionHandler runTestsHandler = new ActionHandler(runTestAction);
         handlerService.activateHandler(runTestAction.getActionDefinitionId(), runTestsHandler);
@@ -831,7 +852,7 @@ public class DashboardView extends ViewPart {
                 }
             }
         };
-        viewMavenITestReportsAction.setImageDescriptor(ActionImg);
+        viewMavenITestReportsAction.setImageDescriptor(dataViewImg);
         viewMavenITestReportsAction.setActionDefinitionId("io.openliberty.tools.eclipse.project.viewMvnIntegrationTestReport.command");
         ActionHandler mvnITTestReportHandler = new ActionHandler(viewMavenITestReportsAction);
         handlerService.activateHandler(viewMavenITestReportsAction.getActionDefinitionId(), mvnITTestReportHandler);
@@ -853,7 +874,7 @@ public class DashboardView extends ViewPart {
                 }
             }
         };
-        viewMavenUTestReportsAction.setImageDescriptor(ActionImg);
+        viewMavenUTestReportsAction.setImageDescriptor(dataViewImg);
         viewMavenUTestReportsAction.setActionDefinitionId("io.openliberty.tools.eclipse.project.viewMvnUnitTestReport.command");
         ActionHandler mvnUTTestReportsHandler = new ActionHandler(viewMavenUTestReportsAction);
         handlerService.activateHandler(viewMavenUTestReportsAction.getActionDefinitionId(), mvnUTTestReportsHandler);
@@ -876,7 +897,7 @@ public class DashboardView extends ViewPart {
                 }
             }
         };
-        viewGradleTestReportsAction.setImageDescriptor(ActionImg);
+        viewGradleTestReportsAction.setImageDescriptor(dataViewImg);
         viewGradleTestReportsAction.setActionDefinitionId("io.openliberty.tools.eclipse.project.viewGradleTestReport.command");
         ActionHandler gradleTestReportsHandler = new ActionHandler(viewGradleTestReportsAction);
         handlerService.activateHandler(viewGradleTestReportsAction.getActionDefinitionId(), gradleTestReportsHandler);
