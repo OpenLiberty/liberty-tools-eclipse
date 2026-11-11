@@ -46,6 +46,7 @@ For detailed instructions on how to use the Liberty Tools view context menu comm
 - Start dev mode with the debugger attached.
 - Run tests.
 - View test reports.
+- Access Liberty server logs.
 - Code with language assistance in the following configuration and application files:
   - `server.xml`, `server.env`, and `bootstrap.properties` Liberty configuration files
   - Jakarta EE 9.x APIs in Java files 
@@ -91,6 +92,7 @@ Editing assistance for configuration and application files is provided through t
 | View integration test report (Maven) | Opens the integration test report file if it exists at `/target/site/failsafe-report.html`. This action command is only available to Maven projects.                                                                                                                                                                                                                                                                                  |
 | View unit test report (Maven)        | Opens the unit test report file if it exists at `/target/site/surefire-report.html`. This action command is only available to Maven projects.                                                                                                                                                                                                                                                                                             |
 | View test report (Gradle)            | Opens the test report file if it exists at the default location: `build/reports/tests/test/index.html`. This action command is available only to Gradle projects. Unlike Maven projects, Gradle projects have only a single action command for test result reporting.                                                                     
+| Open logs                            | Provides quick access to core Liberty server logs associated with the selected application. |
 
 ## Contributing
 

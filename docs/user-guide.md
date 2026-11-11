@@ -24,6 +24,9 @@ This guide provides detailed instructions on how to use Liberty Tools for the Ec
     + [Gradle-built applications](#gradle-built-applications)
   * [Stopping your application](#stopping-your-application)
   * [Debugging your application](#debugging-your-application)
+  * [Accessing Liberty logs](#accessing-liberty-logs)
+    + [Browsing the logs folder](#browsing-the-logs-folder)
+    + [Log location](#log-location)
   * [Manually adding the Liberty nature to a project](#manually-adding-the-liberty-nature-to-a-project)
   * [Setting preferences](#setting-preferences)
   * [Configuring a Liberty server](#configuring-a-liberty-server)
@@ -152,7 +155,7 @@ Liberty Tools provides a series of operations to speed up application developmen
 
 ### Using the Liberty Tools view
 
-The Liberty Tools view provides a context menu to help run, test, and debug any configured Liberty projects.
+The Liberty Tools view provides a context menu to help run, test, debug, and access Liberty server logs for any configured Liberty projects.
 
 Maven Projects             | Gradle Projects
 :-------------------------:|:-------------------------:
@@ -284,6 +287,46 @@ The Liberty Debugger is automatically launched with enhanced application monitor
 This provides a significant performance improvement, removing the need to restart the application on every code change. For changes that cannot be hot swapped due to JVM limitations, an option to restart the server is presented. 
 
 Note: For multi-module applications, the application must be launched from the module that contains the liberty server configuration. 
+
+## Accessing Liberty logs
+
+You can quickly access core Liberty server logs associated with the selected application directly from the Liberty Tools view. Right-click the application, select **Open logs**, choose a log type, and then select the file to open. The file opens in an Eclipse editor.
+
+The following log types are available:
+
+- **Messages**: The `messages.log` file and its rolled-over files.
+- **Trace**: The `trace.log` file and its rolled-over files.
+- **FFDC**: The first failure data capture (FFDC) exception summary files and incident files. The exception summary files are listed first, followed by the incident files.
+
+Dev mode runs the server in the foreground, so the output that would normally go to `console.log` is displayed in the dev mode console instead.
+
+Files are listed from the most recent to the oldest. For FFDC, this order applies separately to the exception summary files and to the incident files.
+
+Notes:
+
+- **Open logs** is available only from the Liberty Tools view context menu.
+- For multi-module applications, **Open logs** is available on each Liberty server module, but not on the aggregator project.
+- If **Open logs** is unavailable, Liberty Tools cannot find the logs folder for the application. See [Log location](#log-location).
+- If a log type is unavailable, no files of that type exist yet.
+
+### Browsing the logs folder
+
+To open a Liberty log that is not listed in the **Open logs** menu, select **Open logs folder**. A file dialog opens in the server's logs folder, and the file that you select opens in an Eclipse editor.
+
+Each log type lists up to 10 files. To view more files, select **More...** in the log type's submenu to browse the folder that contains them.
+
+### Log location
+
+Liberty Tools looks for the logs in the default location:
+
+| Build tool | Logs folder |
+| :--- | :--- |
+| Maven | `<project-root>/target/liberty/wlp/usr/servers/defaultServer/logs` |
+| Gradle | `<project-root>/build/wlp/usr/servers/defaultServer/logs` |
+
+If you customize the build output directory, the Liberty installation output location, the server name, or the log directory, Liberty Tools might not find your logs.
+
+Additionally, only logs that use the default file names `messages.log` and `trace.log`, including their rolled-over files, are listed in the submenus. Logs that use a custom `messageFileName` or `traceFileName` are not listed, but you can reach them through **Open logs folder**.
 
 ## Manually adding the Liberty nature to a project
 
