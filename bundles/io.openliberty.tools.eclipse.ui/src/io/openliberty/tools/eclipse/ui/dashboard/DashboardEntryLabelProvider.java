@@ -166,12 +166,50 @@ public class DashboardEntryLabelProvider {
          */
         public StateNameColumnLabelProvider(DashboardView dashboardView) {
             String themeFolder = LibertyDevPlugin.isDarkTheme() ? STATE_ICON_DARK_FOLDER : STATE_ICON_LIGHT_FOLDER;
+            loadStateIcons(themeFolder);
+            String progressFolder = themeFolder + PROGRESS_ICON_FOLDER;
+            progressAnimator = new ProgressIndicatorAnimator(dashboardView, progressFolder, desc -> paddedIconDescriptor(desc, PROGRESS_ICON_SIZE));
+        }
+
+        /**
+         * Loads the state icons from the given theme folder into the state image fields.
+         *
+         * @param themeFolder The state icon folder of the current theme, relative to icons/.
+         */
+        private void loadStateIcons(String themeFolder) {
             runningImg = paddedStateIcon(themeFolder + ICON_STATE_ACTIVE);
             stoppedImg = paddedStateIcon(themeFolder + ICON_STATE_STOPPED);
             stoppingImg = paddedStateIcon(themeFolder + ICON_STATE_STOPPING);
             incompleteImg = paddedStateIcon(themeFolder + ICON_STATE_INCOMPLETE);
+        }
+
+        /**
+         * Reloads the state icons and the progress frames so that they match the current theme. The tree is refreshed
+         * before the previous images are disposed, so that no tree item is left with a disposed image. Must be called
+         * on the SWT UI thread.
+         *
+         * @param refreshAction The action that refreshes the tree so that it requests the new images.
+         */
+        public void reloadIcons(Runnable refreshAction) {
+            String themeFolder = LibertyDevPlugin.isDarkTheme() ? STATE_ICON_DARK_FOLDER : STATE_ICON_LIGHT_FOLDER;
+            Image previousRunningImg = runningImg;
+            Image previousStoppedImg = stoppedImg;
+            Image previousStoppingImg = stoppingImg;
+            Image previousIncompleteImg = incompleteImg;
+
+            loadStateIcons(themeFolder);
             String progressFolder = themeFolder + PROGRESS_ICON_FOLDER;
-            progressAnimator = new ProgressIndicatorAnimator(dashboardView, progressFolder, desc -> paddedIconDescriptor(desc, PROGRESS_ICON_SIZE));
+            Image[] previousFrames = progressAnimator.reloadFrames(progressFolder, desc -> paddedIconDescriptor(desc, PROGRESS_ICON_SIZE));
+
+            try {
+                refreshAction.run();
+            } finally {
+                disposeImage(previousRunningImg);
+                disposeImage(previousStoppedImg);
+                disposeImage(previousStoppingImg);
+                disposeImage(previousIncompleteImg);
+                ProgressIndicatorAnimator.disposeFrames(previousFrames);
+            }
         }
 
         /**

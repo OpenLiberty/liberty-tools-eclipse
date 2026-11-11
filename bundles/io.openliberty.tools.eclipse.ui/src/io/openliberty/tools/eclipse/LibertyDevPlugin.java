@@ -30,8 +30,6 @@ import org.eclipse.osgi.service.debug.DebugOptions;
 import org.eclipse.osgi.service.debug.DebugOptionsListener;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
-import org.eclipse.ui.themes.ITheme;
-import org.eclipse.ui.themes.IThemeManager;
 import org.osgi.framework.Bundle;
 import org.osgi.framework.BundleContext;
 
@@ -57,6 +55,15 @@ public class LibertyDevPlugin extends AbstractUIPlugin {
 
     /** Cached SVG-support check result; null means not yet evaluated. */
     private static volatile Boolean isSvgSupported;
+
+    /** Preference node under which the Eclipse theme engine stores the active theme id. */
+    public static final String THEME_PREFERENCE_NODE = "org.eclipse.e4.ui.css.swt.theme";
+
+    /** Preference key of the active theme id. */
+    public static final String THEME_PREFERENCE_KEY = "themeid";
+
+    /** Text that identifies a dark theme id. */
+    private static final String DARK_THEME_ID_TEXT = "dark";
 
     /** Resource change listener instance. */
     private IResourceChangeListener resourceChangeListener;
@@ -187,7 +194,7 @@ public class LibertyDevPlugin extends AbstractUIPlugin {
     }
 
     /**
-     * Returns true when Eclipse is currently using a dark color theme.
+     * Returns true when Eclipse is currently using a dark color theme based on the theme id stored in preferences.
      *
      * @return True if the current theme is dark; false otherwise.
      */
@@ -196,16 +203,22 @@ public class LibertyDevPlugin extends AbstractUIPlugin {
             if (!PlatformUI.isWorkbenchRunning()) {
                 return false;
             }
-            IThemeManager themeManager = PlatformUI.getWorkbench().getThemeManager();
-            if (themeManager == null) {
-                return false;
+
+            String themeId = Platform.getPreferencesService().getString(THEME_PREFERENCE_NODE, THEME_PREFERENCE_KEY, null, null);
+            if (themeId != null) {
+                boolean isDark = themeId.toLowerCase().contains(DARK_THEME_ID_TEXT);
+                if (Trace.isEnabled()) {
+                    Trace.getTracer().trace(Trace.TRACE_UI, "Dark theme check by preference. Theme id: " + themeId + ". Dark: " + isDark);
+                }
+                return isDark;
             }
-            ITheme currentTheme = themeManager.getCurrentTheme();
-            if (currentTheme == null) {
-                return false;
-            }
-            return currentTheme.getId().toLowerCase().contains("dark");
+
+            return false;
         } catch (Exception e) {
+            if (Trace.isEnabled()) {
+                Trace.getTracer().trace(Trace.TRACE_UI, "Unable to determine the theme. Assuming light.", e);
+            }
+
             return false;
         }
     }
