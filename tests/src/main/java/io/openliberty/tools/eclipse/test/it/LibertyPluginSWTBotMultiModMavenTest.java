@@ -53,6 +53,7 @@ import io.openliberty.tools.eclipse.test.it.utils.LibertyPluginTestUtils;
 import io.openliberty.tools.eclipse.test.it.utils.SWTBotPluginOperations;
 import io.openliberty.tools.eclipse.test.it.utils.SWTBotTestCondition;
 import io.openliberty.tools.eclipse.ui.dashboard.DashboardView;
+import io.openliberty.tools.eclipse.ui.dashboard.OpenLogsMenuContributor;
 import io.openliberty.tools.eclipse.ui.launch.LaunchConfigurationDelegateLauncher;
 
 /**
@@ -99,7 +100,11 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
                                                   DashboardView.APP_MENU_ACTION_STOP,
                                                   DashboardView.APP_MENU_ACTION_RUN_TESTS,
                                                   DashboardView.APP_MENU_ACTION_VIEW_MVN_IT_REPORT,
-                                                  DashboardView.APP_MENU_ACTION_VIEW_MVN_UT_REPORT };
+                                                  DashboardView.APP_MENU_ACTION_VIEW_MVN_UT_REPORT,
+                                                  OpenLogsMenuContributor.MENU_ACTION_OPENLOGS };
+
+    /** Number of separators added to the dashboard context menu alongside the named menu items. */
+    static final int MENU_SEPARATOR_COUNT = 1;
 
     /**
      * Run As configuration menu items with the project inactive. Actions such
@@ -184,8 +189,9 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
 
         // Check that the menu that the application in the dashboard contains the required actions.
         List<String> menuItems = getDashboardItemMenuActions(MVN_APP_NAME);
-        Assertions.assertTrue(menuItems.size() == mvnMenuItems.length,
-                              () -> "Maven application " + MVN_APP_NAME + " does not contain the expected number of menu items: " + mvnMenuItems.length);
+        Assertions.assertTrue(menuItems.size() == mvnMenuItems.length + MENU_SEPARATOR_COUNT,
+                              () -> "Maven application " + MVN_APP_NAME + " does not contain the expected number of menu items: " + (mvnMenuItems.length + MENU_SEPARATOR_COUNT)
+                                    + ". Instead found: " + menuItems.size());
         Assertions.assertTrue(menuItems.containsAll(Arrays.asList(mvnMenuItems)),
                               () -> "Maven application " + MVN_APP_NAME + " does not contain the expected menu items: " + mvnMenuItems);
 
@@ -237,9 +243,9 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
         SWTBotPluginOperations.launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_START);
 
         LibertyPluginTestUtils.validateApplicationOutcomeCustom("http://localhost:9080/converter1/heights.jsp?heightCm=10", true,
-                                                                "Height in feet and inches", serverModule1Path + "/target/liberty", MVN_APP_NAME);
+                                                                "Height in feet and inches", serverModule1Path.resolve(DEFAULT_MAVEN_WLP_PARENT_DIR).toString(), MVN_APP_NAME);
         LibertyPluginTestUtils.validateApplicationOutcomeCustom("http://localhost:9080/converter2/heights.jsp?heightCm=20", true,
-                                                                "Height in feet and inches", serverModule1Path + "/target/liberty", MVN_APP_NAME);
+                                                                "Height in feet and inches", serverModule1Path.resolve(DEFAULT_MAVEN_WLP_PARENT_DIR).toString(), MVN_APP_NAME);
 
         // If there are issues with the workspace, close the error dialog.
         SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
@@ -248,7 +254,7 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
         SWTBotPluginOperations.launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
 
         // Validate application stopped.
-        LibertyPluginTestUtils.validateLibertyServerStopped(serverModule1Path + "/target/liberty");
+        LibertyPluginTestUtils.validateLibertyServerStopped(serverModule1Path.resolve(DEFAULT_MAVEN_WLP_PARENT_DIR).toString());
 
         // unset the preferences
         SWTBotPluginOperations.unsetBuildCmdPathInPreferences(bot, "Maven");
@@ -272,7 +278,7 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
 
         // Validate application is up and running.
         LibertyPluginTestUtils.validateApplicationOutcomeCustom("http://localhost:9080/converter1/heights.jsp?heightCm=30", true,
-                                                                "Height in feet and inches", serverModule1Path + "/target/liberty", MVN_APP_NAME);
+                                                                "Height in feet and inches", serverModule1Path.resolve(DEFAULT_MAVEN_WLP_PARENT_DIR).toString(), MVN_APP_NAME);
 
         // If there are issues with the workspace, close the error dialog.
         pressWorkspaceErrorDialogProceedButton(bot);
@@ -281,7 +287,7 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
         launchStopWithRunAsShortcut(MVN_APP_NAME);
 
         // Validate application stopped.
-        LibertyPluginTestUtils.validateLibertyServerStopped(serverModule1Path + "/target/liberty");
+        LibertyPluginTestUtils.validateLibertyServerStopped(serverModule1Path.resolve(DEFAULT_MAVEN_WLP_PARENT_DIR).toString());
 
         // unset the preferences
         unsetBuildCmdPathInPreferences(bot, "Maven");
@@ -391,5 +397,93 @@ public class LibertyPluginSWTBotMultiModMavenTest extends AbstractLibertyPluginS
                               "The child module project, " + MVN_WAR_NAME + ", was not listed in the source lookup list for project " + MVN_PARENT_NAME
                                              + ". Nodes found: " + foundNodesSnapshot);
 
+    }
+
+    /**
+     * Tests the full Open logs context menu entry behavior.
+     *
+     * @throws Exception If an error occurs.
+     */
+    @Test
+    public void testOpenLogs() throws Exception {
+        String serverOutputPath = serverModule1Path.resolve(DEFAULT_MAVEN_WLP_PARENT_DIR).toString();
+
+        // Remove the logs directory so the entry starts in the disabled state.
+        SWTBotPluginOperations.deleteLogsDir(SWTBotPluginOperations.getDefaultLogsDir(serverModule1Path, true));
+
+        // The Open logs entry must be disabled. The logs directory does not exist.
+        boolean disabledBefore = SWTBotPluginOperations.waitForOpenLogsEntryState(
+                                                                                  MVN_APP_NAME, false, SWTBotTestCondition.SHORT_WAIT_MS);
+        Assertions.assertTrue(disabledBefore,
+                              "Open logs entry should be disabled when the logs directory does not exist.");
+
+        // Set the preferences.
+        SWTBotPluginOperations.setBuildCmdPathInPreferences(bot, "Maven");
+
+        // Start dev mode.
+        SWTBotPluginOperations.launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_START);
+
+        try {
+            LibertyPluginTestUtils.validateApplicationOutcomeCustom("http://localhost:9080/converter1/heights.jsp?heightCm=10", true,
+                                                                    "Height in feet and inches", serverOutputPath, MVN_APP_NAME);
+            SWTBotPluginOperations.pressWorkspaceErrorDialogProceedButton(bot);
+
+            // After the server starts, the Open logs entry should become an enabled submenu.
+            boolean enabledAfterStart = SWTBotPluginOperations.waitForOpenLogsEntryState(
+                                                                                         MVN_APP_NAME, true, SWTBotTestCondition.SHORT_WAIT_MS);
+            Assertions.assertTrue(enabledAfterStart,
+                                  "Open logs entry should be enabled after the server created the logs directory.");
+
+            // Show the Open logs submenu, check that all four entries are present, and verify that the Open logs folder entry is enabled.
+            SWTBotMenu logsMenu = SWTBotPluginOperations.getDashboardOpenLogsSubmenu(MVN_APP_NAME, SWTBotTestCondition.SHORT_WAIT_MS);
+            Assertions.assertNotNull(logsMenu, "Open logs submenu could not be obtained for: " + MVN_APP_NAME);
+            try {
+                List<String> items = logsMenu.menuItems();
+                Assertions.assertTrue(items.contains(OpenLogsMenuContributor.MENU_ACTION_OPENLOGS_MSGS_TYPE),
+                                      "Messages entry missing from Open logs submenu. Items found: " + items);
+                Assertions.assertTrue(items.contains(OpenLogsMenuContributor.MENU_ACTION_OPENLOGS_TRACE_TYPE),
+                                      "Trace entry missing from Open logs submenu. Items found: " + items);
+                Assertions.assertTrue(items.contains(OpenLogsMenuContributor.MENU_ACTION_OPENLOGS_FFDC_TYPE),
+                                      "FFDC entry missing from Open logs submenu. Items found: " + items);
+                Assertions.assertTrue(items.contains(OpenLogsMenuContributor.MENU_ACTION_OPENLOGS_FOLDER),
+                                      "Open logs folder entry missing from Open logs submenu. Items found: " + items);
+                SWTBotMenu folderEntry = logsMenu.menu(OpenLogsMenuContributor.MENU_ACTION_OPENLOGS_FOLDER);
+                Assertions.assertTrue(folderEntry.isEnabled(),
+                                      "Open logs folder entry should be enabled when the logs directory exists.");
+            } finally {
+                logsMenu.hide();
+            }
+
+            // Click the messages.log entry. The file should open in an editor.
+            boolean clicked = SWTBotPluginOperations.clickOpenLogsFileEntry(
+                                                                            MVN_APP_NAME, DEFAULT_MESSAGES_LOG_FILE_NAME, SWTBotTestCondition.SHORT_WAIT_MS);
+            Assertions.assertTrue(clicked, "Failed to click messages.log entry in the Open logs submenu.");
+
+            boolean editorOpened = SWTBotTestCondition.waitFor(
+                                                               () -> SWTBotPluginOperations.findEditorByTitle(bot, DEFAULT_MESSAGES_LOG_FILE_NAME) != null,
+                                                               SWTBotTestCondition.SHORT_WAIT_MS);
+            Assertions.assertTrue(editorOpened, "An editor for messages.log did not open after clicking the entry.");
+        } finally {
+            // Stop dev mode, close the opened editor, and unset the preferences.
+            try {
+                SWTBotPluginOperations.launchDashboardAction(MVN_APP_NAME, DashboardView.APP_MENU_ACTION_STOP);
+                LibertyPluginTestUtils.validateLibertyServerStopped(serverOutputPath);
+            } finally {
+                SWTBotPluginOperations.closeEditorByTitle(bot, DEFAULT_MESSAGES_LOG_FILE_NAME);
+            }
+            SWTBotPluginOperations.unsetBuildCmdPathInPreferences(bot, "Maven");
+        }
+    }
+
+    /**
+     * Tests that the Open logs entry is not shown for the parent of the Liberty server module.
+     * The parent is a multi-module aggregator and must not contribute an Open logs entry.
+     */
+    @Test
+    public void testOpenLogsEntryNotShownOnParent() {
+        List<String> menuItems = SWTBotPluginOperations.getDashboardItemMenuActions(MVN_PARENT_NAME);
+        Assertions.assertFalse(menuItems.contains(OpenLogsMenuContributor.MENU_ACTION_OPENLOGS),
+                               "Open logs entry must not appear for the multi-module parent: " + MVN_PARENT_NAME
+                                                                                                 + ". Items found: " + menuItems);
     }
 }

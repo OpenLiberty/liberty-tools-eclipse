@@ -12,10 +12,8 @@
 *******************************************************************************/
 package io.openliberty.tools.eclipse;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.URL;
 import java.nio.file.Path;
@@ -154,7 +152,6 @@ public class DevModeOperations {
     private static final int STOP_TIMEOUT_SECONDS = 60;
     protected static final QualifiedName STOP_JOB_COMPLETION_TIMEOUT = new QualifiedName("io.openliberty.tools.eclipse.ui", "stopJobCompletionTimeout");
     protected static final QualifiedName STOP_JOB_COMPLETION_EXIT_CODE = new QualifiedName("io.openliberty.tools.eclipse.ui", "stopJobCompletionExitCode");
-    protected static final QualifiedName STOP_JOB_COMPLETION_OUTPUT = new QualifiedName("io.openliberty.tools.eclipse.ui", "stopJobCompletionOutput");
     private Map<Job, Boolean> runningJobs = new ConcurrentHashMap<Job, Boolean>();
 
     /**
@@ -896,7 +893,12 @@ public class DevModeOperations {
             String[] cmdParts = cmd.split(" ");
             ProcessBuilder pb = new ProcessBuilder(cmdParts);
             pb.directory(new File(targetProjectExecPath));
+
+            // The command output is not used. Merge the error stream into the output stream
+            // and discard both so that the command cannot block on a full output pipe (~4K)
             pb.redirectErrorStream(true);
+            pb.redirectOutput(ProcessBuilder.Redirect.DISCARD);
+
             pb.environment().put("JAVA_HOME", JavaRuntime.getDefaultVMInstall().getInstallLocation().getAbsolutePath());
 
             // Create a job to stop the dev mode process currently running the target project.
@@ -928,16 +930,6 @@ public class DevModeOperations {
                             setProperty(STOP_JOB_COMPLETION_TIMEOUT, Boolean.TRUE);
                         } else {
                             setProperty(STOP_JOB_COMPLETION_EXIT_CODE, p.exitValue());
-                            if (p.exitValue() != 0) {
-                                BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
-                                StringBuilder builder = new StringBuilder();
-                                String line = null;
-                                while ((line = reader.readLine()) != null) {
-                                    builder.append(line);
-                                    builder.append(System.getProperty("line.separator"));
-                                }
-                                setProperty(STOP_JOB_COMPLETION_OUTPUT, builder.toString());
-                            }
                         }
                     } catch (Exception e) {
                         ErrorHandler.processErrorMessage(Messages.getMessage("plugin_stop_issue_error"), e, false);
@@ -967,8 +959,8 @@ public class DevModeOperations {
                             @Override
                             public void run() {
 
-                                String msg = "The Liberty Maven or Gradle stop command issued for project " + projectName
-                                             + " timed out after " + STOP_TIMEOUT_SECONDS + " seconds.";
+                                String msg = "The stop command was issued for project " + projectName
+                                             + ". The action timed out after " + STOP_TIMEOUT_SECONDS + " seconds.";
                                 if (Trace.isEnabled()) {
                                     Trace.getTracer().trace(Trace.TRACE_TOOLS, msg);
                                 }
@@ -984,8 +976,6 @@ public class DevModeOperations {
                      */
                     Object rc = event.getJob().getProperty(STOP_JOB_COMPLETION_EXIT_CODE);
                     if (!Integer.valueOf(0).equals(rc)) {
-                        String outputTxt = (String) event.getJob().getProperty(STOP_JOB_COMPLETION_OUTPUT);
-                        Logger.logError("stop command failed, process output: " + outputTxt);
                         Display.getDefault().syncExec(new Runnable() {
                             @Override
                             public void run() {

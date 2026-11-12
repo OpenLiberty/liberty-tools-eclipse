@@ -46,6 +46,33 @@ public class DashboardEntryLabelProvider {
     /** Size of the progress frame icons in logical pixels. */
     private static final int PROGRESS_ICON_SIZE = 12;
 
+    /** Base name of the Maven badge icon. */
+    private static final String ICON_MAVEN_TAG = "mavenTag";
+
+    /** Base name of the Gradle badge icon. */
+    private static final String ICON_GRADLE_TAG = "gradleTag";
+
+    /** State icon folder used with dark themes, relative to icons/. */
+    private static final String STATE_ICON_DARK_FOLDER = "state/dark/";
+
+    /** State icon folder used with light themes, relative to icons/. */
+    private static final String STATE_ICON_LIGHT_FOLDER = "state/light/";
+
+    /** Base name of the running state icon. */
+    private static final String ICON_STATE_ACTIVE = "active";
+
+    /** Base name of the stopped state icon. */
+    private static final String ICON_STATE_STOPPED = "stopped";
+
+    /** Base name of the stopping state icon. */
+    private static final String ICON_STATE_STOPPING = "stopping";
+
+    /** Base name of the incomplete state icon. */
+    private static final String ICON_STATE_INCOMPLETE = "incomplete";
+
+    /** Folder of the progress frame icons, relative to the theme state folder. */
+    private static final String PROGRESS_ICON_FOLDER = "inProgress/";
+
     /**
      * Label provider for column 0 — the badge column.
      *
@@ -64,8 +91,8 @@ public class DashboardEntryLabelProvider {
          * Constructor. Loads the badge images.
          */
         public BadgeColumnLabelProvider() {
-            mavenImg = loadImage("mavenTag");
-            gradleImg = loadImage("gradleTag");
+            mavenImg = loadImage(ICON_MAVEN_TAG);
+            gradleImg = loadImage(ICON_GRADLE_TAG);
         }
 
         /**
@@ -138,13 +165,51 @@ public class DashboardEntryLabelProvider {
          * @param dashboardView The dashboard view instance.
          */
         public StateNameColumnLabelProvider(DashboardView dashboardView) {
-            String themeFolder = LibertyDevPlugin.isDarkTheme() ? "state/dark/" : "state/light/";
-            runningImg = paddedStateIcon(themeFolder + "active");
-            stoppedImg = paddedStateIcon(themeFolder + "stopped");
-            stoppingImg = paddedStateIcon(themeFolder + "stopping");
-            incompleteImg = paddedStateIcon(themeFolder + "incomplete");
-            String progressFolder = themeFolder + "inProgress/";
+            String themeFolder = LibertyDevPlugin.isDarkTheme() ? STATE_ICON_DARK_FOLDER : STATE_ICON_LIGHT_FOLDER;
+            loadStateIcons(themeFolder);
+            String progressFolder = themeFolder + PROGRESS_ICON_FOLDER;
             progressAnimator = new ProgressIndicatorAnimator(dashboardView, progressFolder, desc -> paddedIconDescriptor(desc, PROGRESS_ICON_SIZE));
+        }
+
+        /**
+         * Loads the state icons from the given theme folder into the state image fields.
+         *
+         * @param themeFolder The state icon folder of the current theme, relative to icons/.
+         */
+        private void loadStateIcons(String themeFolder) {
+            runningImg = paddedStateIcon(themeFolder + ICON_STATE_ACTIVE);
+            stoppedImg = paddedStateIcon(themeFolder + ICON_STATE_STOPPED);
+            stoppingImg = paddedStateIcon(themeFolder + ICON_STATE_STOPPING);
+            incompleteImg = paddedStateIcon(themeFolder + ICON_STATE_INCOMPLETE);
+        }
+
+        /**
+         * Reloads the state icons and the progress frames so that they match the current theme. The tree is refreshed
+         * before the previous images are disposed, so that no tree item is left with a disposed image. Must be called
+         * on the SWT UI thread.
+         *
+         * @param refreshAction The action that refreshes the tree so that it requests the new images.
+         */
+        public void reloadIcons(Runnable refreshAction) {
+            String themeFolder = LibertyDevPlugin.isDarkTheme() ? STATE_ICON_DARK_FOLDER : STATE_ICON_LIGHT_FOLDER;
+            Image previousRunningImg = runningImg;
+            Image previousStoppedImg = stoppedImg;
+            Image previousStoppingImg = stoppingImg;
+            Image previousIncompleteImg = incompleteImg;
+
+            loadStateIcons(themeFolder);
+            String progressFolder = themeFolder + PROGRESS_ICON_FOLDER;
+            Image[] previousFrames = progressAnimator.reloadFrames(progressFolder, desc -> paddedIconDescriptor(desc, PROGRESS_ICON_SIZE));
+
+            try {
+                refreshAction.run();
+            } finally {
+                disposeImage(previousRunningImg);
+                disposeImage(previousStoppedImg);
+                disposeImage(previousStoppingImg);
+                disposeImage(previousIncompleteImg);
+                ProgressIndicatorAnimator.disposeFrames(previousFrames);
+            }
         }
 
         /**
