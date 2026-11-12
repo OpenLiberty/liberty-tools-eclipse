@@ -35,7 +35,7 @@ class ProgressIndicatorAnimator {
     private static final int FRAME_DELAY_MS = 200;
 
     /** Progress frame images after the caller-supplied transform has been applied. */
-    private final Image[] frames;
+    private Image[] frames;
 
     /** Index of the current animation frame. */
     private volatile int currentFrame = 0;
@@ -60,7 +60,20 @@ class ProgressIndicatorAnimator {
      */
     ProgressIndicatorAnimator(DashboardView dashboardView, String progressFolder, UnaryOperator<ImageDescriptor> frameTransform) {
         this.dashboardView = dashboardView;
-        this.frames = new Image[FRAME_COUNT];
+        this.frames = loadFrames(progressFolder, frameTransform);
+    }
+
+    /**
+     * Loads the progress frame images.
+     *
+     * @param progressFolder The icon folder path for the progress frames, relative to icons/.
+     * @param frameTransform Transform applied to each frame descriptor to create the image.
+     *                       Pass null to create the image directly from the descriptor.
+     *
+     * @return The loaded frames. An entry is null if its frame could not be loaded.
+     */
+    private static Image[] loadFrames(String progressFolder, UnaryOperator<ImageDescriptor> frameTransform) {
+        Image[] loadedFrames = new Image[FRAME_COUNT];
         for (int i = 0; i < FRAME_COUNT; i++) {
             ImageDescriptor desc = LibertyDevPlugin.loadIconDescriptor(progressFolder + "frame_12_" + (i + 1));
             if (desc == null) {
@@ -68,7 +81,38 @@ class ProgressIndicatorAnimator {
             }
             ImageDescriptor targetDesc = (frameTransform != null) ? frameTransform.apply(desc) : desc;
             if (targetDesc != null) {
-                frames[i] = targetDesc.createImage();
+                loadedFrames[i] = targetDesc.createImage();
+            }
+        }
+        return loadedFrames;
+    }
+
+    /**
+     * Replaces the progress frame images with frames loaded from the given folder. The previous frames are returned
+     * so that the caller can dispose them after the display no longer uses them.
+     *
+     * @param progressFolder The icon folder path for the progress frames, relative to icons/.
+     * @param frameTransform Transform applied to each frame descriptor to create the image.
+     *                       Pass null to create the image directly from the descriptor.
+     *
+     * @return The frames that were replaced.
+     */
+    Image[] reloadFrames(String progressFolder, UnaryOperator<ImageDescriptor> frameTransform) {
+        Image[] previousFrames = frames;
+        frames = loadFrames(progressFolder, frameTransform);
+        return previousFrames;
+    }
+
+    /**
+     * Disposes the given frame images.
+     *
+     * @param framesToDispose The frames to dispose.
+     */
+    static void disposeFrames(Image[] framesToDispose) {
+        for (int i = 0; i < framesToDispose.length; i++) {
+            if (framesToDispose[i] != null && !framesToDispose[i].isDisposed()) {
+                framesToDispose[i].dispose();
+                framesToDispose[i] = null;
             }
         }
     }
@@ -127,11 +171,6 @@ class ProgressIndicatorAnimator {
     void dispose() {
         running = false;
         startingProjects.clear();
-        for (int i = 0; i < FRAME_COUNT; i++) {
-            if (frames[i] != null && !frames[i].isDisposed()) {
-                frames[i].dispose();
-                frames[i] = null;
-            }
-        }
+        disposeFrames(frames);
     }
 }

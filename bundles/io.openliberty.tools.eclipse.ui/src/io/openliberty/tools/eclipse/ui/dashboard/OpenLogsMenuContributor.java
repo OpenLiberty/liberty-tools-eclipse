@@ -24,6 +24,7 @@ import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuManager;
 import org.eclipse.jface.action.MenuManager;
 import org.eclipse.jface.action.Separator;
+import org.eclipse.jface.resource.ImageDescriptor;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.ui.IWorkbenchPage;
@@ -32,6 +33,7 @@ import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.FileStoreEditorInput;
 import org.eclipse.ui.ide.IDE;
 
+import io.openliberty.tools.eclipse.LibertyDevPlugin;
 import io.openliberty.tools.eclipse.logging.Trace;
 import io.openliberty.tools.eclipse.messages.Messages;
 import io.openliberty.tools.eclipse.model.ProjectModel;
@@ -81,6 +83,9 @@ public class OpenLogsMenuContributor {
         LogFileManager logFileManager = LogFileManager.getInstance();
         LogConfig config = logFileManager.resolveLogConfig(project);
 
+        String menuIconFolder = LibertyDevPlugin.isDarkTheme() ? DashboardView.MENU_ICON_DARK_FOLDER : DashboardView.MENU_ICON_LIGHT_FOLDER;
+        ImageDescriptor logsIcon = LibertyDevPlugin.loadIconDescriptor(menuIconFolder + DashboardView.MENU_ICON_LICENSE_MAINTENANCE);
+
         // Gray out the entry when the location cannot be determined or does not exist.
         if (config == null || config.getLogsDir() == null || !Files.isDirectory(config.getLogsDir())) {
             Action disabled = new Action(MENU_ACTION_OPENLOGS) {
@@ -92,13 +97,14 @@ public class OpenLogsMenuContributor {
                     // No-op. Entry is disabled.
                 }
             };
+            disabled.setImageDescriptor(logsIcon);
             disabled.setEnabled(false);
             mgr.add(disabled);
             return;
         }
 
         Path logsDir = config.getLogsDir();
-        MenuManager logsMenu = new MenuManager(MENU_ACTION_OPENLOGS);
+        MenuManager logsMenu = new MenuManager(MENU_ACTION_OPENLOGS, logsIcon, null);
 
         addTypeSubmenu(logsMenu, MENU_ACTION_OPENLOGS_MSGS_TYPE,
                        logFileManager.getMessagesLogs(logsDir, config.getMessagesFileName()), logsDir);
