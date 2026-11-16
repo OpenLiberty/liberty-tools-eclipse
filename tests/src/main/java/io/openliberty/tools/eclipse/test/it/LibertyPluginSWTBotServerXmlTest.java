@@ -534,5 +534,4 @@ public class LibertyPluginSWTBotServerXmlTest extends AbstractLibertyPluginSWTBo
             fail("Unexpected exception was thrown: " + e);
         }
     }
-
 }
