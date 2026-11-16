@@ -158,7 +158,6 @@ public class LibertyPluginSWTBotServerXmlTest extends AbstractLibertyPluginSWTBo
                     missingOptions.add(option);
                 }
             }
-
             assertTrue(allFound, "Missing type-ahead options: server.xml " + Arrays.toString(missingOptions.toArray()));
             serverXmlEditor.close();
         } catch (Exception e) {
@@ -229,7 +228,6 @@ public class LibertyPluginSWTBotServerXmlTest extends AbstractLibertyPluginSWTBo
                     break;
                 }
             }
-
             assertTrue(warningFound, "Should have warning for empty feature tag");
 
             serverXmlEditor.close();
@@ -267,7 +265,6 @@ public class LibertyPluginSWTBotServerXmlTest extends AbstractLibertyPluginSWTBo
                     missingOptions.add(option);
                 }
             }
-
             assertTrue(allFound, "Missing type-ahead options for feature: server.xml" + Arrays.toString(missingOptions.toArray()));
 
             serverXmlEditor.close();
@@ -307,7 +304,6 @@ public class LibertyPluginSWTBotServerXmlTest extends AbstractLibertyPluginSWTBo
                     break;
                 }
             }
-
             assertTrue(diagnosticInvalid, "Should have diagnostic for invalid feature");
             serverXmlEditor.close();
         } catch (Exception e) {
@@ -349,7 +345,6 @@ public class LibertyPluginSWTBotServerXmlTest extends AbstractLibertyPluginSWTBo
                     break;
                 }
             }
-
             assertTrue(diagnosticDuplicate, "Should have diagnostic for duplicate feature");
 
             serverXmlEditor.close();
@@ -398,7 +393,6 @@ public class LibertyPluginSWTBotServerXmlTest extends AbstractLibertyPluginSWTBo
                     }
                 }
             }
-
             assertTrue(correctQuickFixFound, "Quick fix should say 'Replace platform'");
 
             serverXmlEditor.close();
@@ -441,7 +435,6 @@ public class LibertyPluginSWTBotServerXmlTest extends AbstractLibertyPluginSWTBo
                     break;
                 }
             }
-
             assertTrue(warningFound, "Should have warning for empty platform tag");
 
             serverXmlEditor.close();
@@ -479,7 +472,6 @@ public class LibertyPluginSWTBotServerXmlTest extends AbstractLibertyPluginSWTBo
                     missingOptions.add(option);
                 }
             }
-
             assertTrue(allFound, "Missing type-ahead options for platform: server.xml" + Arrays.toString(missingOptions.toArray()));
 
             serverXmlEditor.close();
@@ -525,7 +517,6 @@ public class LibertyPluginSWTBotServerXmlTest extends AbstractLibertyPluginSWTBo
                     break;
                 }
             }
-
             assertTrue(diagnosticFound, "Expected diagnostic was not found - server.xml file");
 
             SWTBotPluginOperations.clearContentInEditor(serverXmlEditor);
